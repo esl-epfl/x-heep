@@ -65,6 +65,12 @@ module xilinx_core_v_mini_mcu_wrapper
 
 );
 
+  import obi_pkg::*;
+  import reg_pkg::*;
+  import testharness_pkg::*;
+  import addr_map_rule_pkg::*;
+  import core_v_mini_mcu_pkg::*;
+  
   wire                               clk_gen;
   logic [                      31:0] exit_value;
   wire                               rst_n;
@@ -112,24 +118,23 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 `endif
 
-  
   // External SPC interface signals
-  reg_req_t ext_ao_peripheral_req[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0];
-  reg_rsp_t ext_ao_peripheral_resp[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0];
+  reg_req_t ext_ao_peripheral_req;
+  reg_rsp_t ext_ao_peripheral_resp;
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_busy;
-  reg_req_t periph_slave_req;
-  reg_rsp_t periph_slave_rsp;
+  reg_pkg::reg_req_t ext_periph_slv_req;
+  reg_pkg::reg_rsp_t ext_periph_slv_rsp;
 
   // Im2col SPC peripheral
   im2col_spc im2col_spc_i (
       .clk_i,
       .rst_ni,
 
-      .aopx2im2col_resp_i(ext_ao_peripheral_resp[0]),
-      .im2col2aopx_req_o (ext_ao_peripheral_req[0]),
+      .aopx2im2col_resp_i(ext_ao_peripheral_resp),
+      .im2col2aopx_req_o (ext_ao_peripheral_req),
 
-      .reg_req_i(ext_periph_slv_req[testharness_pkg::IM2COL_SPC_IDX]),
-      .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::IM2COL_SPC_IDX]),
+      .reg_req_i(ext_periph_slv_req),
+      .reg_rsp_o(ext_periph_slv_rsp),
 
       .dma_done_i(dma_busy),
       .im2col_spc_done_int_o(im2col_spc_done_int_o)
@@ -142,35 +147,6 @@ module xilinx_core_v_mini_mcu_wrapper
       zero_array[i] = '0;
     end
   end
-
-  addr_decode #(
-      .NoIndices(testharness_pkg::EXT_NPERIPHERALS),
-      .NoRules(testharness_pkg::EXT_NPERIPHERALS),
-      .addr_t(logic [31:0]),
-      .rule_t(addr_map_rule_pkg::addr_map_rule_t)
-  ) i_addr_decode_soc_regbus_ext_periphs (
-      .addr_i(periph_slave_req.addr),
-      .addr_map_i(testharness_pkg::EXT_PERIPHERALS_ADDR_RULES),
-      .idx_o(ext_periph_select),
-      .dec_valid_o(),
-      .dec_error_o(),
-      .en_default_idx_i(1'b0),
-      .default_idx_i('0)
-  );
-
-  reg_demux #(
-      .NoPorts(testharness_pkg::EXT_NPERIPHERALS),
-      .req_t  (reg_pkg::reg_req_t),
-      .rsp_t  (reg_pkg::reg_rsp_t)
-  ) reg_demux_i (
-      .clk_i,
-      .rst_ni,
-      .in_select_i(ext_periph_select),
-      .in_req_i(periph_slave_req),
-      .in_rsp_o(periph_slave_rsp),
-      .out_req_o(ext_periph_slv_req),
-      .out_rsp_i(ext_periph_slv_rsp)
-  );
 
   x_heep_system #(
       .X_EXT(X_EXT),
@@ -199,8 +175,8 @@ module xilinx_core_v_mini_mcu_wrapper
       .ext_dma_write_resp_i(zero_array),
       .ext_dma_addr_req_o(),
       .ext_dma_addr_resp_i(zero_array),
-      .ext_peripheral_slave_req_o(periph_slave_req),
-      .ext_peripheral_slave_resp_i(periph_slave_rsp),
+      .ext_peripheral_slave_req_o(ext_periph_slv_req),
+      .ext_peripheral_slave_resp_i(ext_periph_slv_rsp),
       .ext_ao_peripheral_req_i(ext_ao_peripheral_req),
       .ext_ao_peripheral_resp_o(ext_ao_peripheral_resp),
       .external_subsystem_powergate_switch_no(),

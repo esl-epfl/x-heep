@@ -31,6 +31,22 @@ class VerifHeep:
         self.xheep_dir = xheep_dir
         self.results = []
     
+    def setUpSynth(self, mem_banks=6, cpu="cv32e40px", bus="1toN"):
+        mcu_gen_cmd = f"cd {self.xheep_dir} ; make mcu-gen MEMORY_BANKS={mem_banks} CPU={cpu} BUS={bus}"
+        subprocess.run(mcu_gen_cmd, shell=True, capture_output=True, text=True)
+        if ("ERROR" in mcu_gen_cmd.stderr) or ("error" in mcu_gen_cmd.stderr):
+            print(mcu_gen_cmd.stderr)
+            exit(1)
+    
+    def launchSynth(self, scan_chains_en=0):
+        synth_cmd = f"cd {self.xheep_dir} ; make vivado-fpga FPGA_BOARD={self.target}"
+        if scan_chains_en:
+            synth_cmd += " FUSESOC_FLAGS=--flag=use_bscane_xilinx"
+        result_synth = subprocess.run(synth_cmd, shell=True, capture_output=True, text=True)
+        if ("ERROR" in result_synth.stderr) or ("error" in result_synth.stderr):
+            print(result_synth.stderr)
+            exit(1)
+    
     def serialBegin(self, port, baudrate):
         self.ser = serial.Serial(port, baudrate, timeout=1)
         self.serial_queue = queue.Queue()

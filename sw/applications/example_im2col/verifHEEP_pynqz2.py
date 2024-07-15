@@ -186,6 +186,7 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                             for t in range(stride_d1_min, stride_d1_max):
 
                                                 for u in range(stride_d2_min, stride_d2_max):
+                                                    
                                                     im2colVer.chronoStart()
 
                                                     print("Batch size: ", j)
@@ -259,19 +260,10 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                         elif int(test["ID"]) == 3:
                                                             im2col_spc.append(string)
                                                     
-                                                    end_time = time.time()
-                                                    cycle_time = end_time - start_time
-                                                    execution_times.append(cycle_time)
-                                                    average_time = sum(execution_times) / len(execution_times)
-                                                    total_time_elapsed = time.time() - start_loop_time
-                                                    total_estimated_time = total_time_elapsed / progress * 100
-                                                    estimated_remaining_time = total_estimated_time - total_time_elapsed
-                                                    hours, remainder = divmod(estimated_remaining_time, 3600)
-                                                    minutes, seconds = divmod(remainder, 60)
+                                                    im2colVer.chronoStop()
+                                                    time_rem = im2colVer.chronoExecutionEst(((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)))
 
-                                                    print(f"Cycle time: {cycle_time:.2f}s")
-                                                    print(f"Average time: {average_time:.2f}s")
-                                                    print(f"Remaining time: {hours}h:{minutes}m:{seconds:.2f}s")
+                                                    print(f"Remaining time: {time_rem["hours"]}h:{time_rem["minutes"]}m:{time_rem["seconds"]:.2f}s")
 
                                                     print("_______________________\n")
     if (not cpu_done):
@@ -281,7 +273,7 @@ for i in range(num_channels_dma_min, num_channels_dma):
     print(im2col_cpu)
     cpu_done = 1
 
-StopGdb()
+im2colVer.stopAll()
 
 with open('im2col_data.txt', 'w') as file:
     file.write("im2col_cpu:\n")
