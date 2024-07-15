@@ -32,28 +32,30 @@ int main()
             im2col_nchw_int32(i, &cycles);
         
             #if TEST_EN == 0
-                PRINTF("im2col NCHW test %d executed\n\r", i);
+            PRINTF("im2col NCHW test %d executed\n\r", i);
+            PRINTF_TIM("Total number of cycles: [%d]\n\r", cycles);
             #else
-                PRINTF("ID:%d\n\r", i);
-            #endif
-
-            #if TEST_EN == 0
-                PRINTF_TIM("Total number of cycles: [%d]\n\r", cycles);
-            #else
-                PRINTF_TIM("c:%d\n\rEND\n\r", cycles);
+            PRINTF_TIM("%d:%d:0\n\r&\n\r", i, cycles);
             #endif
 
             errors = verify(NCHW_FORMAT);
             
             if (errors != 0)
             {
+                #if TEST_EN == 0
                 PRINTF("TEST %d FAILED: %d errors\n\r", i, errors);
                 return EXIT_FAILURE;
+                #else
+                PRINTF_TIM("%d:%d:1\n\r&\n\r", i, cycles);
+                #endif
+                
             } 
             else
             {
                 #if TEST_EN == 0
-                    PRINTF("TEST PASSED!\n\r\n\r");
+                PRINTF("TEST PASSED!\n\r\n\r");
+                #else
+                PRINTF_TIM("%d:%d:0\n\r&\n\r", i, cycles);
                 #endif
             } 
         }

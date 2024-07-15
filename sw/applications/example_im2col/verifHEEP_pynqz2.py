@@ -5,78 +5,7 @@ import serial
 import pexpect
 import threading
 import queue
-
-# Configura la porta seriale
-ser = serial.Serial(
-    port='/dev/ttyUSB2',  # Sostituisci con il tuo dispositivo seriale
-    baudrate=9600,        # Sostituisci con il baud rate appropriato
-    timeout=1             # Tempo di timeout in secondi
-)
-
-# Step 1: Avvia OpenOCD in un processo separato
-openocd_cmd = ['openocd', '-f', './tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg']
-openocd_proc = subprocess.Popen(openocd_cmd)
-
-# Attendi che OpenOCD si avvii completamente
-time.sleep(2)
-
-# Step 2: Avvia GDB in un altro processo
-gdb_cmd = ['$RISCV/bin/riscv32-unknown-elf-gdb', './sw/build/main.elf']
-gdb = pexpect.spawn(' '.join(gdb_cmd))
-
-# Coda per memorizzare le linee lette dalla porta seriale
-serial_queue = queue.Queue()
-
-gdb.expect('(gdb)')
-gdb.sendline('target remote localhost:3333')
-gdb.expect('(gdb)')
-
-def RunGdb():
-  gdb.sendline('load')
-
-  gdb.expect('(gdb)')
-  gdb.sendline('b _exit')
-
-  gdb.expect('(gdb)')
-  gdb.sendline('continue')
-
-  try:
-    gdb.expect('Breakpoint', timeout=600)
-  except pexpect.TIMEOUT:
-    print("Timeout! Program didn't answer in time, exiting...")
-    gdb.terminate()
-    openocd_proc.terminate()
-    exit(1)
-
-def StopGdb():
-  gdb.sendcontrol('c')
-
-  # Chiudi il processo GDB
-  gdb.terminate()
-
-  # Chiudi il log
-  gdb.logfile.close()
-
-  # Termina il processo OpenOCD
-  openocd_proc.terminate()
-
-def SerialReceiver(serial_queue):
-  try:
-      received = False
-      lines = []
-      while not received:
-          # Leggi una riga di dati dalla porta seriale
-          line = ser.readline().decode('utf-8').rstrip()
-          serial_queue.put(line)
-          if line:
-              print(f"Ricevuto: {line}")
-              if line == "END":
-                received = True
-                return
-  except KeyboardInterrupt:
-      print("Interruzione da tastiera. Chiudo la porta seriale.")
-  finally:
-      ser.close()
+import verifheep_lib
 
 def parse_data(data):
     results = []
@@ -221,6 +150,11 @@ iteration = 0
 execution_times = []
 start_loop_time = time.time()
 
+im2colVer = verifheep_lib.VerifHeep("pynq-z2", "../../../")
+
+im2colVer.serialBegin("/dev/ttyUSB2", 9600)
+im2colVer.setUpDeb()
+
 for i in range(num_channels_dma_min, num_channels_dma):
     print("_______________________\n\r")
     print("Number of channels used by SPC\n\r", i)
@@ -252,7 +186,7 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                             for t in range(stride_d1_min, stride_d1_max):
 
                                                 for u in range(stride_d2_min, stride_d2_max):
-                                                    start_time = time.time()
+                                                    im2colVer.chronoStart()
 
                                                     print("Batch size: ", j)
                                                     print("Number of input channels: ", k)
@@ -311,57 +245,18 @@ for i in range(num_channels_dma_min, num_channels_dma):
 
                                                     # Run the verification script
                                                     subprocess.run(verification_script_com, shell=True, text=True)
-                                                    result = subprocess.run(app_compile_run_com, shell=True, capture_output=True, text=True)
                                                     
-                                                    # Crea e avvia i thread per GDB e la lettura seriale
-                                                    gdb_thread = threading.Thread(target=RunGdb)
-                                                    serial_thread = threading.Thread(target=SerialReceiver, args=(serial_queue,))
+                                                    # Launch the test
+                                                    im2colVer.launchTest("example_im2col", input_size=j*k*l*m)
 
-                                                    gdb_thread.start()
-                                                    serial_thread.start()
-
-                                                    # Aspetta che entrambi i thread terminino
-                                                    gdb_thread.join()
-                                                    serial_thread.join()
-
-                                                    # Recupera tutte le linee lette dalla porta seriale
-                                                    lines = []
-                                                    while not serial_queue.empty():
-                                                        lines.append(serial_queue.get())
-
-                                                    pattern = re.compile(r'ID:(\d+)')
-                                                    pattern_2 = re.compile(r'c:(\d+)')
-                                                    err_pattern = re.compile(r'ERROR')
-                                                    err_pattern = re.compile(r'ERROR', re.IGNORECASE)
-
-                                                    # Array per memorizzare i cicli per ogni test
-                                                    cycles = []
-
-                                                    # Filtra ed estrae i dati
-                                                    test_number = None
-                                                    for line in lines:
-                                                        match = pattern.search(line)
-                                                        match_2 = pattern_2.search(line)
-                                                        err_match = err_pattern.search(line)
-                                                        if match:
-                                                            test_number = match.group(1)
-                                                        elif match_2:
-                                                            cycle_count = match_2.group(1)
-                                                            cycles.append((test_number, cycle_count))
-                                                        elif err_match:
-                                                            print("ERROR FOUND")
-                                                            break
-                                                    
-                                                    print(cycles)
-
-                                                    for test, cycle in cycles:
-                                                        string = f"CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {cycle}"
+                                                    for test in im2colVer.results:
+                                                        string = f"CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {test["Cycles"]}"
                                                         
-                                                        if int(test) == 0:
+                                                        if int(test["ID"]) == 0:
                                                             im2col_cpu.append(string)
-                                                        elif int(test) == 2:
+                                                        elif int(test["ID"]) == 2:
                                                             im2col_dma_2d_C.append(string)
-                                                        elif int(test) == 3:
+                                                        elif int(test["ID"]) == 3:
                                                             im2col_spc.append(string)
                                                     
                                                     end_time = time.time()
