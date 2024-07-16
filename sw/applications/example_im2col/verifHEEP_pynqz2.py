@@ -7,26 +7,7 @@ import threading
 import queue
 import verifheep_lib
 from tqdm import tqdm
-
-def parse_data(data):
-    results = []
-    for item in data:
-        # Split each item by ', ' to get key-value pairs
-        pairs = item.split(', ')
-        # Create a dictionary from the pairs
-        result_dict = {}
-        for pair in pairs:
-            key, value = pair.split(': ')
-            # Convert value to integer
-            result_dict[key] = int(value)
-        results.append(result_dict)
-    return results
-
-# Function to add loop_size field
-def add_loop_size(data):
-    for entry in data:
-        entry['loop_size'] = entry['C'] * entry['B'] * entry['H'] * entry['W']
-    return data
+import curses
 
 num_masters = 4
 num_slaves = 3
@@ -166,128 +147,134 @@ total_iterations = ((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1
 
 progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
 
+def main(stdscr):
+  
+  progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
 
-for i in range(num_channels_dma_min, num_channels_dma):
-    print("_______________________\n\r")
-    print("Number of channels used by SPC\n\r", i)
-    print("_______________________\n\n\r")
-    im2col_cpu = []
-    im2col_dma_2d_C = []
-    im2col_spc = []
+  cpu_done = 0
+  iteration = 1
+  curses.curs_set(0)
+  for i in range(num_channels_dma_min, num_channels_dma):
+      print("_______________________\n\r")
+      print("Number of channels used by SPC\n\r", i)
+      print("_______________________\n\n\r")
+      im2col_cpu = []
+      im2col_dma_2d_C = []
+      im2col_spc = []
 
-    for j in range(batch_min, batch_max):
+      for j in range(batch_min, batch_max):
 
-        for k in range(channels_min, channels_max):
+          for k in range(channels_min, channels_max):
 
-            for l in range(im_h_min, im_h_max):
+              for l in range(im_h_min, im_h_max):
 
-                for m in range(im_w_min, im_w_max):
+                  for m in range(im_w_min, im_w_max):
 
-                    for n in range(ker_h_min, ker_h_max):
+                      for n in range(ker_h_min, ker_h_max):
 
-                        for o in range(ker_w_min, ker_w_max):
+                          for o in range(ker_w_min, ker_w_max):
 
-                            for p in range(pad_top_min, pad_top_max):
+                              for p in range(pad_top_min, pad_top_max):
 
-                                for q in range(pad_bottom_min, pad_bottom_max):
+                                  for q in range(pad_bottom_min, pad_bottom_max):
 
-                                    for r in range(pad_left_min, pad_left_max):
+                                      for r in range(pad_left_min, pad_left_max):
 
-                                        for s in range(pad_right_min, pad_right_max):
+                                          for s in range(pad_right_min, pad_right_max):
 
-                                            for t in range(stride_d1_min, stride_d1_max):
+                                              for t in range(stride_d1_min, stride_d1_max):
 
-                                                for u in range(stride_d2_min, stride_d2_max):
-                                                    
-                                                    im2colVer.chronoStart()
+                                                  for u in range(stride_d2_min, stride_d2_max):
+                                                      
+                                                      im2colVer.chronoStart()
+                                                      
+                                                      ver_modifications = {
+                                                          'image_height': l,
+                                                          'image_width': m,
+                                                          'channels': k,
+                                                          'batch': j,
+                                                          'filter_height': n,
+                                                          'filter_width': o,
+                                                          'top_pad': p,
+                                                          'bottom_pad': q,
+                                                          'left_pad': r,
+                                                          'right_pad': s,
+                                                          'stride_d1': t,
+                                                          'stride_d2': u
+                                                      }
 
-                                                    print(f"\rBatch size: {j}\n\rInput channels: {k}\n\r Image height: {l}\n\Image width: {m}"
-                                                          f"\n\rKernel height: {n}\n\rKernel width: {o}\n\rPad top: {p}\n\rPad bottom: {q}\n\r"
-                                                          f"Pad left: {r}\n\rPad right: {s}\n\rStride d1: {t}\n\rStride d2: {u}", end="")
+                                                      modify_parameters(ver_script_dir, ver_modifications, patterns=ver_patterns)
+                                                      with open(imcol_lib_dir, 'r') as file:
+                                                          content = file.read()
+                                                      
+                                                      mask = generate_mask(num_masters, num_slaves, max_masters_per_slave, i)
+                                                                                                          
+                                                      # Replace the matched pattern with the new value
+                                                      new_content = im2col_lib_pattern.sub(f'#define SPC_CH_MASK 0b{mask}', content)
+                                                      
+                                                      new_content = im2col_lib_pattern_test.sub(f'#define TEST_EN 1', new_content)
+                                                      
+                                                      if cpu_done == 1:
+                                                          new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 3', new_content)
+                                                      else:
+                                                          new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 0', new_content)
+                                                      # Write the modified content back to the file
+                                                      with open(imcol_lib_dir, 'w') as file:
+                                                          file.write(new_content)
 
-                                                    
-                                                    ver_modifications = {
-                                                        'image_height': l,
-                                                        'image_width': m,
-                                                        'channels': k,
-                                                        'batch': j,
-                                                        'filter_height': n,
-                                                        'filter_width': o,
-                                                        'top_pad': p,
-                                                        'bottom_pad': q,
-                                                        'left_pad': r,
-                                                        'right_pad': s,
-                                                        'stride_d1': t,
-                                                        'stride_d2': u
-                                                    }
+                                                      # Run the verification script
+                                                      subprocess.run(verification_script_com, shell=True, text=True)
+                                                      
+                                                      # Launch the test
+                                                      im2colVer.launchTest("example_im2col", input_size=j*k*l*m)
 
-                                                    modify_parameters(ver_script_dir, ver_modifications, patterns=ver_patterns)
-                                                    with open(imcol_lib_dir, 'r') as file:
-                                                        content = file.read()
-                                                    
-                                                    mask = generate_mask(num_masters, num_slaves, max_masters_per_slave, i)
-                                                  
-                                                    iteration += 1
-                                                    progress_bar.update(1)
-                                                    
-                                                    # Replace the matched pattern with the new value
-                                                    new_content = im2col_lib_pattern.sub(f'#define SPC_CH_MASK 0b{mask}', content)
-                                                    
-                                                    new_content = im2col_lib_pattern_test.sub(f'#define TEST_EN 1', new_content)
-                                                    
-                                                    if cpu_done == 1:
-                                                        new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 3', new_content)
-                                                    else:
-                                                        new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 0', new_content)
-                                                    # Write the modified content back to the file
-                                                    with open(imcol_lib_dir, 'w') as file:
-                                                        file.write(new_content)
+                                                      for test in im2colVer.results:
+                                                          string = f"CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {test["Cycles"]}"
+                                                          
+                                                          if int(test["ID"]) == 0:
+                                                              im2col_cpu.append(string)
+                                                          elif int(test["ID"]) == 2:
+                                                              im2col_dma_2d_C.append(string)
+                                                          elif int(test["ID"]) == 3:
+                                                              im2col_spc.append(string)
+                                                      
+                                                      im2colVer.chronoStop()
+                                                      time_rem = im2colVer.chronoExecutionEst(((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)))
+                                                      
+                                                      message = (f"SPC channels: {i}\nBatch size: {j}\nInput channels: {k}\nImage height: {l}\nImage width: {m}"
+                                                            f"\nKernel height: {n}\nKernel width: {o}\nPad top: {p}\nPad bottom: {q}\n"
+                                                            f"Pad left: {r}\nPad right: {s}\nStride d1: {t}\nStride d2: {u}\nRemaining time: {time_rem["hours"]}h:{time_rem["minutes"]}m:{time_rem["seconds"]:.2f}s")
+                                                      
+                                                      stdscr.addstr(1, 0, message)
+                                                      stdscr.refresh()
 
-                                                    # Run the verification script
-                                                    subprocess.run(verification_script_com, shell=True, text=True)
-                                                    
-                                                    # Launch the test
-                                                    im2colVer.launchTest("example_im2col", input_size=j*k*l*m)
+                                                      iteration += 1
+                                                      progress_bar.update(1)
 
-                                                    for test in im2colVer.results:
-                                                        string = f"CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {test["Cycles"]}"
-                                                        
-                                                        if int(test["ID"]) == 0:
-                                                            im2col_cpu.append(string)
-                                                        elif int(test["ID"]) == 2:
-                                                            im2col_dma_2d_C.append(string)
-                                                        elif int(test["ID"]) == 3:
-                                                            im2col_spc.append(string)
-                                                    
-                                                    im2colVer.chronoStop()
-                                                    time_rem = im2colVer.chronoExecutionEst(((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)))
+      if (not cpu_done):
+          im2col_cpu_array.append(im2col_cpu)
+          im2col_dma_2d_C_array.append(im2col_dma_2d_C)
+      im2col_spc_array.append(im2col_spc)
+      print(im2col_cpu)
+      cpu_done = 1
 
-                                                    print(f"\rRemaining time: {time_rem["hours"]}h:{time_rem["minutes"]}m:{time_rem["seconds"]:.2f}s")
+  im2colVer.stopAll()
+  progress_bar.close()
 
-    if (not cpu_done):
-        im2col_cpu_array.append(im2col_cpu)
-        im2col_dma_2d_C_array.append(im2col_dma_2d_C)
-    im2col_spc_array.append(im2col_spc)
-    print(im2col_cpu)
-    cpu_done = 1
+  with open('im2col_data.txt', 'w') as file:
+      file.write("im2col_cpu:\n")
+      for value in im2col_cpu_array:
+          file.write(f"{value}\n")
+      file.write("\n")
+      
+      file.write("im2col_dma_2d_C:\n")
+      for value in im2col_dma_2d_C_array:
+          file.write(f"{value}\n")
+      file.write("\n")
+      
+      file.write("im2col_spc:\n")
+      for value in im2col_spc_array:
+          file.write(f"{value}\n")
+      file.write("\n")
 
-im2colVer.stopAll()
-progress_bar.close()
-
-with open('im2col_data.txt', 'w') as file:
-    file.write("im2col_cpu:\n")
-    for value in im2col_cpu_array:
-        file.write(f"{value}\n")
-    file.write("\n")
-    
-    file.write("im2col_dma_2d_C:\n")
-    for value in im2col_dma_2d_C_array:
-        file.write(f"{value}\n")
-    file.write("\n")
-    
-    file.write("im2col_spc:\n")
-    for value in im2col_spc_array:
-        file.write(f"{value}\n")
-    file.write("\n")
-
-print("Data acquired!\n")
+  print("Data acquired!\n")

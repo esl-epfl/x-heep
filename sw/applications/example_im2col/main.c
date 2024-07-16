@@ -34,8 +34,6 @@ int main()
             #if TEST_EN == 0
             PRINTF("im2col NCHW test %d executed\n\r", i);
             PRINTF_TIM("Total number of cycles: [%d]\n\r", cycles);
-            #else
-            PRINTF_TIM("%d:%d:0\n\r&\n\r", i, cycles);
             #endif
 
             errors = verify(NCHW_FORMAT);

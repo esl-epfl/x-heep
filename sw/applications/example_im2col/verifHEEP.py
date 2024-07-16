@@ -2,6 +2,7 @@ import subprocess
 import re
 import time
 from tqdm import tqdm
+import curses
 
 def parse_data(data):
     results = []
@@ -97,8 +98,6 @@ total_iterations = ((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1
                     (channels_max - channels_min) * (batch_max - batch_min) *
                     (num_channels_dma - num_channels_dma_min))
 
-progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
-
 im2col_cpu_array = []
 im2col_dma_2d_C_array = []
 im2col_spc_array = []
@@ -151,157 +150,164 @@ def modify_parameters(file_path, modifications, patterns):
     with open(file_path, 'w') as file:
         file.write(content)
 
-cpu_done = 0
-iteration = 1
-execution_times = []
-start_loop_time = time.time()
 
-for i in range(num_channels_dma_min, num_channels_dma):
-    im2col_cpu = []
-    im2col_dma_2d_C = []
-    im2col_spc = []
+def main(stdscr):
+  
+  progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
 
-    for j in range(batch_min, batch_max):
+  cpu_done = 0
+  iteration = 1
+  execution_times = []
+  start_loop_time = time.time()
+  curses.curs_set(0)
+  for i in range(num_channels_dma_min, num_channels_dma):
+      im2col_cpu = []
+      im2col_dma_2d_C = []
+      im2col_spc = []
 
-        for k in range(channels_min, channels_max):
+      for j in range(batch_min, batch_max):
 
-            for l in range(im_h_min, im_h_max):
+          for k in range(channels_min, channels_max):
 
-                for m in range(im_w_min, im_w_max):
+              for l in range(im_h_min, im_h_max):
 
-                    for n in range(ker_h_min, ker_h_max):
+                  for m in range(im_w_min, im_w_max):
 
-                        for o in range(ker_w_min, ker_w_max):
+                      for n in range(ker_h_min, ker_h_max):
 
-                            for p in range(pad_top_min, pad_top_max):
+                          for o in range(ker_w_min, ker_w_max):
 
-                                for q in range(pad_bottom_min, pad_bottom_max):
+                              for p in range(pad_top_min, pad_top_max):
 
-                                    for r in range(pad_left_min, pad_left_max):
+                                  for q in range(pad_bottom_min, pad_bottom_max):
 
-                                        for s in range(pad_right_min, pad_right_max):
+                                      for r in range(pad_left_min, pad_left_max):
 
-                                            for t in range(stride_d1_min, stride_d1_max):
+                                          for s in range(pad_right_min, pad_right_max):
 
-                                                for u in range(stride_d2_min, stride_d2_max):
-                                                    start_time = time.time()
+                                              for t in range(stride_d1_min, stride_d1_max):
 
-                                                    tqdm.write(f"\n\n\rSPC channels: {i}\n\rBatch size: {j}\n\rInput channels: {k}\n\rImage height: {l}\n\rImage width: {m}"
-                                                          f"\n\rKernel height: {n}\n\rKernel width: {o}\n\rPad top: {p}\n\rPad bottom: {q}\n\r"
-                                                          f"Pad left: {r}\n\rPad right: {s}\n\rStride d1: {t}\n\rStride d2: {u}", end="")
-                                                    
-                                                    ver_modifications = {
-                                                        'image_height': l,
-                                                        'image_width': m,
-                                                        'channels': k,
-                                                        'batch': j,
-                                                        'filter_height': n,
-                                                        'filter_width': o,
-                                                        'top_pad': p,
-                                                        'bottom_pad': q,
-                                                        'left_pad': r,
-                                                        'right_pad': s,
-                                                        'stride_d1': t,
-                                                        'stride_d2': u
-                                                    }
+                                                  for u in range(stride_d2_min, stride_d2_max):
+                                                      start_time = time.time()
 
-                                                    modify_parameters(ver_script_dir, ver_modifications, patterns=ver_patterns)
-                                                    with open(imcol_lib_dir, 'r') as file:
-                                                        content = file.read()
-                                                    
-                                                    mask = generate_mask(num_masters, num_slaves, max_masters_per_slave, i)
+                                                      ver_modifications = {
+                                                          'image_height': l,
+                                                          'image_width': m,
+                                                          'channels': k,
+                                                          'batch': j,
+                                                          'filter_height': n,
+                                                          'filter_width': o,
+                                                          'top_pad': p,
+                                                          'bottom_pad': q,
+                                                          'left_pad': r,
+                                                          'right_pad': s,
+                                                          'stride_d1': t,
+                                                          'stride_d2': u
+                                                      }
 
-                                                    progress = (iteration)/((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)) * 100
-                                                                                                        
-                                                    # Replace the matched pattern with the new value
-                                                    new_content = im2col_lib_pattern.sub(f'#define SPC_CH_MASK 0b{mask}', content)
-                                                    
-                                                    new_content = im2col_lib_pattern_test.sub(f'#define TEST_EN 1', new_content)
-                                                    
-                                                    if cpu_done == 1:
-                                                        new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 3', new_content)
-                                                    else:
-                                                        new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 0', new_content)
-                                                    # Write the modified content back to the file
-                                                    with open(imcol_lib_dir, 'w') as file:
-                                                        file.write(new_content)
+                                                      modify_parameters(ver_script_dir, ver_modifications, patterns=ver_patterns)
+                                                      with open(imcol_lib_dir, 'r') as file:
+                                                          content = file.read()
+                                                      
+                                                      mask = generate_mask(num_masters, num_slaves, max_masters_per_slave, i)
 
-                                                    # Run the verification script
-                                                    subprocess.run(verification_script_com, shell=True, text=True)
-                                                    result = subprocess.run(app_compile_run_com, shell=True, capture_output=True, text=True)
-                                                    
-                                                    pattern = re.compile(r'(\d+):(\d+):(\d+)')
-                                                    err_pattern = re.compile(r'ERROR')
-                                                    #print(result.stdout)
+                                                      progress = (iteration)/((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)) * 100
+                                                                                                          
+                                                      # Replace the matched pattern with the new value
+                                                      new_content = im2col_lib_pattern.sub(f'#define SPC_CH_MASK 0b{mask}', content)
+                                                      
+                                                      new_content = im2col_lib_pattern_test.sub(f'#define TEST_EN 1', new_content)
+                                                      
+                                                      if cpu_done == 1:
+                                                          new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 3', new_content)
+                                                      else:
+                                                          new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 0', new_content)
+                                                      # Write the modified content back to the file
+                                                      with open(imcol_lib_dir, 'w') as file:
+                                                          file.write(new_content)
 
-                                                    # Array to store the cycles for each test
-                                                    cycles = []
+                                                      # Run the verification script
+                                                      subprocess.run(verification_script_com, shell=True, text=True)
+                                                      result = subprocess.run(app_compile_run_com, shell=True, capture_output=True, text=True)
+                                                      
+                                                      pattern = re.compile(r'(\d+):(\d+):(\d+)')
+                                                      err_pattern = re.compile(r'ERROR')
+                                                      #print(result.stdout)
 
-                                                    file_path = "../../../build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator/uart0.log"
+                                                      # Array to store the cycles for each test
+                                                      cycles = []
 
-                                                    # Filter and extract the data
-                                                    test_number = None
-                                                    with open(file_path, 'r') as file:
-                                                      for line in file:
-                                                        match = pattern.search(line)
-                                                        err_match = err_pattern.search(line)
-                                                        if match:
-                                                            test_number = match.group(1)
-                                                            cycle_count = match.group(2)
-                                                            cycles.append((test_number, cycle_count))
-                                                            print(f"Test {test_number} completed in {cycle_count} cycles")
-                                                        elif err_match:
-                                                            print("ERROR FOUND")
-                                                            break
+                                                      file_path = "../../../build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator/uart0.log"
 
-                                                    for test, cycle in cycles:
-                                                        string = f"CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {cycle}"
-                                                        
-                                                        if int(test) == 0:
-                                                            im2col_cpu.append(string)
-                                                        elif int(test) == 2:
-                                                            im2col_dma_2d_C.append(string)
-                                                        elif int(test) == 3:
-                                                            im2col_spc.append(string)
-                                                    
-                                                    end_time = time.time()
-                                                    cycle_time = end_time - start_time
-                                                    execution_times.append(cycle_time)
-                                                    average_time = sum(execution_times) / len(execution_times)
-                                                    total_time_elapsed = time.time() - start_loop_time
-                                                    total_estimated_time = total_time_elapsed / progress * 100
-                                                    estimated_remaining_time = total_estimated_time - total_time_elapsed
-                                                    hours, remainder = divmod(estimated_remaining_time, 3600)
-                                                    minutes, seconds = divmod(remainder, 60)
+                                                      # Filter and extract the data
+                                                      test_number = None
+                                                      with open(file_path, 'r') as file:
+                                                        for line in file:
+                                                          match = pattern.search(line)
+                                                          err_match = err_pattern.search(line)
+                                                          if match:
+                                                              test_number = match.group(1)
+                                                              cycle_count = match.group(2)
+                                                              cycles.append((test_number, cycle_count))
+                                                          elif err_match:
+                                                              print("ERROR FOUND")
+                                                              break
 
-                                                    tqdm.write(f"\rRemaining time: {hours}h:{minutes}m:{seconds:.2f}s")
-                                                    iteration += 1
-                                                    progress_bar.update(1)
-                                                    
-                                                    
-    if (not cpu_done):
-        im2col_cpu_array.append(im2col_cpu)
-        im2col_dma_2d_C_array.append(im2col_dma_2d_C)
-    im2col_spc_array.append(im2col_spc)
-    print(im2col_cpu)
-    cpu_done = 1
+                                                      for test, cycle in cycles:
+                                                          string = f"CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {cycle}"
+                                                          
+                                                          if int(test) == 0:
+                                                              im2col_cpu.append(string)
+                                                          elif int(test) == 2:
+                                                              im2col_dma_2d_C.append(string)
+                                                          elif int(test) == 3:
+                                                              im2col_spc.append(string)
+                                                      
+                                                      end_time = time.time()
+                                                      cycle_time = end_time - start_time
+                                                      execution_times.append(cycle_time)
+                                                      total_time_elapsed = time.time() - start_loop_time
+                                                      total_estimated_time = total_time_elapsed / progress * 100
+                                                      estimated_remaining_time = total_estimated_time - total_time_elapsed
+                                                      hours, remainder = divmod(estimated_remaining_time, 3600)
+                                                      minutes, seconds = divmod(remainder, 60)
 
-progress_bar.close()
+                                                      message = (f"SPC channels: {i}\nBatch size: {j}\nInput channels: {k}\nImage height: {l}\nImage width: {m}"
+                                                            f"\nKernel height: {n}\nKernel width: {o}\nPad top: {p}\nPad bottom: {q}\n"
+                                                            f"Pad left: {r}\nPad right: {s}\nStride d1: {t}\nStride d2: {u}\nRemaining time: {hours}h:{minutes}m:{seconds:.2f}s")
+                                                      
+                                                      stdscr.addstr(1, 0, message)
+                                                      stdscr.refresh()
 
-with open('im2col_data.txt', 'w') as file:
-    file.write("im2col_cpu:\n")
-    for value in im2col_cpu_array:
-        file.write(f"{value}\n")
-    file.write("\n")
-    
-    file.write("im2col_dma_2d_C:\n")
-    for value in im2col_dma_2d_C_array:
-        file.write(f"{value}\n")
-    file.write("\n")
-    
-    file.write("im2col_spc:\n")
-    for value in im2col_spc_array:
-        file.write(f"{value}\n")
-    file.write("\n")
+                                                      iteration += 1
+                                                      progress_bar.update(1)
+                                                      
+                                                      
+      if (not cpu_done):
+          im2col_cpu_array.append(im2col_cpu)
+          im2col_dma_2d_C_array.append(im2col_dma_2d_C)
+      im2col_spc_array.append(im2col_spc)
+      print(im2col_cpu)
+      cpu_done = 1
 
-print("Data acquired!\n")
+  progress_bar.close()
+
+  with open('im2col_data.txt', 'w') as file:
+      file.write("im2col_cpu:\n")
+      for value in im2col_cpu_array:
+          file.write(f"{value}\n")
+      file.write("\n")
+      
+      file.write("im2col_dma_2d_C:\n")
+      for value in im2col_dma_2d_C_array:
+          file.write(f"{value}\n")
+      file.write("\n")
+      
+      file.write("im2col_spc:\n")
+      for value in im2col_spc_array:
+          file.write(f"{value}\n")
+      file.write("\n")
+
+  print("Data acquired!\n")
+
+curses.wrapper(main)
