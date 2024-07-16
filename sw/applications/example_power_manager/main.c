@@ -41,7 +41,7 @@ static rv_timer_t timer_2_3;
 static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
 static power_manager_t power_manager;
 
-#ifndef TARGET_PYNQ_Z2
+#ifndef TARGET_IS_FPGA
     #define GPIO_TB_OUT 30
     #define GPIO_TB_IN  31
     #define GPIO_INTR  GPIO_INTR_31
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
     uint32_t reset_off, reset_on, switch_off, switch_on, iso_off, iso_on;
 
     // Setup pads
-#ifndef TARGET_PYNQ_Z2
+#ifndef TARGET_IS_FPGA
     pad_control_t pad_control;
     pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SCL_REG_OFFSET), 1);
@@ -219,6 +219,7 @@ int main(int argc, char *argv[])
     trans.dim = DMA_DIM_CONF_1D;
     trans.dim_inv = 0;
     trans.channel = 0;
+
     trans.pad_top_du = 0;
     trans.pad_bottom_du = 0;
     trans.pad_left_du = 0;
@@ -250,7 +251,7 @@ int main(int argc, char *argv[])
         }
     }
 
-#ifndef TARGET_PYNQ_Z2
+#ifndef TARGET_IS_FPGA
     // Power-gate and wake-up due to plic GPIO
 
     gpio_assign_irq_handler( GPIO_INTR_31, &gpio_handler_in );

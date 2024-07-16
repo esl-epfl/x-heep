@@ -10,7 +10,7 @@
 #include "ams_regs.h"
 #include "mmio.h"
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
   #error ( "This app does NOT work on the FPGA as it relies on the simulator testbench" )
 #endif
 
