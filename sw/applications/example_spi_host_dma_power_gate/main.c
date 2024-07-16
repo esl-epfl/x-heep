@@ -17,7 +17,7 @@
 #include "power_manager.h"
 #include "x-heep.h"
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
     #define USE_SPI_FLASH
 #endif
 
