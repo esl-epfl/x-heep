@@ -101,6 +101,11 @@ ${pad.x_heep_system_interface}
 ${pad.internal_signals}
 % endfor
 
+`ifdef FPGA_SYNTHESIS
+  assign cpu_subsystem_powergate_switch_ack_n = cpu_subsystem_powergate_switch_n;
+  assign peripheral_subsystem_powergate_switch_ack_n = peripheral_subsystem_powergate_switch_n;
+`endif
+
   core_v_mini_mcu #(
     .COREV_PULP(COREV_PULP),
     .FPU(FPU),
