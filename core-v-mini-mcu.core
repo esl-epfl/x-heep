@@ -100,8 +100,11 @@ filesets:
     depend:
     - openhwgroup.org:systems:core-v-mini-mcu-fpga
     files:
-    - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
+    - hw/ip_examples/im2col_spc/rtl/im2col_spc_reg_pkg.sv
+    - hw/ip_examples/im2col_spc/rtl/im2col_spc_reg_top.sv
+    - hw/ip_examples/im2col_spc/rtl/dma_if_pkg.sv
     - hw/ip_examples/im2col_spc/rtl/im2col_spc.sv
+    - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
     file_type: systemVerilogSource
 
   ip-asic:

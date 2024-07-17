@@ -128,7 +128,7 @@ module xilinx_core_v_mini_mcu_wrapper
 
   // Im2col SPC peripheral
   im2col_spc im2col_spc_i (
-      .clk_i(clk_gen),
+      .clk_i (clk_gen),
       .rst_ni(rst_n),
 
       .aopx2im2col_resp_i(ext_ao_peripheral_resp[0]),
@@ -148,7 +148,7 @@ module xilinx_core_v_mini_mcu_wrapper
       zero_array[i] = '0;
     end
   end
-  
+
   always_comb begin
     // All interrupt lines set to zero by default
     for (int i = 0; i < core_v_mini_mcu_pkg::NEXT_INT; i++) begin

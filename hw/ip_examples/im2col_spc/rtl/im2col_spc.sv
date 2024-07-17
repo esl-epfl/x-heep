@@ -104,46 +104,6 @@ module im2col_spc
   im2col_spc_reg2hw_t reg2hw;
   im2col_spc_hw2reg_t hw2reg;
 
-  /* Parameters computation signals */
-  logic [15:0] w_offset;
-  logic [15:0] h_offset;
-  logic [31:0] im_c;
-  logic [31:0] im_row;
-  logic [31:0] im_col;
-  logic [31:0] fw_min_w_offset;
-  logic [31:0] fh_min_h_offset;
-  logic [31:0] n_zeros_left;
-  logic [31:0] n_zeros_right;
-  logic [31:0] n_zeros_top;
-  logic [31:0] n_zeros_bottom;
-  logic [31:0] size_transfer_1d;
-  logic [31:0] size_transfer_2d;
-  logic [31:0] index;
-  logic [31:0] h_offset_counter;
-  logic [31:0] im_c_counter;
-  logic [15:0] ch_col_counter;
-  logic [7:0] batch_counter;
-  logic [31:0] input_data_ptr;
-  logic [31:0] output_data_ptr;
-  logic [31:0] source_inc_d2;
-
-  /* 
-   * Every "comp" state refers to variable computations that precede the DMA call in the 
-   * loop, while any "param" state refers to the DMA parameters computation that follows the DMA call.
-   */
-  enum {
-    IDLE,
-    F_MIN_OFFSET_COMP,
-    IM_COORD_COMP,
-    N_ZEROS_COMP,
-    DMA_RUN_PARAM_COMP_1,
-    DMA_RUN_PARAM_COMP_2,
-    OUT_PTR_UPDATE,
-    IM_OFFSET_UPDATE,
-    START_DMA_RUN
-  }
-      param_state_q, param_state_d;
-
   enum {
     READY_IF_CU,
     IDLE_IF_CU,
@@ -213,6 +173,19 @@ module im2col_spc
       .pop_i(fifo_pop)
   );
 
+  /* Parameter FSM */
+  im2col_spc_param_fsm im2col_spc_param_fsm_i (
+      .clk_i,
+      .rst_ni,
+      .reg2hw_i(reg2hw),
+      .im2col_done_i(im2col_done),
+      .im2col_start_i(im2col_start),
+      .fifo_full_i(fifo_full),
+      .fifo_push_o(fifo_push),
+      .im2col_param_done_o(im2col_param_done),
+      .fifo_input_o(fifo_input)
+  );
+
   /*_________________________________________________________________________________________________________________________________ */
 
   /* FSMs instantiation */
@@ -227,226 +200,6 @@ module im2col_spc
       end else if (im2col_start == 1'b1) begin
         im2col_status <= BUSY;
       end
-    end
-  end
-
-  /* Parameter computation state transition FSM */
-  always_comb begin : proc_comb_param_state_fsm
-    unique case (param_state_d)
-      IDLE: begin
-        fifo_push = 1'b0;
-        if (im2col_start == 1'b1) begin
-          param_state_q = F_MIN_OFFSET_COMP;
-        end else begin
-          param_state_q = IDLE;
-        end
-      end
-
-      F_MIN_OFFSET_COMP: begin
-        fifo_push = 1'b0;
-        param_state_q = IM_COORD_COMP;
-      end
-
-      IM_COORD_COMP: begin
-        fifo_push = 1'b0;
-        param_state_q = N_ZEROS_COMP;
-      end
-
-      N_ZEROS_COMP: begin
-        fifo_push = 1'b0;
-        param_state_q = DMA_RUN_PARAM_COMP_1;
-      end
-
-      DMA_RUN_PARAM_COMP_1: begin
-        fifo_push = 1'b0;
-        param_state_q = DMA_RUN_PARAM_COMP_2;
-      end
-
-      DMA_RUN_PARAM_COMP_2: begin
-        fifo_push = 1'b0;
-        if (fifo_full == 1'b0) begin
-          param_state_q = START_DMA_RUN;
-        end else begin
-          param_state_q = DMA_RUN_PARAM_COMP_2;
-        end
-      end
-
-      OUT_PTR_UPDATE: begin
-        fifo_push = 1'b0;
-        if (batch_counter == reg2hw.batch.q - 1) begin
-          param_state_q = IM_OFFSET_UPDATE;
-        end else begin
-          param_state_q = IM_COORD_COMP;
-        end
-      end
-
-      IM_OFFSET_UPDATE: begin
-        fifo_push = 1'b0;
-        if (im2col_param_done == 1'b1) begin
-          param_state_q = IDLE;
-        end else begin
-          param_state_q = F_MIN_OFFSET_COMP;
-        end
-      end
-
-      START_DMA_RUN: begin
-        fifo_push = 1'b1;
-        param_state_q = OUT_PTR_UPDATE;
-      end
-    endcase
-  end
-
-  /* Parameter computation logic */
-  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_param_comp_fsm
-    if (!rst_ni) begin
-      ch_col_counter <= '0;
-      h_offset_counter <= '0;
-      im_c_counter <= '0;
-      batch_counter <= '0;
-      w_offset <= '0;
-      h_offset <= '0;
-      im_c <= '0;
-      n_zeros_left <= '0;
-      n_zeros_right <= '0;
-      n_zeros_top <= '0;
-      n_zeros_bottom <= '0;
-      size_transfer_1d <= '0;
-      size_transfer_2d <= '0;
-      index <= '0;
-      input_data_ptr <= '0;
-      output_data_ptr <= reg2hw.dst_ptr.q;
-    end else begin
-      unique case (param_state_d)
-        IDLE: begin
-          ch_col_counter <= '0;
-          h_offset_counter <= '0;
-          im_c_counter <= '0;
-          batch_counter <= '0;
-          w_offset <= '0;
-          h_offset <= '0;
-          im_c <= '0;
-          n_zeros_left <= '0;
-          n_zeros_right <= '0;
-          n_zeros_top <= '0;
-          n_zeros_bottom <= '0;
-          size_transfer_1d <= '0;
-          size_transfer_2d <= '0;
-          index <= '0;
-          input_data_ptr <= '0;
-          output_data_ptr <= reg2hw.dst_ptr.q;
-        end
-
-        F_MIN_OFFSET_COMP: begin
-          fw_min_w_offset <= {24'h0, reg2hw.fw.q} - 1 - {16'h0, w_offset};  // fw_minus_w_offset = FW - 1 - w_offset;
-          fh_min_h_offset <= {24'h0, reg2hw.fh.q} - 1 - {16'h0, h_offset};  // fh_minus_h_offset = FH - 1 - h_offset;
-          batch_counter <= '0;  // Reset the batch counter before starting a new batch
-        end
-
-        IM_COORD_COMP: begin
-          im_row <= {16'h0, h_offset} - {26'h0, reg2hw.pad_top.q};  // im_row = h_offset - TOP_PAD;
-          im_col <= {16'h0, w_offset} - {26'h0, reg2hw.pad_left.q};  // im_col = w_offset - LEFT_PAD;
-        end
-
-        N_ZEROS_COMP: begin
-
-          /* Left zeros computation */
-          if (w_offset >= {10'h0, reg2hw.pad_left.q}) begin
-            n_zeros_left <= 0;
-          end else if (({26'h0, reg2hw.pad_left.q} - {16'h0, w_offset}) % {24'h0, reg2hw.strides_d1.q} == 0) begin
-            n_zeros_left <= ({26'h0, reg2hw.pad_left.q} - {16'h0, w_offset}) / {24'h0, reg2hw.strides_d1.q}; // n_zeros_left = LEFT_PAD - w_offset;
-          end else begin
-            n_zeros_left <= ({26'h0, reg2hw.pad_left.q} - {16'h0, w_offset}) / {24'h0, reg2hw.strides_d1.q} + 1;
-          end
-
-          /* Top zeros computation */
-          if (h_offset >= {10'h0, reg2hw.pad_top.q}) begin
-            n_zeros_top <= 0;
-          end else if (({26'h0, reg2hw.pad_top.q} - {16'h0, h_offset}) % {24'h0, reg2hw.strides_d2.q} == 0) begin
-            n_zeros_top <= ({26'h0, reg2hw.pad_top.q} - {16'h0, h_offset}) / {24'h0, reg2hw.strides_d2.q}; // n_zeros_top = TOP_PAD - h_offset;
-          end else begin
-            n_zeros_top <= ({26'h0, reg2hw.pad_top.q} - {16'h0, h_offset}) / {24'h0, reg2hw.strides_d2.q} + 1;
-          end
-
-          /* Right zeros computation */
-          if (fw_min_w_offset >= reg2hw.pad_right.q || reg2hw.adpt_pad_right.q == 0) begin
-            n_zeros_right <= 0;
-          end else if ((reg2hw.adpt_pad_right.q - fw_min_w_offset) % {24'h0, reg2hw.strides_d1.q} == 0) begin
-            n_zeros_right <= (reg2hw.adpt_pad_right.q - fw_min_w_offset) / {24'h0, reg2hw.strides_d1.q};
-          end else begin
-            n_zeros_right <= (reg2hw.adpt_pad_right.q - fw_min_w_offset) / {24'h0, reg2hw.strides_d1.q} + 1;
-          end
-
-          /* Bottom zeros computation */
-          if (fh_min_h_offset >= reg2hw.pad_bottom.q || reg2hw.adpt_pad_bottom.q == 0) begin
-            n_zeros_bottom <= 0;
-          end else if ((reg2hw.adpt_pad_bottom.q - fh_min_h_offset) % {24'h0, reg2hw.strides_d2.q} == 0) begin
-            n_zeros_bottom <= (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) / {24'h0, reg2hw.strides_d2.q};
-          end else begin
-            n_zeros_bottom <= (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) / {24'h0, reg2hw.strides_d2.q} + 1;
-          end
-        end
-
-        DMA_RUN_PARAM_COMP_1: begin
-          size_transfer_1d <= {16'h0, reg2hw.n_patches_w.q} - n_zeros_left - n_zeros_right;
-          size_transfer_2d <= {16'h0, reg2hw.n_patches_h.q} - n_zeros_top - n_zeros_bottom;
-          index <= (({24'h0, batch_counter} * {24'h0, reg2hw.num_ch.q} + im_c) * reg2hw.ih.q + (im_row + n_zeros_top * {24'h0, reg2hw.strides_d2.q})) * reg2hw.iw.q + im_col + n_zeros_left * {24'h0, reg2hw.strides_d1.q};
-        end
-
-        DMA_RUN_PARAM_COMP_2: begin
-          source_inc_d2 <= (({24'h0, reg2hw.strides_d2.q} * reg2hw.iw.q) - (size_transfer_1d - 1 + ({24'h0, reg2hw.strides_d1.q}- 1) * (size_transfer_1d - 1)));
-          input_data_ptr <= reg2hw.src_ptr.q + index * 4;
-        end
-
-        OUT_PTR_UPDATE: begin
-          output_data_ptr <= output_data_ptr + ({16'h0, reg2hw.n_patches_h.q} * {16'h0, reg2hw.n_patches_w.q} ) * 4;
-          batch_counter <= batch_counter + 1;
-        end
-
-        IM_OFFSET_UPDATE: begin
-          /* w_offset update */
-          if (w_offset == {8'h0, reg2hw.fw.q} - 1) begin
-            w_offset <= '0;
-          end else begin
-            w_offset <= w_offset + 1;
-          end
-
-          /* h_offset update */
-          if (h_offset_counter == {24'h0, reg2hw.fw.q} - 1) begin
-            h_offset_counter <= '0;
-            if (h_offset == {8'h0, reg2hw.fh.q} - 1) begin
-              h_offset <= '0;
-            end else begin
-              h_offset <= h_offset + 1;
-            end
-          end else begin
-            h_offset_counter <= h_offset_counter + 1;
-          end
-
-          /* im_c update */
-          if (im_c_counter == {24'h0, reg2hw.fh.q} * {24'h0, reg2hw.fw.q} - 1) begin
-            im_c_counter <= '0;
-            im_c <= im_c + 1;
-          end else begin
-            im_c_counter <= im_c_counter + 1;
-          end
-
-          /* ch_col_counter update */
-          if (ch_col_counter == reg2hw.ch_col.q - 1) begin
-            ch_col_counter <= '0;
-          end else begin
-            ch_col_counter <= ch_col_counter + 1;
-          end
-        end
-      endcase
-    end
-  end
-
-  /* Parameter computation state transition ff */
-  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_param_state_dq
-    if (!rst_ni) begin
-      param_state_d <= IDLE;
-    end else begin
-      param_state_d <= param_state_q;
     end
   end
 
@@ -1065,19 +818,6 @@ module im2col_spc
     end
   end
 
-  /* Parameter computation done signal update */
-  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_param_done
-    if (!rst_ni) begin
-      im2col_param_done <= 1'b0;
-    end else begin
-      if (im2col_done == 1'b1) begin
-        im2col_param_done <= 1'b0;
-      end else if (ch_col_counter == (reg2hw.ch_col.q - 1) && batch_counter == reg2hw.batch.q) begin
-        im2col_param_done <= 1'b1;
-      end
-    end
-  end
-
   /* Global fsm done signal update logic */
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_spc_done
     if (!rst_ni) begin
@@ -1110,17 +850,6 @@ module im2col_spc
 
   /* Start signal assignment */
   assign im2col_start = (reg2hw.num_ch.qe == 1'b1);
-
-  /* Parameter computation FSM */
-  assign fifo_input.input_ptr = input_data_ptr;
-  assign fifo_input.output_ptr = output_data_ptr;
-  assign fifo_input.in_inc_d2 = source_inc_d2;
-  assign fifo_input.n_zeros_top = n_zeros_top;
-  assign fifo_input.n_zeros_bottom = n_zeros_bottom;
-  assign fifo_input.n_zeros_left = n_zeros_left;
-  assign fifo_input.n_zeros_right = n_zeros_right;
-  assign fifo_input.size_du_d1 = size_transfer_1d;
-  assign fifo_input.size_du_d2 = size_transfer_2d;
 
   /* Transaction loading process */
   assign dma_if_load_valid = aopx2im2col_resp_i.ready && dma_if_load;

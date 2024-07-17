@@ -15,6 +15,7 @@ filesets:
     - rtl/im2col_spc_reg_pkg.sv
     - rtl/im2col_spc_reg_top.sv
     - rtl/dma_if_pkg.sv
+    - rtl/im2col_spc_param_fsm.sv
     - rtl/im2col_spc.sv
     file_type: systemVerilogSource
 

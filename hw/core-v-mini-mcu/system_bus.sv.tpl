@@ -200,9 +200,9 @@ module system_bus
   assign demux_xbar_resp[DEBUG_MASTER_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_debug_master_resp_i;
   generate
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin : gen_ext_dma_master_resp_map
-      assign demux_xbar_resp[core_v_mini_mcu_pkg::DMA_READ_P0_IDX+i][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_read_resp_i[i];
-      assign demux_xbar_resp[core_v_mini_mcu_pkg::DMA_WRITE_P0_IDX+i][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_write_resp_i[i];
-      assign demux_xbar_resp[core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX+i][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_addr_resp_i[i];
+      assign demux_xbar_resp[core_v_mini_mcu_pkg::DMA_READ_P0_IDX+3*i][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_read_resp_i[i];
+      assign demux_xbar_resp[core_v_mini_mcu_pkg::DMA_WRITE_P0_IDX+3*i][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_write_resp_i[i];
+      assign demux_xbar_resp[core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX+3*i][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_addr_resp_i[i];
     end
   endgenerate
   

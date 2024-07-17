@@ -18,6 +18,7 @@
 
 int output_data[OH_NCHW*OW_NCHW];
 char im2col_done = 0;
+int ifr_status;
 
 /* Function used to simplify register operations */
 static inline volatile void write_register( uint32_t  p_val,
@@ -42,7 +43,8 @@ void handler_irq_im2col_spc( void )
   im2col_done = 1;
 
   /* Read the IFR to lower the interrupt flag */
-  int ifr_status = * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET);
+  ifr_status = * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET);
+  return;
 }
 
 /* Used to wait for the SPC interrupt handler to end */
@@ -785,6 +787,8 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                         IM2COL_SPC_NUM_CH_NUM_MASK,
                         IM2COL_SPC_NUM_CH_NUM_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
+
+        printf("AAAA");
 
         waiting_for_spc_irq();
 
