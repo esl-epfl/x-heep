@@ -41,7 +41,7 @@ Notes:
 #endif
 
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
     #define GPIO_TB_OUT 8
     #define GPIO_TB_IN  9
     #define GPIO_INTR  GPIO_INTR_9
