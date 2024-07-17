@@ -12,7 +12,7 @@ and you can focus on building your special HW supported by the microcontroller.
 
 The block diagram below shows the `X-HEEP` MCU
 
-<p align="center"><img src="docs/source/images/xheep_diagram.png" width="650"></p>
+<p align="center"><img src="docs/source/images/xheep_diagram.png" width="1000"></p>
 
 
 > :bookmark_tabs: Please refer to the documentation in [Read the Docs](https://x-heep.readthedocs.io/en/latest/index.html)
