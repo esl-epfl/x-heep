@@ -38,7 +38,8 @@ module im2col_spc_param_fsm
   enum {
     IDLE,
     ZEROS_COND_EVAL,
-    N_ZEROS_COMP,
+    N_ZEROS_COMP_1,
+    N_ZEROS_COMP_2,
     OUT_PTR_UPDATE,
     IM_OFFSET_UPDATE,
     START_DMA_RUN
@@ -73,18 +74,15 @@ module im2col_spc_param_fsm
   logic [31:0] right_zero_cond;
   logic [31:0] bottom_zero_cond;
   logic [31:0] n_zeros_left_std;
-  logic [31:0] n_zeros_left_1plus;
   logic [31:0] n_zeros_top_std;
-  logic [31:0] n_zeros_top_1plus;
   logic [31:0] n_zeros_right_std;
-  logic [31:0] n_zeros_right_1plus;
   logic [31:0] n_zeros_bottom_std;
-  logic [31:0] n_zeros_bottom_1plus;
   logic output_data_ptr_en;
   logic im_offset_en;
   logic batch_inc_en;
   logic batch_rst;
-  logic zeros_en;
+  logic zeros_phase1_en;
+  logic zeros_phase2_en;
   logic zeros_rst;
   logic zeros_eval_en;
   logic zeros_eval_rst;
@@ -132,7 +130,8 @@ module im2col_spc_param_fsm
         batch_rst = 1'b1;
         output_data_ptr_en = 1'b0;
         im_offset_en = 1'b0;
-        zeros_en = 1'b0;
+        zeros_phase1_en = 1'b0;
+        zeros_phase2_en = 1'b0;
         zeros_rst = 1'b1;
         zeros_eval_en = 1'b0;
         zeros_eval_rst = 1'b1;
@@ -150,21 +149,38 @@ module im2col_spc_param_fsm
         batch_rst = 1'b0;
         output_data_ptr_en = 1'b0;
         im_offset_en = 1'b0;
-        zeros_en = 1'b0;
+        zeros_phase1_en = 1'b0;
+        zeros_phase2_en = 1'b0;
         zeros_rst = 1'b0;
         zeros_eval_en = 1'b1;
         zeros_eval_rst = 1'b0;
         output_data_ptr_rst = 1'b0;
-        param_state_q = N_ZEROS_COMP;
+        param_state_q = N_ZEROS_COMP_1;
       end
 
-      N_ZEROS_COMP: begin
+      N_ZEROS_COMP_1: begin
         fifo_push = 1'b0;
         batch_inc_en = 1'b0;
         batch_rst = 1'b0;
         output_data_ptr_en = 1'b0;
         im_offset_en = 1'b0;
-        zeros_en = 1'b1;
+        zeros_phase1_en = 1'b1;
+        zeros_phase2_en = 1'b0;
+        zeros_rst = 1'b0;
+        output_data_ptr_rst = 1'b0;
+        zeros_eval_en = 1'b0;
+        zeros_eval_rst = 1'b0;
+        param_state_q = N_ZEROS_COMP_2;
+      end
+
+      N_ZEROS_COMP_2: begin
+        fifo_push = 1'b0;
+        batch_inc_en = 1'b0;
+        batch_rst = 1'b0;
+        output_data_ptr_en = 1'b0;
+        im_offset_en = 1'b0;
+        zeros_phase1_en = 1'b0;
+        zeros_phase2_en = 1'b1;
         zeros_rst = 1'b0;
         output_data_ptr_rst = 1'b0;
         zeros_eval_en = 1'b0;
@@ -172,7 +188,7 @@ module im2col_spc_param_fsm
         if (fifo_full == 1'b0) begin
           param_state_q = START_DMA_RUN;
         end else begin
-          param_state_q = N_ZEROS_COMP;
+          param_state_q = N_ZEROS_COMP_2;
         end
       end
 
@@ -182,7 +198,8 @@ module im2col_spc_param_fsm
         batch_rst = 1'b0;
         output_data_ptr_en = 1'b1;
         im_offset_en = 1'b0;
-        zeros_en = 1'b0;
+        zeros_phase1_en = 1'b0;
+        zeros_phase2_en = 1'b0;
         zeros_rst = 1'b0;
         output_data_ptr_rst = 1'b0;
         zeros_eval_en = 1'b0;
@@ -200,7 +217,8 @@ module im2col_spc_param_fsm
         batch_rst = 1'b1;
         output_data_ptr_en = 1'b0;
         im_offset_en = 1'b1;
-        zeros_en = 1'b0;
+        zeros_phase1_en = 1'b0;
+        zeros_phase2_en = 1'b0;
         zeros_rst = 1'b0;
         output_data_ptr_rst = 1'b0;
         zeros_eval_en = 1'b0;
@@ -218,7 +236,8 @@ module im2col_spc_param_fsm
         batch_rst = 1'b0;
         output_data_ptr_en = 1'b0;
         im_offset_en = 1'b0;
-        zeros_en = 1'b0;
+        zeros_phase1_en = 1'b0;
+        zeros_phase2_en = 1'b0;
         zeros_rst = 1'b0;
         output_data_ptr_rst = 1'b0;
         zeros_eval_en = 1'b0;
@@ -229,48 +248,63 @@ module im2col_spc_param_fsm
   end
 
   /* Number of zeros computation */
-  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_zeros_comp
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_zeros_phase1_comp
+    if (!rst_ni) begin
+      fw_min_w_offset <= '0;
+      fh_min_h_offset <= '0;
+    end else begin
+      if (zeros_phase1_en == 1'b1) begin
+        fw_min_w_offset <= {24'h0, reg2hw.fw.q} - 1 - {16'h0, w_offset};
+        fh_min_h_offset <= {24'h0, reg2hw.fh.q} - 1 - {16'h0, h_offset};
+      end else if (zeros_rst == 1'b1) begin
+        fw_min_w_offset <= '0;
+        fh_min_h_offset <= '0;
+      end
+    end
+  end
+
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_zeros_phase2_comp
     if (!rst_ni) begin
       n_zeros_left <= '0;
       n_zeros_right <= '0;
       n_zeros_top <= '0;
       n_zeros_bottom <= '0;
     end else begin
-      if (zeros_en == 1'b1) begin
+      if (zeros_phase2_en == 1'b1) begin
         /* Left zeros computation */
         if (w_offset >= {10'h0, reg2hw.pad_left.q}) begin
           n_zeros_left <= 0;
-        end else if (left_zero_cond == 0) begin
+        end else if (|left_zero_cond == 1'b0) begin
           n_zeros_left <= n_zeros_left_std;  // n_zeros_left = LEFT_PAD - w_offset;
         end else begin
-          n_zeros_left <= n_zeros_left_1plus;
+          n_zeros_left <= n_zeros_left_std + 1;
         end
 
         /* Top zeros computation */
         if (h_offset >= {10'h0, reg2hw.pad_top.q}) begin
           n_zeros_top <= 0;
-        end else if (top_zero_cond == 0) begin
+        end else if (|top_zero_cond == 1'b0) begin
           n_zeros_top <= n_zeros_top_std;  // n_zeros_top = TOP_PAD - h_offset;
         end else begin
-          n_zeros_top <= n_zeros_top_1plus;
+          n_zeros_top <= n_zeros_top_std + 1;
         end
 
         /* Right zeros computation */
         if (fw_min_w_offset >= reg2hw.pad_right.q || reg2hw.adpt_pad_right.q == 0) begin
           n_zeros_right <= 0;
-        end else if (right_zero_cond == 0) begin
+        end else if (|right_zero_cond == 1'b0) begin
           n_zeros_right <= n_zeros_right_std;
         end else begin
-          n_zeros_right <= n_zeros_right_1plus;
+          n_zeros_right <= n_zeros_right_std + 1;
         end
 
         /* Bottom zeros computation */
         if (fh_min_h_offset >= reg2hw.pad_bottom.q || reg2hw.adpt_pad_bottom.q == 0) begin
           n_zeros_bottom <= 0;
-        end else if (bottom_zero_cond == 0) begin
+        end else if (|bottom_zero_cond == 1'b0) begin
           n_zeros_bottom <= n_zeros_bottom_std;
         end else begin
-          n_zeros_bottom <= n_zeros_bottom_1plus;
+          n_zeros_bottom <= n_zeros_bottom_std + 1;
         end
       end else if (zeros_rst == 1'b1) begin
         n_zeros_left <= '0;
@@ -402,18 +436,12 @@ module im2col_spc_param_fsm
 
   /* Signal assignments */
 
-  assign fw_min_w_offset = {24'h0, reg2hw.fw.q} - 1 - {16'h0, w_offset};  // fw_minus_w_offset = FW - 1 - w_offset;
-  assign fh_min_h_offset = {24'h0, reg2hw.fh.q} - 1 - {16'h0, h_offset};
   assign im_row = {16'h0, h_offset} - {26'h0, reg2hw.pad_top.q};  // im_row = h_offset - TOP_PAD;
   assign im_col = {16'h0, w_offset} - {26'h0, reg2hw.pad_left.q};  // im_col = w_offset - LEFT_PAD;
   assign n_zeros_left_std = ({26'h0, reg2hw.pad_left.q} - {16'h0, w_offset}) / {24'h0, reg2hw.strides_d1.q};
-  assign n_zeros_left_1plus = n_zeros_left_std + 1;
   assign n_zeros_top_std = ({26'h0, reg2hw.pad_top.q} - {16'h0, h_offset}) / {24'h0, reg2hw.strides_d2.q};
-  assign n_zeros_top_1plus = n_zeros_top_std + 1;
   assign n_zeros_right_std = (reg2hw.adpt_pad_right.q - fw_min_w_offset) / {24'h0, reg2hw.strides_d1.q};
-  assign n_zeros_right_1plus = n_zeros_right_std + 1;
   assign n_zeros_bottom_std = (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) / {24'h0, reg2hw.strides_d2.q};
-  assign n_zeros_bottom_1plus = n_zeros_bottom_std + 1;
   assign size_transfer_1d = {16'h0, reg2hw.n_patches_w.q} - n_zeros_left - n_zeros_right;
   assign size_transfer_2d = {16'h0, reg2hw.n_patches_h.q} - n_zeros_top - n_zeros_bottom;
   assign index = (({24'h0, batch_counter} * {24'h0, reg2hw.num_ch.q} + im_c) * reg2hw.ih.q + (im_row + n_zeros_top * {24'h0, reg2hw.strides_d2.q})) * reg2hw.iw.q + im_col + n_zeros_left * {24'h0, reg2hw.strides_d1.q};

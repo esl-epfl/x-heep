@@ -740,7 +740,7 @@ module im2col_spc
   /* Free channel finder */
   always_comb begin : proc_comb_free_channel
     dma_free_channel = 0;
-    for (int i = 0; i < 32; i = i + 1) begin
+    for (int i = 0; i < DMA_CH_NUM; i = i + 1) begin
       if (dma_if_channels[i] == 1'b0 && dma_ch_en_mask[i] == 1'b1) begin
         dma_free_channel = i[(DMA_CH_NUM==1)?0 : ($clog2(DMA_CH_NUM)-1):0];
         break;
@@ -752,20 +752,20 @@ module im2col_spc
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_control_unit
     if (!rst_ni) begin
       dma_trans_free_channel <= 0;
-      for (int i = 0; i < 32; i = i + 1) begin
+      for (int i = 0; i < DMA_CH_NUM; i = i + 1) begin
         dma_if_channels[i] <= 1'b0;
         dma_ch_first_write[i] <= 1'b0;
       end
     end else begin
       /* Reset the first write flags when the im2col spc is done */
       if (im2col_fsms_done == 1'b1) begin
-        for (int i = 0; i < 32; i = i + 1) begin
+        for (int i = 0; i < DMA_CH_NUM; i = i + 1) begin
           dma_ch_first_write[i] <= 1'b0;
         end
       end
 
       /* If an occupied channel asserts a done signal, free it up */
-      for (int i = 0; i < 32; i = i + 1) begin
+      for (int i = 0; i < DMA_CH_NUM; i = i + 1) begin
         if (dma_if_channels[i] == 1'b1 && dma_done_i[i] == 1'b1) begin
           dma_if_channels[i] <= 1'b0;
         end

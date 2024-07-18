@@ -36,12 +36,7 @@ module dma_NtoM_xbar #(
   import obi_pkg::*;
   import core_v_mini_mcu_pkg::*;
 
-  initial begin
-    $display("Elemento 0 di DMA_XBAR_MASTERS: %0d", DMA_XBAR_MASTERS[0]);
-    $display("Elemento 1 di DMA_XBAR_MASTERS: %0d", DMA_XBAR_MASTERS[1]);
-    $display("Elemento 2 di DMA_XBAR_MASTERS: %0d", DMA_XBAR_MASTERS[2]);
-  end
-  // Generazione delle istanze xbar_varlat_n_to_one
+  /* Generation of the crossbars */
   generate
     xbar_varlat_n_to_one #(
         .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0])

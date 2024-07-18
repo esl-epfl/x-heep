@@ -1,18 +1,71 @@
 
 # DMA
 
+## Introduction
+
 The **Direct Memory Access (DMA)** peripheral allows data transfers with reduced CPU interaction.
 
 It can perform *transactions* of data between peripherals and memory, or memory-to-memory (as a `memcpy` would).
 
 The CPU is required to configure the transaction, but once launched it is free to go to sleep, process the incoming data or do anything else.
 
-  
+This unit is capable of performing complex tasks that can significantly impact on the performance and power consumption of memory-intense applications. 
+It can be configured to perform *1D* or *2D* transactions and it can apply **zero padding** and perform **transpositions** on-the-fly, reducing the overhead of matrix operations.
 
 The DMA **Hardware Abstraction Layer (HAL)** facilitates the configuration of transactions from the users application. Furthermore, it adds an additional layer of safety checks to reduce the risk of faulty memory accesses, data override or infinite loops.
 
-  
-  
+## Structural description
+
+INSERIRE SCHEMATICO DMA
+
+#### DMA channels layout
+
+The DMA subsystem is composed of a parametric number of control units called *channels*. 
+Each channel can be configured, by the CPU or by an external controller, to perform a *transaction*, independently from the state of other channels.
+
+N-channels are connected to a N-to-M bus that exposes M-master ports on the system bus. Multiple channels can thus perform multiple transactions in parallel, a feature that enables memory-intense applications to greatly increase their throuhput.
+
+There are several possible ways to connect N-channels to the system bus through M-master ports.
+e.g. 
+N = 4, M = 2
+
+Two possible solutions: 
+- CH0, CH1 connected to port 0 & CH2, CH3 connected to port 1
+- CH0, CH1, CH2 connected to port 0 & CH3 connected to port 1
+
+In order to specify one among these configurations, the user has to set the `num_channels_per_master_port` parameter in `mcu_cfg.hjson`, which defines the _maximum_ channels per master port ratio.
+
+The first configuration of the previous example has 2 channels per master port, so a channels per master port ratio of 2.
+On the other hand, the second solution has a ratio of 3: the first 3 channels are connected to port 0, while the remaining channel is connected to the remaining port 1.
+
+While the 1st solution is a general purpose, balanced configuration, the 2nd solution might be better suited for applications that need a low latency channel for high priority tasks.
+
+This mechanism guarantees maximum flexibility, enabling the user to adapt the DMA subsystem to its requirements, both in terms of area and performance.
+
+#### Data FIFOs configuration
+
+Each DMA channel uses a FIFO to buffer the data to be written, which is crucial for mitigating the combined delays from the system bus and the DMA subsystem bus. 
+The size of this FIFO is parametric and is, by default, the same across all channels.
+
+Some applications can benefit from a larger FIFO because it allows for more values to be buffered in situations where the bus is heavily utilized or the target peripheral, such as the SPI, is too slow.
+On the other hand, other applications do not require a large FIFO and can save area by reducing its size.
+A hybrid system, where some channels have large FIFO sizes and others have smaller ones, could benefit both these types of applications.
+
+It is possible to specify the size of each DMA channel FIFO in `dma_subsystem.sv`. These are the steps to follow to take advantage this feature:
+
+- Uncomment `//define EN_SET_FIFO_CH_SIZE;` to enable the mechanism
+- Adjust the parameters _L_, _M_ and _S_. They define the size of a large, medium and small FIFO.
+- Modify the parameter `typedef enum {L, M, S} fifo_ch_size_t;` to assign individual sizes to the FIFOs. The number of elements must reflect the number of DMA channels.
+
+#### Triggers
+
+The DMA can be used to perform either memory-memory or peripheral-memory operations. 
+In this last case, it's very common that the peripheral has a reacting time which can't sustain the system clock.
+For example, the SPI trasmits data with a period of 30 clock cycles. 
+This difference in response time creates the need for a communication channel between DMA subsystem and peripheral which could suspend the DMA operations according to the peripheral state. These signals are called _triggers_. 
+
+They can be used both when the peripheral writes data using the DMA and when the DMA reads data from the peripheral.
+The DMA can be configured to consider triggers by enabling the correct _slot_ in SW, using the DMA HAL. 
 
 ## Previous Definitions
 
@@ -22,16 +75,13 @@ The implementation of this software layer introduced some concepts that need to 
 
 ### Transaction
 
-A transaction is an operation to be performed by the DMA. It implies copying bytes from a source pointer into a destination pointer. The transaction configuration can be loaded into the DMA registers once it has been cross-checked and it only starts when the size along the *first dimension* of the transaction is written in its corresponding register. The transaction is finished once the DMA has sent all its bytes (which not necessarily means they have been received by the final destination).
+A transaction is an operation to be performed by the DMA. It implies copying bytes from a source pointer into a destination pointer. The transaction configuration can be loaded into the DMA registers once it has been cross-checked and it only starts when the size along the *first dimension* of the transaction is written in its corresponding register. The transaction is finished once the DMA has sent all its bytes (which not necessarily means they have been received by the final destination) or when the external stop signal is asserted.
 
-Transactions cannot be stopped once they were launched.
-
-While a transaction is running, new transactions can be validated, but not launched or loaded into the DMA.
+While a transaction is running, new transactions can be validated, loaded and launched, but not into the same DMA channel.
 
 Transactions can be re-launched automatically in `circular mode`.
 
 Once the transaction has finished, a status bit is changed (that can be monitored through polling) and a fast interrupt is triggered.
-
   
 
 ### Source and destination
