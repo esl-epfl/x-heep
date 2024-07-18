@@ -2,7 +2,7 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
-// File: example_dma_sdk.c
+// File: example_timer_sdk.c
 // Author: Juan Sapriza
 // Date: 15/07/2024
 // Description: Example application to test the Timer SDK. Will count the time to execute a few short tasks.
