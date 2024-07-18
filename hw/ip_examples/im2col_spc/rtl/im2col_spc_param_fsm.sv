@@ -37,6 +37,7 @@ module im2col_spc_param_fsm
    */
   enum {
     IDLE,
+    ZEROS_COND_EVAL,
     N_ZEROS_COMP,
     OUT_PTR_UPDATE,
     IM_OFFSET_UPDATE,
@@ -85,6 +86,8 @@ module im2col_spc_param_fsm
   logic batch_rst;
   logic zeros_en;
   logic zeros_rst;
+  logic zeros_eval_en;
+  logic zeros_eval_rst;
   logic output_data_ptr_rst;
 
   /* Control signals */
@@ -131,12 +134,28 @@ module im2col_spc_param_fsm
         im_offset_en = 1'b0;
         zeros_en = 1'b0;
         zeros_rst = 1'b1;
+        zeros_eval_en = 1'b0;
+        zeros_eval_rst = 1'b1;
         output_data_ptr_rst = 1'b1;
         if (im2col_start == 1'b1) begin
-          param_state_q = N_ZEROS_COMP;
+          param_state_q = ZEROS_COND_EVAL;
         end else begin
           param_state_q = IDLE;
         end
+      end
+
+      ZEROS_COND_EVAL: begin
+        fifo_push = 1'b0;
+        batch_inc_en = 1'b0;
+        batch_rst = 1'b0;
+        output_data_ptr_en = 1'b0;
+        im_offset_en = 1'b0;
+        zeros_en = 1'b0;
+        zeros_rst = 1'b0;
+        zeros_eval_en = 1'b1;
+        zeros_eval_rst = 1'b0;
+        output_data_ptr_rst = 1'b0;
+        param_state_q = N_ZEROS_COMP;
       end
 
       N_ZEROS_COMP: begin
@@ -148,6 +167,8 @@ module im2col_spc_param_fsm
         zeros_en = 1'b1;
         zeros_rst = 1'b0;
         output_data_ptr_rst = 1'b0;
+        zeros_eval_en = 1'b0;
+        zeros_eval_rst = 1'b0;
         if (fifo_full == 1'b0) begin
           param_state_q = START_DMA_RUN;
         end else begin
@@ -164,10 +185,12 @@ module im2col_spc_param_fsm
         zeros_en = 1'b0;
         zeros_rst = 1'b0;
         output_data_ptr_rst = 1'b0;
+        zeros_eval_en = 1'b0;
+        zeros_eval_rst = 1'b0;
         if (batch_counter == reg2hw.batch.q - 1) begin
           param_state_q = IM_OFFSET_UPDATE;
         end else begin
-          param_state_q = N_ZEROS_COMP;
+          param_state_q = ZEROS_COND_EVAL;
         end
       end
 
@@ -180,10 +203,12 @@ module im2col_spc_param_fsm
         zeros_en = 1'b0;
         zeros_rst = 1'b0;
         output_data_ptr_rst = 1'b0;
+        zeros_eval_en = 1'b0;
+        zeros_eval_rst = 1'b0;
         if (im2col_param_done == 1'b1) begin
           param_state_q = IDLE;
         end else begin
-          param_state_q = N_ZEROS_COMP;
+          param_state_q = ZEROS_COND_EVAL;
         end
       end
 
@@ -196,6 +221,8 @@ module im2col_spc_param_fsm
         zeros_en = 1'b0;
         zeros_rst = 1'b0;
         output_data_ptr_rst = 1'b0;
+        zeros_eval_en = 1'b0;
+        zeros_eval_rst = 1'b0;
         param_state_q = OUT_PTR_UPDATE;
       end
     endcase
@@ -345,8 +372,28 @@ module im2col_spc_param_fsm
         output_data_ptr <= output_data_ptr + out_data_ptr_inc;
       end else if (output_data_ptr_rst == 1'b1) begin
         output_data_ptr <= reg2hw.dst_ptr.q;
-      end else begin
-        output_data_ptr <= output_data_ptr;
+      end
+    end
+  end
+
+  /* Number of zeros conditions evaluation */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_cond_eval
+    if (!rst_ni) begin
+      left_zero_cond <= '0;
+      top_zero_cond <= '0;
+      right_zero_cond <= '0;
+      bottom_zero_cond <= '0;
+    end else begin
+      if (zeros_eval_en == 1'b1) begin
+        left_zero_cond <= ({26'h0, reg2hw.pad_left.q} - {16'h0, w_offset}) % {24'h0, reg2hw.strides_d1.q};
+        top_zero_cond <= ({26'h0, reg2hw.pad_top.q} - {16'h0, h_offset}) % {24'h0, reg2hw.strides_d2.q};
+        right_zero_cond <= (reg2hw.adpt_pad_right.q - fw_min_w_offset) % {24'h0, reg2hw.strides_d1.q};
+        bottom_zero_cond <= (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) % {24'h0, reg2hw.strides_d2.q};
+      end else if (zeros_eval_rst == 1'b1) begin
+        left_zero_cond <= '0;
+        top_zero_cond <= '0;
+        right_zero_cond <= '0;
+        bottom_zero_cond <= '0;
       end
     end
   end
@@ -359,18 +406,14 @@ module im2col_spc_param_fsm
   assign fh_min_h_offset = {24'h0, reg2hw.fh.q} - 1 - {16'h0, h_offset};
   assign im_row = {16'h0, h_offset} - {26'h0, reg2hw.pad_top.q};  // im_row = h_offset - TOP_PAD;
   assign im_col = {16'h0, w_offset} - {26'h0, reg2hw.pad_left.q};  // im_col = w_offset - LEFT_PAD;
-  assign left_zero_cond = ({26'h0, reg2hw.pad_left.q} - {16'h0, w_offset}) % {24'h0, reg2hw.strides_d1.q};
-  assign top_zero_cond = ({26'h0, reg2hw.pad_top.q} - {16'h0, h_offset}) % {24'h0, reg2hw.strides_d2.q};
-  assign right_zero_cond = (reg2hw.adpt_pad_right.q - fw_min_w_offset) % {24'h0, reg2hw.strides_d1.q};
-  assign bottom_zero_cond = (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) % {24'h0, reg2hw.strides_d2.q};
   assign n_zeros_left_std = ({26'h0, reg2hw.pad_left.q} - {16'h0, w_offset}) / {24'h0, reg2hw.strides_d1.q};
-  assign n_zeros_left_1plus = ({26'h0, reg2hw.pad_left.q} - {16'h0, w_offset}) / {24'h0, reg2hw.strides_d1.q} + 1;
+  assign n_zeros_left_1plus = n_zeros_left_std + 1;
   assign n_zeros_top_std = ({26'h0, reg2hw.pad_top.q} - {16'h0, h_offset}) / {24'h0, reg2hw.strides_d2.q};
-  assign n_zeros_top_1plus = ({26'h0, reg2hw.pad_top.q} - {16'h0, h_offset}) / {24'h0, reg2hw.strides_d2.q} + 1;
+  assign n_zeros_top_1plus = n_zeros_top_std + 1;
   assign n_zeros_right_std = (reg2hw.adpt_pad_right.q - fw_min_w_offset) / {24'h0, reg2hw.strides_d1.q};
-  assign n_zeros_right_1plus = (reg2hw.adpt_pad_right.q - fw_min_w_offset) / {24'h0, reg2hw.strides_d1.q} + 1;
+  assign n_zeros_right_1plus = n_zeros_right_std + 1;
   assign n_zeros_bottom_std = (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) / {24'h0, reg2hw.strides_d2.q};
-  assign n_zeros_bottom_1plus = (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) / {24'h0, reg2hw.strides_d2.q} + 1;
+  assign n_zeros_bottom_1plus = n_zeros_bottom_std + 1;
   assign size_transfer_1d = {16'h0, reg2hw.n_patches_w.q} - n_zeros_left - n_zeros_right;
   assign size_transfer_2d = {16'h0, reg2hw.n_patches_h.q} - n_zeros_top - n_zeros_bottom;
   assign index = (({24'h0, batch_counter} * {24'h0, reg2hw.num_ch.q} + im_c) * reg2hw.ih.q + (im_row + n_zeros_top * {24'h0, reg2hw.strides_d2.q})) * reg2hw.iw.q + im_col + n_zeros_left * {24'h0, reg2hw.strides_d1.q};

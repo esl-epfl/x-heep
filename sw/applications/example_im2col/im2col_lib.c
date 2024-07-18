@@ -788,8 +788,6 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                         IM2COL_SPC_NUM_CH_NUM_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
 
-        printf("AAAA");
-
         waiting_for_spc_irq();
 
         #if TIMING  
