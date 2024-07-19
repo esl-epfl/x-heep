@@ -297,9 +297,9 @@
       ]
     }
     { window: {
-        name: "RXDATA",
-        items: "1",
-        validbits: "32",
+        name: "RXDATA"
+        items: "1"
+        validbits: "32"
         desc: '''PCM Receive data
                   '''
         swaccess: "ro"

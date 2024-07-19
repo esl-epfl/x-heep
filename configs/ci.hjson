@@ -1,5 +1,5 @@
 {
-    bus_type: "onetoM",
+    bus_type: "onetoM"
     ram_banks: {
         code_and_data: {
             num: 6

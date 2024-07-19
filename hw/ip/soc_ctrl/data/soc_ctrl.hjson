@@ -2,76 +2,76 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 { name: "soc_ctrl",
-  clock_primary: "clk_i",
+  clock_primary: "clk_i"
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
   ],
-  regwidth: "32",
+  regwidth: "32"
   registers: [
     { name:     "EXIT_VALID",
-      desc:     "Exit Valid - Used to write exit valid bit",
-      swaccess: "rw",
-      hwaccess: "hro",
+      desc:     "Exit Valid - Used to write exit valid bit"
+      swaccess: "rw"
+      hwaccess: "hro"
       fields: [
         { bits: "0", name: "EXIT_VALID", desc: "Exit Valid Reg" }
       ]
     },
     { name:     "EXIT_VALUE",
-      desc:     "Exit Value - Used to write exit value register",
-      swaccess: "rw",
-      hwaccess: "hro",
+      desc:     "Exit Value - Used to write exit value register"
+      swaccess: "rw"
+      hwaccess: "hro"
       fields: [
         { bits: "31:0", name: "EXIT_VALUE", desc: "Exit Value Reg" }
       ]
     }
     { name:     "BOOT_SELECT",
-      desc:     "Boot Select Value - Used to decide whether to boot from JTAG or FLASH",
-      swaccess: "ro",
-      hwaccess: "hrw",
+      desc:     "Boot Select Value - Used to decide whether to boot from JTAG or FLASH"
+      swaccess: "ro"
+      hwaccess: "hrw"
       fields: [
         { bits: "0", name: "BOOT_SELECT", desc: "Boot Select Reg" }
       ]
     }
     { name:     "BOOT_EXIT_LOOP",
-      desc:     "Boot Exit Loop Value - Set externally (e.g. JTAG, TESTBENCH, or another MASTER) to make the CPU jump to the main function entry",
-      swaccess: "rw",
-      hwaccess: "hrw",
+      desc:     "Boot Exit Loop Value - Set externally (e.g. JTAG, TESTBENCH, or another MASTER) to make the CPU jump to the main function entry"
+      swaccess: "rw"
+      hwaccess: "hrw"
       fields: [
         { bits: "0", name: "BOOT_EXIT_LOOP", desc: "Boot Exit Reg" }
       ]
     }
     { name:     "BOOT_ADDRESS",
-      desc:     "Boot Address Value - Used in the boot rom or power-on-reset functions",
+      desc:     "Boot Address Value - Used in the boot rom or power-on-reset functions"
       resval:   "0x00000180"
-      swaccess: "rw",
-      hwaccess: "hro",
+      swaccess: "rw"
+      hwaccess: "hro"
       fields: [
         { bits: "31:0", name: "BOOT_ADDRESS", desc: "Boot Address Reg" }
       ]
     }
     { name:     "USE_SPIMEMIO",
-      desc:     "Spi Module Select Value - Used to decide whether to use the SPI from Yosys or OpenTitan",
+      desc:     "Spi Module Select Value - Used to decide whether to use the SPI from Yosys or OpenTitan"
       resval:   "0x1"
-      swaccess: "rw",
-      hwaccess: "hrw",
+      swaccess: "rw"
+      hwaccess: "hrw"
       fields: [
         { bits: "0", name: "USE_SPIMEMIO", desc: "Spi Select Reg" }
       ]
     }
     { name:     "ENABLE_SPI_SEL",
-      desc:     "Enable Spi module selection from software",
+      desc:     "Enable Spi module selection from software"
       resval:   "0x0"
-      swaccess: "rw",
-      hwaccess: "hro",
+      swaccess: "rw"
+      hwaccess: "hro"
       fields: [
         { bits: "0", name: "ENABLE_SPI_SEL", desc: "Enable Spi Select Reg" }
       ]
     }
     { name:     "SYSTEM_FREQUENCY_HZ",
-      desc:     "System Frequency Value - Used to know and set at which frequency the system is running (in Hz)",
+      desc:     "System Frequency Value - Used to know and set at which frequency the system is running (in Hz)"
       resval:   "0x1"
-      swaccess: "rw",
-      hwaccess: "none",
+      swaccess: "rw"
+      hwaccess: "none"
       fields: [
         { bits: "31:0", name: "SYSTEM_FREQUENCY_HZ", desc: "Contains the value in Hz of the frequency the system is running" }
       ]

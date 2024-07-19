@@ -1,5 +1,5 @@
 {
-    bus_type: "NtoM",
+    bus_type: "NtoM"
     ram_banks: {
         code_and_data: {
             sizes: 64
