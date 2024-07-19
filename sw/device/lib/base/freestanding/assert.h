@@ -21,11 +21,26 @@
 // defined for C.
 #ifndef __cplusplus
 #define static_assert _Static_assert
-#endif  // __cplusplus
+#endif
+
 
 // `assert()` should not be used. When building with Clang, using this function
 // in device code will emit a compile-time error.
+
+
+#ifndef __cplusplus
 #define assert(do_not_use) \
   static_assert(false, "do not use assert(); use CHECK() instead")
+#else
+    #include <stdio.h>
+    #define assert(expression) \
+        do { \
+            if (!(expression)) { \
+                printf("Assertion failed: %s, file %s, line %d\n", \
+                        #expression, __FILE__, __LINE__); \
+                while(1); \
+            } \
+        } while (0)
+#endif  // __cplusplus*/
 
 #endif  // OPENTITAN_SW_DEVICE_LIB_BASE_FREESTANDING_ASSERT_H_
