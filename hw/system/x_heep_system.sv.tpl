@@ -5,11 +5,12 @@
 module x_heep_system
   import obi_pkg::*;
   import reg_pkg::*;
+  import serial_link_pkg::*;
 #(
     // serial link parameters
-    parameter int NumChannels = 1,
-    parameter int NumLanes = 4,//8,
-    parameter int MaxClkDiv = 32,
+    //parameter int NumChannels = 1,
+    //parameter int NumLanes = 4,//8,
+    //parameter int MaxClkDiv = 32,
 
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -26,14 +27,14 @@ module x_heep_system
     % if peripheral[0] in ("obi2axi"):
     % if peripheral[1]['is_included'] in ("yes"):
 
-    //input  logic [NumChannels-1:0]                ddr_rcv_clk_i,  // adapt for multi channel
-    //output logic [NumChannels-1:0]                ddr_rcv_clk_o,
-    //input  logic [NumChannels-1:0][NumLanes-1:0]  ddr_i,
-    //output logic [NumChannels-1:0][NumLanes-1:0]  ddr_o
-    input  logic [NumLanes-1:0]                     ddr_i,
-    output logic [NumLanes-1:0]                     ddr_o,
-    input  logic [NumChannels-1:0]                  ddr_rcv_clk_i,  // adapt for multi channel
-    output logic [NumChannels-1:0]                  ddr_rcv_clk_o,
+    input  logic [NumChannels-1:0]                ddr_rcv_clk_i,  // adapt for multi channel
+    output logic [NumChannels-1:0]                ddr_rcv_clk_o,
+    input  logic [NumChannels-1:0][NumLanes-1:0]  ddr_i,
+    output logic [NumChannels-1:0][NumLanes-1:0]  ddr_o,
+    //input  logic [NumLanes-1:0]                     ddr_i,
+    //output logic [NumLanes-1:0]                     ddr_o,
+    //input  logic [NumChannels-1:0]                  ddr_rcv_clk_i,  // adapt for multi channel
+    //output logic [NumChannels-1:0]                  ddr_rcv_clk_o,
     input  logic                                    fast_clock,
 
       //output obi_req_t obi_req_obi2axi,
@@ -43,7 +44,7 @@ module x_heep_system
     % endfor
 
 
-
+    output logic result,
 
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
 
@@ -223,6 +224,45 @@ ${pad_mux_process}
     .rst_no(rst_ngen),
     .init_no()
   );
+
+
+// needed to synthesise all the physical channels in vivado 
+// or is assigned to one of the pins 
+logic temp_or;
+
+    // OR operation over the elements of array2 and array
+    always_comb begin
+        temp_or = 0;
+        for (int j = 0; j < NumChannels; j++) begin
+            temp_or = temp_or | ddr_rcv_clk_i[j];
+            temp_or = temp_or | ddr_rcv_clk_o[j];
+        end
+        for (int i = 0; i < NumChannels; i++) begin
+            for (int j = 0; j < NumLanes; j++) begin
+                temp_or = temp_or | ddr_i[i][j];
+                temp_or = temp_or | ddr_o[i][j];
+            end
+        end
+    end
+
+    // Assign the final result
+    assign result = temp_or;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 endmodule  // x_heep_system

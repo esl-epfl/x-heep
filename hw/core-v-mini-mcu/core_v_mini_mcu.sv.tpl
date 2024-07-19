@@ -10,12 +10,12 @@ module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
   import axi_pkg::*;
-//  import serial_link_pkg::*;
+  import serial_link_pkg::*;
 #(
     // serial link parameters
-    parameter int NumChannels = 1,
-    parameter int NumLanes = 4,//8,
-    parameter int MaxClkDiv = 32,
+    //parameter int NumChannels = 1,
+    //parameter int NumLanes = 4,//8,
+    //parameter int MaxClkDiv = 32,
 
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -93,18 +93,18 @@ ${pad.core_v_mini_mcu_interface}
     % if peripheral[0] in ("obi2axi"):
     % if peripheral[1]['is_included'] in ("yes"):
 
-    //input  logic [NumChannels-1:0]    ddr_rcv_clk_i,  // adapt for multi channel
-    //output logic [NumChannels-1:0]    ddr_rcv_clk_o,
-    //input  logic [NumChannels-1:0][NumLanes-1:0] ddr_i,
-    //output logic [NumChannels-1:0][NumLanes-1:0] ddr_o
+    input  logic [NumChannels-1:0]    ddr_rcv_clk_i,  // adapt for multi channel
+    output logic [NumChannels-1:0]    ddr_rcv_clk_o,
+    input  logic [NumChannels-1:0][NumLanes-1:0] ddr_i,
+    output logic [NumChannels-1:0][NumLanes-1:0] ddr_o,
 
     //input  logic                    fast_clock,
 
 
-    input  logic [NumLanes-1:0]     ddr_i,
-    input  logic [NumChannels-1:0]  ddr_rcv_clk_i,
-    output logic [NumLanes-1:0]     ddr_o,
-    output logic [NumChannels-1:0]  ddr_rcv_clk_o,
+    //input  logic [NumLanes-1:0]     ddr_i,
+    //input  logic [NumChannels-1:0]  ddr_rcv_clk_i,
+    //output logic [NumLanes-1:0]     ddr_o,
+    //output logic [NumChannels-1:0]  ddr_rcv_clk_o,
     input  logic                    fast_clock
      
     //  output obi_req_t obi_req_obi2axi,

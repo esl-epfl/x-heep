@@ -16,13 +16,13 @@
     { name: "NumChannels",
       desc: "Number of channels",
       type: "int",
-      default: "38",
+      default: "32",
       local: "true"
     },
     { name: "Log2NumChannels",
       desc: "Number of channels",
       type: "int",
-      default: "6",
+      default: "1",
       local: "true"
     },
     { name: "NumBits",

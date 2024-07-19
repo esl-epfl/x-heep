@@ -8,7 +8,7 @@
 #include "csr.h"
 
 
-int32_t NUM_TO_CHECK = 9;
+int32_t NUM_TO_CHECK = 429496729;
 int32_t NUM_TO_BE_CHECKED;
 void WRITE_SL(void);
 
@@ -36,27 +36,27 @@ int main(int argc, char *argv[])
         break;
         }
     }
-    *addr_p = 8;
+    *addr_p = 6550039;
      while(1){
-    if (*addr_p_external ==8){
+    if (*addr_p_external ==6550039){
         //CSR_READ(CSR_REG_MCYCLE, &cycles1);
         
         break;
         }
     }
-    *addr_p = 100;
+    *addr_p = 38734;
          while(1){
-    if (*addr_p_external ==100){
+    if (*addr_p_external ==38734){
         //CSR_READ(CSR_REG_MCYCLE, &cycles1);
         
         break;
         }
     }
-    *addr_p = 9950;
+    *addr_p = 378518920;
              while(1){
-    if (*addr_p_external ==9950){
+    if (*addr_p_external ==378518920){
         //CSR_READ(CSR_REG_MCYCLE, &cycles1);
-        
+        //CSR_READ(CSR_REG_MCYCLE, &cycles1);
         break;
         }
     }
@@ -67,13 +67,6 @@ int main(int argc, char *argv[])
 }
 
 void __attribute__ ((optimize("00"))) WRITE_SL(void){
-
-    
-
-
-
-
-
 
     volatile int32_t *addr_p = 0x50000040;
     *addr_p = NUM_TO_CHECK;
@@ -102,6 +95,20 @@ void __attribute__ ((optimize("00"))) READ_SL(void){
 
 void __attribute__ ((optimize("00"))) REG_CONFIG(void){
     volatile int32_t *addr_p_reg =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
+    *addr_p_reg = (*addr_p_reg)| 0x00000001; // clock enable
+     //printf("addr_p %x\n", *addr_p_reg);
+    
+    *addr_p_reg = (*addr_p_reg)& 0x11111101; // rst on
+    *addr_p_reg = (*addr_p_reg)| 0x00000002; // rst oFF
+
+
+    //int32_t *addr_p_reg_flow_ctrl =(int32_t *)(SERIAL_LINK_START_ADDRESS  + SERIAL_LINK_SINGLE_CHANNEL_FLOW_CONTROL_FIFO_CLEAR_REG_OFFSET); //0x04000000 
+    //*addr_p_reg_flow_ctrl = (*addr_p_reg_flow_ctrl)& 0x00000001; //0x11111110;
+}
+
+
+void __attribute__ ((optimize("00"))) REG_CONFIG_MULTI(void){
+    volatile int32_t *addr_p_reg =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_CTRL_REG_OFFSET); 
     *addr_p_reg = (*addr_p_reg)| 0x00000001; // clock enable
      //printf("addr_p %x\n", *addr_p_reg);
     

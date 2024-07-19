@@ -130,10 +130,10 @@ module testharness #(
 
   //serial link check ddr
   import serial_link_pkg::*;
-  logic [NumLanes-1:0] ddr_i_xheep;  // check NumLanes parameter 
-  logic [NumLanes-1:0] ddr_o_xheep;
-  logic clk_sl_int2ext;
-  logic clk_sl_ext2int;
+  logic [NumChannels-1:0][NumLanes-1:0] ddr_i_xheep;  // check NumLanes parameter 
+  logic [NumChannels-1:0][NumLanes-1:0] ddr_o_xheep;
+  logic [NumChannels-1:0]               clk_sl_int2ext;
+  logic [NumChannels-1:0]               clk_sl_ext2int;
 
 
 
@@ -279,7 +279,8 @@ module testharness #(
       .ddr_o(ddr_o_xheep),
       .ddr_rcv_clk_i(clk_sl_ext2int),
       .ddr_rcv_clk_o(clk_sl_int2ext),
-      .fast_clock
+      .fast_clock,
+      .result()
   );
 
   // Testbench external bus
