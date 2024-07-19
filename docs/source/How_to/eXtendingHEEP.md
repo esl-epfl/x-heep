@@ -38,15 +38,15 @@ In order to vendorize `X-HEEP` create inside your repository's base directory (`
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 {
-  name: "esl_epfl_x_heep",
-  target_dir: "esl_epfl_x_heep",
+  name: "esl_epfl_x_heep"
+  target_dir: "esl_epfl_x_heep"
 
   upstream: {
-    url: "https://github.com/esl-epfl/x-heep.git",
-    rev: "main",
+    url: "https://github.com/esl-epfl/x-heep.git"
+    rev: "main"
   },
 
-  patch_dir: "patches/esl_epfl_x_heep",
+  patch_dir: "patches/esl_epfl_x_heep"
 
   exclude_from_upstream: [
     ".github",
