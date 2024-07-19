@@ -152,7 +152,7 @@ set_isolation mem_bank_${bank.name()}_iso <%text>\</%text>
     -isolation_signal memory_subsystem_banks_powergate_iso_n[${bank.name()}] <%text>\</%text>
     -isolation_sense low <%text>\</%text>
     -clamp_value 0 <%text>\</%text>
-    -applies_to outputs <%text>\</%text>
+    -elements {memory_subsystem_i/ram${bank.name()}_i/rdata_o} <%text>\</%text>
     -name_prefix cpu_iso_cell <%text>\</%text>
     -location parent
 

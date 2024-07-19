@@ -10,6 +10,8 @@ remove_design -all
 
 source ${SET_LIBS}
 
+define_design_lib WORK -path ./work
+
 source ${READ_SOURCES}.tcl
 
 elaborate ${TOP_MODULE}
