@@ -44,7 +44,7 @@ void hw_timer_init()
     rv_timer_init(timer_base, timer_cfg, &timer);
     rv_timer_approximate_tick_params(REFERENCE_CLOCK_Hz, REFERENCE_CLOCK_Hz, &tick_params);
     rv_timer_set_tick_params(&timer, 0, tick_params);
-    rv_timer_counter_set_enabled(&timer, 0, true);
+    rv_timer_counter_set_enabled(&timer, 0, kRvTimerEnabled);
 }
 
 uint32_t hw_timer_get_cycles()
