@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 #include <stddef.h> // for size_t
+#include "csr.h"
 
 #include "dma.h"
 #ifdef __cplusplus
@@ -28,13 +29,41 @@ extern volatile uint8_t dma_sdk_intr_flag;
 /********************************/
 
 /**
+ * @brief Initialize the DMA controller
+ * 
+ */
+void dma_sdk_init(void);
+
+
+/**
  * @brief Copy data words from source address to destination address
  * 
  * @param dst Destination address
  * @param src Source address
  * @param size Number of words (not bytes) to copy
+ * @param channel DMA channel to use
  */
-void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size);
+void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size, uint8_t channel);
+
+/**
+ * @brief Copy data words from source address to destination address
+ * 
+ * @param dst Destination address
+ * @param src Source address
+ * @param size Number of words (not bytes) to copy
+ * @param channel DMA channel to use
+ */
+void dma_copy_16b(uint32_t *dst, uint32_t *src, uint32_t size, uint8_t channel);
+
+/**
+ * @brief Copy data words from source address to destination address
+ * 
+ * @param dst Destination address
+ * @param src Source address
+ * @param size Number of words (not bytes) to copy
+ * @param channel DMA channel to use
+ */
+void dma_copy_8b(uint32_t *dst, uint32_t *src, uint32_t size, uint8_t channel);
 
 /**
  * @brief Copy data from source address to explicit destination addresses
@@ -42,19 +71,9 @@ void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size);
  * @param dst_addr Array of destination addresses
  * @param src Source address
  * @param bytes Number of words (not bytes) to copy
+ * @param channel DMA channel to use
  */
-void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size);
-
-/**
- * @brief Copy data from source address to destination address
- * 
- * @param dst Destination address
- * @param src Source address
- * @param bytes Number of bytes to copy
- * @param type Data type (DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_BYTE)
- * @return int 0 if success, -1 if error
- */
-int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const dma_data_type_t type);
+void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size, uint8_t channel);
 
 /**
  * @brief Fill a memory region with a 32-bit value
@@ -62,9 +81,32 @@ int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const d
  * @param dst Destination address
  * @param value Pointer to the value to fill the memory with
  * @param size Number of words (not bytes) to fill
+ * @param channel DMA channel to use
  * @return int 0 if success, -1 if error
  */
-void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size);
+void dma_fill_32b(uint32_t *dst, uint32_t *value, uint32_t size, uint8_t channel);
+
+/**
+ * @brief Fill a memory region with a 16-bit value
+ * 
+ * @param dst Destination address
+ * @param value Pointer to the value to fill the memory with
+ * @param size Number of words (not bytes) to fill
+ * @param channel DMA channel to use
+ * @return int 0 if success, -1 if error
+ */
+void dma_fill_16b(uint16_t *dst, uint16_t *value, uint32_t size, uint8_t channel);
+
+/**
+ * @brief Fill a memory region with an 8-bit value
+ * 
+ * @param dst Destination address
+ * @param value Pointer to the value to fill the memory with
+ * @param size Number of words (not bytes) to fill
+ * @param channel DMA channel to use
+ * @return int 0 if success, -1 if error
+ */
+void dma_fill_8b(uint8_t *dst, uint8_t *value, uint32_t size, uint8_t channel);
 
 /**
  * @brief Copy data from source address to destination address (16-bit aligned) [BROKEN until siigned DMA works]
@@ -72,8 +114,9 @@ void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size);
  * @param dst Destination address (32-bit aligned)
  * @param src Source address (16-bit aligned)
  * @param size Number of bytes to copy
+ * @param channel DMA channel to use
  */
-void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size);
+void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size, uint8_t channel);
 
 #ifdef __cplusplus
 }

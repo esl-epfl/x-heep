@@ -17,7 +17,7 @@
 #include "power_manager.h"
 #include "x-heep.h"
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
     #define USE_SPI_FLASH
 #endif
 
@@ -50,7 +50,7 @@ spi_host_t* spi_peri;
 
 static power_manager_t power_manager;
 
-void dma_intr_handler_trans_done(void)
+void dma_intr_handler_trans_done(uint8_t channel)
 {
     PRINTF("Non-weak implementation of a DMA interrupt\n\r");
     dma_intr_flag = 1;
@@ -295,7 +295,7 @@ int main(int argc, char *argv[])
     // Wait for DMA interrupt
     if( trans.end == DMA_TRANS_END_POLLING ){
         PRINTF("Waiting for DMA DONE...\n\r");
-        while( ! dma_is_ready() ){};
+        while( ! dma_is_ready(0) ){};
     } else{
         PRINTF("Waiting for the DMA interrupt...\n\r");
         while(dma_intr_flag == 0) {

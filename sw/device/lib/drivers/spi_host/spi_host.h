@@ -242,37 +242,43 @@ typedef struct spi_command_s {
 * SPI status structure
 */
 typedef struct spi_status_s {
-    // TX queue depth (how many unsent words are in the FIFO)
-    uint8_t txqd        : 8;
-    // RX queue depth (how many unread words are in the FIFO)
-    uint8_t rxqd        : 8;
-    // CMD queue depth (how many unprocessed commands are in the FIFO)
-    uint8_t cmdqd       : 4;
-    // Indicates wether rxqd is above the RX Watermark
-    bool    rxwm        : 1;
-    // Not used
-    bool    __rsvd0     : 1;
-    // The endianness of the SPI Peripheral
-    bool    byteorder   : 1;
-    // Indicates if the SPI still still has more data to read but the RX FIFO is full
-    bool    rxstall     : 1;
-    // Indicates RX FIFO is empty
-    bool    rxempty     : 1;
-    // Indicates RX FIFO is full
-    bool    rxfull      : 1;
-    // Indicates wether txqd is below the TX Watermark
-    bool    txwm        : 1;
-    // Indicates if the SPI still has more data to send but the TX FIFO is empty
-    bool    txstall     : 1;
-    // Indicates TX FIFO is empty
-    bool    txempty     : 1;
-    // Indicates TX FIFO is full
-    bool    txfull      : 1;
-    // Indicates if the SPI peripheral is currently processing a command
-    bool    active      : 1;
-    // Indicates if the SPI peripheral is ready to receive more commands
-    bool    ready       : 1;
+    union {
+        struct {
+            // TX queue depth (how many unsent words are in the FIFO)
+            uint8_t txqd        : 8;
+            // RX queue depth (how many unread words are in the FIFO)
+            uint8_t rxqd        : 8;
+            // CMD queue depth (how many unprocessed commands are in the FIFO)
+            uint8_t cmdqd       : 4;
+            // Indicates wether rxqd is above the RX Watermark
+            bool    rxwm        : 1;
+            // Not used
+            bool    __rsvd0     : 1;
+            // The endianness of the SPI Peripheral
+            bool    byteorder   : 1;
+            // Indicates if the SPI still still has more data to read but the RX FIFO is full
+            bool    rxstall     : 1;
+            // Indicates RX FIFO is empty
+            bool    rxempty     : 1;
+            // Indicates RX FIFO is full
+            bool    rxfull      : 1;
+            // Indicates wether txqd is below the TX Watermark
+            bool    txwm        : 1;
+            // Indicates if the SPI still has more data to send but the TX FIFO is empty
+            bool    txstall     : 1;
+            // Indicates TX FIFO is empty
+            bool    txempty     : 1;
+            // Indicates TX FIFO is full
+            bool    txfull      : 1;
+            // Indicates if the SPI peripheral is currently processing a command
+            bool    active      : 1;
+            // Indicates if the SPI peripheral is ready to receive more commands
+            bool    ready       : 1;
+        };
+        uint32_t value; // This allows accessing all the bitfields as a single 32-bit integer
+    };
 } spi_status_t;
+
 
 /****************************************************************************/
 /**                                                                        **/
@@ -666,10 +672,11 @@ spi_tristate_e spi_get_error_intr_enable(spi_host_t* spi)
  * @return Pointer to spi_status_t structure. NULL if spi is NULL.
  */
 static inline __attribute__((always_inline)) 
-const volatile spi_status_t* spi_get_status(spi_host_t* spi)
+const volatile spi_status_t spi_get_status(spi_host_t* spi)
 {
-    SPI_NULL_CHECK(spi, NULL)
-    return (const volatile spi_status_t*) &SPI_HW(spi)->STATUS;
+    spi_status_t status;
+    status.value = SPI_HW(spi)->STATUS; // Assuming SPI_HW(spi)->STATUS returns a uint32_t value representing the status
+    return status;
 }
 
 /**
@@ -684,7 +691,10 @@ static inline __attribute__((always_inline))
 spi_tristate_e spi_get_active(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_TRISTATE_ERROR)
-    return spi_get_status(spi)->active ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
+    //return spi_get_status(spi)->active ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
+    spi_status_t spi_status;
+    spi_status.value = 0x00;
+    spi_status.value = SPI_HW(spi)->STATUS;
 }
 
 /**
@@ -699,7 +709,7 @@ static inline __attribute__((always_inline))
 spi_tristate_e spi_get_ready(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_TRISTATE_ERROR)
-    return spi_get_status(spi)->ready ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
+    return spi_get_status(spi).ready ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
 /**
@@ -743,7 +753,7 @@ static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_cmdqd_not_full(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
-    while (spi_get_status(spi)->cmdqd >= SPI_HOST_PARAM_CMD_DEPTH);
+    while (spi_get_status(spi).cmdqd >= SPI_HOST_PARAM_CMD_DEPTH);
     return SPI_FLAG_OK;
 }
 
@@ -758,7 +768,7 @@ static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_tx_watermark(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
-    while (!spi_get_status(spi)->txwm);
+    while (!spi_get_status(spi).txwm);
     return SPI_FLAG_OK;
 }
 
@@ -773,7 +783,7 @@ static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_tx_empty(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
-    while (!spi_get_status(spi)->txempty);
+    while (!spi_get_status(spi).txempty);
     return SPI_FLAG_OK;
 }
 
@@ -788,7 +798,7 @@ static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_tx_not_empty(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
-    while (spi_get_status(spi)->txempty);
+    while (spi_get_status(spi).txempty);
     return SPI_FLAG_OK;
 }
 
@@ -803,7 +813,7 @@ static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_tx_not_full(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
-    while (spi_get_status(spi)->txfull);
+    while (spi_get_status(spi).txfull);
     return SPI_FLAG_OK;
 }
 
@@ -818,7 +828,7 @@ static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_rx_empty(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
-    while (!spi_get_status(spi)->rxempty);
+    while (!spi_get_status(spi).rxempty);
     return SPI_FLAG_OK;
 }
 
@@ -833,7 +843,7 @@ static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_rx_not_empty(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
-    while (spi_get_status(spi)->rxempty);
+    while (spi_get_status(spi).rxempty);
     return SPI_FLAG_OK;
 }
 
@@ -848,7 +858,7 @@ static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_rx_full(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
-    while (!spi_get_status(spi)->rxfull);
+    while (!spi_get_status(spi).rxfull);
     return SPI_FLAG_OK;
 }
 
@@ -863,7 +873,7 @@ static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_rx_watermark(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
-    while (!spi_get_status(spi)->rxwm);
+    while (!spi_get_status(spi).rxwm);
     return SPI_FLAG_OK;
 }
 
