@@ -20,16 +20,16 @@ INSERIRE SCHEMATICO DMA
 
 #### DMA channels layout
 
-The DMA subsystem is composed of a parametric number of control units called *channels*. 
-Each channel can be configured, by the CPU or by an external controller, to perform a *transaction*, independently from the state of other channels.
+The DMA subsystem is composed of a parametrized number of control units called *channels*. 
+Each channel can be configured, by the CPU or by an external controller, to perform a *transaction*, independently of the state of other channels.
 
 N-channels are connected to a N-to-M bus that exposes M-master ports on the system bus. Multiple channels can thus perform multiple transactions in parallel, a feature that enables memory-intense applications to greatly increase their throuhput.
 
-There are several possible ways to connect N-channels to the system bus through M-master ports.
-e.g. 
-N = 4, M = 2
+There are several ways to connect N-channels to the system bus through M-master ports.
+e.g.
+Let's consider a DMA subsystem with N = 4 channels and M = 2 master ports.
 
-Two possible solutions: 
+There are two possible solutions: 
 - CH0, CH1 connected to port 0 & CH2, CH3 connected to port 1
 - CH0, CH1, CH2 connected to port 0 & CH3 connected to port 1
 
@@ -51,7 +51,8 @@ Some applications can benefit from a larger FIFO because it allows for more valu
 On the other hand, other applications do not require a large FIFO and can save area by reducing its size.
 A hybrid system, where some channels have large FIFO sizes and others have smaller ones, could benefit both these types of applications.
 
-It is possible to specify the size of each DMA channel FIFO in `dma_subsystem.sv`. These are the steps to follow to take advantage this feature:
+It is possible to specify the size of each DMA channel FIFO in `dma_subsystem.sv`. 
+These are the steps to follow to take advantage this feature:
 
 - Uncomment `//define EN_SET_FIFO_CH_SIZE;` to enable the mechanism
 - Adjust the parameters _L_, _M_ and _S_. They define the size of a large, medium and small FIFO.
@@ -59,71 +60,107 @@ It is possible to specify the size of each DMA channel FIFO in `dma_subsystem.sv
 
 #### Triggers
 
-The DMA can be used to perform either memory-memory or peripheral-memory operations. 
-In this last case, it's very common that the peripheral has a reacting time which can't sustain the system clock.
-For example, the SPI trasmits data with a period of 30 clock cycles. 
-This difference in response time creates the need for a communication channel between DMA subsystem and peripheral which could suspend the DMA operations according to the peripheral state. These signals are called _triggers_. 
+In the case of memory-peripheral operations, it is common for the peripheral to have a reaction time that cannot match the system clock. For example, the SPI trasmits data with a period of circa 30 clock cycles. 
+
+This difference in response times creates the need for a communication channel between DMA subsystem and peripheral allowing the DMA operations to be suspended according to the peripheral state. These signals are called _triggers_. 
 
 They can be used both when the peripheral writes data using the DMA and when the DMA reads data from the peripheral.
-The DMA can be configured to consider triggers by enabling the correct _slot_ in SW, using the DMA HAL. 
+The DMA can be configured to respond to triggers by enabling the appropriate _slot_ via software, using the DMA HAL. [INSERIRE LINK A ESEMPIO SPI SLOT DMA MULTICHANNEL]
 
-## Previous Definitions
+#### Tips for DMA-based accelerator developers
+
+The DMA subsystem has been developed with specific features to facilitate the creation of custom accelerators that can leverage it to improve memory-intense applications.
+
+- **Always-On Peripheral Bus** (AOPB): it exposes the register interface of the units in the Always-On subsystem to any Smart Peripheral Controller (SPC). 
+In the case of the DMA subsystem, this feature allows the developers to configure the DMA subsystem without any CPU action, reducing power consumption while at the same time increasing the performance and effectiveness of the accelerator. 
+Check out the _im2col SPC_ in the `\ip_examples` folder for a detailed example and [LINK DOCUMENTAZIONE AOPB] for a detailed description of the AOPB.
+- **Triggers**: useful to synchronize the data streams to and from the accelerator.
+- **Stop signal**: can terminate the DMA transaction at any moment. It's particularly useful for any accelerator that launches a variable number of data that cannot be predetermined and depends on external conditions, such as a level crossing subsampler. 
+- **VerifHEEP**: it's a python library that has been developed to test any X-Heep project. It includes methods to generate random inputs and compute the golden results, launche synthesis, simulations and program, compile and launch applications on FPGA targets, analyze the performance of the tests and plot them. It has been deployed succesfully to validate the _im2col SPC_, it's expecially useful for data-intense accelerators.
+
+### Registers and their function
+
+This section will describe every register of a DMA channel and their function.
+The complete addres of a DMA channel register is the following:
+`DMA_START_ADDRESS + DMA_CH_SIZE * channel + REGISTER_OFFSET`
+The previous parameters, including the register offsets, can be found at `sw/device/lib/runtime/core_v_mini_mcu.h`and `sw/device/lib/drivers/dma/dma_regs.h`
+
+- **SRC_PTR_REG**: 
+    - _Length_: 32 bit
+    - _SW access_: read-write
+    - _Description: _contains the source pointer on 32 bits.
+
+
+## Functional description
+
+#### Dictionary
 
 The implementation of this software layer introduced some concepts that need to be understood in order to make proper use of the DMA's functionalities .
 
   
 
-### Transaction
+#### Transaction
 
-A transaction is an operation to be performed by the DMA. It implies copying bytes from a source pointer into a destination pointer. The transaction configuration can be loaded into the DMA registers once it has been cross-checked and it only starts when the size along the *first dimension* of the transaction is written in its corresponding register. The transaction is finished once the DMA has sent all its bytes (which not necessarily means they have been received by the final destination) or when the external stop signal is asserted.
+A transaction is an operation to be performed by the DMA. It implies copying bytes from a source pointer into a destination pointer. 
+The transaction configuration can be cross-checked before loading it into the DMA registers to avoid potential issues. 
+The transaction starts only when the size of the *first dimension* of the transaction is written in its corresponding register. The transaction is finished once the DMA has sent all its bytes (which not necessarily means they have been received by the final destination) or when the external stop signal is asserted.
 
-While a transaction is running, new transactions can be validated, loaded and launched, but not into the same DMA channel.
+While a transaction is running, new transactions can be validated, loaded and launched, provided they are not targeting the same DMA channel.
 
 Transactions can be re-launched automatically in `circular mode`.
 
-Once the transaction has finished, a status bit is changed (that can be monitored through polling) and a fast interrupt is triggered.
+Once the transaction has finished, a status bit is changed (that can be monitored through polling) and a fast interrupt is triggered. There is a single interrupt for the whole DMA subsystem so a system based on interrupt flag registers is developed in order to identify which channel has raised the interrupt. [LINK ALLA DESCRIZIONE DEI REGISTRI DEL DMA & INTERRUPTS]
   
 
-### Source and destination
+#### Source and destination
 
 Sources and destinations are the two pointers that will exchange data. Bytes will be copied from the source and into the destination address.
 
   
 
-### Data type
+#### Data type
 
 The DMA allows transactions in chunks of 1, 2 or 4 Bytes (`Byte`, `Half-Word` and `Word` respectively). The size in bytes of the chosen data type is called _data unit_ (usually abbreviated as `du`).
 
 For example, 16 bytes can be 16 data units if the data type is `Byte`, but 8 data units if the data type is `Half Word`.
-Source and destination can have different data types, if the destination type is wider than the source type, data can be sign extended.
+Source and destination can have different data types and if the destination type is larger than the source type, data can be sign extended.
 
-### Sign extension
-If specified (setting the bit in the corresponding register) and if the destination data type is wider than the source type, sign of the source data is extended to fill the size of the destination data type.
+#### Sign extension
+It can be enabled by setting the bit in the corresponding register [LINK SEZIONE REGISTRI].
+If the destination data type is larger than the source type, the source data is sign extended to fill up the size of the destination data type.
 
 
-### Dimensionality
+#### Dimensionality
 
 The DMA can perform both **1D transactions** and **2D transactions**. 
-When set to perform 1D transactions, the DMA copies the defined number of elements from the source pointer to the destination pointer using a 1D increment.
-When set to perform 2D transactions, the DMA copies data from the source pointer to the destination pointer using both a 1D increment and an additional 2D increment. 
-In this way, two-dimensional data manipulations (e.g. matrix manipulations) can be performed in a single DMA transaction, greatly reducing the CPU time.
+In a 1D transaction, the DMA copies a certain number of elements from the source pointer to the destination pointer using a single increment.
+On the other hand, in a 2D transaction the DMA copies data from the source pointer to the destination pointer using two separate increments, which can be interpreted as a 1D and a 2D increment. 
+In this way, two-dimensional data manipulations (i.e. matrix manipulations) can be performed in a single DMA transaction.
 
-### Increment
+#### Increment
 
-In the 1D configuration, if source and/or destination data are not to be consecutively read/written, a certain increment can be defined.
+Let's start by analyzing the 1D transaction.
+If the user wants to read and/or write in a non contiguos way, the increment can be set to obtain these effects.
 
-For instance, if you have an array of 4-bytes-words, but only want to copy the first 2 bytes of each word, you could define the transaction with a data type of half word, an increment of 2 data units in the source, and 1 data unit in the destination. This way, after each read operation the DMA will increment the read pointer in 4 bytes (2 data units), but the write pointer by only 2 bytes.
+For instance, let's consider an array of 4 word-type elements.
+The following steps describes how to copy just the first 2 bytes of each word:
+- Set the datatype of the transaction to **half word**
+- Set the _source_ increment to **2 data units**
+- Set the _destination_ increment to **1 data unit**
 
-In the 2D configuration, a second increment has to be set in order to enable the 2D transaction.
-In the context of matrix manipulation, the 2D increment is the number of words that the DMA has to "skip" to move to the next row.
+After each reading operation, the DMA will increment the read pointer by 4 bytes (2 data units) and the write pointer by only 2 bytes.
 
-For instance, let's examine the extraction of a continuous 2x2 matrix from a 4x4 matrix, stored in a continuous 2x2 matrix.
+Now, let's analyze the 2D transaction.
+In this case, a second increment has to be set in order to perform a matrix manipulation. The 2D increment can be interpreted as the number of words that the DMA has to "skip" to move to the next row of the matrix.
+
+For instance, let's examine the extraction of a contiguous 2x2 matrix from a 4x4 matrix.
 
 		| 3 | 5 | 7 | 9 |               
 		| 2 | 4 | 6 | 8 |           ->           | 3 | 5 |
 		| 1 | 3 | 5 | 7 |                        | 2 | 4 |
 		| 0 | 2 | 4 | 6 |
-The total number of elements copied from the source is 4 elements. The increments are:
+
+The total number of elements copied from the source is 4. In order to obtain this result, these are the setup of the increments:
  - For the source:
 	- 1D increment set to 1 word 
 	- 2D increment set to 3 words
@@ -131,13 +168,17 @@ The total number of elements copied from the source is 4 elements. The increment
 	- 1D increment set to 1 word
 	- 2D increment set to 1 word
 
-By exploiting the 2D increment, it's possible to implement a non-continuous read and/or write by computing the correct 2D increment. Detailed formulas for the computation of 2D increments are reported in the *example_dma_2d* folder.
+By exploiting the 2D increment, it's possible to implement a non-continuous read and/or write.
+
+[INSERIRE ESEMPIO GRAFICO PRESO DAI DISEGNI DELL'IM2COL]
+
+Detailed formulas for the computation of 2D increments are reported in application defined in the `\example_dma_2d` folder.
   
-### Zero padding
+#### Zero padding
 
 
 The DMA is capable of performing zero padding on the extracted data, both in 1D and 2D transactions.
-This is done by by setting four padding parameters:
+This is done by setting four padding parameters:
 
 - **T**op							    
 - **B**ottom				     					
@@ -162,27 +203,20 @@ Let's examine the previous 2x2 extraction example, adding a left and top padding
 	| 0 | 2 | 4 | 6 |
 
 
-### Alignment
+#### Alignment
 
-When doing transactions with bytes, the DMA can read/write from any pointer. However, if the data type is larger, words should be aligned so the DMA can perform a read/write operation and affect only the chosen bytes. If a word or half-word's pointer is not a multiple of 4 or 2 (respectively), the pointer is _misaligned_. In some cases the DMA HAL can overcome this problem reducing the data type (which will reflect on an efficiency loss).
+When doing transactions with bytes, the DMA can read/write from any pointer. However, if the data type is larger, words should be aligned so the DMA can perform a read/write operation and affect only the chosen bytes. If a word or half-word's pointer is not a multiple of 4 or 2 (respectively), the pointer is _misaligned_. In some cases the DMA HAL can overcome this problem BY reducing the data type (which will reflect on an efficiency loss).
 
   
 
-### Environment
+#### Environment
 
 An environment is a region of memory that can optionally be defined by the user to let the HAL know that it is allowed to read/write on that region. It is useful to make sure the DMA will not affect reserved memory regions.
 
-Right now, read and write permissions are not supported by environments, meaning that if it is defined, the DMA will be able to read AND write on it.
-
+Read and write permissions are not supported by environments, meaning that if it is defined, the DMA will be able to read AND write on it.
   
 
-### Triggers and Slots
-
-If the source or destination pointer is a peripheral, there are lines connecting the peripheral and the DMA that can be used to control the data flow (they behave as _triggers_). These lines are connected to _slots_ on the DMA and they allow/stop the DMA from reading/writing data.
-
-  
-
-### Target
+#### Target
 
 A target is either a region of memory or a peripheral to which the DMA will be able to read/write. When targets are pointing to memory, they can be assigned an environment to make sure that they will comply with memory restrictions.
 
@@ -190,7 +224,7 @@ Targets include a pointer (a point in the memory, or the Rx/Tx buffer in case of
 
   
 
-### Configuration flags
+#### Configuration flags
 
 During the creation or configuration of environments, targets or transactions, there could be inconsistencies or threatening situations (like writing outside the boundaries of a defined region). To provide the user with information about this potentially harmful situations, configuration flags are set while creating each of these entities. They can be unmasked and checked.
 
@@ -200,7 +234,7 @@ If senseless configurations are input to functions, assertions may halt the whol
 
   
 
-### Transaction modes
+#### Transaction modes
 
 There are three different transaction modes:
 
@@ -213,7 +247,7 @@ In this mode it's possible to perform only 1D transactions.
 
   
 
-### Windows
+#### Windows
 
 In order to process information as it arrives, the application can define a _window size_ (smaller than the _transaction size_. Every time the DMA has finished sending that given amount of information will trigger an interrupt through the PLIC.
 
@@ -222,7 +256,7 @@ In order to process information as it arrives, the application can define a _win
   
   
 
-### Checks and Validations
+#### Checks and Validations
 
 The DMA HAL's interface functions perform two types of checks:
 
@@ -244,9 +278,10 @@ A transaction is validated if it went through the creation-checks without raisin
 
   
 
-### End events
+#### End events
 
-The DMA considers a certain amount of bytes to have been transferred once it has sent them. It does not wait for a confirmation from the recipient. When a transaction/window is finished the DMA performs a series of event. These may include:
+The DMA considers a certain amount of bytes to have been transferred once it has sent them. It does not wait for a confirmation from the recipient, but can be interrupted at any time using the `ext_dma_stop` signal. 
+When a transaction/window is finished the DMA performs a series of events. These may include:
 
 * Changing its status register.
 
@@ -256,7 +291,7 @@ The DMA considers a certain amount of bytes to have been transferred once it has
 
   
 
-The DMA HAL can follow up on these changes or let the application be in charge. For this purpose, three different types of _end events_ are defined:
+The DMA HAL can follow up on these changes or let the application be in charge of them. For this purpose, three different types of _end events_ are defined:
 
 *  **Polling**: The HAL will disable interrupts from the DMA. The application will need to frequently query the status of the DMA to know when a transaction has finished.
 
@@ -367,7 +402,7 @@ This section will explain a basic usage of the DMA as a `memcpy`, and a slightly
 
   
 
-### Basic application
+#### Basic application
 
 This example will provide a simplified code for copying data from one region of memory to another. For a real implementation please refer to the `dma_example` application in `sw/applications/dma_example/main.c`.
 
