@@ -28,63 +28,63 @@
     pads: {
 
         clk: {
-            num: 1,
+            num: 1
             type: input
         },
         rst: {
-            num: 1,
+            num: 1
             active: low
             driven_manually: True
             type: input
         },
         boot_select: {
-            num: 1,
+            num: 1
             type: input
         },
         execute_from_flash: {
-            num: 1,
+            num: 1
             type: input
         },
         jtag_tck: {
-            num: 1,
+            num: 1
             type: input
         },
         jtag_tms: {
-            num: 1,
+            num: 1
             type: input
         },
         jtag_trst: {
-            num: 1,
+            num: 1
             active: low
             type: input
         },
         jtag_tdi: {
-            num: 1,
+            num: 1
             type: input
         },
         jtag_tdo: {
-            num: 1,
+            num: 1
             type: output
         },
         uart_rx: {
-            num: 1,
+            num: 1
             type: input
         },
         uart_tx: {
-            num: 1,
+            num: 1
             type: output
         },
         exit_valid: {
-            num: 1,
+            num: 1
             type: output
         },
         gpio: {
-            num: 18,
+            num: 18
             num_offset: 0 # first gpio is gpio0
             type: inout
         },
         spi_flash_sck: {
-            num: 1,
+            num: 1
             type: inout
         },
         spi_flash_cs: {
@@ -92,24 +92,24 @@
             type: inout
         },
         spi_flash_sd: {
-            num: 4,
+            num: 4
             type: inout
         },
         spi_sck: {
-            num: 1,
+            num: 1
             type: inout
         },
         spi_cs: {
-            num: 2,
+            num: 2
             type: inout
         },
         spi_sd: {
-            num: 4,
+            num: 4
             type: inout
         },
 
         pdm2pcm_pdm: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 pdm2pcm_pdm: {
@@ -121,7 +121,7 @@
             }
         },
         pdm2pcm_clk: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 pdm2pcm_clk: {
@@ -133,7 +133,7 @@
             }
         },
         i2s_sck: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 i2s_sck: {
@@ -145,7 +145,7 @@
             }
         },
         i2s_ws: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 i2s_ws: {
@@ -157,7 +157,7 @@
             }
         },
         i2s_sd: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 i2s_sd: {
@@ -169,7 +169,7 @@
            }
         },
         spi2_cs_0: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 spi2_cs_0: {
@@ -181,7 +181,7 @@
             }
         },
         spi2_cs_1: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 spi2_cs_1: {
@@ -193,7 +193,7 @@
             },
         },
         spi2_sck: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 spi2_sck: {
@@ -205,7 +205,7 @@
             }
         },
         spi2_sd_0: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 spi2_sd_0: {
@@ -217,7 +217,7 @@
             }
         },
         spi2_sd_1: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 spi2_sd_1: {
@@ -229,7 +229,7 @@
             }
         },
         spi2_sd_2: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 spi2_sd_2: {
@@ -241,7 +241,7 @@
             }
         },
         spi2_sd_3: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 spi2_sd_3: {
@@ -253,7 +253,7 @@
             }
         },
         i2c_scl: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 i2c_scl: {
@@ -265,7 +265,7 @@
             }
         },
         i2c_sda: {
-            num: 1,
+            num: 1
             type: inout
             mux: {
                 i2c_sda: {
