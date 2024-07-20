@@ -37,7 +37,7 @@
       desc:     "Number of bytes to copy from, defined with respect to the first dimension - Once a value is written, the copy starts",
       swaccess: "rw",
       hwaccess: "hro",
-      hwqe:     "true", // enable `qe` latched signal of software write pulse
+      hwqe:     "true" // enable `qe` latched signal of software write pulse
       // Dimensioned to 16 bits to allow for 64kB transfers on 1D
       fields: [
         { bits: "15:0", name: "SIZE", desc: "DMA counter D1 and start" }
@@ -47,7 +47,7 @@
       desc:     "Number of bytes to copy from, defined with respect to the second dimension",
       swaccess: "rw",
       hwaccess: "hro",
-      hwqe:     "true", // enable `qe` latched signal of software write pulse
+      hwqe:     "true" // enable `qe` latched signal of software write pulse
       // Dimensioned to 16 bits to allow for 64kB transfers on 2D
       fields: [
         { bits: "15:0", name: "SIZE", desc: "DMA counter D2" }
@@ -58,7 +58,7 @@
       swaccess: "ro",
       hwaccess: "hrw",
       hwext: "true",
-      hwre:     "true", // enable `re` latched signal of software read pulse
+      hwre:     "true" // enable `re` latched signal of software read pulse
       resval:   1,
       fields: [
         { bits: "0", name: "READY", desc: "Transaction is done"},
@@ -218,7 +218,7 @@
       desc:     '''Set the top padding''',
       swaccess: "rw",
       hwaccess: "hro",
-      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      hwqe:     "true" // enable `qe` latched signal of software write pulse: used to trigger the padding
       resval:   0,
       fields: [
         { bits: "5:0", name: "PAD", desc: "Top margin padding (2D)"}
@@ -228,7 +228,7 @@
       desc:     '''Set the bottom padding''',
       swaccess: "rw",
       hwaccess: "hro",
-      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      hwqe:     "true" // enable `qe` latched signal of software write pulse: used to trigger the padding
       resval:   0,
       fields: [
         { bits: "5:0", name: "PAD", desc: "Bottom margin padding (2D)"}
@@ -238,7 +238,7 @@
       desc:     '''Set the right padding''',
       swaccess: "rw",
       hwaccess: "hro",
-      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      hwqe:     "true" // enable `qe` latched signal of software write pulse: used to trigger the padding
       resval:   0,
       fields: [
         { bits: "5:0", name: "PAD", desc: "Right margin padding (1D/2D)"}
@@ -248,7 +248,7 @@
       desc:     '''Set the left padding''',
       swaccess: "rw",
       hwaccess: "hro",
-      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      hwqe:     "true" // enable `qe` latched signal of software write pulse: used to trigger the padding
       resval:   0,
       fields: [
         { bits: "5:0", name: "PAD", desc: "Left margin padding (1D/2D)"}
@@ -289,7 +289,7 @@
       swaccess: "ro",
       hwaccess: "hrw",
       hwext:    "true",
-      hwre:     "true", // latched signal of software write pulse
+      hwre:     "true" // latched signal of software write pulse
       resval:        0,
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
@@ -300,7 +300,7 @@
       swaccess: "ro",
       hwaccess: "hrw",
       hwext:    "true",
-      hwre:     "true", // latched signal of software write pulse
+      hwre:     "true" // latched signal of software write pulse
       resval:        0,
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for window done interrupt" }
