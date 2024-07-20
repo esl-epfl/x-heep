@@ -37,7 +37,7 @@
       desc:     "Number of elements to copy from, defined with respect to the first dimension - Once a value is written, the copy starts",
       swaccess: "rw",
       hwaccess: "hro",
-      hwqe:     "true", // enable `qe` latched signal of software write pulse
+      hwqe:     "true" // enable `qe` latched signal of software write pulse
       // Dimensioned to 16 bits to allow for 64kB transfers on 1D
       fields: [
         { bits: "15:0", name: "SIZE", desc: "DMA counter D1 and start" }
@@ -57,7 +57,7 @@
       swaccess: "ro",
       hwaccess: "hrw",
       hwext: "true",
-      hwre:     "true", // enable `re` latched signal of software read pulse
+      hwre:     "true" // enable `re` latched signal of software read pulse
       resval:   1,
       fields: [
         { bits: "0", name: "READY", desc: "Transaction is done"},
@@ -288,7 +288,7 @@
       swaccess: "ro",
       hwaccess: "hrw",
       hwext:    "true",
-      hwre:     "true", // latched signal of software write pulse
+      hwre:     "true" // latched signal of software write pulse
       resval:        0,
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
@@ -299,7 +299,7 @@
       swaccess: "ro",
       hwaccess: "hrw",
       hwext:    "true",
-      hwre:     "true", // latched signal of software write pulse
+      hwre:     "true" // latched signal of software write pulse
       resval:        0,
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for window done interrupt" }

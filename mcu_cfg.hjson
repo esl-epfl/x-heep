@@ -143,7 +143,7 @@
     },
 
     interrupts: {
-        number: 64, // Do not change this number!
+        number: 64 // Do not change this number!
         list: {
             // First one is always zero
             null_intr:               0,

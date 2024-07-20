@@ -64,7 +64,7 @@
         },
         gpio: {
             num: 18,
-            num_offset: 0, #first gpio is gpio0
+            num_offset: 0 # first gpio is gpio0
             type: inout
         },
         spi_flash_sck: {
@@ -72,7 +72,7 @@
             type: inout
         },
         spi_flash_cs: {
-            num: 2, #carefull, the x-heep uses the CS from the spi pkg, change it
+            num: 2 # careful, the x-heep uses the CS from the spi pkg, change it
             type: inout
         },
         spi_flash_sd: {
