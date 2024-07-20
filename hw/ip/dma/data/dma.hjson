@@ -54,7 +54,7 @@
       ]
     }
     { name:     "STATUS"
-      desc:     '''Status bits are set to one if a given event occurred''',
+      desc:     '''Status bits are set to one if a given event occurred'''
       swaccess: "ro"
       hwaccess: "hrw"
       hwext: "true"
@@ -118,7 +118,7 @@
     { name:     "SLOT"
       desc:     '''The DMA will wait for the signal 
                    connected to the selected trigger_slots to be high
-                   on the read and write side respectivly''',
+                   on the read and write side respectivly'''
       swaccess: "rw"
       hwaccess: "hro"
       resval:   0
@@ -132,7 +132,7 @@
       ]
     }
     { name:     "SRC_DATA_TYPE"
-      desc:     '''Width/type of the source data to transfer''',
+      desc:     '''Width/type of the source data to transfer'''
       swaccess: "rw"
       hwaccess: "hro"
       resval:   0
@@ -149,7 +149,7 @@
       ]
     }
     { name:     "DST_DATA_TYPE"
-      desc:     '''Width/type of the destination data to transfer''',
+      desc:     '''Width/type of the destination data to transfer'''
       swaccess: "rw"
       hwaccess: "hro"
       resval:   0
@@ -167,7 +167,7 @@
     }
     {
       name:     "SIGN_EXT"
-      desc:     '''Is the data to be sign extended? (Checked only if the dst data type is wider than the src data type)''',
+      desc:     '''Is the data to be sign extended? (Checked only if the dst data type is wider than the src data type)'''
       swaccess: "rw"
       hwaccess: "hro"
       resval:   0
@@ -182,7 +182,7 @@
       ]
     }
     { name:     "MODE"
-      desc:     '''Set the operational mode of the DMA''',
+      desc:     '''Set the operational mode of the DMA'''
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
@@ -197,7 +197,7 @@
       ]
     }
     { name:     "DIM_CONFIG"
-      desc:     '''Set the dimensionality of the DMA''',
+      desc:     '''Set the dimensionality of the DMA'''
       swaccess: "rw"
       hwaccess: "hro"
       resval:   0
@@ -206,7 +206,7 @@
       ]
     }
     { name:     "DIM_INV"
-      desc:     '''DMA dimensionality inversion selector''',
+      desc:     '''DMA dimensionality inversion selector'''
       swaccess: "rw"
       hwaccess: "hro"
       resval:   0
@@ -215,7 +215,7 @@
       ]
     }
     { name:     "PAD_TOP"
-      desc:     '''Set the top padding''',
+      desc:     '''Set the top padding'''
       swaccess: "rw"
       hwaccess: "hro"
       hwqe:     "true" // enable `qe` latched signal of software write pulse: used to trigger the padding
@@ -225,7 +225,7 @@
       ]
     }
     { name:     "PAD_BOTTOM"
-      desc:     '''Set the bottom padding''',
+      desc:     '''Set the bottom padding'''
       swaccess: "rw"
       hwaccess: "hro"
       hwqe:     "true" // enable `qe` latched signal of software write pulse: used to trigger the padding
@@ -235,7 +235,7 @@
       ]
     }
     { name:     "PAD_RIGHT"
-      desc:     '''Set the right padding''',
+      desc:     '''Set the right padding'''
       swaccess: "rw"
       hwaccess: "hro"
       hwqe:     "true" // enable `qe` latched signal of software write pulse: used to trigger the padding
@@ -245,7 +245,7 @@
       ]
     }
     { name:     "PAD_LEFT"
-      desc:     '''Set the left padding''',
+      desc:     '''Set the left padding'''
       swaccess: "rw"
       hwaccess: "hro"
       hwqe:     "true" // enable `qe` latched signal of software write pulse: used to trigger the padding
@@ -256,7 +256,7 @@
     }
     { name:    "WINDOW_SIZE"
       desc:    '''Will trigger a every "WINDOW_SIZE" writes
-                  Set to 0 to disable.''',
+                  Set to 0 to disable.'''
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
@@ -265,7 +265,7 @@
     }
     { name:    "WINDOW_COUNT"
       desc:    '''Number of times the end of the window was reached since the beginning.
-                  Reset at start''',
+                  Reset at start'''
       swaccess: "ro"
       // hwext: "true",
       hwaccess: "hrw"
@@ -276,7 +276,7 @@
     }
     { name:    "INTERRUPT_EN"
       desc:    '''Interrupt Enable Register 
-                  (Only the interrupt with the lowest id will be triggered)''',
+                  (Only the interrupt with the lowest id will be triggered)'''
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
@@ -285,7 +285,7 @@
       ]
     }
     { name:    "TRANSACTION_IFR"
-      desc:    '''Interrupt Flag Register for transactions''',
+      desc:    '''Interrupt Flag Register for transactions'''
       swaccess: "ro"
       hwaccess: "hrw"
       hwext:    "true"
@@ -296,7 +296,7 @@
       ]
     }
     { name:    "WINDOW_IFR"
-      desc:    '''Interrupt Flag Register for windows''',
+      desc:    '''Interrupt Flag Register for windows'''
       swaccess: "ro"
       hwaccess: "hrw"
       hwext:    "true"

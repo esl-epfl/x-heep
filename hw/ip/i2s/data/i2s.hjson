@@ -10,17 +10,17 @@
   regwidth: "32"
   param_list: [
     { name: "MaxWordWidth"
-      desc: '''Defines the maximal word width''',
+      desc: '''Defines the maximal word width'''
       type: "int"
       default: "32"
     }
     { name: "ClkDividerWidth"
-      desc: '''Bits available for the clock divider''',
+      desc: '''Bits available for the clock divider'''
       type: "int"
       default: "16"
     }
     { name: "WatermarkWidth"
-      desc: '''Bits available for the watermark''',
+      desc: '''Bits available for the watermark'''
       type: "int"
       default: "16"
     }
