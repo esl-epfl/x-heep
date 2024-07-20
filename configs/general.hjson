@@ -15,7 +15,7 @@
             start: 0
             #minimum size for freeRTOS and clang
             size: 0x00000E800
-        },
+        }
         {
             name: data
             start: 0x00000E800

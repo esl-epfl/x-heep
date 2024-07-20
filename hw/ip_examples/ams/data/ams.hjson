@@ -6,7 +6,7 @@
   clock_primary: "clk_i"
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
-  ],
+  ]
   regwidth: "32"
   registers: [
     { name:     "SEL"
@@ -16,7 +16,7 @@
       fields: [
         { bits: "1:0", name:"VALUE", desc: "Set the ADC threshold value" }
       ]
-    },
+    }
     { name:     "GET"
       desc:     "Get the ADC output"
       swaccess: "ro"
@@ -24,7 +24,7 @@
       fields: [
         { bits: "0", name:"VALUE", desc: "Get the ADC output" }
       ]
-    },
+    }
    ]
 }
 

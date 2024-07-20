@@ -5,7 +5,7 @@
   clock_primary: "clk_i"
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
-  ],
+  ]
   regwidth: "32"
   registers: [
     { name:     "EXIT_VALID"
@@ -15,7 +15,7 @@
       fields: [
         { bits: "0", name: "EXIT_VALID", desc: "Exit Valid Reg" }
       ]
-    },
+    }
     { name:     "EXIT_VALUE"
       desc:     "Exit Value - Used to write exit value register"
       swaccess: "rw"

@@ -6,7 +6,7 @@
   clock_primary: "clk_i"
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
-  ],
+  ]
   regwidth: 32
   registers: [
   
