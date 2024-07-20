@@ -84,7 +84,7 @@ inline uint32_t timer_get_cycles() {
  * 
  */
 inline void timer_start() {
-    timer_value = -timer_get_cycles();
+    hw_timer_start();
 }
 
 /**
@@ -93,8 +93,27 @@ inline void timer_start() {
  * @return int64_t Elapsed time in clock cycles
  */
 inline uint32_t timer_stop() {
-    timer_value += timer_get_cycles();
-    return timer_value;
+    return hw_timer_stop();
 }
+
+/**
+ * @brief Enable the timer IRQ
+ */
+void timer_irq_enable();
+
+/**
+ * @brief Clear the timer IRQ
+ */
+void timer_irq_clear();
+
+/**
+ * @brief Arms the timer to go off once the counter value is greater than or equal to threshold
+ */
+void timer_arm_start(uint32_t threshold);
+
+/**
+ * @brief Stop to output when timer is greater than or equal to threshold previously set
+ */
+void timer_arm_stop();
 
 #endif /* TIMER_SDK_H_ */
