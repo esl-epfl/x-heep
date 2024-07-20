@@ -6,7 +6,7 @@
   clock_primary: "clk_i"
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
-  ],
+  ]
   regwidth: "32"
   registers: [
     { name:     "SRC_PTR"
@@ -16,7 +16,7 @@
       fields: [
         { bits: "31:0", name: "PTR_IN", desc: "Input data pointer (word aligned)" }
       ]
-    },
+    }
     { name:     "DST_PTR"
       desc:     "Output data pointer (word aligned)"
       swaccess: "rw"
@@ -24,7 +24,7 @@
       fields: [
         { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
       ]
-    },
+    }
     { name:     "ADDR_PTR"
       desc:     "Addess data pointer (word aligned)"
       swaccess: "rw"
@@ -32,7 +32,7 @@
       fields: [
         { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
       ]
-    },
+    }
     { name:     "SIZE_D1"
       desc:     "Number of bytes to copy from, defined with respect to the first dimension - Once a value is written, the copy starts"
       swaccess: "rw"
@@ -42,7 +42,7 @@
       fields: [
         { bits: "15:0", name: "SIZE", desc: "DMA counter D1 and start" }
       ]
-    },
+    }
     { name:     "SIZE_D2"
       desc:     "Number of bytes to copy from, defined with respect to the second dimension"
       swaccess: "rw"
@@ -52,7 +52,7 @@
       fields: [
         { bits: "15:0", name: "SIZE", desc: "DMA counter D2" }
       ]
-    },
+    }
     { name:     "STATUS"
       desc:     '''Status bits are set to one if a given event occurred''',
       swaccess: "ro"
@@ -64,7 +64,7 @@
         { bits: "0", name: "READY", desc: "Transaction is done"}
         { bits: "1", name: "WINDOW_DONE", desc: "set if DMA is copying second half"}
       ]
-    },
+    }
     { name:     "SRC_PTR_INC_D1"
       desc:     "Increment the D1 source pointer every time a word is copied"
       swaccess: "rw"
@@ -77,7 +77,7 @@
           resval:4
         }
       ]
-    },
+    }
     { name:     "SRC_PTR_INC_D2"
       desc:     "Increment the D2 source pointer every time a word is copied"
       swaccess: "rw"
@@ -90,7 +90,7 @@
           resval:4
         }
       ]
-    },
+    }
     { name:     "DST_PTR_INC_D1"
       desc:     "Increment the D1 destination pointer every time a word is copied"
       swaccess: "rw"
@@ -102,7 +102,7 @@
           resval:4
         }
       ]
-    },
+    }
     { name:     "DST_PTR_INC_D2"
       desc:     "Increment the D2 destination pointer every time a word is copied"
       swaccess: "rw"
@@ -114,7 +114,7 @@
           resval:4
         }
       ]
-    },
+    }
     { name:     "SLOT"
       desc:     '''The DMA will wait for the signal 
                    connected to the selected trigger_slots to be high
@@ -125,12 +125,12 @@
       fields: [
         { bits: "15:0", name: "RX_TRIGGER_SLOT"
           desc: "Slot selection mask"
-        },
+        }
         { bits: "31:16", name: "TX_TRIGGER_SLOT"
           desc: "Slot selection mask"
         }
       ]
-    },
+    }
     { name:     "SRC_DATA_TYPE"
       desc:     '''Width/type of the source data to transfer''',
       swaccess: "rw"
@@ -147,7 +147,7 @@
           ]
         }
       ]
-    },
+    }
     { name:     "DST_DATA_TYPE"
       desc:     '''Width/type of the destination data to transfer''',
       swaccess: "rw"
@@ -164,7 +164,7 @@
           ]
         }
       ]
-    },
+    }
     {
       name:     "SIGN_EXT"
       desc:     '''Is the data to be sign extended? (Checked only if the dst data type is wider than the src data type)''',
@@ -180,7 +180,7 @@
           ]
         }
       ]
-    },
+    }
     { name:     "MODE"
       desc:     '''Set the operational mode of the DMA''',
       swaccess: "rw"
@@ -195,7 +195,7 @@
           ]
         }
       ]
-    },
+    }
     { name:     "DIM_CONFIG"
       desc:     '''Set the dimensionality of the DMA''',
       swaccess: "rw"
@@ -204,7 +204,7 @@
       fields: [
         { bits: "0", name: "DMA_DIM", desc: "DMA transfer dimensionality"}
       ]
-    },
+    }
     { name:     "DIM_INV"
       desc:     '''DMA dimensionality inversion selector''',
       swaccess: "rw"
@@ -213,7 +213,7 @@
       fields: [
         { bits: "0", name: "SEL", desc: "DMA dimensionality inversion, used to perform transposition"}
       ]
-    },
+    }
     { name:     "PAD_TOP"
       desc:     '''Set the top padding''',
       swaccess: "rw"
@@ -223,7 +223,7 @@
       fields: [
         { bits: "5:0", name: "PAD", desc: "Top margin padding (2D)"}
       ]
-    },
+    }
     { name:     "PAD_BOTTOM"
       desc:     '''Set the bottom padding''',
       swaccess: "rw"
@@ -233,7 +233,7 @@
       fields: [
         { bits: "5:0", name: "PAD", desc: "Bottom margin padding (2D)"}
       ]
-    },
+    }
     { name:     "PAD_RIGHT"
       desc:     '''Set the right padding''',
       swaccess: "rw"
@@ -243,7 +243,7 @@
       fields: [
         { bits: "5:0", name: "PAD", desc: "Right margin padding (1D/2D)"}
       ]
-    },
+    }
     { name:     "PAD_LEFT"
       desc:     '''Set the left padding''',
       swaccess: "rw"
@@ -253,7 +253,7 @@
       fields: [
         { bits: "5:0", name: "PAD", desc: "Left margin padding (1D/2D)"}
       ]
-    },
+    }
     { name:    "WINDOW_SIZE"
       desc:    '''Will trigger a every "WINDOW_SIZE" writes
                   Set to 0 to disable.''',
@@ -262,7 +262,7 @@
       fields: [
         { bits: "12:0", name: "WINDOW_SIZE", desc: ""}
       ]
-    },
+    }
     { name:    "WINDOW_COUNT"
       desc:    '''Number of times the end of the window was reached since the beginning.
                   Reset at start''',
@@ -273,7 +273,7 @@
       fields: [
         { bits: "7:0", name: "WINDOW_COUNT", desc: "Number of windows transferred in the transaction" }
       ]
-    },
+    }
     { name:    "INTERRUPT_EN"
       desc:    '''Interrupt Enable Register 
                   (Only the interrupt with the lowest id will be triggered)''',
@@ -283,7 +283,7 @@
         { bits: "0", name: "TRANSACTION_DONE", desc: "Enables transaction done interrupt" }
         { bits: "1", name: "WINDOW_DONE", desc: "Enables window done interrupt" }
       ]
-    },
+    }
     { name:    "TRANSACTION_IFR"
       desc:    '''Interrupt Flag Register for transactions''',
       swaccess: "ro"
@@ -294,7 +294,7 @@
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
       ]
-    },
+    }
     { name:    "WINDOW_IFR"
       desc:    '''Interrupt Flag Register for windows''',
       swaccess: "ro"

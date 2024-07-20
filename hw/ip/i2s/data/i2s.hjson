@@ -6,7 +6,7 @@
   clock_primary: "clk_i"
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
-  ],
+  ]
   regwidth: "32"
   param_list: [
     { name: "MaxWordWidth"
@@ -29,7 +29,7 @@
     { name: "i2s_event"
       desc: '''Event-related interrupts.'''
     }
-  ],
+  ]
   no_auto_intr_regs: "true"
   registers: [
 
