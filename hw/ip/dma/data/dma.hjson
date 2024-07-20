@@ -70,8 +70,8 @@
       hwaccess: "hro"
       // Dimensioned to allow a maximum of a 15 element stride for a data_type_word case
       fields: [
-        { bits: "5:0", 
-          name: "INC", 
+        { bits: "5:0"
+          name: "INC"
           desc: "Source pointer d1 increment"
           resval:4
         }
@@ -83,8 +83,8 @@
       hwaccess: "hro"
       // Dimensioned to allow a maximum of 15 element stride for a data_type_word
       fields: [
-        { bits: "22:0", 
-          name: "INC", 
+        { bits: "22:0"
+          name: "INC"
           desc: "Source pointer d2 increment"
           resval:4
         }
@@ -95,8 +95,8 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "5:0", 
-          name: "INC", 
+        { bits: "5:0"
+          name: "INC"
           desc: "Destination pointer d1 increment"
           resval:4
         }
@@ -107,8 +107,8 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "22:0", 
-          name: "INC", 
+        { bits: "22:0"
+          name: "INC"
           desc: "Destination pointer d2 increment"
           resval:4
         }
@@ -136,7 +136,7 @@
       hwaccess: "hro"
       resval:   0
       fields: [
-        { bits: "1:0", name: "DATA_TYPE", 
+        { bits: "1:0", name: "DATA_TYPE"
           desc: "Data type"
           enum: [
             { value: "0", name: "DMA_32BIT_WORD", desc: "Transfers 32 bits"}
@@ -153,7 +153,7 @@
       hwaccess: "hro"
       resval:   0
       fields: [
-        { bits: "1:0", name: "DATA_TYPE", 
+        { bits: "1:0", name: "DATA_TYPE"
           desc: "Data type"
           enum: [
             { value: "0", name: "DMA_32BIT_WORD", desc: "Transfers 32 bits"}
@@ -171,7 +171,7 @@
       hwaccess: "hro"
       resval:   0
       fields: [
-        { bits: "0", name: "SIGNED", 
+        { bits: "0", name: "SIGNED"
           desc: "Extend the sign to the destination data"
           enum: [
             { value: "0", name: "NO_EXTEND", desc: "Does not extend the sign"}
