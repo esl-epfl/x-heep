@@ -1,5 +1,5 @@
 {
-    bus_type: "NtoM",
+    bus_type: "NtoM"
     ram_banks: {
         code_and_data: {
             sizes: 64
@@ -31,7 +31,7 @@
             start: 0
             // minimum size for freeRTOS and clang
             size: 0x00000C800
-        },
+        }
         {
             name: data
             start: 0x00000C800

@@ -92,7 +92,7 @@ The other name can be used in code with a `.xheep_` prefix, like in `example_mat
 
     {
         ram_address: 0
-        bus_type: "onetoM",
+        bus_type: "onetoM"
         ram_banks: {
             code_and_data: {
                 num: 2
