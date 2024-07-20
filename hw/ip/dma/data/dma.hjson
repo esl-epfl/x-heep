@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-{ name: "dma",
+{ name: "dma"
   clock_primary: "clk_i"
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
   ],
   regwidth: "32"
   registers: [
-    { name:     "SRC_PTR",
+    { name:     "SRC_PTR"
       desc:     "Input data pointer (word aligned)"
       swaccess: "rw"
       hwaccess: "hro"
@@ -17,7 +17,7 @@
         { bits: "31:0", name: "PTR_IN", desc: "Input data pointer (word aligned)" }
       ]
     },
-    { name:     "DST_PTR",
+    { name:     "DST_PTR"
       desc:     "Output data pointer (word aligned)"
       swaccess: "rw"
       hwaccess: "hro"
@@ -25,7 +25,7 @@
         { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
       ]
     },
-    { name:     "ADDR_PTR",
+    { name:     "ADDR_PTR"
       desc:     "Addess data pointer (word aligned)"
       swaccess: "rw"
       hwaccess: "hro"
@@ -33,7 +33,7 @@
         { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
       ]
     },
-    { name:     "SIZE_D1",
+    { name:     "SIZE_D1"
       desc:     "Number of elements to copy from, defined with respect to the first dimension - Once a value is written, the copy starts"
       swaccess: "rw"
       hwaccess: "hro"
@@ -43,7 +43,7 @@
         { bits: "15:0", name: "SIZE", desc: "DMA counter D1 and start" }
       ]
     },
-    { name:     "SIZE_D2",
+    { name:     "SIZE_D2"
       desc:     "Number of elements to copy from, defined with respect to the second dimension"
       swaccess: "rw"
       hwaccess: "hro"
@@ -52,7 +52,7 @@
         { bits: "15:0", name: "SIZE", desc: "DMA counter D2" }
       ]
     },
-    { name:     "STATUS",
+    { name:     "STATUS"
       desc:     '''Status bits are set to one if a given event occurred''',
       swaccess: "ro"
       hwaccess: "hrw"
@@ -60,11 +60,11 @@
       hwre:     "true" // enable `re` latched signal of software read pulse
       resval:   1
       fields: [
-        { bits: "0", name: "READY", desc: "Transaction is done"},
-        { bits: "1", name: "WINDOW_DONE", desc: "set if DMA is copying second half"},
+        { bits: "0", name: "READY", desc: "Transaction is done"}
+        { bits: "1", name: "WINDOW_DONE", desc: "set if DMA is copying second half"}
       ]
     },
-    { name:     "SRC_PTR_INC_D1",
+    { name:     "SRC_PTR_INC_D1"
       desc:     "Increment the D1 source pointer every time a word is copied"
       swaccess: "rw"
       hwaccess: "hro"
@@ -77,7 +77,7 @@
         }
       ]
     },
-    { name:     "SRC_PTR_INC_D2",
+    { name:     "SRC_PTR_INC_D2"
       desc:     "Increment the D2 source pointer every time a word is copied"
       swaccess: "rw"
       hwaccess: "hro"
@@ -90,7 +90,7 @@
         }
       ]
     },
-    { name:     "DST_PTR_INC_D1",
+    { name:     "DST_PTR_INC_D1"
       desc:     "Increment the D1 destination pointer every time a word is copied"
       swaccess: "rw"
       hwaccess: "hro"
@@ -102,7 +102,7 @@
         }
       ]
     },
-    { name:     "DST_PTR_INC_D2",
+    { name:     "DST_PTR_INC_D2"
       desc:     "Increment the D2 destination pointer every time a word is copied"
       swaccess: "rw"
       hwaccess: "hro"
@@ -114,7 +114,7 @@
         }
       ]
     },
-    { name:     "SLOT",
+    { name:     "SLOT"
       desc:     '''The DMA will wait for the signal 
                    connected to the selected trigger_slots to be high
                    on the read and write side respectively''',
@@ -122,15 +122,15 @@
       hwaccess: "hro"
       resval:   0
       fields: [
-        { bits: "15:0", name: "RX_TRIGGER_SLOT",
+        { bits: "15:0", name: "RX_TRIGGER_SLOT"
           desc: "Slot selection mask"
         },
-        { bits: "31:16", name: "TX_TRIGGER_SLOT",
+        { bits: "31:16", name: "TX_TRIGGER_SLOT"
           desc: "Slot selection mask"
         }
       ]
     },
-    { name:     "SRC_DATA_TYPE",
+    { name:     "SRC_DATA_TYPE"
       desc:     '''Width/type of the source data to transfer''',
       swaccess: "rw"
       hwaccess: "hro"
@@ -139,15 +139,15 @@
         { bits: "1:0", name: "DATA_TYPE", 
           desc: "Data type"
           enum: [
-            { value: "0", name: "DMA_32BIT_WORD", desc: "Transfers 32 bits"},
-            { value: "1", name: "DMA_16BIT_WORD", desc: "Transfers 16 bits"},
-            { value: "2", name: "DMA_8BIT_WORD" , desc: "Transfers  8 bits"},
-            { value: "3", name: "DMA_8BIT_WORD_2",desc: "Transfers  8 bits"},
+            { value: "0", name: "DMA_32BIT_WORD", desc: "Transfers 32 bits"}
+            { value: "1", name: "DMA_16BIT_WORD", desc: "Transfers 16 bits"}
+            { value: "2", name: "DMA_8BIT_WORD" , desc: "Transfers  8 bits"}
+            { value: "3", name: "DMA_8BIT_WORD_2",desc: "Transfers  8 bits"}
           ]
         }
       ]
     },
-    { name:     "DST_DATA_TYPE",
+    { name:     "DST_DATA_TYPE"
       desc:     '''Width/type of the destination data to transfer''',
       swaccess: "rw"
       hwaccess: "hro"
@@ -156,10 +156,10 @@
         { bits: "1:0", name: "DATA_TYPE", 
           desc: "Data type"
           enum: [
-            { value: "0", name: "DMA_32BIT_WORD", desc: "Transfers 32 bits"},
-            { value: "1", name: "DMA_16BIT_WORD", desc: "Transfers 16 bits"},
-            { value: "2", name: "DMA_8BIT_WORD" , desc: "Transfers  8 bits"},
-            { value: "3", name: "DMA_8BIT_WORD_2",desc: "Transfers  8 bits"},
+            { value: "0", name: "DMA_32BIT_WORD", desc: "Transfers 32 bits"}
+            { value: "1", name: "DMA_16BIT_WORD", desc: "Transfers 16 bits"}
+            { value: "2", name: "DMA_8BIT_WORD" , desc: "Transfers  8 bits"}
+            { value: "3", name: "DMA_8BIT_WORD_2",desc: "Transfers  8 bits"}
           ]
         }
       ]
@@ -174,13 +174,13 @@
         { bits: "0", name: "SIGNED", 
           desc: "Extend the sign to the destination data"
           enum: [
-            { value: "0", name: "NO_EXTEND", desc: "Does not extend the sign"},
-            { value: "1", name: "EXTEND", desc: "Extends the sign"},
+            { value: "0", name: "NO_EXTEND", desc: "Does not extend the sign"}
+            { value: "1", name: "EXTEND", desc: "Extends the sign"}
           ]
         }
       ]
     },
-    { name:     "MODE",
+    { name:     "MODE"
       desc:     '''Set the operational mode of the DMA''',
       swaccess: "rw"
       hwaccess: "hro"
@@ -189,16 +189,16 @@
         { bits: "2:0", name: "MODE"
           desc: "DMA operation mode"
           enum: [
-            { value: "0", name: "LINEAR_MODE", desc: "Transfers data linearly"},
-            { value: "1", name: "CIRCULAR_MODE", desc: "Transfers data in circular mode"},
-            { value: "2", name: "ADDRESS_MODE", desc: "Transfers data using as destination address the data from ADD_PTR"},
-            { value: "3", name: "SUBADDRESS_MODE", desc: "Implements transferring of data when SRC_PTR is fixed and related to a peripheral"},
+            { value: "0", name: "LINEAR_MODE", desc: "Transfers data linearly"}
+            { value: "1", name: "CIRCULAR_MODE", desc: "Transfers data in circular mode"}
+            { value: "2", name: "ADDRESS_MODE", desc: "Transfers data using as destination address the data from ADD_PTR"}
+            { value: "3", name: "SUBADDRESS_MODE", desc: "Implements transferring of data when SRC_PTR is fixed and related to a peripheral"}
             { value: "4", name: "HW_FIFO_MODE", desc: "Mode for exploting external stream accelerators"}
           ]
         }
       ]
     },
-    { name:     "DIM_CONFIG",
+    { name:     "DIM_CONFIG"
       desc:     '''Set the dimensionality of the DMA''',
       swaccess: "rw"
       hwaccess: "hro"
@@ -207,7 +207,7 @@
         { bits: "0", name: "DMA_DIM", desc: "DMA transfer dimensionality"}
       ]
     },
-    { name:     "DIM_INV",
+    { name:     "DIM_INV"
       desc:     '''DMA dimensionality inversion selector''',
       swaccess: "rw"
       hwaccess: "hro"
@@ -216,7 +216,7 @@
         { bits: "0", name: "SEL", desc: "DMA dimensionality inversion, used to perform transposition"}
       ]
     },
-    { name:     "PAD_TOP",
+    { name:     "PAD_TOP"
       desc:     '''Set the top padding''',
       swaccess: "rw"
       hwaccess: "hro"
@@ -225,7 +225,7 @@
         { bits: "5:0", name: "PAD", desc: "Top margin padding (2D)"}
       ]
     },
-    { name:     "PAD_BOTTOM",
+    { name:     "PAD_BOTTOM"
       desc:     '''Set the bottom padding''',
       swaccess: "rw"
       hwaccess: "hro"
@@ -234,7 +234,7 @@
         { bits: "5:0", name: "PAD", desc: "Bottom margin padding (2D)"}
       ]
     },
-    { name:     "PAD_RIGHT",
+    { name:     "PAD_RIGHT"
       desc:     '''Set the right padding''',
       swaccess: "rw"
       hwaccess: "hro"
@@ -243,7 +243,7 @@
         { bits: "5:0", name: "PAD", desc: "Right margin padding (1D/2D)"}
       ]
     },
-    { name:     "PAD_LEFT",
+    { name:     "PAD_LEFT"
       desc:     '''Set the left padding''',
       swaccess: "rw"
       hwaccess: "hro"
@@ -252,7 +252,7 @@
         { bits: "5:0", name: "PAD", desc: "Left margin padding (1D/2D)"}
       ]
     },
-    { name:    "WINDOW_SIZE",
+    { name:    "WINDOW_SIZE"
       desc:    '''Will trigger a every "WINDOW_SIZE" writes
                   Set to 0 to disable.''',
       swaccess: "rw"
@@ -262,7 +262,7 @@
         { bits: "12:0", name: "WINDOW_SIZE", desc: ""}
       ]
     },
-    { name:    "WINDOW_COUNT",
+    { name:    "WINDOW_COUNT"
       desc:    '''Number of times the end of the window was reached since the beginning.
                   Reset at start''',
       swaccess: "ro"
@@ -272,7 +272,7 @@
         { bits: "7:0", name: "WINDOW_COUNT", desc: "Number of windows transferred in the transaction" }
       ]
     },
-    { name:    "INTERRUPT_EN",
+    { name:    "INTERRUPT_EN"
       desc:    '''Interrupt Enable Register 
                   (Only the interrupt with the lowest id will be triggered)''',
       swaccess: "rw"
@@ -283,7 +283,7 @@
         { bits: "1", name: "WINDOW_DONE", desc: "Enables window done interrupt" }
       ]
     },
-    { name:    "TRANSACTION_IFR",
+    { name:    "TRANSACTION_IFR"
       desc:    '''Interrupt Flag Register for transactions''',
       swaccess: "ro"
       hwaccess: "hrw"
@@ -294,7 +294,7 @@
         { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
       ]
     },
-    { name:    "WINDOW_IFR",
+    { name:    "WINDOW_IFR"
       desc:    '''Interrupt Flag Register for windows''',
       swaccess: "ro"
       hwaccess: "hrw"

@@ -1,14 +1,14 @@
 // Copyright lowRISC contributors.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
-{ name: "fast_intr_ctrl",
+{ name: "fast_intr_ctrl"
   clock_primary: "clk_i"
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
   ],
   regwidth: "32"
   registers: [
-    { name:     "FAST_INTR_PENDING",
+    { name:     "FAST_INTR_PENDING"
       desc:     "Pending fast interrupt"
       resval:   "0x00000000"
       swaccess: "ro"
@@ -18,7 +18,7 @@
       ]
     }
 
-    { name:     "FAST_INTR_CLEAR",
+    { name:     "FAST_INTR_CLEAR"
       desc:     "Clear fast interrupt"
       resval:   "0x00000000"
       swaccess: "rw"
@@ -28,7 +28,7 @@
       ]
     }
 
-    { name:     "FAST_INTR_ENABLE",
+    { name:     "FAST_INTR_ENABLE"
       desc:     "Enable fast interrupt"
       resval:   "0x7fff"
       swaccess: "rw"
