@@ -24,8 +24,9 @@ void __attribute__((aligned(4), interrupt)) handler_irq_timer(void) {
     timer_irq_clear();
     return;   
 }
-    extern float add_asm_function(int a, int b);
-extern int mul_by_const_asm_function( int a);
+
+extern float add_asm_function(float* a, float* b);
+extern float add_asm_function2(float* a, float* b);
 
 int main() {
 
@@ -38,12 +39,12 @@ int main() {
 
     timer_init();
     timer_irq_enable();
-    timer_arm_start(10);
+    timer_arm_start(4);
 
     float num1 = 10.0;
     float num2 = 20.0;
-    float sum = add_asm_function(&num1, &num2);
-    int mul = mul_by_const_asm_function(num2);
+    float sum = add_asm_function2(&num1, &num2);
+//    int mul = mul_by_const_asm_function(num2);
 
 //    PRINTF("%d+%d=%d\n", num1, num2, sum);
 //    PRINTF("%d*%d=%d\n", num2, MULTIPLY_CONSTANT, mul );
