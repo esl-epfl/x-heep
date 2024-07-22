@@ -31,7 +31,7 @@ COMPILER = "gcc"
 # Blacklist of apps to skip
 blacklist = [
     "example_spi_read",
-    "example_spi_host_dma_power_gate",
+    "example_spidma_powergate",
     "example_spi_write",
 ]
 
