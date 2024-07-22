@@ -742,16 +742,16 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
          * Write the strides. With respect to test_2 these are the application-point-of-view
          * strides, so they are the same as STRIDE_D1 and STRIDE_D2.
          */
-        write_register( STRIDE_D1,
-                        IM2COL_SPC_STRIDES_D1_REG_OFFSET,
-                        IM2COL_SPC_STRIDES_D1_SIZE_MASK,
-                        IM2COL_SPC_STRIDES_D1_SIZE_OFFSET,
+        write_register( (int) log2(STRIDE_D1),
+                        IM2COL_SPC_LOG_STRIDES_D1_REG_OFFSET,
+                        IM2COL_SPC_LOG_STRIDES_D1_SIZE_MASK,
+                        IM2COL_SPC_LOG_STRIDES_D1_SIZE_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
         
-        write_register( STRIDE_D2,
-                        IM2COL_SPC_STRIDES_D2_REG_OFFSET,
-                        IM2COL_SPC_STRIDES_D2_SIZE_MASK,
-                        IM2COL_SPC_STRIDES_D2_SIZE_OFFSET,
+        write_register( (int) log2(STRIDE_D2),
+                        IM2COL_SPC_LOG_STRIDES_D2_REG_OFFSET,
+                        IM2COL_SPC_LOG_STRIDES_D2_SIZE_MASK,
+                        IM2COL_SPC_LOG_STRIDES_D2_SIZE_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
 
         /* Write the batch size */

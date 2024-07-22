@@ -87,7 +87,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "15:0", name: "NUM", desc: "Number of patches" }
+        { bits: "7:0", name: "NUM", desc: "Number of patches" }
       ]
     },
     { name:     "N_PATCHES_H",
@@ -95,7 +95,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "15:0", name: "NUM", desc: "Number of patches" }
+        { bits: "7:0", name: "NUM", desc: "Number of patches" }
       ]
     },
     { name:     "ADPT_PAD_RIGHT",
@@ -103,7 +103,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "Size of the adapted padded region" }
+        { bits: "7:0", name: "SIZE", desc: "Size of the adapted padded region" }
       ]
     },
     { name:     "ADPT_PAD_BOTTOM",
@@ -111,23 +111,23 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "Size of the adapted padded region" }
+        { bits: "7:0", name: "SIZE", desc: "Size of the adapted padded region" }
       ]
     },
-    { name:     "STRIDES_D1",
-      desc:     "Strides along D1, set to 1 for no stride",
+    { name:     "LOG_STRIDES_D1",
+      desc:     "Logarithmic number of strides along D1, set to 1 for no stride",
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "7:0", name: "SIZE", desc: "Stride size" }
+        { bits: "3:0", name: "SIZE", desc: "Stride size" }
       ]
     },
-    { name:     "STRIDES_D2",
-      desc:     "Strides along D2, set to 1 for no stride",
+    { name:     "LOG_STRIDES_D2",
+      desc:     "Logarithmic number of strides along D2, set to 1 for no stride",
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "7:0", name: "SIZE", desc: "Stride size" }
+        { bits: "3:0", name: "SIZE", desc: "Stride size" }
       ]
     },
     { name:     "STATUS",

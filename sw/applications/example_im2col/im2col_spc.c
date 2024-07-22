@@ -237,12 +237,12 @@ void im2col_spc_init(void)
     * strides, so they are the same as STRIDE_D1 and STRIDE_D2.
     */
   write_register( 0,
-                  IM2COL_SPC_STRIDES_D1_REG_OFFSET,
+                  IM2COL_SPC_LOG_STRIDES_D1_REG_OFFSET,
                   0xffffffff,
                   0);
   
   write_register( 0,
-                  IM2COL_SPC_STRIDES_D2_REG_OFFSET,
+                  IM2COL_SPC_LOG_STRIDES_D2_REG_OFFSET,
                   0xffffffff,
                   0);
 
@@ -596,12 +596,12 @@ im2col_spc_config_flags_t im2col_spc_run(im2col_spc_trans_t *spc_trans)
     * strides, so they are the same as STRIDE_D1 and STRIDE_D2.
     */
   write_register( spc_trans->stride_d1,
-                  IM2COL_SPC_STRIDES_D1_REG_OFFSET,
+                  IM2COL_SPC_LOG_STRIDES_D1_REG_OFFSET,
                   0xffffffff,
                   0);
   
   write_register( spc_trans->stride_d2,
-                  IM2COL_SPC_STRIDES_D2_REG_OFFSET,
+                  IM2COL_SPC_LOG_STRIDES_D2_REG_OFFSET,
                   0xffffffff,
                   0);
 

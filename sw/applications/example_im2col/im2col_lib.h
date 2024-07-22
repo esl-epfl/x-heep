@@ -22,6 +22,7 @@
 #include "x-heep.h"
 #include "rv_plic.h"
 #include "csr.h"
+#include <math.h>
 
 #include "mmio.h"
 #include "handler.h"

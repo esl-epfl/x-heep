@@ -9,20 +9,20 @@
  * Info: Generic pipe register
  */
 
-module pipe_reg #(parameter WIDTH = 8) (
-  input logic clk_i,
-  input logic rst_ni,
-  input logic [WIDTH-1:0] data_in,
-  output logic [WIDTH-1:0] data_out
+module pipe_reg #(
+    parameter WIDTH = 8
+) (
+    input logic clk_i,
+    input logic rst_ni,
+    input logic [WIDTH-1:0] data_in,
+    output logic [WIDTH-1:0] data_out
 );
 
   logic [WIDTH-1:0] reg_data;
 
   always_ff @(posedge clk_i, negedge rst_ni) begin
-    if (!rst_ni)
-      reg_data <= '0;
-    else
-      reg_data <= data_in;
+    if (!rst_ni) reg_data <= '0;
+    else reg_data <= data_in;
   end
 
   assign data_out = reg_data;

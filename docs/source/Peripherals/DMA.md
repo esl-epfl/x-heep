@@ -78,17 +78,18 @@ Check out the _im2col SPC_ in the `\ip_examples` folder for a detailed example a
 - **Stop signal**: can terminate the DMA transaction at any moment. It's particularly useful for any accelerator that launches a variable number of data that cannot be predetermined and depends on external conditions, such as a level crossing subsampler. 
 - **VerifHEEP**: it's a python library that has been developed to test any X-Heep project. It includes methods to generate random inputs and compute the golden results, launche synthesis, simulations and program, compile and launch applications on FPGA targets, analyze the performance of the tests and plot them. It has been deployed succesfully to validate the _im2col SPC_, it's expecially useful for data-intense accelerators.
 
-### Registers and their function
+### Registers description
 
 This section will describe every register of a DMA channel and their function.
 The complete addres of a DMA channel register is the following:
-`DMA_START_ADDRESS + DMA_CH_SIZE * channel + REGISTER_OFFSET`
-The previous parameters, including the register offsets, can be found at `sw/device/lib/runtime/core_v_mini_mcu.h`and `sw/device/lib/drivers/dma/dma_regs.h`
+<p style="text-align: center;"><code>DMA_START_ADDRESS + DMA_CH_SIZE * channel + REGISTER_OFFSET</code></p>
+
+The previous parameters, including the register offsets, can be found at `sw/device/lib/runtime/core_v_mini_mcu.h` and `sw/device/lib/drivers/dma/dma_regs.h`
 
 - **SRC_PTR_REG**: 
     - _Length_: 32 bit
     - _SW access_: read-write
-    - _Description: _contains the source pointer on 32 bits.
+    - _Description_: contains the source pointer on 32 bits.
 
 
 ## Functional description

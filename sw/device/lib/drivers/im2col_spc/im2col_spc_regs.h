@@ -79,23 +79,31 @@ extern "C" {
 
 // Adapted right padded region
 #define IM2COL_SPC_ADPT_PAD_RIGHT_REG_OFFSET 0x2c
+#define IM2COL_SPC_ADPT_PAD_RIGHT_SIZE_MASK 0xff
+#define IM2COL_SPC_ADPT_PAD_RIGHT_SIZE_OFFSET 0
+#define IM2COL_SPC_ADPT_PAD_RIGHT_SIZE_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_ADPT_PAD_RIGHT_SIZE_MASK, .index = IM2COL_SPC_ADPT_PAD_RIGHT_SIZE_OFFSET })
 
 // Adapted bottom padded region
 #define IM2COL_SPC_ADPT_PAD_BOTTOM_REG_OFFSET 0x30
+#define IM2COL_SPC_ADPT_PAD_BOTTOM_SIZE_MASK 0xff
+#define IM2COL_SPC_ADPT_PAD_BOTTOM_SIZE_OFFSET 0
+#define IM2COL_SPC_ADPT_PAD_BOTTOM_SIZE_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_ADPT_PAD_BOTTOM_SIZE_MASK, .index = IM2COL_SPC_ADPT_PAD_BOTTOM_SIZE_OFFSET })
 
-// Strides along D1, set to 1 for no stride
-#define IM2COL_SPC_STRIDES_D1_REG_OFFSET 0x34
-#define IM2COL_SPC_STRIDES_D1_SIZE_MASK 0xff
-#define IM2COL_SPC_STRIDES_D1_SIZE_OFFSET 0
-#define IM2COL_SPC_STRIDES_D1_SIZE_FIELD \
-  ((bitfield_field32_t) { .mask = IM2COL_SPC_STRIDES_D1_SIZE_MASK, .index = IM2COL_SPC_STRIDES_D1_SIZE_OFFSET })
+// Logarithmic number of strides along D1, set to 1 for no stride
+#define IM2COL_SPC_LOG_STRIDES_D1_REG_OFFSET 0x34
+#define IM2COL_SPC_LOG_STRIDES_D1_SIZE_MASK 0xf
+#define IM2COL_SPC_LOG_STRIDES_D1_SIZE_OFFSET 0
+#define IM2COL_SPC_LOG_STRIDES_D1_SIZE_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_LOG_STRIDES_D1_SIZE_MASK, .index = IM2COL_SPC_LOG_STRIDES_D1_SIZE_OFFSET })
 
-// Strides along D2, set to 1 for no stride
-#define IM2COL_SPC_STRIDES_D2_REG_OFFSET 0x38
-#define IM2COL_SPC_STRIDES_D2_SIZE_MASK 0xff
-#define IM2COL_SPC_STRIDES_D2_SIZE_OFFSET 0
-#define IM2COL_SPC_STRIDES_D2_SIZE_FIELD \
-  ((bitfield_field32_t) { .mask = IM2COL_SPC_STRIDES_D2_SIZE_MASK, .index = IM2COL_SPC_STRIDES_D2_SIZE_OFFSET })
+// Logarithmic number of strides along D2, set to 1 for no stride
+#define IM2COL_SPC_LOG_STRIDES_D2_REG_OFFSET 0x38
+#define IM2COL_SPC_LOG_STRIDES_D2_SIZE_MASK 0xf
+#define IM2COL_SPC_LOG_STRIDES_D2_SIZE_OFFSET 0
+#define IM2COL_SPC_LOG_STRIDES_D2_SIZE_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_LOG_STRIDES_D2_SIZE_MASK, .index = IM2COL_SPC_LOG_STRIDES_D2_SIZE_OFFSET })
 
 // Status bit is set to one when the im2col SPC is ready
 #define IM2COL_SPC_STATUS_REG_OFFSET 0x3c
