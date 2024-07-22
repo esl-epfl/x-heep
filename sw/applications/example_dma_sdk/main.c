@@ -21,7 +21,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -71,34 +71,32 @@ int main(){
     // dma_copy_32b( &destin_32b, &source_32b, SOURCE_BUFFER_SIZE_32b, 0);
 
     for( i = 0; i < SOURCE_BUFFER_SIZE_32b; i++){
-        printf("%x\n\r",destin_32b[i]);
         errors += destin_32b[i] != CONST_VALUE_32B;
     }
-    printf("Errors:%d\n\r",errors );
 
-    // DMA_FILL(source_16b, &value_16b, SOURCE_BUFFER_SIZE_16b, uint16_t, uint16_t, 0, the_dma);
-    // DMA_WAIT(0);
-    // DMA_COPY(destin_16b, source_16b, SOURCE_BUFFER_SIZE_16b, uint16_t, uint16_t, 0, the_dma);
-    // DMA_WAIT(0);
+    DMA_FILL(source_16b, &value_16b, SOURCE_BUFFER_SIZE_16b, uint16_t, uint16_t, 0, the_dma);
+    DMA_WAIT(0);
+    DMA_COPY(destin_16b, source_16b, SOURCE_BUFFER_SIZE_16b, uint16_t, uint16_t, 0, the_dma);
+    DMA_WAIT(0);
 
-    // for( i = 0; i < SOURCE_BUFFER_SIZE_16b; i++){
-    //     errors += destin_16b[i] != CONST_VALUE_16B;
-    // }
+    for( i = 0; i < SOURCE_BUFFER_SIZE_16b; i++){
+        errors += destin_16b[i] != CONST_VALUE_16B;
+    }
     // printf("Errors:%d\n\r",errors );
 
-    // DMA_FILL(source_8b, &value_8b, SOURCE_BUFFER_SIZE_8b, uint8_t, uint8_t, 0, the_dma);
-    // DMA_WAIT(0);
-    // DMA_COPY(destin_8b, source_8b, SOURCE_BUFFER_SIZE_8b, uint8_t, uint8_t, 0, the_dma);
-    // DMA_WAIT(0);
+    DMA_FILL(source_8b, &value_8b, SOURCE_BUFFER_SIZE_8b, uint8_t, uint8_t, 0, the_dma);
+    DMA_WAIT(0);
+    DMA_COPY(destin_8b, source_8b, SOURCE_BUFFER_SIZE_8b, uint8_t, uint8_t, 0, the_dma);
+    DMA_WAIT(0);
 
     // // dma_fill_8b( &source_8b, &value_8b, SOURCE_BUFFER_SIZE_8b, 0);
     // // dma_copy_8b( &destin_8b, &source_8b, SOURCE_BUFFER_SIZE_8b, 0);
 
-    // for( i = 0; i < SOURCE_BUFFER_SIZE_8b; i++){
-    //     errors += destin_8b[i] != CONST_VALUE_8B;
-    // }
+    for( i = 0; i < SOURCE_BUFFER_SIZE_8b; i++){
+        errors += destin_8b[i] != CONST_VALUE_8B;
+    }
 
-    // printf("Errors:%d\n\r",errors );
+    PRINTF("Errors:%d\n\r",errors );
 
     return errors ? EXIT_FAILURE : EXIT_SUCCESS;
 }
