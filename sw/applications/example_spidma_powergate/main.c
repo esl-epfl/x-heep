@@ -163,14 +163,20 @@ int main(int argc, char *argv[])
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
         if (dma_is_ready(0) == 0)
         {
+                PRINTF("Going to sleep...\r\n");
                 if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
                 {
                     PRINTF("Error: power manager fail.\n\r");
                     return EXIT_FAILURE;
                 }
+                PRINTF("Woken up...\r\n");
+
         }
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
+
+
+    PRINTF("Check results...\r\n");
 
     // Check if what we read is correct (i.e. on_chip_buffer == flash_only_buffer_golden_value)
     for(int i = 0; i < FLASH_ONLY_WORDS; i++) {
@@ -179,6 +185,8 @@ int main(int argc, char *argv[])
             PRINTF("Error: on_chip_buffer[%d] = 0x%08x, flash_only_buffer_golden_value[%d] = 0x%08x\n", i, on_chip_buffer[i], i, flash_only_buffer_golden_value[i]);
         }
     }
+
+    if(errors==0) PRINTF("TEST RUN SUCCEFFULLY\r\n");
 
     return errors;
 }
