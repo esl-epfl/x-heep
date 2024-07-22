@@ -31,6 +31,11 @@
 /**                                                                        **/
 /****************************************************************************/
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif // __cplusplus
+
 #include "dma.h"
 
 /* To manage addresses. */
@@ -661,9 +666,10 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
              * If realignment is allowed and there are no discontinuities,
              * a more granular data type is used according to the detected
              * misalignment in order to overcome it.
-             */
-            p_trans->dst_type += misalignment;
-            /*
+             */ 
+            p_trans->dst_type = p_trans->dst_type + misalignment;
+
+           /*
              * Source and destination increment should now be of the size
              * of the data.
              * As increments are given in bytes, in both cases should be the
@@ -1498,6 +1504,11 @@ static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt,
     }
     return inc_b;
 }
+
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 /****************************************************************************/
 /**                                                                        **/

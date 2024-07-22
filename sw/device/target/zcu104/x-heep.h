@@ -14,6 +14,7 @@ extern "C" {
 #define REFERENCE_CLOCK_Hz 15*1000*1000
 #define UART_BAUDRATE 9600
 #define TARGET_ZCU104 1
+#define TARGET_IS_FPGA 1
 
 /**
  * As the hw is configurable, we can have setups with different number of

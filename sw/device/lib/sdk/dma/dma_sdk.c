@@ -15,6 +15,10 @@
 #include "core_v_mini_mcu.h"
 #include "csr.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************/
 /* ---- GLOBAL VARIABLES ---- */
 /******************************/
@@ -62,15 +66,15 @@ void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size, uint8_t channel)
         .ptr = (uint8_t *)src,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
+        .trig = DMA_TRIG_MEMORY,   
     };
     dma_target_t tgt_dst = {
         .ptr = (uint8_t *)dst,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
+        .trig = DMA_TRIG_MEMORY,    
     };
 
     dma_trans_t trans = {
@@ -162,15 +166,15 @@ void dma_copy_16b(uint16_t *dst, uint16_t *src, uint32_t size, uint8_t channel)
         .ptr = (uint8_t *)src,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_HALF_WORD,
+        .trig = DMA_TRIG_MEMORY,
     };
     dma_target_t tgt_dst = {
         .ptr = (uint8_t *)dst,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_HALF_WORD,
+        .trig = DMA_TRIG_MEMORY,
     };
 
     dma_trans_t trans = {
@@ -269,15 +273,15 @@ void dma_copy_8b(uint8_t *dst, uint8_t *src, uint32_t size, uint8_t channel)
         .ptr = (uint8_t *)src,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_BYTE,
+        .trig = DMA_TRIG_MEMORY,
     };
     dma_target_t tgt_dst = {
         .ptr = (uint8_t *)dst,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_BYTE,
+        .trig = DMA_TRIG_MEMORY,
     };
 
     dma_trans_t trans = {
@@ -367,15 +371,15 @@ void dma_fill_32b(uint32_t *dst, uint32_t *value, uint32_t size, uint8_t channel
         .ptr = (uint8_t *)value,
         .inc_du = 0,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
+        .trig = DMA_TRIG_MEMORY    
     };
     dma_target_t tgt_dst = {
         .ptr = (uint8_t *)dst,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
+        .trig = DMA_TRIG_MEMORY,
     };
 
     dma_trans_t trans = {
@@ -384,7 +388,7 @@ void dma_fill_32b(uint32_t *dst, uint32_t *value, uint32_t size, uint8_t channel
         .src_addr = NULL,
         .mode = DMA_TRANS_MODE_SINGLE,
         .win_du = 0,
-        .end = DMA_TRANS_END_INTR,
+        .end = DMA_TRANS_END_INTR
     };
 
 #ifdef USE_HEEP_DMA_HAL
@@ -460,15 +464,15 @@ void dma_fill_16b(uint16_t *dst, uint16_t *value, uint32_t size, uint8_t channel
         .ptr = (uint8_t *)value,
         .inc_du = 0,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_HALF_WORD,
+        .trig = DMA_TRIG_MEMORY,
     };
     dma_target_t tgt_dst = {
         .ptr = (uint8_t *)dst,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_HALF_WORD,
+        .trig = DMA_TRIG_MEMORY,
     };
 
     dma_trans_t trans = {
@@ -562,8 +566,8 @@ void dma_fill_16b_32b(uint32_t *dst, uint16_t *value, uint32_t size, uint8_t cha
         .ptr = (uint8_t *)value,
         .inc_du = 0,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_HALF_WORD,
+        .trig = DMA_TRIG_MEMORY,
     };
     dma_target_t tgt_dst = {
         .ptr = (uint8_t *)dst,
@@ -596,10 +600,8 @@ void dma_fill_16b_32b(uint32_t *dst, uint16_t *value, uint32_t size, uint8_t cha
     /*
      * SET THE POINTERS
      */
-    peri->SRC_PTR = (uint32_t)trans.src->ptr;
-    peri->DST_PTR = (uint32_t)trans.dst->ptr;
-
-    peri->SIGN_EXT = sign_extend;
+    peri->SRC_PTR = (uint32_t) trans.src->ptr;
+    peri->DST_PTR = (uint32_t) trans.dst->ptr;
 
     /*
      * SET THE INCREMENTS
@@ -666,15 +668,15 @@ void dma_fill_8b(uint8_t *dst, uint8_t *value, uint32_t size, uint8_t channel)
         .ptr = (uint8_t *)value,
         .inc_du = 0,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_BYTE,
+        .trig = DMA_TRIG_MEMORY,
     };
     dma_target_t tgt_dst = {
         .ptr = (uint8_t *)dst,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_BYTE,
+        .trig = DMA_TRIG_MEMORY,
     };
 
     dma_trans_t trans = {
@@ -841,8 +843,8 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size, uint
         .ptr = (uint8_t *)src,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
+        .trig = DMA_TRIG_MEMORY,
     };
     dma_target_t tgt_addr = {
         .ptr = (uint8_t *)dst_addr,
@@ -921,3 +923,7 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size, uint
 
     return;
 }
+
+#ifdef __cplusplus
+}
+#endif

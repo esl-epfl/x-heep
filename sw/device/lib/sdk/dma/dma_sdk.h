@@ -15,7 +15,9 @@
 #include "csr.h"
 
 #include "dma.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
 #define INCREMENT(type) sizeof(type)
 
 #define C_TYPE_2_DMA_TYPE(C_type)                                                                 \
@@ -204,5 +206,10 @@ void dma_fill_16b_32b(uint32_t *dst, uint16_t *value, uint32_t size, uint8_t cha
  * @return int 0 if success, -1 if error
  */
 void dma_fill_8b(uint8_t *dst, uint8_t *value, uint32_t size, uint8_t channel);
+
+#ifdef __cplusplus
+}
+#endif  // __cplusplus
+#endif /* 
 
 #endif /* DMA_SDK_H_ */
