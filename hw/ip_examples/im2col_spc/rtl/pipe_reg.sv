@@ -18,7 +18,7 @@ module pipe_reg #(parameter WIDTH = 8) (
 
   logic [WIDTH-1:0] reg_data;
 
-  always_ff @(posedge clk_i or posedge rst_ni) begin
+  always_ff @(posedge clk_i, negedge rst_ni) begin
     if (!rst_ni)
       reg_data <= '0;
     else
