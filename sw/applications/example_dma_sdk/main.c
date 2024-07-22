@@ -54,14 +54,11 @@ static uint8_t value_8b = CONST_VALUE_8B;
 uint32_t i;
 uint32_t errors = 0;
 
-#define FS_INITIAL 0x01
 int main()
 {
+    volatile dma *the_dma = dma_peri(0); // Defined as volatile to avoid compiler optimizations
 
-    CSR_SET_BITS(CSR_REG_MSTATUS, (FS_INITIAL << 13));
     dma_sdk_init();
-
-    volatile dma *the_dma = dma_peri(0);
 
     DMA_FILL(source_32b, &value_32b, SOURCE_BUFFER_SIZE_32b, uint32_t, uint32_t, 0, the_dma);
     DMA_WAIT(0);
