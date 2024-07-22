@@ -19,67 +19,35 @@
 extern "C"
 {
 #endif // __cplusplus
-#define INCREMENT(type) sizeof(type)
+#define INCREMENT(C_type) (sizeof(C_type))
 
 #define C_TYPE_2_DMA_TYPE(C_type)                                                                 \
     ((sizeof(C_type)) == 1 ? DMA_DATA_TYPE_BYTE : (sizeof(C_type)) == 2 ? DMA_DATA_TYPE_HALF_WORD \
                                                                         : DMA_DATA_TYPE_WORD)
 
-#define DMA_COPY(DST, SRC, SIZE, C_SRC_TYPE, C_DST_TYPE, SIGNED, DMA_PERI) \
-    DMA_PERI->SRC_PTR = (uint32_t)SRC;                                     \
-    DMA_PERI->DST_PTR = (uint32_t)DST;                                     \
-    write_register(INCREMENT(C_SRC_TYPE),                                  \
-                   DMA_SRC_PTR_INC_D1_REG_OFFSET,                          \
-                   DMA_SRC_PTR_INC_D1_INC_MASK,                            \
-                   DMA_SRC_PTR_INC_D1_INC_OFFSET,                          \
-                   DMA_PERI);                                              \
-    write_register(INCREMENT(C_DST_TYPE),                                  \
-                   DMA_DST_PTR_INC_D1_REG_OFFSET,                          \
-                   DMA_DST_PTR_INC_D1_INC_MASK,                            \
-                   DMA_DST_PTR_INC_D1_INC_OFFSET,                          \
-                   DMA_PERI);                                              \
-    DMA_PERI->MODE = (uint32_t)DMA_TRANS_MODE_SINGLE;                      \
-    write_register(C_TYPE_2_DMA_TYPE(C_SRC_TYPE),                          \
-                   DMA_SRC_DATA_TYPE_REG_OFFSET,                           \
-                   DMA_SRC_DATA_TYPE_DATA_TYPE_MASK,                       \
-                   DMA_SELECTION_OFFSET_START,                             \
-                   DMA_PERI);                                              \
-    write_register(C_TYPE_2_DMA_TYPE(C_DST_TYPE),                          \
-                   DMA_DST_DATA_TYPE_REG_OFFSET,                           \
-                   DMA_DST_DATA_TYPE_DATA_TYPE_MASK,                       \
-                   DMA_SELECTION_OFFSET_START,                             \
-                   DMA_PERI);                                              \
-    DMA_PERI->SIGN_EXT = (uint32_t)SIGNED;                                 \
-    DMA_PERI->INTERRUPT_EN = (uint32_t)0x1;                                \
-    DMA_PERI->SIZE_D1 = (uint32_t)(SIZE * DMA_DATA_TYPE_2_SIZE(C_TYPE_2_DMA_TYPE(C_SRC_TYPE)));
+#define DMA_COPY(DST, SRC, SIZE, C_SRC_TYPE, C_DST_TYPE, SIGNED, DMA_PERI)                                  \
+    DMA_PERI->INTERRUPT_EN = (uint32_t)0x1;                                                                 \
+    DMA_PERI->SRC_PTR = (uint32_t)SRC;                                                                      \
+    DMA_PERI->DST_PTR = (uint32_t)DST;                                                                      \
+    DMA_PERI->SRC_PTR_INC_D1 = (uint32_t)(INCREMENT(C_SRC_TYPE) & DMA_SRC_PTR_INC_D1_INC_MASK);             \
+    DMA_PERI->DST_PTR_INC_D1 = (uint32_t)(INCREMENT(C_DST_TYPE) & DMA_DST_PTR_INC_D1_INC_MASK);             \
+    DMA_PERI->MODE = (uint32_t)(DMA_TRANS_MODE_SINGLE & DMA_MODE_MODE_MASK);                                \
+    DMA_PERI->SRC_DATA_TYPE = (uint32_t)(C_TYPE_2_DMA_TYPE(C_SRC_TYPE) & DMA_SRC_DATA_TYPE_DATA_TYPE_MASK); \
+    DMA_PERI->DST_DATA_TYPE = (uint32_t)(C_TYPE_2_DMA_TYPE(C_DST_TYPE) & DMA_DST_DATA_TYPE_DATA_TYPE_MASK); \
+    DMA_PERI->SIGN_EXT = (uint32_t)SIGNED;                                                                  \
+    DMA_PERI->SIZE_D1 = (uint32_t)((SIZE * DMA_DATA_TYPE_2_SIZE(C_TYPE_2_DMA_TYPE(C_SRC_TYPE))) & DMA_SIZE_D1_SIZE_MASK);
 
-#define DMA_FILL(DST, VALUE_PTR, SIZE, C_SRC_TYPE, C_DST_TYPE, SIGNED, DMA_PERI) \
-    DMA_PERI->SRC_PTR = (uint32_t)VALUE_PTR;                                     \
-    DMA_PERI->DST_PTR = (uint32_t)DST;                                           \
-    write_register(0,                                                            \
-                   DMA_SRC_PTR_INC_D1_REG_OFFSET,                                \
-                   DMA_SRC_PTR_INC_D1_INC_MASK,                                  \
-                   DMA_SRC_PTR_INC_D1_INC_OFFSET,                                \
-                   DMA_PERI);                                                    \
-    write_register(INCREMENT(C_DST_TYPE),                                        \
-                   DMA_DST_PTR_INC_D1_REG_OFFSET,                                \
-                   DMA_DST_PTR_INC_D1_INC_MASK,                                  \
-                   DMA_DST_PTR_INC_D1_INC_OFFSET,                                \
-                   DMA_PERI);                                                    \
-    DMA_PERI->MODE = (uint32_t)DMA_TRANS_MODE_SINGLE;                            \
-    write_register(C_TYPE_2_DMA_TYPE(C_SRC_TYPE),                                \
-                   DMA_SRC_DATA_TYPE_REG_OFFSET,                                 \
-                   DMA_SRC_DATA_TYPE_DATA_TYPE_MASK,                             \
-                   DMA_SELECTION_OFFSET_START,                                   \
-                   DMA_PERI);                                                    \
-    write_register(C_TYPE_2_DMA_TYPE(C_DST_TYPE),                                \
-                   DMA_DST_DATA_TYPE_REG_OFFSET,                                 \
-                   DMA_DST_DATA_TYPE_DATA_TYPE_MASK,                             \
-                   DMA_SELECTION_OFFSET_START,                                   \
-                   DMA_PERI);                                                    \
-    DMA_PERI->SIGN_EXT = (uint32_t)SIGNED;                                       \
-    DMA_PERI->INTERRUPT_EN = (uint32_t)0x1;                                      \
-    DMA_PERI->SIZE_D1 = (uint32_t)(SIZE * DMA_DATA_TYPE_2_SIZE(C_TYPE_2_DMA_TYPE(C_SRC_TYPE)));
+#define DMA_FILL(DST, VALUE_PTR, SIZE, C_SRC_TYPE, C_DST_TYPE, SIGNED, DMA_PERI)                            \
+    DMA_PERI->INTERRUPT_EN = (uint32_t)0x1;                                                                 \
+    DMA_PERI->SRC_PTR = (uint32_t)VALUE_PTR;                                                                \
+    DMA_PERI->DST_PTR = (uint32_t)DST;                                                                      \
+    DMA_PERI->SRC_PTR_INC_D1 = (uint32_t)0;                                                                 \
+    DMA_PERI->DST_PTR_INC_D1 = (uint32_t)(INCREMENT(C_DST_TYPE) & DMA_DST_PTR_INC_D1_INC_MASK);             \
+    DMA_PERI->MODE = (uint32_t)(DMA_TRANS_MODE_SINGLE & DMA_MODE_MODE_MASK);                                \
+    DMA_PERI->SRC_DATA_TYPE = (uint32_t)(C_TYPE_2_DMA_TYPE(C_SRC_TYPE) & DMA_SRC_DATA_TYPE_DATA_TYPE_MASK); \
+    DMA_PERI->DST_DATA_TYPE = (uint32_t)(C_TYPE_2_DMA_TYPE(C_DST_TYPE) & DMA_DST_DATA_TYPE_DATA_TYPE_MASK); \
+    DMA_PERI->SIGN_EXT = (uint32_t)SIGNED;                                                                  \
+    DMA_PERI->SIZE_D1 = (uint32_t)((SIZE * DMA_DATA_TYPE_2_SIZE(C_TYPE_2_DMA_TYPE(C_SRC_TYPE))) & DMA_SIZE_D1_SIZE_MASK);
 
 #define DMA_WAIT(CH)                          \
     while (!dma_is_ready(CH))                 \
