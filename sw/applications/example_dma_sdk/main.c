@@ -2,7 +2,7 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
-// File: dma_sdk.c
+// File: example_dma_sdk.c
 // Author: Juan Sapriza
 // Date: 13/06/2024
 // Description: Example application to test the DMA SDK. Will copy
