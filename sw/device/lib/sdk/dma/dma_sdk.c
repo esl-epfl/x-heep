@@ -569,12 +569,13 @@ void dma_fill_16b_32b(uint32_t *dst, uint16_t *value, uint32_t size, uint8_t cha
         .type = DMA_DATA_TYPE_HALF_WORD,
         .trig = DMA_TRIG_MEMORY,
     };
+
     dma_target_t tgt_dst = {
         .ptr = (uint8_t *)dst,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
+        .trig = DMA_TRIG_MEMORY,
     };
 
     dma_trans_t trans = {
