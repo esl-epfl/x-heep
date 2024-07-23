@@ -54,6 +54,7 @@ extern "C"
     {
         volatile dma *the_dma = dma_peri(channel);
         DMA_COPY(dst_ptr, src_ptr, size, src_type, dst_type, signed_data, the_dma);
+        dma_start(the_dma, size, src_type);
         DMA_WAIT(channel);
         return;
     }
@@ -62,8 +63,14 @@ extern "C"
     {
         volatile dma *the_dma = dma_peri(channel);
         DMA_FILL(dst_ptr, value_ptr, size, src_type, dst_type, signed_data, the_dma);
+        dma_start(the_dma, size, src_type);
         DMA_WAIT(channel);
         return;
+    }
+
+    void dma_start(dma *dma_peri, uint32_t size, dma_data_type_t src_type)
+    {
+        dma_peri->SIZE_D1 = (uint32_t)((size * DMA_DATA_TYPE_2_SIZE(src_type)) & DMA_SIZE_D1_SIZE_MASK);
     }
 
 #ifdef __cplusplus

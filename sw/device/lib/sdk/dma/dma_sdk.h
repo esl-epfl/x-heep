@@ -32,8 +32,7 @@ extern "C"
     DMA_PERI->MODE = (uint32_t)(DMA_TRANS_MODE_SINGLE & DMA_MODE_MODE_MASK);                  \
     DMA_PERI->SRC_DATA_TYPE = (uint32_t)(SRC_TYPE & DMA_SRC_DATA_TYPE_DATA_TYPE_MASK);        \
     DMA_PERI->DST_DATA_TYPE = (uint32_t)(DST_TYPE & DMA_DST_DATA_TYPE_DATA_TYPE_MASK);        \
-    DMA_PERI->SIGN_EXT = (uint32_t)SIGNED;                                                    \
-    DMA_PERI->SIZE_D1 = (uint32_t)((SIZE * DMA_DATA_TYPE_2_SIZE(SRC_TYPE)) & DMA_SIZE_D1_SIZE_MASK);
+    DMA_PERI->SIGN_EXT = (uint32_t)SIGNED;
 
 #define DMA_FILL(DST, VALUE_PTR, SIZE, SRC_TYPE, DST_TYPE, SIGNED, DMA_PERI)                  \
     DMA_PERI->INTERRUPT_EN = (uint32_t)0x1;                                                   \
@@ -44,8 +43,7 @@ extern "C"
     DMA_PERI->MODE = (uint32_t)(DMA_TRANS_MODE_SINGLE & DMA_MODE_MODE_MASK);                  \
     DMA_PERI->SRC_DATA_TYPE = (uint32_t)(SRC_TYPE & DMA_SRC_DATA_TYPE_DATA_TYPE_MASK);        \
     DMA_PERI->DST_DATA_TYPE = (uint32_t)(DST_TYPE & DMA_DST_DATA_TYPE_DATA_TYPE_MASK);        \
-    DMA_PERI->SIGN_EXT = (uint32_t)SIGNED;                                                    \
-    DMA_PERI->SIZE_D1 = (uint32_t)((SIZE * DMA_DATA_TYPE_2_SIZE(SRC_TYPE)) & DMA_SIZE_D1_SIZE_MASK);
+    DMA_PERI->SIGN_EXT = (uint32_t)SIGNED;
 
 #define DMA_WAIT(CH)                          \
     while (!dma_is_ready(CH))                 \
@@ -96,6 +94,15 @@ extern "C"
      * @param signed_data  Indicates whether the data is signed or unsigned.
      */
     void dma_fill(uint32_t dst_ptr, uint32_t value_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data);
+
+    /**
+     * @brief Starts a DMA transfer.
+     *
+     * @param dma_peri      Pointer to the DMA peripheral.
+     * @param size          Size of the data to be transferred in bytes.
+     * @param src_type      Source variable type (byte, half-word, word).
+     */
+        void dma_start(dma *dma_peri, uint32_t size, dma_data_type_t src_type);
 
 #ifdef __cplusplus
 }
