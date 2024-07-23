@@ -5,6 +5,8 @@
 // File: timer_sdk.c
 // Author: Michele Caon, Francesco Poluzzi
 // Date: 23/07/2024
+// Author: Michele Caon, Francesco Poluzzi
+// Date: 23/07/2024
 // Description: Timer functions
 
 #include <stdint.h>
@@ -81,7 +83,7 @@ uint32_t hw_timer_stop()
 }
 
 // Initialize the timer
-void timer_init()
+void timer_cycles_init()
 {
     // Get current Frequency
     soc_ctrl_t soc_ctrl;
@@ -96,7 +98,7 @@ void timer_init()
 }
 
 // Initialize the timer
-void timer_init_us()
+void  timer_microseconds_init()
 {
     // Get current Frequency
     soc_ctrl_t soc_ctrl;
@@ -105,7 +107,7 @@ void timer_init_us()
 
     // Initialize the timer
     rv_timer_init(timer_base, timer_cfg, &timer);
-    rv_timer_approximate_tick_params(freq_hz, FREQ_US, &tick_params);
+    rv_timer_approximate_tick_params(freq_hz, FREQ_1MHz, &tick_params);
     rv_timer_set_tick_params(&timer, 0, tick_params);
     rv_timer_counter_set_enabled(&timer, 0, kRvTimerEnabled);
 }
@@ -113,7 +115,7 @@ void timer_init_us()
 // Initialize the timer
 void timer_wait_ms(uint32_t ms)
 {
-    timer_init_us();
+     timer_microseconds_init();
     timer_irq_enable();
     timer_arm_start(ms*1000);
     timer_start();              
