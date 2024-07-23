@@ -830,7 +830,7 @@ module im2col_spc
   /* Channels full flag logic */
   always_comb begin : proc_comb_channels_full
     dma_channels_full = 1'b1;
-    for (int i = 0; i < 32; i = i + 1) begin
+    for (int i = 0; i < DMA_CH_NUM; i = i + 1) begin
       if (dma_if_channels[i] == 1'b0 && dma_ch_en_mask[i] == 1'b1) begin
         dma_channels_full = 1'b0;
         break;

@@ -21,8 +21,11 @@ module pipe_reg #(
   logic [WIDTH-1:0] reg_data;
 
   always_ff @(posedge clk_i, negedge rst_ni) begin
-    if (!rst_ni) reg_data <= '0;
-    else reg_data <= data_in;
+    if (!rst_ni) begin
+      reg_data <= '0;
+    end else begin
+      reg_data <= data_in;
+    end
   end
 
   assign data_out = reg_data;

@@ -136,7 +136,7 @@ module im2col_spc_param_fsm
     end else begin
       if (im2col_done == 1'b1) begin
         im2col_param_done <= 1'b0;
-      end else if (ch_col_counter == (reg2hw.ch_col.q - 1) && batch_counter == reg2hw.batch.q) begin
+      end else if (ch_col_counter == (reg2hw.ch_col.q - 1) && batch_counter == (reg2hw.batch.q - 1)) begin
         im2col_param_done <= 1'b1;
       end
     end

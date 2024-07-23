@@ -86,10 +86,95 @@ The complete addres of a DMA channel register is the following:
 
 The previous parameters, including the register offsets, can be found at `sw/device/lib/runtime/core_v_mini_mcu.h` and `sw/device/lib/drivers/dma/dma_regs.h`
 
-- **SRC_PTR_REG**: 
-    - _Length_: 32 bit
-    - _SW access_: read-write
-    - _Description_: contains the source pointer on 32 bits.
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|-------------- 31 : 0 -------------|
+|-------------- PTR_IN -------------|</code></pre>
+</div>
+
+- **SRC_PTR_REG**
+  - _SW access_: rw
+  - _Description_: contains the pointer to the source, which could either be data stored in memory or a peripheral.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|-------------- 31 : 0 -------------|
+|------------- PTR_OUT -------------|</code></pre>
+</div>
+
+- **DST_PTR_REG**
+  - _SW access_: rw
+  - _Description_: contains the pointer to the destination, which could either be data stored in memory or a peripheral.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|-------------- 31 : 0 -------------|
+|------------- PTR_ADDR ------------|</code></pre>
+</div>
+
+- **ADDR_PTR_REG**
+  - _SW access_: rw
+  - _Description_: Used only with the address mode [LINK ALLE MODALITA']. It contains the pointer to the source, which in this case must data stored in memory.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 14 ----|---- 15 : 0 ----|
+|--- Reserved ----|----- SIZE -----|</code></pre>
+</div>
+
+- **SIZE_D1**
+  - _SW access_: rw
+  - _Description_: number of bytes to be copied by the DMA channel along the first dimension, i.e. using the first counter. As soon as this register is written, the transaction starts.
+
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 14 ----|---- 15 : 0 ----|
+|--- Reserved ----|----- SIZE -----|</code></pre>
+</div>
+
+- **SIZE_D2**
+  - _SW access_: rw
+  - _Description_: number of bytes to be copied by the DMA channel along the second dimension, i.e. using the second counter.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 2 ----|--- 1 ---|--- 0 ---|
+|--- Reserved ---|- WIN_DN |-- RDY --|</code></pre>
+</div>
+
+- **STATUS**
+  - _SW access_: ro
+  - _Description_: this register is used by the DMA to communicate the status of the transaction. READY is 0 when the DMA is busy performing the transaction, 1 otherwise.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 6 ----|---- 5 : 0 ----|
+|--- Reserved ---|----- INC -----|</code></pre>
+</div>
+
+- **SRC_PTR_INC_D1**
+  - _SW access_: rw
+  - _Description_: increment in bytes to apply for every copied element.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 6 ----|---- 5 : 0 ----|
+|--- Reserved ---|----- INC -----|</code></pre>
+</div>
+
+- **SRC_PTR_INC_D2**
+  - _SW access_: rw
+  - _Description_: increment in bytes to apply every time a "row" is copied in order to go to the new line. It's necessary only for 2D transactions. 
+  From an application perspective, this value has to be computed depending on the size of the input matrix and the 2D stride.
 
 
 ## Functional description
