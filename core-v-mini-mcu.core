@@ -237,6 +237,10 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
+  FPGA_SYNTHESIS:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   FPGA_NEXYS:
     datatype: bool
     paramtype: vlogdefine
@@ -421,6 +425,7 @@ targets:
     - X_EXT
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
+    - FPGA_SYNTHESIS=true
     - FPGA_NEXYS=true
     tools:
       vivado:
@@ -442,6 +447,7 @@ targets:
     - X_EXT
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
+    - FPGA_SYNTHESIS=true
     tools:
       vivado:
         part: xc7z020clg400-1
@@ -462,6 +468,7 @@ targets:
     - X_EXT
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
+    - FPGA_SYNTHESIS=true
     - FPGA_ZCU104=true
     tools:
       vivado:
