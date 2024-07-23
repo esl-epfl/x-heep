@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
 // File: example_timer_sdk.c
-// Author: Juan Sapriza
-// Date: 15/07/2024
+// Author: Juan Sapriza, Francesco Poluzzi
+// Date: 23/07/2024
 // Description: Example application to test the Timer SDK. Will count the time to execute a few short tasks.
 
 #include <stdint.h>
@@ -32,15 +32,15 @@ void __attribute__((aligned(4), interrupt)) handler_irq_timer(void) {
 }
 
 int main(){
-    uint8_t i = 0;
+    uint32_t i = 0;
     uint32_t timer_cycles;
 
-    timer_init();               // Init the timer SDK
+    timer_init();               // Init the timer SDK for clock cycles
     timer_start();              // Start counting the time
     timer_cycles = timer_stop();  // Stop counting the time
     PRINTF("0 NOPs:\t%d cc\n\r", timer_cycles );
     
-    timer_start();              
+    timer_start();     
     asm volatile ("nop");
     timer_cycles = timer_stop();  
     PRINTF("1 NOP:\t%d cc\n\r", timer_cycles );
@@ -58,20 +58,26 @@ int main(){
     timer_cycles = timer_stop();  
     PRINTF("3 NOPs:\t%d cc\n\r", timer_cycles );
 
-    //enable timer interrupt
-    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level timer interrupts
-    const uint32_t mask = 1 << 7;
-    CSR_SET_BITS(CSR_REG_MIE, mask);
+    enable_timer_interrupt();   // Enable the timer machine-level interrupt
 
     timer_init();
     timer_irq_enable();
-    timer_arm_start(10);
+    timer_arm_start(1000);
     timer_start();              
-    asm volatile ("wfi");
+    asm volatile ("wfi");       // Wait for interrupt
     timer_cycles = timer_stop();  
-    PRINTF("wait ARM timer 10 (%d)\n\r", timer_cycles );
+    PRINTF("wait ARM timer 1000 (%d)\n\r", timer_cycles );
 
+    timer_init_us();           // Init the timer SDK for microseconds
+    timer_start(); 
+    for(i = 0; i < 1000; i++){
+        asm volatile ("nop");
+    }
+    PRINTF("Microseconds for 1000 NOPs:\t%d μs\n\r", timer_stop() );
+
+    PRINTF("Wait 5 seconds\n\r");
+    timer_wait_ms(5000);       // Wait for 5 seconds
+    PRINTF("Done\n\r");
 
     return EXIT_SUCCESS;
 }
