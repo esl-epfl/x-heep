@@ -95,15 +95,6 @@ extern "C"
      */
     void dma_fill(uint32_t dst_ptr, uint32_t value_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data);
 
-    /**
-     * @brief Starts a DMA transfer.
-     *
-     * @param dma_peri      Pointer to the DMA peripheral.
-     * @param size          Size of the data to be transferred in bytes.
-     * @param src_type      Source variable type (byte, half-word, word).
-     */
-        void dma_start(dma *dma_peri, uint32_t size, dma_data_type_t src_type);
-
 #ifdef __cplusplus
 }
 #endif // __cplusplus
