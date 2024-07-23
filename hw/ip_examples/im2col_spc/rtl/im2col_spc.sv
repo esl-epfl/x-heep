@@ -208,8 +208,9 @@ module im2col_spc
   /* DMA interface unit state transition logic */
   always_comb begin : proc_comb_dma_if_fsm
     unique case (dma_if_cu_d)
+      dma_if_load = 1'b0;
+      
       IDLE_IF_CU: begin
-        dma_if_load = 1'b0;
         if (fifo_empty == 1'b0 && im2col_fsms_done == 1'b0 && dma_channels_full == 1'b0) begin
           dma_if_cu_q = GET_TRANSACTION;
         end else begin
@@ -218,7 +219,6 @@ module im2col_spc
       end
 
       GET_TRANSACTION: begin
-        dma_if_load = 1'b0;
         if (fifo_empty == 1'b0 && dma_channels_full == 1'b0) begin
           dma_if_cu_q = LOAD_TRANSACTION;
         end else begin
@@ -238,6 +238,10 @@ module im2col_spc
           dma_if_cu_q = LOAD_TRANSACTION;
         end
       end
+
+      default: begin
+        dma_if_cu_q = IDLE_IF_CU;
+      end
     endcase
   end
 
@@ -253,8 +257,9 @@ module im2col_spc
   /* DMA interface unit transaction loading state transition logic */
   always_comb begin : proc_comb_dma_if_trans_load_fsm
     unique case (dma_if_cu_load_d)
+      fifo_pop = 1'b0;
+
       IDLE_IF_LOAD: begin
-        fifo_pop = 1'b0;
         if (dma_if_cu_d == GET_TRANSACTION && im2col_fsms_done == 1'b0 && dma_channels_full == 1'b0) begin
           if (dma_ch_first_write[dma_trans_free_channel] == 1'b0) begin
             dma_if_cu_load_q = WRITE_DIMENSIONALITY;
@@ -267,7 +272,6 @@ module im2col_spc
       end
 
       WRITE_DIMENSIONALITY: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_SLOTS;
         end else if (dma_if_cu_d == IDLE_IF_CU) begin
@@ -278,7 +282,6 @@ module im2col_spc
       end
 
       WRITE_SLOTS: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_SRC_DATATYPE;
         end else if (dma_if_cu_d == IDLE_IF_CU) begin
@@ -289,7 +292,6 @@ module im2col_spc
       end
 
       WRITE_SRC_DATATYPE: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_DST_DATATYPE;
         end else begin
@@ -298,7 +300,6 @@ module im2col_spc
       end
 
       WRITE_DST_DATATYPE: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_TOP_PAD;
         end else begin
@@ -307,7 +308,6 @@ module im2col_spc
       end
 
       WRITE_TOP_PAD: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_BOTTOM_PAD;
         end else begin
@@ -316,7 +316,6 @@ module im2col_spc
       end
 
       WRITE_BOTTOM_PAD: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_LEFT_PAD;
         end else begin
@@ -325,7 +324,6 @@ module im2col_spc
       end
 
       WRITE_LEFT_PAD: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_RIGHT_PAD;
         end else begin
@@ -334,7 +332,6 @@ module im2col_spc
       end
 
       WRITE_RIGHT_PAD: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_INPUT_PTR;
         end else begin
@@ -343,7 +340,6 @@ module im2col_spc
       end
 
       WRITE_INPUT_PTR: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_OUTPUT_PTR;
         end else begin
@@ -352,7 +348,6 @@ module im2col_spc
       end
 
       WRITE_OUTPUT_PTR: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_INC_SRC_D1;
         end else begin
@@ -361,7 +356,6 @@ module im2col_spc
       end
 
       WRITE_INC_SRC_D1: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_INC_SRC_D2;
         end else begin
@@ -370,7 +364,6 @@ module im2col_spc
       end
 
       WRITE_INC_SRC_D2: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_INC_DST_D1;
         end else begin
@@ -379,7 +372,6 @@ module im2col_spc
       end
 
       WRITE_INC_DST_D1: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_INC_DST_D2;
         end else begin
@@ -388,7 +380,6 @@ module im2col_spc
       end
 
       WRITE_INC_DST_D2: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_SIZE_D2;
         end else begin
@@ -397,7 +388,6 @@ module im2col_spc
       end
 
       WRITE_SIZE_D2: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_SIZE_D1;
         end else begin
@@ -406,7 +396,6 @@ module im2col_spc
       end
 
       WRITE_SIZE_D1: begin
-        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = DONE;
         end else begin
@@ -418,6 +407,11 @@ module im2col_spc
         fifo_pop = 1'b1;
         dma_if_cu_load_q = IDLE_IF_LOAD;
       end
+
+      default: begin
+        dma_if_cu_load_q = IDLE_IF_LOAD;
+      end
+      
     endcase
   end
 

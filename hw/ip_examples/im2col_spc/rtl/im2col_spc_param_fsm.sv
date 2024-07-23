@@ -145,14 +145,18 @@ module im2col_spc_param_fsm
   /* Parameter computation state transition FSM */
   always_comb begin : proc_comb_param_state_fsm
     unique case (param_state_d)
+      fifo_push = 1'b0;
+      batch_inc_en = 1'b0;
+      batch_rst = 1'b1;
+      output_data_ptr_en = 1'b0;
+      im_offset_en = 1'b0;
+      zeros_phase1_en = 1'b0;
+      zeros_phase2_en = 1'b0;
+      zeros_rst = 1'b1;
+      output_data_ptr_rst = 1'b0;
+
       IDLE: begin
-        fifo_push = 1'b0;
-        batch_inc_en = 1'b0;
         batch_rst = 1'b1;
-        output_data_ptr_en = 1'b0;
-        im_offset_en = 1'b0;
-        zeros_phase1_en = 1'b0;
-        zeros_phase2_en = 1'b0;
         zeros_rst = 1'b1;
         output_data_ptr_rst = 1'b1;
         if (im2col_start == 1'b1) begin
@@ -167,106 +171,40 @@ module im2col_spc_param_fsm
        * @Tod0: is this really necessary?
        */
       N_ZEROS_PRECOMP: begin
-        fifo_push = 1'b0;
-        batch_inc_en = 1'b0;
         batch_rst = 1'b1;
-        output_data_ptr_en = 1'b0;
-        im_offset_en = 1'b0;
-        zeros_phase1_en = 1'b0;
-        zeros_phase2_en = 1'b0;
         zeros_rst = 1'b1;
         output_data_ptr_rst = 1'b1;
         param_state_q = ZEROS_COND_EVAL;
       end
 
       ZEROS_COND_EVAL: begin
-        fifo_push = 1'b0;
-        batch_inc_en = 1'b0;
-        batch_rst = 1'b0;
-        output_data_ptr_en = 1'b0;
-        im_offset_en = 1'b0;
-        zeros_phase1_en = 1'b0;
-        zeros_phase2_en = 1'b0;
-        zeros_rst = 1'b0;
-        output_data_ptr_rst = 1'b0;
         param_state_q = N_ZEROS_COMP_1;
       end
 
       N_ZEROS_COMP_1: begin
-        fifo_push = 1'b0;
-        batch_inc_en = 1'b0;
-        batch_rst = 1'b0;
-        output_data_ptr_en = 1'b0;
-        im_offset_en = 1'b0;
         zeros_phase1_en = 1'b1;
-        zeros_phase2_en = 1'b0;
-        zeros_rst = 1'b0;
-        output_data_ptr_rst = 1'b0;
         param_state_q = N_ZEROS_COMP_2;
       end
 
       N_ZEROS_COMP_2: begin
-        fifo_push = 1'b0;
-        batch_inc_en = 1'b0;
-        batch_rst = 1'b0;
-        output_data_ptr_en = 1'b0;
-        im_offset_en = 1'b0;
-        zeros_phase1_en = 1'b0;
         zeros_phase2_en = 1'b1;
-        zeros_rst = 1'b0;
-        output_data_ptr_rst = 1'b0;
         param_state_q = N_ZEROS_COMP_3;
       end
 
       N_ZEROS_COMP_3: begin
-        fifo_push = 1'b0;
-        batch_inc_en = 1'b0;
-        batch_rst = 1'b0;
-        output_data_ptr_en = 1'b0;
-        im_offset_en = 1'b0;
-        zeros_phase1_en = 1'b0;
         zeros_phase2_en = 1'b1;
-        zeros_rst = 1'b0;
-        output_data_ptr_rst = 1'b0;
         param_state_q = INDEX_COMP_1;
       end
 
       INDEX_COMP_1: begin
-        fifo_push = 1'b0;
-        batch_inc_en = 1'b0;
-        batch_rst = 1'b0;
-        output_data_ptr_en = 1'b0;
-        im_offset_en = 1'b0;
-        zeros_phase1_en = 1'b0;
-        zeros_phase2_en = 1'b0;
-        zeros_rst = 1'b0;
-        output_data_ptr_rst = 1'b0;
         param_state_q = INDEX_COMP_2;
       end
 
       INDEX_COMP_2: begin
-        fifo_push = 1'b0;
-        batch_inc_en = 1'b0;
-        batch_rst = 1'b0;
-        output_data_ptr_en = 1'b0;
-        im_offset_en = 1'b0;
-        zeros_phase1_en = 1'b0;
-        zeros_phase2_en = 1'b0;
-        zeros_rst = 1'b0;
-        output_data_ptr_rst = 1'b0;
         param_state_q = INDEX_COMP_3;
       end
 
       INDEX_COMP_3: begin
-        fifo_push = 1'b0;
-        batch_inc_en = 1'b0;
-        batch_rst = 1'b0;
-        output_data_ptr_en = 1'b0;
-        im_offset_en = 1'b0;
-        zeros_phase1_en = 1'b0;
-        zeros_phase2_en = 1'b0;
-        zeros_rst = 1'b0;
-        output_data_ptr_rst = 1'b0;
         if (fifo_full == 1'b0) begin
           param_state_q = START_DMA_RUN;
         end else begin
@@ -275,15 +213,8 @@ module im2col_spc_param_fsm
       end
 
       OUT_PTR_UPDATE: begin
-        fifo_push = 1'b0;
         batch_inc_en = 1'b1;
-        batch_rst = 1'b0;
         output_data_ptr_en = 1'b1;
-        im_offset_en = 1'b0;
-        zeros_phase1_en = 1'b0;
-        zeros_phase2_en = 1'b0;
-        zeros_rst = 1'b0;
-        output_data_ptr_rst = 1'b0;
         if (batch_counter == reg2hw.batch.q - 1) begin
           param_state_q = IM_OFFSET_UPDATE;
         end else begin
@@ -292,15 +223,8 @@ module im2col_spc_param_fsm
       end
 
       IM_OFFSET_UPDATE: begin
-        fifo_push = 1'b0;
-        batch_inc_en = 1'b0;
         batch_rst = 1'b1;
-        output_data_ptr_en = 1'b0;
         im_offset_en = 1'b1;
-        zeros_phase1_en = 1'b0;
-        zeros_phase2_en = 1'b0;
-        zeros_rst = 1'b0;
-        output_data_ptr_rst = 1'b0;
         if (im2col_param_done == 1'b1) begin
           param_state_q = IDLE;
         end else begin
@@ -310,27 +234,10 @@ module im2col_spc_param_fsm
 
       START_DMA_RUN: begin
         fifo_push = 1'b1;
-        batch_inc_en = 1'b0;
-        batch_rst = 1'b0;
-        output_data_ptr_en = 1'b0;
-        im_offset_en = 1'b0;
-        zeros_phase1_en = 1'b0;
-        zeros_phase2_en = 1'b0;
-        zeros_rst = 1'b0;
-        output_data_ptr_rst = 1'b0;
         param_state_q = OUT_PTR_UPDATE;
       end
 
       default: begin
-        fifo_push = 1'b1;
-        batch_inc_en = 1'b0;
-        batch_rst = 1'b1;
-        output_data_ptr_en = 1'b0;
-        im_offset_en = 1'b0;
-        zeros_phase1_en = 1'b0;
-        zeros_phase2_en = 1'b0;
-        zeros_rst = 1'b1;
-        output_data_ptr_rst = 1'b1;
         param_state_q = IDLE;
       end
 
