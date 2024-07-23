@@ -56,35 +56,27 @@ uint32_t errors = 0;
 
 int main()
 {
-    volatile dma *the_dma = dma_peri(0); // Defined as volatile to avoid compiler optimizations
-
     dma_sdk_init();
 
-    DMA_FILL(source_32b, &value_32b, SOURCE_BUFFER_SIZE_32b, uint32_t, uint32_t, 0, the_dma);
-    DMA_WAIT(0);
-    DMA_COPY(destin_32b, source_32b, SOURCE_BUFFER_SIZE_32b, uint32_t, uint32_t, 0, the_dma);
-    DMA_WAIT(0);
+    dma_fill(source_32b, &value_32b, SOURCE_BUFFER_SIZE_32b, 0, DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_WORD, 0);
+    dma_copy(destin_32b, source_32b, SOURCE_BUFFER_SIZE_32b, 0, DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_WORD, 0);
 
     for (i = 0; i < SOURCE_BUFFER_SIZE_32b; i++)
     {
         errors += destin_32b[i] != CONST_VALUE_32B;
     }
 
-    DMA_FILL(source_16b, &value_16b, SOURCE_BUFFER_SIZE_16b, uint16_t, uint16_t, 0, the_dma);
-    DMA_WAIT(0);
-    DMA_COPY(destin_16b, source_16b, SOURCE_BUFFER_SIZE_16b, uint16_t, uint16_t, 0, the_dma);
-    DMA_WAIT(0);
+    dma_fill(source_16b, &value_16b, SOURCE_BUFFER_SIZE_16b, 0, DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD, 0);
+    dma_copy(destin_16b, source_16b, SOURCE_BUFFER_SIZE_16b, 0, DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD, 0);
 
     for (i = 0; i < SOURCE_BUFFER_SIZE_16b; i++)
     {
         errors += destin_16b[i] != CONST_VALUE_16B;
     }
 
-    DMA_FILL(source_8b, &value_8b, SOURCE_BUFFER_SIZE_8b, uint8_t, uint8_t, 0, the_dma);
-    DMA_WAIT(0);
-    DMA_COPY(destin_8b, source_8b, SOURCE_BUFFER_SIZE_8b, uint8_t, uint8_t, 0, the_dma);
-    DMA_WAIT(0);
-    
+    dma_fill(source_8b, &value_8b, SOURCE_BUFFER_SIZE_8b, 0, DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE, 0);
+    dma_copy(destin_8b, source_8b, SOURCE_BUFFER_SIZE_8b, 0, DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE, 0);
+
     for (i = 0; i < SOURCE_BUFFER_SIZE_8b; i++)
     {
         errors += destin_8b[i] != CONST_VALUE_8B;
