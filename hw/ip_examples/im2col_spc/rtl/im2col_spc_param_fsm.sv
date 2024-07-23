@@ -320,6 +320,20 @@ module im2col_spc_param_fsm
         output_data_ptr_rst = 1'b0;
         param_state_q = OUT_PTR_UPDATE;
       end
+
+      default: begin
+        fifo_push = 1'b1;
+        batch_inc_en = 1'b0;
+        batch_rst = 1'b1;
+        output_data_ptr_en = 1'b0;
+        im_offset_en = 1'b0;
+        zeros_phase1_en = 1'b0;
+        zeros_phase2_en = 1'b0;
+        zeros_rst = 1'b1;
+        output_data_ptr_rst = 1'b1;
+        param_state_q = IDLE;
+      end
+
     endcase
   end
 
