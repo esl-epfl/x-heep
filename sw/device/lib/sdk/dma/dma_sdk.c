@@ -36,9 +36,9 @@ extern "C"
     /* ---- FUNCTION DEFINITIONS ---- */
     /**********************************/
 
-    static inline void dma_start(dma *dma_peri, uint32_t size, dma_data_type_t src_type)
+    static inline void dma_start(dma *peri, uint32_t size, dma_data_type_t src_type)
     {
-        dma_peri->SIZE_D1 = (uint32_t)((size * DMA_DATA_TYPE_2_SIZE(src_type)) & DMA_SIZE_D1_SIZE_MASK);
+        peri->SIZE_D1 = (uint32_t)((size * DMA_DATA_TYPE_2_SIZE(src_type)) & DMA_SIZE_D1_SIZE_MASK);
     }
 
     // Initialize the DMA
