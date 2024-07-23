@@ -19,6 +19,7 @@
 extern "C"
 {
 #endif // __cplusplus
+
 #define INCREMENT(TYPE) ((TYPE == DMA_DATA_TYPE_BYTE) ? 1 : (TYPE == DMA_DATA_TYPE_HALF_WORD) ? 2 \
                                                                                               : 4)
 

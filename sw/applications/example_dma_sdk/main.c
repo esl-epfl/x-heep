@@ -58,24 +58,24 @@ int main()
 {
     dma_sdk_init();
 
-    dma_fill(source_32b, &value_32b, SOURCE_BUFFER_SIZE_32b, 0, DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_WORD, 0);
-    dma_copy(destin_32b, source_32b, SOURCE_BUFFER_SIZE_32b, 0, DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_WORD, 0);
+    dma_fill((uint32_t)source_32b, (uint32_t)&value_32b, SOURCE_BUFFER_SIZE_32b, 0, DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_WORD, 0);
+    dma_copy((uint32_t)destin_32b, (uint32_t)source_32b, SOURCE_BUFFER_SIZE_32b, 0, DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_WORD, 0);
 
     for (i = 0; i < SOURCE_BUFFER_SIZE_32b; i++)
     {
         errors += destin_32b[i] != CONST_VALUE_32B;
     }
 
-    dma_fill(source_16b, &value_16b, SOURCE_BUFFER_SIZE_16b, 0, DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD, 0);
-    dma_copy(destin_16b, source_16b, SOURCE_BUFFER_SIZE_16b, 0, DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD, 0);
+    dma_fill((uint32_t)source_16b, (uint32_t)&value_16b, SOURCE_BUFFER_SIZE_16b, 0, DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD, 0);
+    dma_copy((uint32_t)destin_16b, (uint32_t)source_16b, SOURCE_BUFFER_SIZE_16b, 0, DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD, 0);
 
     for (i = 0; i < SOURCE_BUFFER_SIZE_16b; i++)
     {
         errors += destin_16b[i] != CONST_VALUE_16B;
     }
 
-    dma_fill(source_8b, &value_8b, SOURCE_BUFFER_SIZE_8b, 0, DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE, 0);
-    dma_copy(destin_8b, source_8b, SOURCE_BUFFER_SIZE_8b, 0, DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE, 0);
+    dma_fill((uint32_t)source_8b, (uint32_t)&value_8b, SOURCE_BUFFER_SIZE_8b, 0, DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE, 0);
+    dma_copy((uint32_t)destin_8b, (uint32_t)source_8b, SOURCE_BUFFER_SIZE_8b, 0, DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE, 0);
 
     for (i = 0; i < SOURCE_BUFFER_SIZE_8b; i++)
     {
