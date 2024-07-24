@@ -12,9 +12,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include "dma_sdk.h"
-#include "dma.h"
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
 #include "csr.h"
