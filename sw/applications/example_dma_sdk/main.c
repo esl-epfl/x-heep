@@ -11,10 +11,13 @@
 //              are performed correctly.
 
 #include <stdint.h>
+#include <stdio.h>              // For compatibility with OH Group compiler
 #include <stdlib.h>
 #include "dma_sdk.h"
+#include "dma.h"                // For compatibility with OH Group compiler
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
+#include "csr.h"                // For compatibility with OH Group compiler
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA 1
