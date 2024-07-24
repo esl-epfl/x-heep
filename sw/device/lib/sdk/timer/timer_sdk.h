@@ -22,7 +22,6 @@
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
 
-#define TICK_FREQ 1000000
 #define FREQ_1MHz 1000000
 
 /******************************/
