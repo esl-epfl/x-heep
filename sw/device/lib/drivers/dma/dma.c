@@ -63,11 +63,6 @@ extern "C"
 #define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ) ) // @ToDo Add definitions for this 19 and 11
 
 /**
- * Size of a register of 32 bits.
- */
-#define DMA_REGISTER_SIZE_BYTES sizeof(int)
-
-/**
  * Mask to determine if an address is multiple of 4 (Word aligned).
  */
 #define DMA_WORD_ALIGN_MASK 3
