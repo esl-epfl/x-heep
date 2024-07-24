@@ -36,7 +36,7 @@ extern "C"
     /* ---- FUNCTION DEFINITIONS ---- */
     /**********************************/
 
-    static inline void dma_start(dma *peri, uint32_t size, dma_data_type_t src_type)
+    static __attribute__((always_inline)) void dma_start(dma *peri, uint32_t size, dma_data_type_t src_type)
     {
         peri->SIZE_D1 = (uint32_t)((size * DMA_DATA_TYPE_2_SIZE(src_type)) & DMA_SIZE_D1_SIZE_MASK);
     }
@@ -57,7 +57,7 @@ extern "C"
 
     void dma_copy(uint32_t dst_ptr, uint32_t src_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data)
     {
-        volatile dma *the_dma = dma_peri(channel);
+        dma *the_dma = dma_peri(channel);
         DMA_COPY(dst_ptr, src_ptr, size, src_type, dst_type, signed_data, the_dma);
         dma_start(the_dma, size, src_type);
         DMA_WAIT(channel);
@@ -66,7 +66,7 @@ extern "C"
 
     void dma_fill(uint32_t dst_ptr, uint32_t value_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data)
     {
-        volatile dma *the_dma = dma_peri(channel);
+        dma *the_dma = dma_peri(channel);
         DMA_FILL(dst_ptr, value_ptr, size, src_type, dst_type, signed_data, the_dma);
         dma_start(the_dma, size, src_type);
         DMA_WAIT(channel);

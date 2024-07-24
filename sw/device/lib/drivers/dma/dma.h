@@ -107,7 +107,6 @@ extern "C" {
  */
 #define DMA_DATA_TYPE_2_SIZE(type) (0b00000100 >> (type) )
 
-#define DMA_REGISTER_SIZE_BYTES sizeof(int)
 #define DMA_SELECTION_OFFSET_START 0
 
 /****************************************************************************/
@@ -432,7 +431,7 @@ inline void write_register( uint32_t  p_val,
      * The index is computed to avoid needing to access the structure
      * as a structure.
      */
-    uint8_t index = p_offset / DMA_REGISTER_SIZE_BYTES;
+    uint8_t index = p_offset / sizeof(uint32_t);
     /*
      * An intermediate variable "value" is used to prevent writing twice into
      * the register.
