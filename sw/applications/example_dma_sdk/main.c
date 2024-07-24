@@ -15,7 +15,6 @@
 #include "dma_sdk.h"
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
-#include "csr.h"
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA 1
