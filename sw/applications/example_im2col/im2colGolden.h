@@ -30,7 +30,5 @@
 #define RIGHT_PAD 2
 extern const uint32_t input_image_nchw[900];
 extern const uint32_t golden_im2col_nchw[5148];
-extern const uint32_t input_image_nhwc[900];
-extern const uint32_t golden_im2col_nhwc[5148];
 
 #endif

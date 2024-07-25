@@ -43,39 +43,6 @@ def torch_im2col_ncwh(input_tensor, kernel_size, stride_d1=1, stride_d2=1, top_p
     channel_dim = padded_input.size(1)
     return unfolded.contiguous().view(-1, channel_dim * kernel_size[0] * kernel_size[1]).t()
 
-def shl_im2col_nhwc(input_tensor, kernel_size, stride, top_pad=1, bottom_pad=1, left_pad=2, right_pad=2):  
-    # Get the dimensions of the input tensor
-    batch_size, height, width, channels = input_tensor.shape
-    input_tensor = input_tensor.flatten()
-
-    # Calculate the dimensions of the output tensor
-    n_patches_w = (height + top_pad + bottom_pad +  - kernel_size[0]) // stride[0] + 1
-    n_patches_h = (width + left_pad + right_pad - kernel_size[1]) // stride[1] + 1
-
-    # Create an empty array to hold the output tensor
-    output_height = channels * kernel_size[0] * kernel_size[1]
-    output_tensor = np.zeros(batch_size * output_height * n_patches_h * n_patches_w).flatten()
-
-    # Iterate over the input tensor and extract patches
-    for b in range(batch_size):
-        for h in range(n_patches_h):
-            for w in range(n_patches_w):
-                for c in range(output_height):
-                    w_offset = c % kernel_size[1]
-                    h_offset = (c // kernel_size[1]) % kernel_size[0]
-                    c_offset = c // (kernel_size[0] * kernel_size[1])
-
-                    im_row = h * stride[0] + h_offset - top_pad
-                    im_col = w * stride[1] + w_offset - left_pad
-                    col_index = ((b * n_patches_h + h) * n_patches_w + w) * output_height + c
-                    
-                    if im_row < 0 or im_row >= height or im_col < 0 or im_col >= width:
-                        output_tensor[col_index] = 0
-                    else:
-                        output_tensor[col_index] = input_tensor[ ((b*height + im_row) * width + im_col) * channels + c_offset]
-
-    return output_tensor
-
 # Function to save a tensor to a C file
 
 def torch_save(tensor, variable_name, dim, row_len):
@@ -106,43 +73,7 @@ def torch_save(tensor, variable_name, dim, row_len):
     # Write to the file
     f.write(c_code)
 
-def shl_save(tensor, variable_name, dim, row_len):
-    """
-    Saves a tensor to a C file as a statically defined array.
-    
-    Parameters:
-    - tensor: A NumPy array containing the tensor data.
-    - variable_name: The name of the array variable in the generated C code.
-    - filename: The name of the file to save the array to.
-    """
-    # Open the file for writing
-    f.write("const uint32_t %s[%d] = {\n" % (variable_name, dim))
-        
-    # Iterate over the tensor data and write each element to the file
-    for i, value in enumerate(np.nditer(tensor)):
-        f.write(" %d" % value)
-        if i < tensor.size - 1:
-             if (i + 1) % row_len == 0:
-                  f.write(",\n")
-             else:
-                  f.write(",")
-        
-    # Close the array definition
-    f.write("\n};\n")
-
-
 #######################################################################################################
-# Parameters
-
-# Define the type of operation to perform
-# 0: nchw
-# 1: nhwc
-
-# Define which tool to use to generate the golden reference
-# 0: my own implementation
-# 1: torch.nn.functional.unfold/tensorflow.image.extract_patches
-# 2: SHL implementation
-
 # Parameters of the random image, padding excluded
 image_height = 10
 image_width = 10
@@ -171,10 +102,6 @@ OW = n_patches_h * n_patches_w # Numver of columns in a row -> size of a row
 input_tensor_nchw = torch.randint(0, 65500, (batch, channels, image_height, image_width), dtype=torch.int32)
 output_matrix_nchw = torch_im2col_ncwh(input_tensor_nchw, (filter_height, filter_width), stride_d1, stride_d2, top_pad, bottom_pad, left_pad, right_pad)
 
-# Perform the im2col operation using SHL's implementation
-input_tensor_nhwc = np.random.randint(0, 2**16, size=(batch, image_height, image_width, channels), dtype=np.uint32)
-output_matrix_nhwc = shl_im2col_nhwc(input_tensor_nhwc, (filter_height, filter_width), (stride_d1, stride_d2), top_pad, bottom_pad, left_pad, right_pad)
-
 # Dump input image and output col to header file
 with open('im2colGolden.h', 'w') as f:
     f.write("/*\n   Copyright EPFL contributors.\n  Licensed under the Apache License, Version 2.0, see LICENSE for details.\n")
@@ -201,9 +128,6 @@ with open('im2colGolden.h', 'w') as f:
 
     f.write('extern const uint32_t input_image_nchw[%d];\n' % (channels * image_height * image_width * batch))
     f.write('extern const uint32_t golden_im2col_nchw[%d];\n' % (OW*OH))
-    f.write('extern const uint32_t input_image_nhwc[%d];\n' % (channels * image_height * image_width * batch))
-    f.write('extern const uint32_t golden_im2col_nhwc[%d];\n' % (OW*OH))
-
     f.write('\n#endif\n')
 
 # Dump input image and output col to C file
@@ -221,6 +145,3 @@ with open('im2colGolden.c', 'w') as f:
     torch_save(output_matrix_nchw, "golden_im2col_nchw", OW*OH, OW)
 
     f.write('\n\n')
-
-    shl_save(input_tensor_nhwc, "input_image_nhwc", channels * image_height * image_width * batch, image_width)
-    shl_save(output_matrix_nhwc, "golden_im2col_nhwc", OW*OH, OH)

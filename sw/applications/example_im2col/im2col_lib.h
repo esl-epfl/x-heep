@@ -103,7 +103,7 @@
 #define OW_NHWC (FW * FH * CH * BATCH)
 #define OH_NHWC (N_PATCHES_W) * (N_PATCHES_H)
 
-#define START_ID 2
+#define START_ID 3
 
 #define TEST_EN 1
 
@@ -111,12 +111,11 @@
 #define SRC_INC_D2 (STRIDE_D2 * IW - (FW - 1 + (STRIDE_D1 - 1) * (FW - 1)))
 
 int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles);
-//int im2col_nhwc_int32(uint8_t test_id, unsigned int *cycles);
 
 __attribute__((weak, optimize("00"))) void handler_irq_im2col_spc(void);
 
 int get_index(int dim1, int dim2, int dim3, int index0, int index1, int index2, int index3);
                 
-int verify(int format);
+int verify(void);
 
 #endif
