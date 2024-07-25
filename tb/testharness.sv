@@ -519,8 +519,8 @@ module testharness #(
           .clk_i,
           .rst_ni,
 
-          .aopx2im2col_resp_i(ext_ao_peripheral_resp[0]),
-          .im2col2aopx_req_o (ext_ao_peripheral_req[0]),
+          .aopb2im2col_resp_i(ext_ao_peripheral_resp[0]),
+          .im2col2aopb_req_o (ext_ao_peripheral_req[0]),
 
           .reg_req_i(ext_periph_slv_req[testharness_pkg::IM2COL_SPC_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::IM2COL_SPC_IDX]),

@@ -13,3 +13,4 @@ lint_off -rule UNUSED -file "*/rtl/im2col_spc.sv" -match "Signal is not used: 'd
 
 lint_off -rule UNUSED -file "*/rtl/im2col_spc.sv" -match "Bits of signal are not used: *"
 lint_off -rule UNUSED -file "*/rtl/im2col_spc_param_fsm.sv" -match "Bits of signal are not used: *"
+lint_off -rule UNUSED -file "*/rtl/im2col_spc_regintfc_controller.sv" -match "Bits of signal are not used: *"

@@ -125,7 +125,7 @@
     { name:     "SLOT",
       desc:     '''The DMA will wait for the signal 
                    connected to the selected trigger_slots to be high
-                   on the read and write side respectivly''',
+                   on the read and write side respectively''',
       swaccess: "rw",
       hwaccess: "hro",
       hwqe:     "true", // enable `qe` latched signal of software write pulse

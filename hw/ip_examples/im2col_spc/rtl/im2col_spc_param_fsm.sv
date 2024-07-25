@@ -82,6 +82,8 @@ module im2col_spc_param_fsm
   logic [7:0] n_zeros_top_std;
   logic [7:0] n_zeros_right_std;
   logic [7:0] n_zeros_bottom_std;
+
+  /* Pipelining control signals */
   logic output_data_ptr_en;
   logic im_offset_en;
   logic batch_inc_en;
@@ -90,8 +92,9 @@ module im2col_spc_param_fsm
   logic zeros_phase2_en;
   logic zeros_rst;
   logic output_data_ptr_rst;
+  logic pipe_rst;
 
-  /* Control signals */
+  /* Status signals */
   logic im2col_param_done;
   logic im2col_done;
   logic im2col_start;
@@ -136,7 +139,7 @@ module im2col_spc_param_fsm
     end else begin
       if (im2col_done == 1'b1) begin
         im2col_param_done <= 1'b0;
-      end else if (ch_col_counter == (reg2hw.ch_col.q - 1) && batch_counter == (reg2hw.batch.q - 1)) begin
+      end else if (ch_col_counter == (reg2hw.ch_col.q - 1) && batch_counter == reg2hw.batch.q) begin
         im2col_param_done <= 1'b1;
       end
     end
@@ -144,16 +147,17 @@ module im2col_spc_param_fsm
 
   /* Parameter computation state transition FSM */
   always_comb begin : proc_comb_param_state_fsm
+    fifo_push = 1'b0;
+    batch_inc_en = 1'b0;
+    batch_rst = 1'b0;
+    output_data_ptr_en = 1'b0;
+    im_offset_en = 1'b0;
+    zeros_phase1_en = 1'b0;
+    zeros_phase2_en = 1'b0;
+    zeros_rst = 1'b0;
+    output_data_ptr_rst = 1'b0;
+    
     unique case (param_state_d)
-      fifo_push = 1'b0;
-      batch_inc_en = 1'b0;
-      batch_rst = 1'b1;
-      output_data_ptr_en = 1'b0;
-      im_offset_en = 1'b0;
-      zeros_phase1_en = 1'b0;
-      zeros_phase2_en = 1'b0;
-      zeros_rst = 1'b1;
-      output_data_ptr_rst = 1'b0;
 
       IDLE: begin
         batch_rst = 1'b1;
@@ -323,7 +327,9 @@ module im2col_spc_param_fsm
     if (!rst_ni) begin
       w_offset <= '0;
     end else begin
-      if (im_offset_en == 1'b1) begin
+      if (im2col_param_done == 1'b1) begin
+        w_offset <= '0;
+      end else if (im_offset_en == 1'b1) begin
         if (w_offset == reg2hw.fw.q - 1) begin
           w_offset <= '0;
         end else begin
@@ -339,7 +345,10 @@ module im2col_spc_param_fsm
       h_offset <= '0;
       h_offset_counter <= '0;
     end else begin
-      if (im_offset_en == 1'b1) begin
+      if (im2col_param_done == 1'b1) begin
+        h_offset <= '0;
+        h_offset_counter <= '0;
+      end else if (im_offset_en == 1'b1) begin
         if (h_offset_counter == {24'h0, reg2hw.fw.q} - 1) begin
           h_offset_counter <= '0;
           if (h_offset == reg2hw.fh.q - 1) begin
@@ -360,7 +369,10 @@ module im2col_spc_param_fsm
       im_c <= '0;
       im_c_counter <= '0;
     end else begin
-      if (im_offset_en == 1'b1) begin
+      if (im2col_param_done == 1'b1) begin
+        im_c <= '0;
+        im_c_counter <= '0;
+      end else if (im_offset_en == 1'b1) begin
         if (im_c_counter == {24'h0, reg2hw.fh.q} * {24'h0, reg2hw.fw.q} - 1) begin
           im_c_counter <= '0;
           im_c <= im_c + 1;
@@ -376,7 +388,9 @@ module im2col_spc_param_fsm
     if (!rst_ni) begin
       ch_col_counter <= '0;
     end else begin
-      if (im_offset_en == 1'b1) begin
+      if (im2col_param_done == 1'b1) begin
+        ch_col_counter <= '0;
+      end else if (im_offset_en == 1'b1) begin
         if (ch_col_counter == reg2hw.ch_col.q - 1) begin
           ch_col_counter <= '0;
         end else begin
@@ -408,7 +422,7 @@ module im2col_spc_param_fsm
       .WIDTH(8)
   ) pipe_reg_left_zeros (
       .clk_i,
-      .rst_ni,
+      .rst_ni(pipe_rst),
       .data_in (n_zeros_left_comp1_n),
       .data_out(n_zeros_left_comp1)
   );
@@ -417,7 +431,7 @@ module im2col_spc_param_fsm
       .WIDTH(8)
   ) pipe_reg_top_zeros (
       .clk_i,
-      .rst_ni,
+      .rst_ni(pipe_rst),
       .data_in (n_zeros_top_comp1_n),
       .data_out(n_zeros_top_comp1)
   );
@@ -426,7 +440,7 @@ module im2col_spc_param_fsm
       .WIDTH(8)
   ) pipe_reg_right_zeros (
       .clk_i,
-      .rst_ni,
+      .rst_ni(pipe_rst),
       .data_in (n_zeros_right_comp1_n),
       .data_out(n_zeros_right_comp1)
   );
@@ -435,7 +449,7 @@ module im2col_spc_param_fsm
       .WIDTH(8)
   ) pipe_reg_bottom_zeros (
       .clk_i,
-      .rst_ni,
+      .rst_ni(pipe_rst),
       .data_in (n_zeros_bottom_comp1_n),
       .data_out(n_zeros_bottom_comp1)
   );
@@ -444,7 +458,7 @@ module im2col_spc_param_fsm
       .WIDTH(32)
   ) pipe_reg_index_comp1 (
       .clk_i,
-      .rst_ni,
+      .rst_ni(pipe_rst),
       .data_in (index_comp1_n),
       .data_out(index_comp1)
   );
@@ -453,7 +467,7 @@ module im2col_spc_param_fsm
       .WIDTH(32)
   ) pipe_reg_index_comp2 (
       .clk_i,
-      .rst_ni,
+      .rst_ni(pipe_rst),
       .data_in (index_comp2_n),
       .data_out(index_comp2)
   );
@@ -462,7 +476,7 @@ module im2col_spc_param_fsm
       .WIDTH(32)
   ) pipe_reg_index_comp3 (
       .clk_i,
-      .rst_ni,
+      .rst_ni(pipe_rst),
       .data_in (index_comp3_n),
       .data_out(index_comp3)
   );
@@ -471,7 +485,7 @@ module im2col_spc_param_fsm
       .WIDTH(32)
   ) pipe_reg_index_comp4 (
       .clk_i,
-      .rst_ni,
+      .rst_ni(pipe_rst),
       .data_in (index_comp4_n),
       .data_out(index_comp4)
   );
@@ -513,6 +527,8 @@ module im2col_spc_param_fsm
   assign top_zero_cond = |((n_zeros_top_comp1) & ((1 << {reg2hw.log_strides_d2.q}) - 1));
   assign right_zero_cond = |((n_zeros_right_comp1) & ((1 << {reg2hw.log_strides_d1.q}) - 1));
   assign bottom_zero_cond = |((n_zeros_bottom_comp1) & ((1 << {reg2hw.log_strides_d2.q}) - 1));
+
+  assign pipe_rst = (rst_ni && param_state_d != IDLE);
 
   /* Output signals */
   assign im2col_param_done_o = im2col_param_done;

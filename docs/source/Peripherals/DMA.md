@@ -13,7 +13,7 @@ This unit is capable of performing complex tasks that can significantly impact o
 It can be configured to perform *1D* or *2D* transactions and it can apply **zero padding** and perform **transpositions** on-the-fly, reducing the overhead of matrix operations.
 
 The DMA **Hardware Abstraction Layer (HAL)** facilitates the configuration of transactions from the users application. Furthermore, it adds an additional layer of safety checks to reduce the risk of faulty memory accesses, data override or infinite loops.
-
+<br>
 ## Structural description
 
 INSERIRE SCHEMATICO DMA
@@ -41,14 +41,14 @@ On the other hand, the second solution has a ratio of 3: the first 3 channels ar
 While the 1st solution is a general purpose, balanced configuration, the 2nd solution might be better suited for applications that need a low latency channel for high priority tasks.
 
 This mechanism guarantees maximum flexibility, enabling the user to adapt the DMA subsystem to its requirements, both in terms of area and performance.
-
+<br>
 #### Data FIFOs configuration
 
 Each DMA channel uses a FIFO to buffer the data to be written, which is crucial for mitigating the combined delays from the system bus and the DMA subsystem bus. 
-The size of this FIFO is parametric and is, by default, the same across all channels.
+The size of the FIFO is parametric and is, by default, the same across all channels.
 
 Some applications can benefit from a larger FIFO because it allows for more values to be buffered in situations where the bus is heavily utilized or the target peripheral, such as the SPI, is too slow.
-On the other hand, other applications do not require a large FIFO and can save area by reducing its size.
+On the other hand, other applications might not require such a large FIFO, so area can be saved by reducing its size.
 A hybrid system, where some channels have large FIFO sizes and others have smaller ones, could benefit both these types of applications.
 
 It is possible to specify the size of each DMA channel FIFO in `dma_subsystem.sv`. 
@@ -57,7 +57,7 @@ These are the steps to follow to take advantage this feature:
 - Uncomment `//define EN_SET_FIFO_CH_SIZE;` to enable the mechanism
 - Adjust the parameters _L_, _M_ and _S_. They define the size of a large, medium and small FIFO.
 - Modify the parameter `typedef enum {L, M, S} fifo_ch_size_t;` to assign individual sizes to the FIFOs. The number of elements must reflect the number of DMA channels.
-
+<br>
 #### Triggers
 
 In the case of memory-peripheral operations, it is common for the peripheral to have a reaction time that cannot match the system clock. For example, the SPI trasmits data with a period of circa 30 clock cycles. 
@@ -66,7 +66,7 @@ This difference in response times creates the need for a communication channel b
 
 They can be used both when the peripheral writes data using the DMA and when the DMA reads data from the peripheral.
 The DMA can be configured to respond to triggers by enabling the appropriate _slot_ via software, using the DMA HAL. [INSERIRE LINK A ESEMPIO SPI SLOT DMA MULTICHANNEL]
-
+<br>
 #### Tips for DMA-based accelerator developers
 
 The DMA subsystem has been developed with specific features to facilitate the creation of custom accelerators that can leverage it to improve memory-intense applications.
@@ -74,10 +74,22 @@ The DMA subsystem has been developed with specific features to facilitate the cr
 - **Always-On Peripheral Bus** (AOPB): it exposes the register interface of the units in the Always-On subsystem to any Smart Peripheral Controller (SPC). 
 In the case of the DMA subsystem, this feature allows the developers to configure the DMA subsystem without any CPU action, reducing power consumption while at the same time increasing the performance and effectiveness of the accelerator. 
 Check out the _im2col SPC_ in the `\ip_examples` folder for a detailed example and [LINK DOCUMENTAZIONE AOPB] for a detailed description of the AOPB.
-- **Triggers**: useful to synchronize the data streams to and from the accelerator.
-- **Stop signal**: can terminate the DMA transaction at any moment. It's particularly useful for any accelerator that launches a variable number of data that cannot be predetermined and depends on external conditions, such as a level crossing subsampler. 
-- **VerifHEEP**: it's a python library that has been developed to test any X-Heep project. It includes methods to generate random inputs and compute the golden results, launche synthesis, simulations and program, compile and launch applications on FPGA targets, analyze the performance of the tests and plot them. It has been deployed succesfully to validate the _im2col SPC_, it's expecially useful for data-intense accelerators.
+<br>
 
+- **Triggers**: useful to synchronize the data streams to and from the accelerator.
+<br>
+- **Stop signal**: it can terminate a DMA transaction at any moment. It's particularly useful for accelerators that produce a large quantity of data, but with a variable trasfer size that cannot be known or computed. 
+A good example of such an accelerator is a level crossing subsampler, which writes sampled data only when they cross a specific threshold.
+<br>
+- **VerifHEEP**: it's a python library that has been developed to test computational units and accelerators developed on X-Heep. 
+It has been deployed succesfully to validate the _im2col SPC_ as it is expecially useful for data-intense accelerators.
+[LINK ALLA DOCUMENTAZIONE DI VERIFHEEP]
+It includes methods to: 
+  - Generate random inputs and compute the corresponding golden results
+  - Launch synthesis & simulations on QuestaSim and Verilator
+  - Compile, program & launch applications on FPGA targets for a tenfold reduction in test & verification times
+  - Analyze the performance of the tests and plot the results. 
+<br>
 ### Registers description
 
 This section will describe every register of a DMA channel and their function.
@@ -162,7 +174,19 @@ The previous parameters, including the register offsets, can be found at `sw/dev
 
 - **SRC_PTR_INC_D1**
   - _SW access_: rw
-  - _Description_: increment in bytes to apply for every copied element.
+  - _Description_: increment in bytes to apply to the source pointer for every copied element.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|--- 31 : 23 --|---- 22 : 0 ----|
+|-- Reserved --|------ INC -----|</code></pre>
+</div>
+
+- **SRC_PTR_INC_D2**
+  - _SW access_: rw
+  - _Description_: increment in bytes to apply to the source pointer every time a "row" is copied, in order to go to the new line. It's necessary only for 2D transactions. 
+  From an application perspective, this value has to be computed depending on the size of the input matrix and the 2D stride. Check the functional description paragraph for more information.
 
 <hr>
 
@@ -171,12 +195,177 @@ The previous parameters, including the register offsets, can be found at `sw/dev
 |--- Reserved ---|----- INC -----|</code></pre>
 </div>
 
-- **SRC_PTR_INC_D2**
+- **DST_PTR_INC_D1**
   - _SW access_: rw
-  - _Description_: increment in bytes to apply every time a "row" is copied in order to go to the new line. It's necessary only for 2D transactions. 
-  From an application perspective, this value has to be computed depending on the size of the input matrix and the 2D stride.
+  - _Description_: increment in bytes to apply to the destination pointer for every copied element.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|--- 31 : 23 --|---- 22 : 0 ----|
+|-- Reserved --|------ INC -----|</code></pre>
+</div>
+
+- **DST_PTR_INC_D2**
+  - _SW access_: rw
+  - _Description_: increment in bytes to apply to the destination pointer every time a "row" is copied in order to go to the new line. It's necessary only for 2D transactions. 
+  From an application perspective, this value has to be computed depending on the size of the output matrix and the 2D stride. Check the functional description paragraph for more information.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 16 ----|---- 15 : 0 ----|
+|----- TX_TRG ----|---- RX_TRG ----|</code></pre>
+</div>
+
+- **SLOT**
+  - _SW access_: rw
+  - _Description_: identifies the triggers for which the DMA channel will stall in writing and/or reading operations.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 2 ----|---- 1 : 0 ----|
+|--- Reserved ---|---- DATA_T ---|</code></pre>
+</div>
+
+- **SRC_DATA_TYPE**
+  - _SW access_: rw
+  - _Description_: defines the source data type using this scheme:
+    - 0: _word_, i.e. 4 bytes
+    - 1: _half word_, i.e. 2 bytes
+    - 2 or 3: _byte_
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 2 ----|---- 1 : 0 ----|
+|--- Reserved ---|---- DATA_T ---|</code></pre>
+</div>
+
+- **DST_DATA_TYPE**
+  - _SW access_: rw
+  - _Description_: defines the destination data type using this scheme:
+    - 0: _word_, i.e. 4 bytes
+    - 1: _half word_, i.e. 2 bytes
+    - 2 or 3: _byte_
+    If wider than the source datatype and signe extension is enable, the output data will be sign extended
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 1 ----|---- 0 : 0 ---|
+|--- Reserved ---|---- SGND ----|</code></pre>
+</div>
+
+- **SIGN_EXT**
+  - _SW access_: rw
+  - _Description_: enables the sign extension, which can be performed only if the output datatype is wider that the source datatype
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 2 ----|--- 1 : 0 ---|
+|--- Reserved ---|---- MODE ---|</code></pre>
+</div>
+
+- **MODE**
+  - _SW access_: rw
+  - _Description_: defines the operation mode of the DMA channel, following this scheme:
+    - 0: _linear mode_
+    - 1: _circular mode_
+    - 2: _address mode_
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 1 ----|---- 0 : 0 ----|
+|--- Reserved ---|--- DIM_CFG ---|</code></pre>
+</div>
+
+- **DIM_CONFIG**
+  - _SW access_: rw
+  - _Description_: defines the dimensionality of the transaction, i.e. if the transaction is 1D (DMA_DIM = 0) or if it is 2D (DMA_DIM = 1).
+
+  <hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 1 ----|--- 0 : 0 ---|
+|--- Reserved ---|---- INV ----|</code></pre>
+</div>
+
+- **DIM_INV**
+  - _SW access_: rw
+  - _Description_: enables the transposition of the input source, only with 2D transactions.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 6 ----|--- 5 : 0 ---|
+|--- Reserved ---|---- PAD ----|</code></pre>
+</div>
+
+- **PAD_TOP/BOTTOM/RIGHT/LEFT**
+  - _SW access_: rw
+  - _Description_: defines the size of the padding to be applied to the source, in data units.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 13 ---|--- 12 : 0 ---|
+|--- Reserved ---|---- W_SZ ----|</code></pre>
+</div>
+
+- **WINDOW_SIZE**
+  - _SW access_: rw
+  - _Description_: defines the size of the window to be copied.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 8 ----|---- 7 : 0 ---|
+|--- Reserved ---|---- W_CNT ---|</code></pre>
+</div>
+
+- **WINDOW_COUNT**
+  - _SW access_: ro
+  - _Description_: indicates the number of times the end of the window was reached since the beginning of the transaction.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 2 ----|-- 1 ---|-- 0 ---|
+|--- Reserved ---|- W_DN -|- T_DN -|</code></pre>
+</div>
+
+- **INTERRUPT_EN**
+  - _SW access_: rw
+  - _Description_: enables the interrupt for window and/or transaction done.
 
 
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 1 ----|--- 0 : 0 ---|
+|--- Reserved ---|--- FLAG ----|</code></pre>
+</div>
+
+- **TRANSACTION_IFR**
+  - _SW access_: r0
+  - _Description_: interrupt flag register for transaction interrupts. It is set to '1' when the transaction interrupts are enabled and the transaction is completed. It is cleared when it's read by the CPU in the IRQ handler. This feature enables the handler to identify which channel raised the interrupt, more on this mechanism in the functional description paragraph.
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 1 ----|--- 0 : 0 ---|
+|--- Reserved ---|--- FLAG ----|</code></pre>
+</div>
+
+- **WINDOW_IFR**
+  - _SW access_: r0
+  - _Description_: interrupt flag register for window interrupts. It is set to '1' when the window interrupts are enabled and the window is done. It is cleared when it's read by the CPU in the IRQ handler. This feature enables the handler to identify which channel raised the interrupt, more on this mechanism in the functional description paragraph.
+
+  
 ## Functional description
 
 #### Dictionary
@@ -189,18 +378,20 @@ The implementation of this software layer introduced some concepts that need to 
 
 A transaction is an operation to be performed by the DMA. It implies copying bytes from a source pointer into a destination pointer. 
 The transaction configuration can be cross-checked before loading it into the DMA registers to avoid potential issues. 
-The transaction starts only when the size of the *first dimension* of the transaction is written in its corresponding register. The transaction is finished once the DMA has sent all its bytes (which not necessarily means they have been received by the final destination) or when the external stop signal is asserted.
+The transaction starts only when the size of the *first dimension*, i.e. 1D, of the transaction is written in its corresponding register. The transaction is finished once the DMA has sent all its bytes (which not necessarily means they have been received by the final destination) or when the _external stop signal_ is asserted.
 
 While a transaction is running, new transactions can be validated, loaded and launched, provided they are not targeting the same DMA channel.
 
 Transactions can be re-launched automatically in `circular mode`.
 
-Once the transaction has finished, a status bit is changed (that can be monitored through polling) and a fast interrupt is triggered. There is a single interrupt for the whole DMA subsystem so a system based on interrupt flag registers is developed in order to identify which channel has raised the interrupt. [LINK ALLA DESCRIZIONE DEI REGISTRI DEL DMA & INTERRUPTS]
+Once the transaction has finished, a status bit is changed (that can be monitored through polling) and a fast interrupt is triggered. 
+Due to architectural limitations, there is a single interrupt for the whole DMA subsystem. For this reason, an interrupt flag registers system has been developed in order to identify which channel has raised the interrupt.
+As explained in the HAL section, the IRQ handler loops through the IFR of the channels. As soon as an IFR is read high, the ID of the channel that raised the interrupt is passed to the weak implementation of the handler. This weak handler can be redifined by the user, as shown in `example_dma_multichannel`. 
   
 
 #### Source and destination
 
-Sources and destinations are the two pointers that will exchange data. Bytes will be copied from the source and into the destination address.
+Sources and destinations are the two pointers that will exchange data. Bytes will be copied from the source and into the destination address. If the destination size is wider that the source one and sign extension is enabled, the channel will sign extend the data.
 
   
 
@@ -225,28 +416,29 @@ In this way, two-dimensional data manipulations (i.e. matrix manipulations) can 
 
 #### Increment
 
-Let's start by analyzing the 1D transaction.
-If the user wants to read and/or write in a non contiguos way, the increment can be set to obtain these effects.
+In a 1D transaction, setting the increment appropriately can be leveraged to achieve non-contiguous read and/or write operations.
 
-For instance, let's consider an array of 4 word-type elements.
-The following steps describes how to copy just the first 2 bytes of each word:
-- Set the datatype of the transaction to **half word**
-- Set the _source_ increment to **2 data units**
-- Set the _destination_ increment to **1 data unit**
+For example, let's consider an array of 4 word-type elements. 
+To copy just the first 2 bytes of each word, follow these steps:
 
-After each reading operation, the DMA will increment the read pointer by 4 bytes (2 data units) and the write pointer by only 2 bytes.
+- Set the datatype of the transaction to **half word**.
+- Set the source increment to **2 data units**.
+- Set the destination increment to **1 data unit**.
 
-Now, let's analyze the 2D transaction.
-In this case, a second increment has to be set in order to perform a matrix manipulation. The 2D increment can be interpreted as the number of words that the DMA has to "skip" to move to the next row of the matrix.
+After each reading operation, the DMA will increment the read pointer by 4 bytes (2 data units) and the write pointer by 2 bytes.
 
-For instance, let's examine the extraction of a contiguous 2x2 matrix from a 4x4 matrix.
+In the case of 2D transactions, a second increment must be set to perform matrix manipulations. 
+The 2D increment can be interpreted as the number of words that the DMA has to "skip" to move to the next row of the matrix.
+
+For example, let's examine the extraction of a contiguous 2x2 matrix from a 4x4 matrix.
 
 		| 3 | 5 | 7 | 9 |               
 		| 2 | 4 | 6 | 8 |           ->           | 3 | 5 |
 		| 1 | 3 | 5 | 7 |                        | 2 | 4 |
 		| 0 | 2 | 4 | 6 |
 
-The total number of elements copied from the source is 4. In order to obtain this result, these are the setup of the increments:
+The total number of elements copied from the source is 4. 
+In order to achieve this result, these are the setup of the increments:
  - For the source:
 	- 1D increment set to 1 word 
 	- 2D increment set to 3 words
@@ -254,24 +446,24 @@ The total number of elements copied from the source is 4. In order to obtain thi
 	- 1D increment set to 1 word
 	- 2D increment set to 1 word
 
-By exploiting the 2D increment, it's possible to implement a non-continuous read and/or write.
+Moreover, by exploiting the 2D increment, it is possible to implement a 2D non-continuous read and/or write.
 
 [INSERIRE ESEMPIO GRAFICO PRESO DAI DISEGNI DELL'IM2COL]
 
-Detailed formulas for the computation of 2D increments are reported in application defined in the `\example_dma_2d` folder.
+Detailed formulas for the computation of 2D increments are reported in the example application in the `\example_dma_2d` folder.
   
 #### Zero padding
 
 
-The DMA is capable of performing zero padding on the extracted data, both in 1D and 2D transactions.
-This is done by setting four padding parameters:
+The DMA is capable of performing zero padding on the extracted data, both in 1D and 2D transactions, within a single transaction.
+This is achieved by setting four padding parameters:
 
 - **T**op							    
 - **B**ottom				     					
 - **L**eft								
 - **R**ight							    
 
-e.g.
+e.g. Let's consider a 2x3 matrix:
 		
 		| T | T | T | T | T |	
 		| L | x | x | x | R |	
@@ -279,8 +471,10 @@ e.g.
 		| B | B | B | B | B |	
 
 
-It's important to highlight the fact that the padding is performed (conceptually) only *after* the matrix has been extracted.
-Let's examine the previous 2x2 extraction example, adding a left and top padding of 1 word:
+It's important to highlight that the padding is performed (conceptually) only *after* the matrix has been extracted.
+So the padding parameters refers only to the extracted matrix, not to the entire source matrix.
+
+Let's revisit the previous 2x2 extraction example, this time adding a left and top padding of 1 word:
 
 
 	| 3 | 5 | 7 | 9 |                        | 0 | 0 | 0 |
@@ -291,22 +485,28 @@ Let's examine the previous 2x2 extraction example, adding a left and top padding
 
 #### Alignment
 
-When doing transactions with bytes, the DMA can read/write from any pointer. However, if the data type is larger, words should be aligned so the DMA can perform a read/write operation and affect only the chosen bytes. If a word or half-word's pointer is not a multiple of 4 or 2 (respectively), the pointer is _misaligned_. In some cases the DMA HAL can overcome this problem BY reducing the data type (which will reflect on an efficiency loss).
+When performing transactions with bytes, the DMA can read/write from any pointer. However, if the data type is larger, words should be aligned so the DMA can perform a read/write operation and affect only the chosen bytes. 
+If a word or half-word's pointer is not a multiple of 4 or 2 (respectively), the pointer is _misaligned_. In some cases the DMA HAL can overcome this problem by reducing the data type (which will reflect on an efficiency loss).
 
   
 
 #### Environment
 
-An environment is a region of memory that can optionally be defined by the user to let the HAL know that it is allowed to read/write on that region. It is useful to make sure the DMA will not affect reserved memory regions.
+An environment is a user-defined region of memory that informs the HAL of permissible read/write areas. This ensures that the DMA does not interfere with reserved memory regions.
 
-Read and write permissions are not supported by environments, meaning that if it is defined, the DMA will be able to read AND write on it.
+Read and write permissions are not supported by environments. If an environment is defined, the DMA will have both read and write access to it.
   
 
 #### Target
 
-A target is either a region of memory or a peripheral to which the DMA will be able to read/write. When targets are pointing to memory, they can be assigned an environment to make sure that they will comply with memory restrictions.
+A target is either a memory region or a peripheral that the DMA can read from or write to. When targets point to memory, they can be assigned an environment to ensure compliance with memory restrictions.
 
-Targets include a pointer (a point in the memory, or the Rx/Tx buffer in case of peripherals), a size to be copied (if its going to be used as a source), a data type and an increment.
+Targets include:
+
+- A pointer (either a memory location or the Rx/Tx buffer for peripherals)
+- A size to be copied (if used as a source)
+- A data type
+- An increment
 
   
 
@@ -324,9 +524,9 @@ If senseless configurations are input to functions, assertions may halt the whol
 
 There are three different transaction modes:
 
-**Single Mode:** The default mode, where the DMA will perform the copy from the source target to the destination, and trigger an interrupt once done.
+**Single Mode:** The default mode, where the DMA channel will perform the copy from the source target to the destination, and trigger an interrupt once done.
 
-**Circular mode:** To take full advantage of the speed and transparency of the DMA, a _circular_ mode was implemented. When selected, the DMA will relaunch the exactly same transaction upon finishing. This cycle only stops if by the end of a transaction the _transaction mode_ was changed to _single_. The CPU receives a fast interrupt on every transaction finished.
+**Circular mode:** It takes full advantage of the speed and transparency of the DMA. When selected, the DMA will relaunch the exact same transaction upon finishing. This cycle only stops if by the end of a transaction the _transaction mode_ was changed to _single_. The CPU receives a fast interrupt on every transaction finished.
 
 **Address Mode:** Instead of using the destination pointer and increment to decide where to copy information, an _address list_ must be provided, containing addresses for each data unit being copied. It is only carried out in _single_ mode. 
 In this mode it's possible to perform only 1D transactions.
@@ -335,7 +535,7 @@ In this mode it's possible to perform only 1D transactions.
 
 #### Windows
 
-In order to process information as it arrives, the application can define a _window size_ (smaller than the _transaction size_. Every time the DMA has finished sending that given amount of information will trigger an interrupt through the PLIC.
+In order to process information as it arrives, the application can define a _window size_ (smaller than the _transaction size_). Every time the DMA has finished sending that amount of information, it will trigger an interrupt through the PLIC.
 
 > :warning: If the window size is a multiple of the transaction size, upon finishing the transaction there will be first an interrupt for the whole transaction (through the FIC), and then an interrupt for the window (through the PLIC, which is slower).
 
@@ -392,11 +592,12 @@ The DMA HAL can follow up on these changes or let the application be in charge o
 
 This section will explain the operation of the DMA through the DMA HAL.
 
-There is a DMA instance inside X-HEEP, but others can be connected outside through the bus (see the `example_external_peripheral` application in `sw/aplications/example_external_peripheral/main.c`). As long as the DMA instance is the same and the registers are memory mapped with the same structure, the DMA HAL can be used.
+There is a DMA subsystem instance inside X-HEEP, but others can be connected outside through the bus (see the `example_external_peripheral` application in `sw/aplications/example_external_peripheral/main.c`). 
+As long as the DMA instance is the same and the registers are memory mapped with the same structure, the DMA HAL can be used.
 
   
 
-The DMA HAL adds an extra computational overhead to transactions in order to check the consistency of the transaction configurations. By-passing this layer (and the steps here described) is disadvised. For the efficiency-hungry applications, doing at least one pass with the whole validation process is recommended. The HAL allows to load and launch transactions with minimum overhead afterwards.
+The DMA HAL adds an extra computational overhead to transactions in order to check the consistency of the transaction configurations. By-passing this layer (and the steps here described) is risky. For the efficiency-hungry applications, doing at least one pass with the whole validation process is recommended. The HAL allows to load and launch transactions with minimum overhead afterwards.
 
   
 
@@ -529,26 +730,12 @@ Theoretically, there is no required difference between a _source_ and _destinati
   
 
 ```C
-<<<<<<< HEAD
-
-static  dma_target_t tgt_src = {
-
-.ptr = copy_buffer,
-
-.inc_du = 1,
-
-.size_du = sizeof(copy_buffer),
-
-};
-
-=======
 static dma_target_t tgt_src = {
                                 .ptr        = copy_buffer,
                                 .inc_du     = 1,
                                 .size_du    = sizeof(copy_buffer),
                                 .type       = DMA_DATA_TYPE_WORD
                                 };
->>>>>>> main
 ```
 
   
@@ -565,27 +752,6 @@ This configuration is implicitly initializing the rest of the target configurati
 
 * The trigger is set to _memory_ (vs. a peripheral).
 
-<<<<<<< HEAD
-  
-
-The destination target can also dispense of a size, as the source size will be used.
-
-  
-
-```C
-
-static  dma_target_t tgt_dst = {
-
-.ptr = copy_buffer,
-
-.inc_du = 1,
-
-};
-
-```
-
-  
-=======
 ```C
 static dma_target_t tgt_dst = {
                                 .ptr        = copy_buffer,
@@ -596,7 +762,6 @@ static dma_target_t tgt_dst = {
 ```
 
 Both destination and source targets has to contain a data type (they can be different) and size in data units (they should be the same).
->>>>>>> main
 
 Finally, a transaction is created to relate both targets:
 

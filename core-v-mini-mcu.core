@@ -104,6 +104,7 @@ filesets:
     - hw/ip_examples/im2col_spc/rtl/im2col_spc_reg_top.sv
     - hw/ip_examples/im2col_spc/rtl/dma_if_pkg.sv
     - hw/ip_examples/im2col_spc/rtl/pipe_reg.sv
+    - hw/ip_examples/im2col_spc/rtl/im2col_spc_regintfc_controller.sv
     - hw/ip_examples/im2col_spc/rtl/im2col_spc_param_fsm.sv
     - hw/ip_examples/im2col_spc/rtl/im2col_spc.sv
     - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv

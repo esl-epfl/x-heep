@@ -131,8 +131,8 @@ module xilinx_core_v_mini_mcu_wrapper
       .clk_i (clk_gen),
       .rst_ni(rst_n),
 
-      .aopx2im2col_resp_i(ext_ao_peripheral_resp[0]),
-      .im2col2aopx_req_o (ext_ao_peripheral_req[0]),
+      .aopb2im2col_resp_i(ext_ao_peripheral_resp[0]),
+      .im2col2aopb_req_o (ext_ao_peripheral_req[0]),
 
       .reg_req_i(ext_periph_slv_req),
       .reg_rsp_o(ext_periph_slv_rsp),
