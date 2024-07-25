@@ -41,7 +41,7 @@ int main()
                 PRINTF("TEST %d FAILED: %d errors\n\r", i, errors);
                 return EXIT_FAILURE;
                 #else
-                PRINTF_TIM("%d:%d:1\n\r&\n\r", i, cycles);
+                PRINTF_TIM("%d:%d:1\n\r", i, cycles);
                 #endif
                 
             } 
@@ -50,12 +50,15 @@ int main()
                 #if TEST_EN == 0
                 PRINTF("TEST PASSED!\n\r\n\r");
                 #else
-                PRINTF_TIM("%d:%d:0\n\r&\n\r", i, cycles);
+                PRINTF_TIM("%d:%d:0\n\r", i, cycles);                
                 #endif
             } 
         }
         
     }
+    
+    /* Print the end word for verification */
+    printf("&\n\r");
 
     return EXIT_SUCCESS;
 }

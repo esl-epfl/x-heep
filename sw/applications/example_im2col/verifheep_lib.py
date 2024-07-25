@@ -54,7 +54,7 @@ import numpy as np
 class VerifHeep:
     def __init__(self, target, xheep_dir, opt_en=False):
         self.target = target
-        if (target != 'pynq-z2' and opt_en) or (target != 'verilator' and opt_en) or target != 'questasim':
+        if (target != 'pynq-z2' and opt_en) or (target != 'verilator' and opt_en):
             raise Exception(f'Target {target} not supported with {opt_en}. Choose one among:\n- Verilator\n- QuestaSim (with optional optimization)\n- Pynq-z2\n')
 
         self.opt_en = opt_en
@@ -70,6 +70,9 @@ class VerifHeep:
         self.openocd_proc = None
         self.gdb = None
         self.xheep_dir = None
+
+    def clearResults(self):
+        self.results = []
 
     # Synthesis & Simulation methods
     
@@ -89,7 +92,7 @@ class VerifHeep:
             cmd = f'cd {self.xheep_dir} ; make questasim-sim'
         elif self.target == 'pynq-z2':
             cmd = f"cd {self.xheep_dir} ; make vivado-fpga FPGA_BOARD={self.target} FUSESOC_FLAGS=--flag=use_bscane_xilinx"
-        result_synth = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        result_synth = subprocess.run(cmd, shell=True, capture_output=True, text=True, executable="/bin/bash")
         if ("ERROR" in result_synth.stderr) or ("error" in result_synth.stderr):
             print(result_synth.stderr)
             exit(1)
@@ -101,20 +104,41 @@ class VerifHeep:
         self.serial_queue = queue.Queue()
 
     def setUpDeb(self):
-        openocd_cmd = ['openocd', '-f', f'./tb/core-v-mini-mcu-{self.target}-esl-programmer.cfg']
-        self.openocd_proc = subprocess.Popen(openocd_cmd)     
-        time.sleep(2)
-        gdb_cmd = ['$RISCV/bin/riscv32-unknown-elf-gdb', './sw/build/main.elf']
-        self.gdb = pexpect.spawn(' '.join(gdb_cmd))
+        # openocd_cmd = """
+        #   cd ../../../
+        #   conda activate core-v-mini-mcu
+        #   make openOCD_bscan
+        # """
+        # self.openocd_proc = subprocess.Popen(openocd_cmd, shell=True, executable="/bin/bash") 
+        # time.sleep(2)
+        gdb_cmd = f"""
+        cd {self.xheep_dir}
+        $RISCV/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
+        """
+        self.gdb = pexpect.spawn(f"/bin/bash -c '{gdb_cmd}'")
         self.gdb.expect('(gdb)')
         self.gdb.sendline('set remotetimeout 2000')
         self.gdb.expect('(gdb)')
         self.gdb.sendline('target remote localhost:3333')
         self.gdb.expect('(gdb)')
 
+        if self.gdb.isalive():
+            print("GDB process is still running.")
+        else:
+            print("GDB process has terminated.")
+            if self.gdb.exitstatus is not None:
+                print(f"GDB exit status: {self.gdb.exitstatus}")
+            if self.gdb.signalstatus is not None:
+                print(f"GDB terminated by signal: {self.gdb.signalstatus}")
+
     def launchTest(self, example_name, input_size=0, pattern=r'(\d+):(\d+):(\d+)', en_timeout_term=0):
+        print(f"Running test {example_name} with input size {input_size}...")
+
         # Set up the serial communication thread and attach it the serial queue
-        self.serial_thread = threading.Thread(target=SerialReceiver, args=(self.serial_queue,))
+        self.serial_thread = threading.Thread(target=SerialReceiver, args=(self.ser, self.serial_queue,))
+
+        # Start the serial thread
+        self.serial_thread.start()
 
         # Compile the application
         if self.target == 'verilator' or self.target == 'questasim':
@@ -123,6 +147,7 @@ class VerifHeep:
           app_compile_run_com = f"cd {self.xheep_dir} ; make app PROJECT={example_name} TARGET={self.target}"
 
         result_compilation = subprocess.run(app_compile_run_com, shell=True, capture_output=True, text=True)
+
         if ("Error" in result_compilation.stderr) or ("error" in result_compilation.stderr):
             print(result_compilation.stderr)
             return
@@ -130,6 +155,14 @@ class VerifHeep:
         # Run the testbench with gdb
         self.gdb.sendline('load')
         self.gdb.expect('(gdb)')
+
+        try:
+          output = self.gdb.read_nonblocking(size=100, timeout=1)
+          print("Current output:", output)
+        except pexpect.TIMEOUT:
+          print("No new output from GDB.")
+
+        print("Sent messages on gdb")
 
         # Set a breakpoint at the exit and wait for it
         self.gdb.sendline('b _exit')
@@ -144,6 +177,14 @@ class VerifHeep:
           if en_timeout_term:
             exit(1)
           return
+        
+        try:
+          output = self.gdb.read_nonblocking(size=100, timeout=1)
+          print("Current output:", output)
+        except pexpect.TIMEOUT:
+          print("No new output from GDB.")
+
+        print("Sent messages on gdb")
         
         # Wait for serial to finish
         self.serial_thread.join()
@@ -333,6 +374,7 @@ def SerialReceiver(ser, serial_queue, endword="&"):
           # Read the data from the serial port
           line = ser.readline().decode('utf-8').rstrip()
           serial_queue.put(line)
+          print(line)
           if line:
               if line == endword:
                 received = True

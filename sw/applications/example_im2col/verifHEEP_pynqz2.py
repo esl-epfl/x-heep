@@ -6,8 +6,8 @@ import pexpect
 import threading
 import queue
 import verifheep_lib
-from tqdm import tqdm
-import curses
+#from tqdm import tqdm
+#import curses
 
 num_masters = 4
 num_slaves = 3
@@ -134,8 +134,11 @@ start_loop_time = time.time()
 
 im2colVer = verifheep_lib.VerifHeep("pynq-z2", "../../../")
 
+print("Connecting to the board...")
 im2colVer.serialBegin("/dev/ttyUSB2", 9600)
 im2colVer.setUpDeb()
+print("Connected!\n")
+time.sleep(1)
 
 total_iterations = ((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) *
                     (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) *
@@ -145,15 +148,16 @@ total_iterations = ((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1
                     (channels_max - channels_min) * (batch_max - batch_min) *
                     (num_channels_dma - num_channels_dma_min))
 
-progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
+#progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
 
-def main(stdscr):
-  
-  progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
+#def main(stdscr):
+
+def main():
+  #progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
 
   cpu_done = 0
   iteration = 1
-  curses.curs_set(0)
+  #curses.curs_set(0)
   for i in range(num_channels_dma_min, num_channels_dma):
       print("_______________________\n\r")
       print("Number of channels used by SPC\n\r", i)
@@ -229,7 +233,7 @@ def main(stdscr):
                                                       im2colVer.launchTest("example_im2col", input_size=j*k*l*m)
 
                                                       for test in im2colVer.results:
-                                                          string = f"CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {test["Cycles"]}"
+                                                          string = f'CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {test["Cycles"]}'
                                                           
                                                           if int(test["ID"]) == 0:
                                                               im2col_cpu.append(string)
@@ -238,18 +242,19 @@ def main(stdscr):
                                                           elif int(test["ID"]) == 3:
                                                               im2col_spc.append(string)
                                                       
+                                                      im2colVer.clearResults()
                                                       im2colVer.chronoStop()
                                                       time_rem = im2colVer.chronoExecutionEst(((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)))
                                                       
                                                       message = (f"SPC channels: {i}\nBatch size: {j}\nInput channels: {k}\nImage height: {l}\nImage width: {m}"
                                                             f"\nKernel height: {n}\nKernel width: {o}\nPad top: {p}\nPad bottom: {q}\n"
-                                                            f"Pad left: {r}\nPad right: {s}\nStride d1: {t}\nStride d2: {u}\nRemaining time: {time_rem["hours"]}h:{time_rem["minutes"]}m:{time_rem["seconds"]:.2f}s")
+                                                            f'Pad left: {r}\nPad right: {s}\nStride d1: {t}\nStride d2: {u}\nRemaining time: {time_rem["hours"]}h:{time_rem["minutes"]}m:{time_rem["seconds"]:.2f}s')
                                                       
-                                                      stdscr.addstr(1, 0, message)
-                                                      stdscr.refresh()
+                                                      #stdscr.addstr(1, 0, message)
+                                                      #stdscr.refresh()
 
                                                       iteration += 1
-                                                      progress_bar.update(1)
+                                                      #progress_bar.update(1)
 
       if (not cpu_done):
           im2col_cpu_array.append(im2col_cpu)
@@ -259,7 +264,7 @@ def main(stdscr):
       cpu_done = 1
 
   im2colVer.stopAll()
-  progress_bar.close()
+  #progress_bar.close()
 
   with open('im2col_data.txt', 'w') as file:
       file.write("im2col_cpu:\n")
@@ -278,3 +283,6 @@ def main(stdscr):
       file.write("\n")
 
   print("Data acquired!\n")
+  
+#curses.wrapper(main)
+main()

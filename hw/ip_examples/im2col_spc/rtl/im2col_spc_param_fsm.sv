@@ -182,7 +182,11 @@ module im2col_spc_param_fsm
       end
 
       ZEROS_COND_EVAL: begin
-        param_state_q = N_ZEROS_COMP_1;
+        if (im2col_param_done == 1'b1) begin
+          param_state_q = IDLE;
+        end else begin
+          param_state_q = N_ZEROS_COMP_1;
+        end
       end
 
       N_ZEROS_COMP_1: begin
@@ -229,11 +233,7 @@ module im2col_spc_param_fsm
       IM_OFFSET_UPDATE: begin
         batch_rst = 1'b1;
         im_offset_en = 1'b1;
-        if (im2col_param_done == 1'b1) begin
-          param_state_q = IDLE;
-        end else begin
-          param_state_q = ZEROS_COND_EVAL;
-        end
+        param_state_q = ZEROS_COND_EVAL;
       end
 
       START_DMA_RUN: begin

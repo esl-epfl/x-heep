@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 #######################################################################################################
-def torch_im2col_ncwh(input_tensor, kernel_size, stride_d1=1, stride_d2=1, top_pad=1, bottom_pad=1, left_pad=2, right_pad=2, dilation=1):
+def torch_im2col_ncwh(input_tensor, kernel_size, stride_d1=1, stride_d2=1, top_pad=1, bottom_pad=1, left_pad=1, right_pad=1, dilation=1):
     """
     Applies the im2col operation to an input tensor using PyTorch's unfold method, supporting both NCHW and NHWC formats.
 
@@ -77,16 +77,16 @@ def torch_save(tensor, variable_name, dim, row_len):
 # Parameters of the random image, padding excluded
 image_height = 10
 image_width = 10
-channels = 3
-batch = 3
+channels = 1
+batch = 1
 
 # Parameters of the filter
-filter_height = 2
-filter_width = 2
+filter_height = 3
+filter_width = 3
 top_pad = 1
 bottom_pad = 1
-left_pad = 2
-right_pad = 2
+left_pad = 1
+right_pad = 1
 stride_d1 = 1
 stride_d2 = 1
 

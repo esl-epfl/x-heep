@@ -683,9 +683,9 @@ This use case is very impractical as it doubles the memory usage. It is intended
 
   
 
-## Usage
+## Usa cases and examples
 
-This section will explain a basic usage of the DMA as a `memcpy`, and a slightly more complex situation involving a peripheral connected via an SPI.
+In this section, several usecases are going to be studied and explained in detail, to give the users a better understanding on how the DMA subsystem works and how to exploit it to improve the performance of their application.
 
   
 
