@@ -6,8 +6,8 @@ import pexpect
 import threading
 import queue
 import verifheep_lib
-#from tqdm import tqdm
-#import curses
+from tqdm import tqdm
+import curses
 
 num_masters = 4
 num_slaves = 3
@@ -135,10 +135,14 @@ start_loop_time = time.time()
 im2colVer = verifheep_lib.VerifHeep("pynq-z2", "../../../")
 
 print("Connecting to the board...")
-im2colVer.serialBegin("/dev/ttyUSB2", 9600)
+serial_status = im2colVer.serialBegin("/dev/ttyUSB2", 9600)
+if not serial_status:
+    print("Error connecting to the board")
+    exit()
+else:
+    print("Connected!\n")
+    time.sleep(1)
 im2colVer.setUpDeb()
-print("Connected!\n")
-time.sleep(1)
 
 total_iterations = ((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) *
                     (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) *
@@ -148,16 +152,13 @@ total_iterations = ((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1
                     (channels_max - channels_min) * (batch_max - batch_min) *
                     (num_channels_dma - num_channels_dma_min))
 
-#progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
-
-#def main(stdscr):
-
-def main():
-  #progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
+def main(stdscr):
+  progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter",
+                    bar_format='{desc}: {percentage:.2f}%|{bar}| {n_fmt}/{total_fmt}')
 
   cpu_done = 0
   iteration = 1
-  #curses.curs_set(0)
+  curses.curs_set(0)
   for i in range(num_channels_dma_min, num_channels_dma):
       print("_______________________\n\r")
       print("Number of channels used by SPC\n\r", i)
@@ -246,15 +247,28 @@ def main():
                                                       im2colVer.chronoStop()
                                                       time_rem = im2colVer.chronoExecutionEst(((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)))
                                                       
-                                                      message = (f"SPC channels: {i}\nBatch size: {j}\nInput channels: {k}\nImage height: {l}\nImage width: {m}"
-                                                            f"\nKernel height: {n}\nKernel width: {o}\nPad top: {p}\nPad bottom: {q}\n"
-                                                            f'Pad left: {r}\nPad right: {s}\nStride d1: {t}\nStride d2: {u}\nRemaining time: {time_rem["hours"]}h:{time_rem["minutes"]}m:{time_rem["seconds"]:.2f}s')
-                                                      
-                                                      #stdscr.addstr(1, 0, message)
-                                                      #stdscr.refresh()
+                                                      message = (
+                                                          f"SPC channels:  {i:>5}\n"
+                                                          f"Batch size:    {j:>5}\n"
+                                                          f"Input channels:{k:>5}\n"
+                                                          f"Image height:  {l:>5}\n"
+                                                          f"Image width:   {m:>5}\n"
+                                                          f"Kernel height: {n:>5}\n"
+                                                          f"Kernel width:  {o:>5}\n"
+                                                          f"Pad top:       {p:>5}\n"
+                                                          f"Pad bottom:    {q:>5}\n"
+                                                          f"Pad left:      {r:>5}\n"
+                                                          f"Pad right:     {s:>5}\n"
+                                                          f"Stride d1:     {t:>5}\n"
+                                                          f"Stride d2:     {u:>5}\n"
+                                                          f"Remaining time:{time_rem['hours']:>2}h:{time_rem['minutes']:>2}m:{time_rem['seconds']:.2f}s\n"
+                                                      )
 
                                                       iteration += 1
-                                                      #progress_bar.update(1)
+                                                      progress_bar.update(1)
+                                                      
+                                                      stdscr.addstr(1, 0, message)
+                                                      stdscr.refresh()
 
       if (not cpu_done):
           im2col_cpu_array.append(im2col_cpu)
@@ -264,7 +278,7 @@ def main():
       cpu_done = 1
 
   im2colVer.stopAll()
-  #progress_bar.close()
+  progress_bar.close()
 
   with open('im2col_data.txt', 'w') as file:
       file.write("im2col_cpu:\n")
@@ -284,5 +298,5 @@ def main():
 
   print("Data acquired!\n")
   
-#curses.wrapper(main)
+curses.wrapper(main)
 main()

@@ -51,6 +51,13 @@ import pandas as pd
 import ast
 import numpy as np
 
+# Set this to True to enable debugging prints
+DEBUG_MODE = False
+
+def PRINT_DEB(*args, **kwargs):
+    if DEBUG_MODE:
+        print(*args, **kwargs)
+
 class VerifHeep:
     def __init__(self, target, xheep_dir, opt_en=False):
         self.target = target
@@ -60,10 +67,13 @@ class VerifHeep:
         self.opt_en = opt_en
         self.xheep_dir = xheep_dir
         self.results = []
+        self.it_times = []
 
     def resetAll(self):
         self.results = []
         self.it_times = []
+        if self.ser.is_open:
+          self.ser.close()
         self.ser = None
         self.serial_queue = None
         self.serial_thread = None
@@ -100,17 +110,24 @@ class VerifHeep:
     # FPGA programming & debugging methods
     
     def serialBegin(self, port, baudrate):
-        self.ser = serial.Serial(port, baudrate, timeout=1)
-        self.serial_queue = queue.Queue()
+        try:
+            self.ser = serial.Serial(port, baudrate, timeout=1)
+            self.serial_queue = queue.Queue()
+            
+            if self.ser.is_open:
+                print("Connection successful")
+                return True
+            else:
+                print("Failed to open the connection")
+                return False
+        except serial.SerialException as e:
+            print(f"Serial exception: {e}")
+            return False
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return False
 
     def setUpDeb(self):
-        # openocd_cmd = """
-        #   cd ../../../
-        #   conda activate core-v-mini-mcu
-        #   make openOCD_bscan
-        # """
-        # self.openocd_proc = subprocess.Popen(openocd_cmd, shell=True, executable="/bin/bash") 
-        # time.sleep(2)
         gdb_cmd = f"""
         cd {self.xheep_dir}
         $RISCV/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
@@ -123,16 +140,22 @@ class VerifHeep:
         self.gdb.expect('(gdb)')
 
         if self.gdb.isalive():
-            print("GDB process is still running.")
+            PRINT_DEB("GDB process is still running.")
         else:
-            print("GDB process has terminated.")
+            PRINT_DEB("GDB process has terminated.")
             if self.gdb.exitstatus is not None:
                 print(f"GDB exit status: {self.gdb.exitstatus}")
             if self.gdb.signalstatus is not None:
                 print(f"GDB terminated by signal: {self.gdb.signalstatus}")
+            exit(1)
 
     def launchTest(self, example_name, input_size=0, pattern=r'(\d+):(\d+):(\d+)', en_timeout_term=0):
-        print(f"Running test {example_name} with input size {input_size}...")
+        PRINT_DEB(f"Running test {example_name} with input size {input_size}...")
+
+        # Check that the serial connection is still open
+        if not self.ser.is_open:
+            print("Error: Serial port is not open!")
+            exit(1) 
 
         # Set up the serial communication thread and attach it the serial queue
         self.serial_thread = threading.Thread(target=SerialReceiver, args=(self.ser, self.serial_queue,))
@@ -151,6 +174,8 @@ class VerifHeep:
         if ("Error" in result_compilation.stderr) or ("error" in result_compilation.stderr):
             print(result_compilation.stderr)
             return
+        else:
+            PRINT_DEB("Compilation successful!")
         
         # Run the testbench with gdb
         self.gdb.sendline('load')
@@ -158,11 +183,9 @@ class VerifHeep:
 
         try:
           output = self.gdb.read_nonblocking(size=100, timeout=1)
-          print("Current output:", output)
+          PRINT_DEB("Current gdb output:", output)
         except pexpect.TIMEOUT:
-          print("No new output from GDB.")
-
-        print("Sent messages on gdb")
+          PRINT_DEB("No new output from GDB.")
 
         # Set a breakpoint at the exit and wait for it
         self.gdb.sendline('b _exit')
@@ -177,14 +200,6 @@ class VerifHeep:
           if en_timeout_term:
             exit(1)
           return
-        
-        try:
-          output = self.gdb.read_nonblocking(size=100, timeout=1)
-          print("Current output:", output)
-        except pexpect.TIMEOUT:
-          print("No new output from GDB.")
-
-        print("Sent messages on gdb")
         
         # Wait for serial to finish
         self.serial_thread.join()
@@ -230,7 +245,7 @@ class VerifHeep:
         avg_duration = sum(self.it_times) / len(self.it_times)
         remaining_it = loop_size - len(self.it_times)
         remaining_time_raw = remaining_it * avg_duration
-        remaining_time = []
+        remaining_time = {}
         remaining_time["hours"], remainder = divmod(remaining_time_raw, 3600)
         remaining_time["minutes"], remaining_time["seconds"] = divmod(remainder, 60)
         return remaining_time
@@ -368,18 +383,26 @@ class VerifHeep:
 # Serial communication thread
 
 def SerialReceiver(ser, serial_queue, endword="&"):
-  try:
-      received = False
-      while not received:
-          # Read the data from the serial port
-          line = ser.readline().decode('utf-8').rstrip()
-          serial_queue.put(line)
-          print(line)
-          if line:
-              if line == endword:
-                received = True
-                return
-  except KeyboardInterrupt:
-      print("KeyBoard interruption")
-  finally:
-      ser.close()
+    try:
+        if not ser.is_open:
+            raise serial.SerialException("Serial port not open")
+        
+        received = False
+        while not received:
+            # Read the data from the serial port
+            line = ser.readline().decode('utf-8').rstrip()
+            serial_queue.put(line)
+            PRINT_DEB(f">: {line}")
+            if line:
+                if endword in line:
+                    received = True
+                    PRINT_DEB(f"Received {endword}: end of serial transmission thread")
+                    return
+    except serial.SerialException as e:
+        print(f"Serial exception: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    except KeyboardInterrupt:
+        print("Keyboard interruption")
+    finally:
+        pass
