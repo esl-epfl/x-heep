@@ -43,7 +43,7 @@
 
 /* Defines which DMA channels are available to the SPC, depending on HW specifications */
 //@ToDo: see what include in the open source version
-#define SPC_CH_MASK 0b0001 
+#define SPC_CH_MASK 0b0101 
 
 /* Base address of the im2col SPC */
 #define IM2COL_SPC_BASE_ADDR EXT_PERIPHERAL_START_ADDRESS + 0x4000
@@ -103,7 +103,7 @@
 #define OW_NHWC (FW * FH * CH * BATCH)
 #define OH_NHWC (N_PATCHES_W) * (N_PATCHES_H)
 
-#define START_ID 0
+#define START_ID 3
 
 #define TEST_EN 1
 

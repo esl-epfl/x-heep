@@ -52,7 +52,7 @@ import ast
 import numpy as np
 
 # Set this to True to enable debugging prints
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 def PRINT_DEB(*args, **kwargs):
     if DEBUG_MODE:
@@ -398,6 +398,9 @@ def SerialReceiver(ser, serial_queue, endword="&"):
                     received = True
                     PRINT_DEB(f"Received {endword}: end of serial transmission thread")
                     return
+                elif "ERROR" in line:
+                    print("FAILED VERIFICATION!")
+                    exit(1)
     except serial.SerialException as e:
         print(f"Serial exception: {e}")
     except Exception as e:

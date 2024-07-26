@@ -190,15 +190,15 @@ module im2col_spc
 
   /* Register interface control FSM */
   im2col_spc_regintfc_controller im2col_spc_regintfc_controller_i (
-    .clk_i,
-    .rst_ni,
-    .addr_i(dma_addr),
-    .wdata_i(dma_wdata),
-    .start_i(dma_regintfc_start),
-    .aopb_resp_i(aopb2im2col_resp_i),
-    .aopb_req_o(im2col2aopb_req_o),
-    .done_o(dma_regintfc_done)
-);
+      .clk_i,
+      .rst_ni,
+      .addr_i(dma_addr),
+      .wdata_i(dma_wdata),
+      .start_i(dma_regintfc_start),
+      .aopb_resp_i(aopb2im2col_resp_i),
+      .aopb_req_o(im2col2aopb_req_o),
+      .done_o(dma_regintfc_done)
+  );
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -418,7 +418,7 @@ module im2col_spc
       default: begin
         dma_if_cu_load_q = IDLE_IF_LOAD;
       end
-      
+
     endcase
   end
 
@@ -440,9 +440,7 @@ module im2col_spc
       end
 
       WRITE_SLOTS: begin
-        dma_wdata = {
-          reg2hw.slot.tx_trigger_slot.q, reg2hw.slot.rx_trigger_slot.q
-        };
+        dma_wdata = {reg2hw.slot.tx_trigger_slot.q, reg2hw.slot.rx_trigger_slot.q};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                   DMA_SLOTS_OFFSET;

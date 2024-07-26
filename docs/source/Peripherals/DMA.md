@@ -14,6 +14,7 @@ It can be configured to perform *1D* or *2D* transactions and it can apply **zer
 
 The DMA **Hardware Abstraction Layer (HAL)** facilitates the configuration of transactions from the users application. Furthermore, it adds an additional layer of safety checks to reduce the risk of faulty memory accesses, data override or infinite loops.
 <br>
+
 ## Structural description
 
 INSERIRE SCHEMATICO DMA
@@ -42,6 +43,7 @@ While the 1st solution is a general purpose, balanced configuration, the 2nd sol
 
 This mechanism guarantees maximum flexibility, enabling the user to adapt the DMA subsystem to its requirements, both in terms of area and performance.
 <br>
+
 #### Data FIFOs configuration
 
 Each DMA channel uses a FIFO to buffer the data to be written, which is crucial for mitigating the combined delays from the system bus and the DMA subsystem bus. 
@@ -58,6 +60,7 @@ These are the steps to follow to take advantage this feature:
 - Adjust the parameters _L_, _M_ and _S_. They define the size of a large, medium and small FIFO.
 - Modify the parameter `typedef enum {L, M, S} fifo_ch_size_t;` to assign individual sizes to the FIFOs. The number of elements must reflect the number of DMA channels.
 <br>
+
 #### Triggers
 
 In the case of memory-peripheral operations, it is common for the peripheral to have a reaction time that cannot match the system clock. For example, the SPI trasmits data with a period of circa 30 clock cycles. 
@@ -67,6 +70,7 @@ This difference in response times creates the need for a communication channel b
 They can be used both when the peripheral writes data using the DMA and when the DMA reads data from the peripheral.
 The DMA can be configured to respond to triggers by enabling the appropriate _slot_ via software, using the DMA HAL. [INSERIRE LINK A ESEMPIO SPI SLOT DMA MULTICHANNEL]
 <br>
+
 #### Tips for DMA-based accelerator developers
 
 The DMA subsystem has been developed with specific features to facilitate the creation of custom accelerators that can leverage it to improve memory-intense applications.
@@ -81,6 +85,7 @@ Check out the _im2col SPC_ in the `\ip_examples` folder for a detailed example a
 - **Stop signal**: it can terminate a DMA transaction at any moment. It's particularly useful for accelerators that produce a large quantity of data, but with a variable trasfer size that cannot be known or computed. 
 A good example of such an accelerator is a level crossing subsampler, which writes sampled data only when they cross a specific threshold.
 <br>
+
 - **VerifHEEP**: it's a python library that has been developed to test computational units and accelerators developed on X-Heep. 
 It has been deployed succesfully to validate the _im2col SPC_ as it is expecially useful for data-intense accelerators.
 [LINK ALLA DOCUMENTAZIONE DI VERIFHEEP]
@@ -90,6 +95,7 @@ It includes methods to:
   - Compile, program & launch applications on FPGA targets for a tenfold reduction in test & verification times
   - Analyze the performance of the tests and plot the results. 
 <br>
+
 ### Registers description
 
 This section will describe every register of a DMA channel and their function.
@@ -140,7 +146,7 @@ The previous parameters, including the register offsets, can be found at `sw/dev
 
 - **SIZE_D1**
   - _SW access_: rw
-  - _Description_: number of bytes to be copied by the DMA channel along the first dimension, i.e. using the first counter. As soon as this register is written, the transaction starts.
+  - _Description_: number of bytes to be copied by the DMA channel along the first dimension, i.e. using the first counter. As soon as this register is written, the **transaction starts**.
 
 
 <hr>
@@ -681,13 +687,104 @@ The same result from this example could have been achieved by setting the transa
 
 This use case is very impractical as it doubles the memory usage. It is intended to be used along In-Memory-Computing architectures and algorithms.
 
+## Software stack: HAL and SDK
   
+Like every other computational unit in X-Heep, a DMA transaction can be set up and launched using direct register writes. This method achieves minimal overhead and optimal performance, as thoroughly documented in sw/applications/example_dma_2d and sw/applications/example_dma_multichannel. 
 
-## Usa cases and examples
+However, it carries significant risks. For instance, the transaction starts immediately after writing to the size register, so the order of register writes must be strictly followed. If the code is compiled with aggressive optimization flags, these write operations might be reordered, potentially compromising DMA functionality. Additionally, errors in setting the transaction size or increments can lead to memory corruption.
 
-In this section, several usecases are going to be studied and explained in detail, to give the users a better understanding on how the DMA subsystem works and how to exploit it to improve the performance of their application.
+Given the criticality of DMA operations and the potential for destructive errors, direct register writes should be approached with utmost _caution_. To mitigate these risks, two software stacks have been developed:
 
-  
+- **HAL**: Provides functions for initializing DMA channels, validating and correcting issues within the targets, loading and launching transactions.
+- **SDK**: Employs the HAL to offer user-friendly functions for basic but essential memcpy and fill operations.
+
+### DMA HAL
+
+This section will include a brief overview of the functionalities offered by the DMA HAL. For more practical example, please refer to the next chapter, _"Usecases and examples"_.
+
+Let's start with the structures that enable users to define a DMA transaction and its targets, defined in `dma.h`:
+
+
+#### <i> dma_target_t </i>
+
+The dma_target_t structure represents a target for a DMA transaction, either as a source or a destination. It encapsulates the parameters required to define a memory region or a peripheral for DMA operations. Furthermore, control parameters can be added to prevent the DMA from reading/writing outside the boundaries of the target.
+
+#### <i> dma_trans_t </i>
+
+The dma_trans_t structure defines a DMA transaction, encapsulating all the necessary parameters and configurations required to perform a DMA operation. Each member of the structure is carefully designed to handle specific aspects of the transaction, from source and destination targets to increment sizes, data types, and operational modes.
+
+Once these structures are defined, there are three main functions to be called in order to correctly perform a DMa transaction.
+
+#### <i> dma_init() </i>
+
+*Purpose*:
+The dma_init function initializes the DMA subsystem by cresetting transaction structures and clearing DMA registers of each channel.
+
+*Parameters*:
+- dma *dma_peri: Pointer to the DMA peripheral. If this pointer is provided, it uses the given DMA peripheral; otherwise (NULL), it uses the integrated DMA peripheral.
+
+#### <i> dma_validate_transaction() </i>
+
+_Purpose_:
+The dma_validate_transaction function ensures the configuration of a DMA transaction is correct,checking for potential issues that could prevent the transaction from executing properly. It performs sanity checks, verifies target configurations, and addresses any alignment, increment, padding, trigger, and mode inconsistencies.
+
+_Parameters_:
+- dma_trans_t *p_trans: Pointer to the DMA transaction structure that contains the transaction configuration.
+- dma_en_realign_t p_enRealign: Flag indicating whether realignment is enabled.
+- dma_perf_checks_t p_check: Flag indicating whether integrity checks should be performed.
+
+_Return Values_:
+- dma_config_flags_t: Configuration flags indicating the status of the transaction validation. They provide information about the validity of the transaction and any detected errors or warnings.
+
+#### <i> dma_load_transaction() </i>
+
+_Purpose_:
+The dma_load_transaction function configures and loads a DMA transaction into a DMA channel. It checks for critical errors defined by the validation function, ensures no other transaction is running, and sets various parameters such as interrupts, pointers, increments, padding, and operation modes by writing in the correct registers. The only register that is not written is the 
+SIZE_D1 register so it doesn't launch the transaction.
+
+_Parameters_:
+- dma_trans_t *p_trans: Pointer to the DMA transaction structure that contains the configuration for the transaction.
+
+_Return Values_:
+- DMA_CONFIG_OK: Indicates that the transaction was successfully loaded.
+- DMA_CONFIG_CRITICAL_ERROR: Indicates that the transaction contains a critical error and cannot be loaded.
+- DMA_CONFIG_TRANS_OVERRIDE: Indicates that another transaction is currently running and cannot be overridden.
+
+#### <i> dma_launch_transaction() </i>
+
+_Purpose_:
+The dma_launch function initiates a DMA transaction that has been previously configured and loaded into a DMA channel. It ensures the transaction is valid, checks for any ongoing transactions, and then starts the new transaction. If the end event is set to wait for an interrupt, the function will block until the interrupt is received.
+
+_Parameters_:
+- dma_trans_t *p_trans: Pointer to the DMA transaction structure that contains the configuration for the transaction.
+
+_Return Values_:
+
+- DMA_CONFIG_OK: Indicates that the transaction was successfully launched.
+- DMA_CONFIG_CRITICAL_ERROR: Indicates that the transaction could not be launched due to a critical error.
+- DMA_CONFIG_TRANS_OVERRIDE: Indicates that another transaction is currently running and cannot be overridden.
+
+## Usacases and examples
+
+This section will examine and explain several use cases in detail to provide users with a comprehensive understanding of the DMA subsystem and how to leverage it to enhance their application's performance.
+
+Here is a brief overview of the examples:
+
+1) Simple mem2mem transaction, i.e., 1D memcpy
+2) 2D mem2mem transaction, i.e., 2D memcpy
+3) Matrix transposition
+4) Matrix padding
+5) Multichannel mem2mem transaction, focusing on the IRQ handler
+6) Multichannel flash2mem transaction using the SPI SDK
+7) BONUS: Minimizing overhead by using register writes instead of HALs
+
+The complete code for these examples can be found in `sw/applications/example_dma`, `sw/applications/example_dma_2d`, `sw/applications/example_dma_multichannel` and `sw/applications/example_dma_sdk`. These applications offer both verification and performance estimation modes, enabling users to verify the DMA and measure the application's execution time.
+
+
+### 1. Simple mem2mem transaction
+
+The goal of this example is to develop a function that 
+
 
 #### Basic application
 

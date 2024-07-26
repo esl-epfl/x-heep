@@ -810,7 +810,10 @@ module dma #(
       pad_state_q <= PAD_IDLE;
       pad_state_x <= PAD_IDLE;
     end else if (dma_conf_2d == 1'b1) begin
-      if (dma_start == 1'b1 && |reg2hw.pad_top.q == 1'b1) begin
+      if (dma_done == 1'b1) begin
+        pad_state_q <= PAD_IDLE;
+        pad_state_x <= PAD_IDLE;
+      end else if (dma_start == 1'b1 && |reg2hw.pad_top.q == 1'b1) begin
         pad_state_q <= TOP_PAD_EXEC;
         pad_state_x <= TOP_PAD_EXEC;
       end else if (dma_start == 1'b1 && |reg2hw.pad_left.q == 1'b1) begin

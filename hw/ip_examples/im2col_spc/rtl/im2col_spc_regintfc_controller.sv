@@ -21,14 +21,15 @@ module im2col_spc_regintfc_controller
     output reg_req_t aopb_req_o,
     output logic done_o
 );
-    
+
   /* General status signal */
   enum {
     IDLE,
     WAITING_READY,
     SENDING,
     DONE
-  } im2col_status_q, im2col_status_d;
+  }
+      im2col_status_q, im2col_status_d;
 
   always_comb begin
     unique case (im2col_status_d)
@@ -42,7 +43,7 @@ module im2col_spc_regintfc_controller
 
       SENDING: begin
         im2col_status_q = WAITING_READY;
-      end 
+      end
 
       WAITING_READY: begin
         if (aopb_resp_i.ready == 1'b1) begin
@@ -52,9 +53,9 @@ module im2col_spc_regintfc_controller
         end
       end
 
-      DONE: begin 
+      DONE: begin
         im2col_status_q = IDLE;
-      end 
+      end
     endcase
   end
 
@@ -71,14 +72,14 @@ module im2col_spc_regintfc_controller
       aopb_req_o.valid <= 1'b0;
       aopb_req_o.write <= 1'b0;
       aopb_req_o.wstrb <= 4'b1111;
-      aopb_req_o.addr <= '0;
+      aopb_req_o.addr  <= '0;
       aopb_req_o.wdata <= '0;
     end else begin
       if (im2col_status_d == SENDING) begin
         aopb_req_o.valid <= 1'b1;
         aopb_req_o.write <= 1'b1;
         aopb_req_o.wstrb <= 4'b1111;
-        aopb_req_o.addr <= addr_i;
+        aopb_req_o.addr  <= addr_i;
         aopb_req_o.wdata <= wdata_i;
       end else begin
         aopb_req_o.valid <= 1'b0;

@@ -156,7 +156,7 @@ module im2col_spc_param_fsm
     zeros_phase2_en = 1'b0;
     zeros_rst = 1'b0;
     output_data_ptr_rst = 1'b0;
-    
+
     unique case (param_state_d)
 
       IDLE: begin
@@ -191,17 +191,17 @@ module im2col_spc_param_fsm
 
       N_ZEROS_COMP_1: begin
         zeros_phase1_en = 1'b1;
-        param_state_q = N_ZEROS_COMP_2;
+        param_state_q   = N_ZEROS_COMP_2;
       end
 
       N_ZEROS_COMP_2: begin
         zeros_phase2_en = 1'b1;
-        param_state_q = N_ZEROS_COMP_3;
+        param_state_q   = N_ZEROS_COMP_3;
       end
 
       N_ZEROS_COMP_3: begin
         zeros_phase2_en = 1'b1;
-        param_state_q = INDEX_COMP_1;
+        param_state_q   = INDEX_COMP_1;
       end
 
       INDEX_COMP_1: begin
@@ -422,7 +422,7 @@ module im2col_spc_param_fsm
       .WIDTH(8)
   ) pipe_reg_left_zeros (
       .clk_i,
-      .rst_ni(pipe_rst),
+      .rst_ni  (pipe_rst),
       .data_in (n_zeros_left_comp1_n),
       .data_out(n_zeros_left_comp1)
   );
@@ -431,7 +431,7 @@ module im2col_spc_param_fsm
       .WIDTH(8)
   ) pipe_reg_top_zeros (
       .clk_i,
-      .rst_ni(pipe_rst),
+      .rst_ni  (pipe_rst),
       .data_in (n_zeros_top_comp1_n),
       .data_out(n_zeros_top_comp1)
   );
@@ -440,7 +440,7 @@ module im2col_spc_param_fsm
       .WIDTH(8)
   ) pipe_reg_right_zeros (
       .clk_i,
-      .rst_ni(pipe_rst),
+      .rst_ni  (pipe_rst),
       .data_in (n_zeros_right_comp1_n),
       .data_out(n_zeros_right_comp1)
   );
@@ -449,7 +449,7 @@ module im2col_spc_param_fsm
       .WIDTH(8)
   ) pipe_reg_bottom_zeros (
       .clk_i,
-      .rst_ni(pipe_rst),
+      .rst_ni  (pipe_rst),
       .data_in (n_zeros_bottom_comp1_n),
       .data_out(n_zeros_bottom_comp1)
   );
@@ -458,7 +458,7 @@ module im2col_spc_param_fsm
       .WIDTH(32)
   ) pipe_reg_index_comp1 (
       .clk_i,
-      .rst_ni(pipe_rst),
+      .rst_ni  (pipe_rst),
       .data_in (index_comp1_n),
       .data_out(index_comp1)
   );
@@ -467,7 +467,7 @@ module im2col_spc_param_fsm
       .WIDTH(32)
   ) pipe_reg_index_comp2 (
       .clk_i,
-      .rst_ni(pipe_rst),
+      .rst_ni  (pipe_rst),
       .data_in (index_comp2_n),
       .data_out(index_comp2)
   );
@@ -476,7 +476,7 @@ module im2col_spc_param_fsm
       .WIDTH(32)
   ) pipe_reg_index_comp3 (
       .clk_i,
-      .rst_ni(pipe_rst),
+      .rst_ni  (pipe_rst),
       .data_in (index_comp3_n),
       .data_out(index_comp3)
   );
@@ -485,7 +485,7 @@ module im2col_spc_param_fsm
       .WIDTH(32)
   ) pipe_reg_index_comp4 (
       .clk_i,
-      .rst_ni(pipe_rst),
+      .rst_ni  (pipe_rst),
       .data_in (index_comp4_n),
       .data_out(index_comp4)
   );

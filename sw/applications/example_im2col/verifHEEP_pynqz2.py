@@ -22,10 +22,10 @@ batch_min = 1
 channels_max = 4
 channels_min = 1
 
-im_h_max = 13
+im_h_max = 11
 im_h_min = 10
 
-im_w_max = 13
+im_w_max = 11
 im_w_min = 10
 
 ker_h_max = 5
@@ -34,13 +34,13 @@ ker_h_min = 3
 ker_w_max = 5
 ker_w_min = 3
 
-pad_top_max = 3
+pad_top_max = 2
 pad_top_min = 1
-pad_bottom_max = 3
+pad_bottom_max = 2
 pad_bottom_min = 1
-pad_left_max = 3
+pad_left_max = 2
 pad_left_min = 1
-pad_right_max = 3
+pad_right_max = 2
 pad_right_min = 1
 
 stride_d1_max = 2
@@ -152,13 +152,14 @@ total_iterations = ((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1
                     (channels_max - channels_min) * (batch_max - batch_min) *
                     (num_channels_dma - num_channels_dma_min))
 
-def main(stdscr):
-  progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter",
-                    bar_format='{desc}: {percentage:.2f}%|{bar}| {n_fmt}/{total_fmt}')
+#def main(stdscr):
+def main():
+  #progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter",
+  #                  bar_format='{desc}: {percentage:.2f}%|{bar}| {n_fmt}/{total_fmt}')
 
   cpu_done = 0
   iteration = 1
-  curses.curs_set(0)
+  #curses.curs_set(0)
   for i in range(num_channels_dma_min, num_channels_dma):
       print("_______________________\n\r")
       print("Number of channels used by SPC\n\r", i)
@@ -265,10 +266,10 @@ def main(stdscr):
                                                       )
 
                                                       iteration += 1
-                                                      progress_bar.update(1)
+                                                      #progress_bar.update(1)
                                                       
-                                                      stdscr.addstr(1, 0, message)
-                                                      stdscr.refresh()
+                                                      #stdscr.addstr(1, 0, message)
+                                                      #stdscr.refresh()
 
       if (not cpu_done):
           im2col_cpu_array.append(im2col_cpu)
@@ -278,7 +279,7 @@ def main(stdscr):
       cpu_done = 1
 
   im2colVer.stopAll()
-  progress_bar.close()
+  #progress_bar.close()
 
   with open('im2col_data.txt', 'w') as file:
       file.write("im2col_cpu:\n")
@@ -298,5 +299,5 @@ def main(stdscr):
 
   print("Data acquired!\n")
   
-curses.wrapper(main)
+#curses.wrapper(main)
 main()
