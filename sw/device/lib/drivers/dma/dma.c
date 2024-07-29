@@ -540,7 +540,7 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
 
     /* The copy size of the source (in data units -of the source-) is
     transformed to bytes, to be used as default size.*/
-    uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(p_trans->dst->type);
+    uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(p_trans->src->type);
     p_trans->size_b = p_trans->src->size_du * dataSize_b;
     p_trans->size_d2_b = p_trans->src->size_d2_du * dataSize_b;
 
