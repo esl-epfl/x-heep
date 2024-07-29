@@ -14,7 +14,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "1:0", name:"VALUE", desc: "Set the ADC threshold value" }
+        { bits: "0", name:"VALUE", desc: "Set the ADC threshold value" }
       ]
     },
     { name:     "GET",

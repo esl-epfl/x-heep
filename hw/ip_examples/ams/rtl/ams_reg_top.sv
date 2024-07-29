@@ -68,8 +68,8 @@ module ams_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic [1:0] sel_qs;
-  logic [1:0] sel_wd;
+  logic sel_qs;
+  logic sel_wd;
   logic sel_we;
   logic get_qs;
 
@@ -77,9 +77,9 @@ module ams_reg_top #(
   // R[sel]: V(False)
 
   prim_subreg #(
-      .DW      (2),
+      .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (2'h0)
+      .RESVAL  (1'h0)
   ) u_sel (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -146,14 +146,14 @@ module ams_reg_top #(
   end
 
   assign sel_we = addr_hit[0] & reg_we & !reg_error;
-  assign sel_wd = reg_wdata[1:0];
+  assign sel_wd = reg_wdata[0];
 
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[1:0] = sel_qs;
+        reg_rdata_next[0] = sel_qs;
       end
 
       addr_hit[1]: begin

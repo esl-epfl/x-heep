@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-choose xa ../../../hw/ip_examples/ams/analog/adc.sp;
-port_connect -cell ams_adc_1b ( vdd => vdd , gnd => gnd );
-port_dir -cell ams_adc_1b (input sel; output out);
+choose xa ../../../hw/ip_examples/ams/analog/myinverter.sp;
+port_connect -cell myinverter ( vdd => vdd , gnd => gnd );
+port_dir -cell myinverter (input a; output z);
 bus_format <%d>;
