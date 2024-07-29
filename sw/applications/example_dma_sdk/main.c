@@ -35,8 +35,11 @@
 #define SOURCE_BUFFER_SIZE_16b 5
 #define SOURCE_BUFFER_SIZE_8b 5
 #define CONST_VALUE_32B 123
+#define CONST_NEG_VALUE_32B -123
 #define CONST_VALUE_16B 123
+#define CONST_NEG_VALUE_16B -123
 #define CONST_VALUE_8B 123
+#define CONST_NEG_VALUE_8B -123
 
 static uint32_t source_32b[SOURCE_BUFFER_SIZE_32b];
 static uint32_t destin_32b[SOURCE_BUFFER_SIZE_32b];
@@ -47,9 +50,22 @@ static uint16_t source_16b[SOURCE_BUFFER_SIZE_16b];
 static uint8_t destin_8b[SOURCE_BUFFER_SIZE_8b];
 static uint8_t source_8b[SOURCE_BUFFER_SIZE_8b];
 
+static int32_t neg_source_32b[SOURCE_BUFFER_SIZE_32b];
+static int32_t neg_destin_32b[SOURCE_BUFFER_SIZE_32b];
+
+static int16_t neg_destin_16b[SOURCE_BUFFER_SIZE_16b];
+static int16_t neg_source_16b[SOURCE_BUFFER_SIZE_16b];
+
+static int8_t neg_destin_8b[SOURCE_BUFFER_SIZE_8b];
+static int8_t neg_source_8b[SOURCE_BUFFER_SIZE_8b];
+
 static uint32_t value_32b = CONST_VALUE_32B;
 static uint16_t value_16b = CONST_VALUE_16B;
 static uint8_t value_8b = CONST_VALUE_8B;
+
+static int32_t neg_value_32b = CONST_NEG_VALUE_32B;
+static int16_t neg_value_16b = CONST_NEG_VALUE_16B;
+static int8_t neg_value_8b = CONST_NEG_VALUE_8B;
 
 uint32_t i;
 uint32_t errors = 0;
@@ -80,6 +96,14 @@ int main()
     for (i = 0; i < SOURCE_BUFFER_SIZE_8b; i++)
     {
         errors += destin_8b[i] != CONST_VALUE_8B;
+    }
+
+    dma_fill((uint32_t)neg_source_16b, (uint32_t)&neg_value_8b, SOURCE_BUFFER_SIZE_32b, 0, DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_HALF_WORD, 1);
+    dma_copy((uint32_t)neg_destin_32b, (uint32_t)neg_source_16b, SOURCE_BUFFER_SIZE_32b, 0, DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_WORD, 1);
+
+    for (i = 0; i < SOURCE_BUFFER_SIZE_32b; i++)
+    {
+        errors += destin_32b[i] != CONST_VALUE_32B;
     }
 
     PRINTF("Errors:%d\n\r", errors);
