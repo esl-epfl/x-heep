@@ -13,7 +13,7 @@ package ams_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {logic [1:0] q;} ams_reg2hw_sel_reg_t;
+  typedef struct packed {logic q;} ams_reg2hw_sel_reg_t;
 
   typedef struct packed {logic q;} ams_reg2hw_get_reg_t;
 
@@ -24,7 +24,7 @@ package ams_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    ams_reg2hw_sel_reg_t sel;  // [2:1]
+    ams_reg2hw_sel_reg_t sel;  // [1:1]
     ams_reg2hw_get_reg_t get;  // [0:0]
   } ams_reg2hw_t;
 
