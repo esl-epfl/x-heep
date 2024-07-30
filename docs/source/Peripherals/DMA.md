@@ -57,9 +57,9 @@ By exploiting the 2D increment, it's possible to implement a non-continuous read
 
 The DMA is capable of performing zero padding on the extracted data, both in 1D and 2D transactions.
 This is done by by setting four padding parameters:
-- **T**op							    
-- **B**ottom				     					
-- **L**eft								
+- **T**op				    
+- **B**ottom				     				
+- **L**eft				
 - **R**ight		
 
 e.g.
@@ -207,11 +207,11 @@ Theoretically, there is no required difference between a _source_ and _destinati
   
 ```C
 static dma_target_t tgt_src = {
-                                .ptr        = copy_buffer,
-                                .inc_du     = 1,
-                                .size_du    = sizeof(copy_buffer),
-                                .type       = DMA_DATA_TYPE_WORD
-                                };
+				.ptr        = copy_buffer,
+				.inc_du     = 1,
+				.size_du    = sizeof(copy_buffer),
+				.type       = DMA_DATA_TYPE_WORD
+				};
 ```
   
 Here, `ptr = copy_buffer` is a `uint32_t` pointer from where the information will be extracted. `inc_du = 1` is telling the DMA that for each word copied, the pointer should be incremented by 1 unit, therefore words will be copied consecutively without gaps.
@@ -233,9 +233,9 @@ Finally, a transaction is created to relate both targets:
   
 ```C
 static  dma_trans_t trans = {
-							.src = &tgt_src,
-							.dst = &tgt_dst,
-							};
+				.src = &tgt_src,
+				.dst = &tgt_dst,
+				};
 ```
   
 This will also imply some configurations set to zero:
@@ -280,11 +280,11 @@ The first source target will be pointing to a `uint16_t` buffer in memory. Data 
   
 ```C
 static  dma_target_t tgt1= {
-							.ptr = (uint8_t*)(copy_buffer + 1),
-							.inc_du = 2,
-							.size_du = sizeof(copy_buffer),
-							.type = DMA_DATA_TYPE_BYTE,
-							};
+				.ptr = (uint8_t*)(copy_buffer + 1),
+				.inc_du = 2,
+				.size_du = sizeof(copy_buffer),
+				.type = DMA_DATA_TYPE_BYTE,
+				};
 ```
   
 To start copying information from the second byte of `copy_buffer`, the source pointer is set to the address of `copy_buffer` plus one byte.
@@ -299,9 +299,9 @@ static  uint32_t *spi_flash_fifo_tx = ADDRESS_SPI_FLASH_TX_FIFO;
   
   
 static  dma_target_t tgt2= {
-							.inc_du = 0,
-							.trig = DMA_TRIG_SLOT_SPI_FLASH_TX,
-							};
+				.inc_du = 0,
+				.trig = DMA_TRIG_SLOT_SPI_FLASH_TX,
+				};
 tgt2.ptr = spi_flash_fifo_tx;
 ```
   
@@ -319,10 +319,10 @@ The transaction is formed by selecting the source and destination targets
   
 ```C
 static  dma_trans_t trans = {
-							.src = &tgt1,
-							.dst = &tgt2,
-							.end = DMA_TRANS_END_INTR,
-							};
+				.src = &tgt1,
+				.dst = &tgt2,
+				.end = DMA_TRANS_END_INTR,
+				};
 ```
   
 To enable interrupts, the end event is set to `DMA_TRANS_END_INTR`.
@@ -466,8 +466,8 @@ To guarantee that the result of this function will not cause the DMA to write in
 It requires two pointers to the first and last byte where the DMA will be authorized to make any action.
 ```C
 static  dma_env_t safe_zone = {
-								.start = ADDRESS_START_OF_SAFE_ZONE,
-								.end = ADDRESS_END_OF_SAFE_ZONE,
+				.start = ADDRESS_START_OF_SAFE_ZONE,
+				.end = ADDRESS_END_OF_SAFE_ZONE,
 };
 ```
   
