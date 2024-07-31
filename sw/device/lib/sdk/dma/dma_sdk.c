@@ -73,6 +73,28 @@ extern "C"
         return;
     }
 
+    void __attribute__ ((noinline)) dma_copy_async(uint32_t dst_ptr, uint32_t src_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data)
+    {
+        volatile dma *the_dma = dma_peri(channel);
+        DMA_COPY(dst_ptr, src_ptr, size, src_type, dst_type, signed_data, the_dma);
+        dma_start(the_dma, size, src_type);
+        return;
+    }
+
+    void __attribute__ ((noinline)) dma_fill_async(uint32_t dst_ptr, uint32_t value_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data)
+    {
+        volatile dma *the_dma = dma_peri(channel);
+        DMA_FILL(dst_ptr, value_ptr, size, src_type, dst_type, signed_data, the_dma);
+        dma_start(the_dma, size, src_type);
+        return;
+    }
+
+    void __attribute__ ((noinline)) dma_wait(uint8_t channel)
+    {
+        DMA_WAIT(channel);
+        return;
+    }
+
 #ifdef __cplusplus
 }
 #endif

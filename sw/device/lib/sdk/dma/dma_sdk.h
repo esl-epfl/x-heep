@@ -48,12 +48,10 @@ extern "C"
 #define DMA_WAIT(CH)                          \
     while (!dma_is_ready(CH))                 \
     {                                         \
-        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8); \
         if (dma_is_ready(CH) == 0)            \
         {                                     \
             wait_for_interrupt();             \
         }                                     \
-        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);   \
     }
 
     /********************************/
@@ -94,6 +92,12 @@ extern "C"
      * @param signed_data  Indicates whether the data is signed or unsigned.
      */
     void dma_fill(uint32_t dst_ptr, uint32_t value_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data);
+
+    void __attribute__ ((noinline)) dma_copy_async(uint32_t dst_ptr, uint32_t src_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data);
+
+    void __attribute__ ((noinline)) dma_fill_async(uint32_t dst_ptr, uint32_t value_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data);
+    
+    void __attribute__ ((noinline)) dma_wait(uint8_t channel);
 
 #ifdef __cplusplus
 }
