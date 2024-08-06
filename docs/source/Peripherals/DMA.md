@@ -44,6 +44,17 @@ While the 1st solution is a general purpose, balanced configuration, the 2nd sol
 This mechanism guarantees maximum flexibility, enabling the user to adapt the DMA subsystem to its requirements, both in terms of area and performance.
 <br>
 
+#### Interrupts
+
+If enabled, a transaction interrupt is raised every time a DMA transaction is completed.
+Due to architectural limitations, there is only a single transaction done signal for the whole DMA subsystem. 
+In order to allow the user to identify which channel raised the transaction interrupt, an interrupt flag register system has been developed.
+It works in this way: when the DMA channel has completed the transaction and the interrupt enable register is correctly set, the transaction IFR is set to 1. This register has been developed to be cleared once read: this mechanism is very handy because it removes the need for an additional register write.
+The transaction interrupt handler takes advantage of this mechanism to identify the channel that raised the interrupt: as soon as an IFR is read high, it launches the de-facto handler, which can be redefined by the user [LINK ALLA SEZIONE HAL].
+It could happen that a channel raises an interrupt while the CPU is processing a previous interrupt of another channel: this is not an issue, because the IFR will stay set until the CPU reads its content. 
+The only issue is that this situation will cause an additional delay to the execution of the application.
+For this reason, the handler implemented by the user should be as short as possible.
+
 #### Data FIFOs configuration
 
 Each DMA channel uses a FIFO to buffer the data to be written, which is crucial for mitigating the combined delays from the system bus and the DMA subsystem bus. 
@@ -391,8 +402,9 @@ While a transaction is running, new transactions can be validated, loaded and la
 Transactions can be re-launched automatically in `circular mode`.
 
 Once the transaction has finished, a status bit is changed (that can be monitored through polling) and a fast interrupt is triggered. 
-Due to architectural limitations, there is a single interrupt for the whole DMA subsystem. For this reason, an interrupt flag registers system has been developed in order to identify which channel has raised the interrupt.
-As explained in the HAL section, the IRQ handler loops through the IFR of the channels. As soon as an IFR is read high, the ID of the channel that raised the interrupt is passed to the weak implementation of the handler. This weak handler can be redifined by the user, as shown in `example_dma_multichannel`. 
+An interrupt flag register system has been developed to overcome architectural limitations described in [LINK TO STRUCTURAL DESCRIPTION]. As explained in the HAL section [LINK TO HAL SECTION], this system enables the interrupt handler to identify which channel has raised the interrupt.
+
+In the event of a transaction interrupt, the ID of the channel that raised the interrupt is passed to the weak implementation of the handler. This weak handler can be redefined by the user, as demonstrated in example_dma_multichannel.
   
 
 #### Source and destination
@@ -713,7 +725,7 @@ The dma_target_t structure represents a target for a DMA transaction, either as 
 
 The dma_trans_t structure defines a DMA transaction, encapsulating all the necessary parameters and configurations required to perform a DMA operation. Each member of the structure is carefully designed to handle specific aspects of the transaction, from source and destination targets to increment sizes, data types, and operational modes.
 
-Once these structures are defined, there are three main functions to be called in order to correctly perform a DMa transaction.
+Once these structures are defined, let's examine the main functions to be called in order to correctly perform a DMA transaction.
 
 #### <i> dma_init() </i>
 
@@ -763,6 +775,8 @@ _Return Values_:
 - DMA_CONFIG_OK: Indicates that the transaction was successfully launched.
 - DMA_CONFIG_CRITICAL_ERROR: Indicates that the transaction could not be launched due to a critical error.
 - DMA_CONFIG_TRANS_OVERRIDE: Indicates that another transaction is currently running and cannot be overridden.
+
+The interrupt handlers are critical in many applications. As stated in the structural description of the DMA [LINK STRUCTURAL DESCRIPTION], there is a single interrupt for the entire 
 
 ## Usacases and examples
 

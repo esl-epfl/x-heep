@@ -77,11 +77,11 @@ def torch_save(tensor, variable_name, dim, row_len):
 # Parameters of the random image, padding excluded
 image_height = 10
 image_width = 10
-channels = 2
+channels = 1
 batch = 1
 
 # Parameters of the filter
-filter_height = 3
+filter_height = 4
 filter_width = 4
 top_pad = 1
 bottom_pad = 1
