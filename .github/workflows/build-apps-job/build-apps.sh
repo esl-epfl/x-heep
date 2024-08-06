@@ -12,23 +12,39 @@ LONG_R="${RED}==================================================================
 LONG_W="${WHITE}================================================================================${RESET}"
 
 # Error vars are not defined if there is problem!
-APPS=$(\ls sw/applications/) &&\
+APPS_GCC=$(\ls sw/applications/) &&\
+
+# Applications that should only be compiled with GCC
+ONLY_GCC="example_cpp"
+
+# Initialize APPS_CLANG with the same content as APPS_GCC
+APPS_CLANG="$APPS_GCC"
+
+# Loop through ONLY_GCC to filter out the specified applications from APPS_CLANG
+for app in $ONLY_GCC; do
+    # Remove the app from APPS_CLANG
+    APPS_CLANG=${APPS_CLANG//$app/}
+done
+
 declare -i FAILURES=0 &&\
 FAILED='' &&\
 
 echo -e ${LONG_W}
 echo -e "Will try building the following apps:${RESET}"
-echo -e $APPS | tr " " "\n" 
+echo -e "----> GCC" 
+echo -e $APPS_GCC | tr " " "\n" 
+echo -e "----> CLANG" 
+echo -e $APPS_CLANG | tr " " "\n" 
 echo -e ${LONG_W}
 
-if [ -z "$APPS" ]; then
+if [ -z "$APPS_GCC" ]; then
         echo -e ${LONG_R}
         echo -e "${RED}No apps found${RESET}"
         echo -e ${LONG_R}
         exit 2
 fi
 
-for APP in $APPS
+for APP in $APPS_GCC
 do 
 	
 	# Build the app with GCC
@@ -44,7 +60,10 @@ do
 		FAILURES=$(( FAILURES + 1 ))
 		FAILED="$FAILED(gcc)\t$APP "  
 	fi
-	
+done
+
+for APP in $APPS_CLANG
+do 
 	# Build the app with Clang
 	make app-clean
 	if make app PROJECT=$APP COMPILER=clang ; then
@@ -58,7 +77,6 @@ do
 		FAILURES=$(( FAILURES + 1 ))
 		FAILED="$FAILED(clang)\t$APP "  
 	fi
-	
 done
 
 

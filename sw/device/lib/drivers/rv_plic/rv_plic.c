@@ -34,6 +34,9 @@
 /*                             MODULES USED                                 */
 /**                                                                        **/
 /****************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "rv_plic.h"
 #include "rv_plic_structs.h"
@@ -72,7 +75,7 @@ const uint32_t plicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
  * Pointer used to dynamically access the different interrupt handlers.
 */
 typedef void (*handler_funct_t)(uint32_t);
-
+//#endif
 /****************************************************************************/
 /**                                                                        **/
 /*                      PROTOTYPES OF LOCAL FUNCTIONS                       */
@@ -366,8 +369,7 @@ plic_result_t plic_software_irq_is_pending(void)
 }
 
 
-plic_result_t plic_assign_external_irq_handler( uint32_t id,
-                                                void *handler )
+plic_result_t plic_assign_external_irq_handler( uint32_t id, void *handler )                                             
 {
   if( id >= EXT_IRQ_START && id <= QTY_INTR )
   {
@@ -376,6 +378,7 @@ plic_result_t plic_assign_external_irq_handler( uint32_t id,
   }
   return kPlicBadArg;
 }
+
 
 void plic_reset_handlers_list(void)
 {
@@ -433,7 +436,9 @@ static uint8_t plic_irq_bit_index( uint32_t irq)
 {
   return irq % RV_PLIC_PARAM_REG_WIDTH;
 }
-
+#ifdef __cplusplus
+}
+#endif
 /****************************************************************************/
 /**                                                                        **/
 /*                                 EOF                                      */
