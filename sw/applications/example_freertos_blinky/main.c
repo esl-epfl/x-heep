@@ -116,7 +116,7 @@
 
 /* The rate at which data is sent to the queue.  The 200ms value is converted
 to ticks using the pdMS_TO_TICKS() macro. */
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
 #define mainQUEUE_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 200 )
 #else
 #define mainQUEUE_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 3 )
@@ -148,7 +148,7 @@ or 0 to run the more comprehensive test and demo application. */
 #endif /* #if mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1 */
 
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
     #define GPIO_LD5_R  15
     #define GPIO_LD5_B  16
 	#define GPIO_LD5_G  17

@@ -828,11 +828,11 @@ Theoretically, there is no required difference between a _source_ and _destinati
 
 ```C
 static dma_target_t tgt_src = {
-                                .ptr        = copy_buffer,
-                                .inc_du     = 1,
-                                .size_du    = sizeof(copy_buffer),
-                                .type       = DMA_DATA_TYPE_WORD
-                                };
+				.ptr        = copy_buffer,
+				.inc_du     = 1,
+				.size_du    = sizeof(copy_buffer),
+				.type       = DMA_DATA_TYPE_WORD
+				};
 ```
 
   
@@ -848,7 +848,6 @@ This configuration is implicitly initializing the rest of the target configurati
 * Data type is set to _word_ (32-bits).
 
 * The trigger is set to _memory_ (vs. a peripheral).
-
 ```C
 static dma_target_t tgt_dst = {
                                 .ptr        = copy_buffer,
@@ -857,9 +856,7 @@ static dma_target_t tgt_dst = {
                                 .type       = DMA_DATA_TYPE_WORD
                                 };
 ```
-
-Both destination and source targets has to contain a data type (they can be different) and size in data units (they should be the same).
-
+Both destination and source targets have to contain a data type (they can be different) and size in data units (they should be the same).
 Finally, a transaction is created to relate both targets:
 
   
@@ -1483,6 +1480,53 @@ If you know what you are doing and want to minimize the overhead of using the DM
   
 
 ```c
+/* We will copy a set of 25 half-words of 16 bits into a buffer of 32-bit words.
+Each word in the destination buffer will have its 16 MSB set to 0, and the 16 LSB with the corresponding value from the source.*/
+#define HALF_WORDS_TO_COPY 25
+static  uint16_t  src_buffer[HALF_WORDS_TO_COPY]; // The source buffer
+static  uint32_t  dst_buffer[HALF_WORDS_TO_COPY]; // The destination buffer
+  
+/* Set the DMA's control block's peripheral structure to point to the address defined in core_v_mini_mcu.h */
+dma_cb.peri = dma_peri;
+/* Activate interrupts*/
+dma_cb.peri->INTERRUPT_EN |= INTR_EN_TRANS_DONE;
+/* Set the source and destination pointers*/
+dma_cb.peri->SRC_PTR = (uint16_t*) source_buffer;
+dma_cb.peri->DST_PTR = (uint32_t*) dst_buffer;
+  
+/* Set the source increment as 2 bytes (because the source buffer is uint16_t).
+Set the destination increment as 4 bytes (because the destination buffer is uint32_t).
+We write 1026 = 0000 0100 0000 0010,
+as the first 8 LSB refer to the source, and the next 8 bits for the destination. */
+dma_cb.peri->PTR_INC = (uint32_t) 1026;
+  
+/* Make sure that the DMA will point to memory.*/
+dma_cb.peri->SLOT = DMA_TRIG_MEMORY;
+  
+/* Set the data transfer type as half-words.*/
+dma_cb.peri->TYPE = DMA_DATA_TYPE_HALF_WORD;
+  
+/* Set the transaction size, this will launch the transaction.
+If you want to restart the same transaction again, just run from here.*/
+dma_cb.peri->SIZE = HALF_WORDS_TO_COPY;
+  
+/* Go to sleep until the DMA finishes.*/
+while( dma_cb.peri->STATUS == 0 ) {
+	/* Disable the interrupts MSTATUS to avoid going to sleep AFTER the interrupt
+	was triggered.*/
+	CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+	/* If the transaction has not yet finished, go to sleep*/
+	if (dma_cb.peri->STATUS == 0) {
+		/* If a interrupt happened before, the core would still wake-up,
+		but will not jump to the interrupt handler MSTATUS is not re-set. */
+		{ asm  volatile("wfi"); }
+	}
+	/* Restore the interrupts. */
+	CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+}
+  
+  
+```
 
   
 

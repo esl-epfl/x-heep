@@ -19,12 +19,22 @@
     }
 
     { name:     "RESTORE_ADDRESS",
-      desc:     "Restore xddress value",
+      desc:     "Restore address value",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "RESTORE_XDDRESS", desc: "Restore xddress Reg, used by BOOTROM" }
+        { bits: "31:0", name: "RESTORE_ADDRESS", desc: "Restore address Reg, used by BOOTROM" }
+      ]
+    }
+
+    { name:     "GLOBAL_POINTER",
+      desc:     "Global Pointer value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "GLOBAL_POINTER", desc: "Global Reg, used by power manager HAL" }
       ]
     }
 

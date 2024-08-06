@@ -380,6 +380,25 @@ module ao_peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
 
+  parameter DMA_GLOBAL_TRIGGER_SLOT_NUM = 5;
+  parameter DMA_EXT_TRIGGER_SLOT_NUM = core_v_mini_mcu_pkg::DMA_CH_NUM * 2;
+
+  logic [DMA_GLOBAL_TRIGGER_SLOT_NUM-1:0] dma_global_trigger_slots;
+  logic [DMA_EXT_TRIGGER_SLOT_NUM-1:0] dma_ext_trigger_slots;
+
+  assign dma_global_trigger_slots[0] = spi_rx_valid_i;
+  assign dma_global_trigger_slots[1] = spi_tx_ready_i;
+  assign dma_global_trigger_slots[2] = spi_flash_rx_valid;
+  assign dma_global_trigger_slots[3] = spi_flash_tx_ready;
+  assign dma_global_trigger_slots[4] = i2s_rx_valid_i;
+
+  generate
+    for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_trigger_slots_gen
+      assign dma_ext_trigger_slots[2*i]   = ext_dma_slot_tx_i[i];
+      assign dma_ext_trigger_slots[2*i+1] = ext_dma_slot_rx_i[i];
+    end
+  endgenerate
+
   dma_subsystem #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t),

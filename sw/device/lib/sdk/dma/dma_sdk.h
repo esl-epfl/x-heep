@@ -15,7 +15,9 @@
 #include "csr.h"
 
 #include "dma.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
 /********************************/
 /* ---- EXPORTED VARIABLES ---- */
 /********************************/
@@ -116,4 +118,8 @@ void dma_fill_8b(uint8_t *dst, uint8_t *value, uint32_t size, uint8_t channel);
  */
 void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size, uint8_t channel);
 
+#ifdef __cplusplus
+}
+#endif  // __cplusplus
 #endif /* DMA_UTIL_H_ */
+
