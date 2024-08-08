@@ -9,6 +9,8 @@ description: "toplevel packages of x-heep"
 
 filesets:
   files_rtl:
+    depend:
+    - pulp-platform.org::axi_heep
     files:
     - addr_map_rule_pkg.sv
     - obi_pkg.sv

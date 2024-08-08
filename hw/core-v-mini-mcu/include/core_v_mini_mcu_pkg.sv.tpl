@@ -112,7 +112,8 @@ package core_v_mini_mcu_pkg;
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
       '{ idx: AO_PERIPHERAL_IDX, start_addr: AO_PERIPHERAL_START_ADDRESS, end_addr: AO_PERIPHERAL_END_ADDRESS },
       '{ idx: PERIPHERAL_IDX, start_addr: PERIPHERAL_START_ADDRESS, end_addr: PERIPHERAL_END_ADDRESS },
-      '{ idx: FLASH_MEM_IDX, start_addr: FLASH_MEM_START_ADDRESS, end_addr: FLASH_MEM_END_ADDRESS }
+      '{ idx: FLASH_MEM_IDX, start_addr: FLASH_MEM_START_ADDRESS, end_addr: FLASH_MEM_END_ADDRESS },
+      '{ idx: HYPERRAM_MEM_IDX, start_addr: HYPERRAM_MEM_START_ADDRESS, end_addr: HYPERRAM_MEM_END_ADDRESS }
   };
 
   // External slave address map
@@ -225,8 +226,8 @@ package core_v_mini_mcu_pkg;
   } pad_side_e;
 
   // HyperRam
-  locaparam int unsigned HyperRamNumChips = 1;
-  locaparam int unsigned HyperRamNumPhys  = 2;
+  localparam int unsigned HyperRamNumChips = 1;
+  localparam int unsigned HyperRamNumPhys  = 2;
 
   // AXI definitions
   parameter int unsigned AxiAddrWidth = 32;

@@ -64,6 +64,7 @@ module hyperbus_trx #(
     logic [15:0]    rx_rwds_fifo_in;
     logic           rx_rwds_fifo_valid;
     logic           rx_rwds_fifo_ready;
+    logic           rx_rwds_clk_n;
 
     // Feed through async reset
     assign hyper_reset_no = rst_ni;

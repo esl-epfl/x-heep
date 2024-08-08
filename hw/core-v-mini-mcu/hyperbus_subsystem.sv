@@ -95,7 +95,7 @@ module hyperbus_subsystem
         // AXI4 CHANNEL
 
         // WRITE ADDRESS CHANNEL
-        .axi_master_aw_valid_o(axi_req.aw_valid,
+        .axi_master_aw_valid_o(axi_req.aw_valid),
         .axi_master_aw_addr_o(axi_req.aw.addr),
         .axi_master_aw_prot_o(axi_req.aw.prot),
         .axi_master_aw_region_o(axi_req.aw.region),
@@ -151,4 +151,4 @@ module hyperbus_subsystem
         .busy_o()
    );
 
-endmodule : hyperbus
+endmodule : hyperbus_subsystem

@@ -16,7 +16,7 @@ module core_v_mini_mcu
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT,
-    parameter EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS,
+    parameter EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS
 ) (
 
     input logic rst_ni,
@@ -133,8 +133,8 @@ ${pad.core_v_mini_mcu_interface}
   obi_req_t hyperram_req;
   obi_resp_t hyperram_resp;
   reg_req_t hyperram_reg_req;
-  reg_rsp_t hyperram_reg_resp;
-  
+  reg_rsp_t hyperram_reg_rsp;
+
   // signals to debug unit
   logic debug_core_req;
   logic debug_reset_n;
@@ -516,30 +516,39 @@ ${pad.core_v_mini_mcu_interface}
 
   logic [7:0] hyper_dq_in, hyper_dq_out, hyper_dq_oe;
 
-  assign hyper_dq_in = {hyper_dq_0_io_i, hyper_dq_1_io_i, hyper_dq_2_io_i, hyper_dq_3_io_i, hyper_dq_4_io_i, hyper_dq_5_io_i, hyper_dq_6_io_i, hyper_dq_7_io_i};
-  assign {hyper_dq_0_io_o, hyper_dq_1_io_o, hyper_dq_2_io_o, hyper_dq_3_io_o, hyper_dq_4_io_o, hyper_dq_5_io_o, hyper_dq_6_io_o, hyper_dq_7_io_o} = hyper_dq_out;
-  assign {hyper_dq_0_io_oe_o, hyper_dq_1_io_oe_o, hyper_dq_2_io_oe_o, hyper_dq_3_io_oe_o, hyper_dq_4_io_oe_o, hyper_dq_5_io_oe_o, hyper_dq_6_io_oe_o, hyper_dq_7_io_oe_o} = hyper_dq_oe;
+  assign hyper_dq_in = {
+    hyper_dq_0_i,
+    hyper_dq_1_i,
+    hyper_dq_2_i,
+    hyper_dq_3_i,
+    hyper_dq_4_i,
+    hyper_dq_5_i,
+    hyper_dq_6_i,
+    hyper_dq_7_i
+  };
+  assign {hyper_dq_0_o, hyper_dq_1_o, hyper_dq_2_o, hyper_dq_3_o, hyper_dq_4_o, hyper_dq_5_o, hyper_dq_6_o, hyper_dq_7_o} = hyper_dq_out;
+  assign {hyper_dq_0_oe_o, hyper_dq_1_oe_o, hyper_dq_2_oe_o, hyper_dq_3_oe_o, hyper_dq_4_oe_o, hyper_dq_5_oe_o, hyper_dq_6_oe_o, hyper_dq_7_oe_o} = hyper_dq_oe;
 
 % if hyperram_is_included in ("yes"):
   hyperbus_subsystem hyperbus_subsystem_i (
-    .clk_i,
-    .clk_per_i(clk_i),
-    .rst_ni,
-    .obi_req_i(hyperram_req),
-    .obi_resp_o(hyperram_resp),
-    .reg_req_i(hyperram_reg_req),
-    .reg_rsp_o(hyperram_reg_rsp),
-    // Physical interace: facing HyperBus PADs
-    .hyper_cs_no,
-    .hyper_ck_o,
-    .hyper_ck_no(hyper_ckn_o),
-    .hyper_rwds_o(hyper_rwds_io_o),
-    .hyper_rwds_i(hyper_rwds_io_i),
-    .hyper_rwds_oe_o(hyper_rwds_io_oe_o),
-    .hyper_dq_i(hyper_dq_in),
-    .hyper_dq_o(hyper_dq_out),
-    .hyper_dq_oe_o(hyper_dq_oe),
-    .hyper_reset_no
+      .clk_i,
+      .clk_per_i(clk_i),
+      .rst_ni,
+      .obi_req_i(hyperram_req),
+      .obi_resp_o(hyperram_resp),
+      .reg_req_i(hyperram_reg_req),
+      .reg_rsp_o(hyperram_reg_rsp),
+      // Physical interace: facing HyperBus PADs
+      .hyper_cs_no,
+      .hyper_ck_o,
+      .hyper_ck_no(hyper_ckn_o),
+      .hyper_rwds_o,
+      .hyper_rwds_i,
+      .hyper_rwds_oe_o,
+      .hyper_dq_i(hyper_dq_in),
+      .hyper_dq_o(hyper_dq_out),
+      .hyper_dq_oe_o(hyper_dq_oe),
+      .hyper_reset_no
   );
 
 % else:

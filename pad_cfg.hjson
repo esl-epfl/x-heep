@@ -149,11 +149,11 @@
             }
         }
 
-        hyper_rwds_io: {
+        hyper_rwds: {
             num: 1,
             type: inout
             mux: {
-                hyper_rwds_io: {
+                hyper_rwds: {
                     type: inout
                 },
                 gpio_17: {
@@ -180,11 +180,11 @@
             }
         } 
 
-        hyper_dq_0_io: {
+        hyper_dq_0: {
             num: 1,
             type: inout
             mux: {
-                hyper_dq_0_io: {
+                hyper_dq_0: {
                     type: inout
                 },
                 gpio_19: {
@@ -195,11 +195,11 @@
                 },
             }
         } 
-        hyper_dq_1_io: {
+        hyper_dq_1: {
             num: 1,
             type: inout
             mux: {
-                hyper_dq_1_io: {
+                hyper_dq_1: {
                     type: inout
                 },
                 gpio_20: {
@@ -211,11 +211,11 @@
             }
         } 
 
-        hyper_dq_2_io: {
+        hyper_dq_2: {
             num: 1,
             type: inout
             mux: {
-                hyper_dq_2_io: {
+                hyper_dq_2: {
                     type: inout
                 },
                 gpio_21: {
@@ -228,11 +228,11 @@
             }
         } 
 
-        hyper_dq_3_io: {
+        hyper_dq_3: {
             num: 1,
             type: inout
             mux: {
-                hyper_dq_3_io: {
+                hyper_dq_3: {
                     type: inout
                 },
                 gpio_22: {
@@ -244,11 +244,11 @@
             }
         } 
 
-        hyper_dq_4_io: {
+        hyper_dq_4: {
             num: 1,
             type: inout
             mux: {
-                hyper_dq_4_io: {
+                hyper_dq_4: {
                     type: inout
                 },
                 gpio_23: {
@@ -260,11 +260,11 @@
             }
         } 
 
-        hyper_dq_5_io: {
+        hyper_dq_5: {
             num: 1,
             type: inout
             mux: {
-                hyper_dq_5_io: {
+                hyper_dq_5: {
                     type: inout
                 },
                 gpio_24: {
@@ -276,11 +276,11 @@
             }
         } 
 
-        hyper_dq_6_io: {
+        hyper_dq_6: {
             num: 1,
             type: inout
             mux: {
-                hyper_dq_6_io: {
+                hyper_dq_6: {
                     type: inout
                 },
                 gpio_25: {
@@ -292,11 +292,11 @@
             }
         } 
 
-        hyper_dq_7_io: {
+        hyper_dq_7: {
             num: 1,
             type: inout
             mux: {
-                hyper_dq_7_io: {
+                hyper_dq_7: {
                     type: inout
                 },
                 gpio_26: {

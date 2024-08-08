@@ -1,0 +1,33 @@
+CAPI=2:
+
+name: pulp-platform.org::hyperbus
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+    - pulp-platform.org::axi_heep
+    - x-heep::packages
+    files:
+    - pulp_platform_hyperbus/src/hyperbus_pkg.sv
+    - pulp_platform_hyperbus/src/hyperbus_axi.sv
+    - pulp_platform_hyperbus/src/hyperbus_cfg_regs.sv
+    - pulp_platform_hyperbus/src/hyperbus_clk_gen.sv
+    - pulp_platform_hyperbus/src/hyperbus_clock_diff_out.sv
+    - pulp_platform_hyperbus/src/hyperbus_ddr_out.sv
+    - pulp_platform_hyperbus/src/hyperbus_delay.sv
+    - pulp_platform_hyperbus/src/hyperbus_phy2r.sv
+    - pulp_platform_hyperbus/src/hyperbus_phy_if.sv
+    - pulp_platform_hyperbus/src/hyperbus_phy.sv
+    - pulp_platform_hyperbus/src/hyperbus.sv
+    - pulp_platform_hyperbus/src/hyperbus_trx.sv
+    - pulp_platform_hyperbus/src/hyperbus_w2phy.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

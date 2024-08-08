@@ -14,6 +14,8 @@
     ".gitignore",
     "scripts",
     "test",
+	  "src/hyperbus_stub.sv",
+	  "src/hyperbus_synth_wrap.sv",
     ".gitlab-ci.yml",
     "Bender.lock",
     "Bender.yml",

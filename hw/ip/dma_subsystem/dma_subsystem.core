@@ -11,6 +11,8 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::common_cells
+      - x-heep::packages
+      - x-heep:ip:dma
     files:
     - rtl/dma_subsystem.sv
     file_type: systemVerilogSource

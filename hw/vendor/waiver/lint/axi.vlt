@@ -1,0 +1,8 @@
+// Copyright 2024 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/pulp_platform_axi/src/*.sv" -match "*"
+lint_off -rule WIDTH -file "*/pulp_platform_axi/src/axi_pkg.sv" -match "*"

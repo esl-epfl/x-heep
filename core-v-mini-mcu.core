@@ -20,6 +20,9 @@ filesets:
     - pulp-platform.org::cluster_interconnect
     - pulp-platform.org::riscv_dbg
     - pulp-platform.org::register_interface
+    - pulp-platform.org::per2axi
+    - pulp-platform.org::hyperbus
+    - pulp-platform.org::axi_heep
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
     - lowrisc:ip:rv_plic_example:0.1
@@ -48,6 +51,7 @@ filesets:
     - hw/core-v-mini-mcu/debug_subsystem.sv
     - hw/core-v-mini-mcu/peripheral_subsystem.sv
     - hw/core-v-mini-mcu/ao_peripheral_subsystem.sv
+    - hw/core-v-mini-mcu/hyperbus_subsystem.sv
     file_type: systemVerilogSource
 
   rtl-simulation:
