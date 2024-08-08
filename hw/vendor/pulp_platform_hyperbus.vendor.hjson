@@ -1,0 +1,24 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+{
+  name: "pulp_platform_hyperbus",
+  target_dir: "pulp_platform_hyperbus",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/hyperbus.git",
+    rev: "d5b0064a0579f1a559f003f94721055d497af51d",
+  },
+
+  exclude_from_upstream: [
+    ".gitignore",
+    "scripts",
+    "test",
+    ".gitlab-ci.yml",
+    "Bender.lock",
+    "Bender.yml",
+    "CHANGELOG.md",
+    "CODEOWNERS",
+    "CONTRIBUTING.md",
+  ]
+}

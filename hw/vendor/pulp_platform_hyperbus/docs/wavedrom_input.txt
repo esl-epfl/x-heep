@@ -1,0 +1,14 @@
+{signal: [
+  {name: 'rwds_i', wave: '0p..' , period:4 , node:'....'},
+  {name: 'rwds_delayed', wave: '0....1.0.1.0.1.0',  node:'.....B...'},
+  {name: 'reg_d=dq_i', wave: 'z...3.4.5.6.x...', data: ['A0', 'A1', 'B0', 'B1'], node:'....A.H..'  },  
+  {name: 'fifo_in[15:8]=reg_q', wave: 'z.....3...5...x..', data: ['A0', 'B0'] , phase: 0.5,  node:'......C......'},  
+  {name: 'rwds_delayed_n', wave: '1....0.1.0.1.0.1',  node:'.......s..'},
+  {name: 'fifo_in[7:0]=dq_i', wave: 'z.3456x.', period:2, data: ['A0', 'A1', 'B0', 'B1'], node:'...EO'  }  ,
+
+],
+ edge: [
+'A|->B ts', 'b|g','B~C ', 'C|->s ts', 'E|->s ts', 'B-|H th', 's-|O th'
+]
+  
+}
