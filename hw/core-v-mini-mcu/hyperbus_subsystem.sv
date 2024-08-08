@@ -13,6 +13,7 @@ module hyperbus_subsystem
     parameter int unsigned  NumPhys  = core_v_mini_mcu_pkg::HyperRamNumPhys
 ) (
     input  logic                        clk_i,
+    input  logic                        clk_per_i,
     input  logic                        rst_ni,
     // OBI bus
     input  obi_req_t                    obi_req_i,
@@ -43,11 +44,11 @@ module hyperbus_subsystem
         .NumChips(NumChips),
         .NumPhys(NumPhys)
     ) hyperbus_i (
-        .clk_phy_i(clk_phy_i),
-        .rst_phy_ni(rst_phy_ni),
-        .clk_sys_i(clk_sys_i),
-        .rst_sys_ni(rst_sys_ni),
-        .test_mode_i(test_mode_i),
+        .clk_phy_i(clk_per_i),
+        .rst_phy_ni(rst_ni),
+        .clk_sys_i(clk_i),
+        .rst_sys_ni(rst_ni),
+        .test_mode_i(1'b0),
         .axi_req_i(axi_req),
         .axi_rsp_o(axi_resp),
         .reg_req_i,

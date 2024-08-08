@@ -25,17 +25,6 @@ module core_v_mini_mcu
 ${pad.core_v_mini_mcu_interface}
 % endfor
 
-    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0][core_v_mini_mcu_pkg::HyperRamNumChips-1:0] hyper_cs_no,
-    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_ck_o,
-    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_ck_no,
-    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_rwds_o,
-    input  logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_rwds_i,
-    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_rwds_oe_o,
-    input  logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0][7:0]                  hyper_dq_i,
-    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0][7:0]                  hyper_dq_o,
-    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_dq_oe_o,
-    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_reset_no,
-
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
     if_xif.cpu_issue      xif_issue_if,
@@ -525,9 +514,16 @@ ${pad.core_v_mini_mcu_interface}
     end
   end
 
+  logic [7:0] hyper_dq_in, hyper_dq_out, hyper_dq_oe;
+
+  assign hyper_dq_in = {hyper_dq_0_io_i, hyper_dq_1_io_i, hyper_dq_2_io_i, hyper_dq_3_io_i, hyper_dq_4_io_i, hyper_dq_5_io_i, hyper_dq_6_io_i, hyper_dq_7_io_i};
+  assign {hyper_dq_0_io_o, hyper_dq_1_io_o, hyper_dq_2_io_o, hyper_dq_3_io_o, hyper_dq_4_io_o, hyper_dq_5_io_o, hyper_dq_6_io_o, hyper_dq_7_io_o} = hyper_dq_out;
+  assign {hyper_dq_0_io_oe_o, hyper_dq_1_io_oe_o, hyper_dq_2_io_oe_o, hyper_dq_3_io_oe_o, hyper_dq_4_io_oe_o, hyper_dq_5_io_oe_o, hyper_dq_6_io_oe_o, hyper_dq_7_io_oe_o} = hyper_dq_oe;
+
 % if hyperram_is_included in ("yes"):
   hyperbus_subsystem hyperbus_subsystem_i (
     .clk_i,
+    .clk_per_i(clk_i),
     .rst_ni,
     .obi_req_i(hyperram_req),
     .obi_resp_o(hyperram_resp),
@@ -536,23 +532,24 @@ ${pad.core_v_mini_mcu_interface}
     // Physical interace: facing HyperBus PADs
     .hyper_cs_no,
     .hyper_ck_o,
-    .hyper_ck_no,
-    .hyper_rwds_o,
-    .hyper_rwds_i,
-    .hyper_rwds_oe_o,
-    .hyper_dq_i,
-    .hyper_dq_o,
-    .hyper_dq_oe_o,
+    .hyper_ck_no(hyper_ckn_o),
+    .hyper_rwds_o(hyper_rwds_io_o),
+    .hyper_rwds_i(hyper_rwds_io_i),
+    .hyper_rwds_oe_o(hyper_rwds_io_oe_o),
+    .hyper_dq_i(hyper_dq_in),
+    .hyper_dq_o(hyper_dq_out),
+    .hyper_dq_oe_o(hyper_dq_oe),
     .hyper_reset_no
   );
+
 % else:
     assign hyper_cs_no = '0;
     assign hyper_ck_o = '0;
-    assign hyper_ck_no = '0;
-    assign hyper_rwds_o = '0;
-    assign hyper_rwds_oe_o = '0;
-    assign hyper_dq_o = '0;
-    assign hyper_dq_oe_o = '0;
+    assign hyper_ckn_o = '0;
+    assign hyper_rwds_io_o = '0;
+    assign hyper_rwds_io_oe_o = '0;
+    assign hyper_dq_out = '0;
+    assign hyper_dq_oe = '0;
     assign hyper_reset_no = '0;
 % endif
 
