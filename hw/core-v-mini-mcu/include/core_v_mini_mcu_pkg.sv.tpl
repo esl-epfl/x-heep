@@ -227,7 +227,7 @@ package core_v_mini_mcu_pkg;
 
   // HyperRam
   localparam int unsigned HyperRamNumChips = 1;
-  localparam int unsigned HyperRamNumPhys  = 2;
+  localparam int unsigned HyperRamNumPhys  = 1;
 
   // AXI definitions
   parameter int unsigned AxiAddrWidth = 32;

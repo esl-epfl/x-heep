@@ -29,9 +29,4 @@ package reg_pkg;
     logic [31:0] rdata;
   } reg_rsp_t;
 
-  //PULP compatibility
-  `define reg_intf_pkg reg_pkg 
-  `define req_a32_d32 reg_req_t
-  `define rsp_d32 reg_rsp_t
-
 endpackage

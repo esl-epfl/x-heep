@@ -5,3 +5,10 @@
 `verilator_config
 
 lint_off -rule WIDTH -file "*/src/hyperbus_pkg.sv" -match "*"
+lint_off -rule WIDTH -file "*/src/hyperbus_w2phy.sv" -match "*"
+lint_off -rule WIDTH -file "*/src/hyperbus_phy.sv" -match "*"
+lint_off -rule WIDTH -file "*/src/hyperbus_phy2r.sv" -match "*"
+lint_off -rule WIDTH -file "*/src/hyperbus_cfg_regs.sv" -match "*"
+lint_off -rule LITENDIAN -file "*/src/hyperbus_cfg_regs.sv" -match "*"
+lint_off -rule WIDTH -file "*/src/hyperbus_axi.sv" -match "*"
+lint_off -rule LITENDIAN -file "*/src/hyperbus_axi.sv" -match "*"

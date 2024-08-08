@@ -27,7 +27,27 @@ filesets:
     - pulp_platform_hyperbus/src/hyperbus_w2phy.sv
     file_type: systemVerilogSource
 
+  rtl_sim:
+    files:
+    - pulp_platform_hyperbus/models/configurable_delay.behav.sv
+    file_type: systemVerilogSource
+
+  rtl_sim_verilator:
+    files:
+    - pulp_platform_hyperbus/models/configurable_delay.behav.dummy.sv
+    file_type: systemVerilogSource
+
+  rtl_fpga:
+    files:
+    - pulp_platform_hyperbus/models/configurable_delay.fpga.sv
+    file_type: systemVerilogSource
+
 targets:
   default:
     filesets:
     - files_rtl
+    - "target_sim? (!tool_verilator ? (rtl_sim))"
+    - "target_sim? (tool_verilator ? (rtl_sim_verilator))"
+    - target_nexys-a7-100t? (rtl_fpga)   
+    - target_pynq-z2? (rtl_fpga)   
+    - target_zcu104? (rtl_fpga)   

@@ -6,3 +6,4 @@
 
 lint_off -rule DECLFILENAME -file "*/pulp_platform_axi/src/*.sv" -match "*"
 lint_off -rule WIDTH -file "*/pulp_platform_axi/src/axi_pkg.sv" -match "*"
+lint_off -rule WIDTH -file "*/pulp_platform_axi/src/axi_atop_filter.sv" -match "*"

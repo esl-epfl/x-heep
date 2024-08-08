@@ -38,11 +38,34 @@ module hyperbus_subsystem
 
     core_v_mini_mcu_pkg::axi_req_t axi_req;
     core_v_mini_mcu_pkg::axi_resp_t axi_resp;
+    localparam int unsigned AddrMapHyperBusIdxWidth = (NumChips > 1) ? $clog2(NumChips) : 1;
+
+    typedef struct packed {
+        logic [AddrMapHyperBusIdxWidth-1:0] idx;
+        logic [1:0] start_addr;
+        logic [1:0] end_addr;
+    } addr_map_hyperbus_t;
 
     // Instantiate the HyperBus controller
     hyperbus #(
         .NumChips(NumChips),
-        .NumPhys(NumPhys)
+        .NumPhys(NumPhys),
+        .AxiAddrWidth(core_v_mini_mcu_pkg::AxiAddrWidth),
+        .AxiDataWidth(core_v_mini_mcu_pkg::AxiDataWidth),
+        .AxiIdWidth(core_v_mini_mcu_pkg::AxiIdWidth),
+        .AxiUserWidth(core_v_mini_mcu_pkg::AxiUserWidth),
+        .axi_req_t(core_v_mini_mcu_pkg::axi_req_t),
+        .axi_rsp_t(core_v_mini_mcu_pkg::axi_resp_t),
+        .axi_w_chan_t(core_v_mini_mcu_pkg::axi_w_t),
+        .axi_b_chan_t(core_v_mini_mcu_pkg::axi_b_t),
+        .axi_ar_chan_t(core_v_mini_mcu_pkg::axi_ar_t),
+        .axi_r_chan_t(core_v_mini_mcu_pkg::axi_r_t),
+        .axi_aw_chan_t(core_v_mini_mcu_pkg::axi_aw_t),
+        .RegAddrWidth(32),
+        .RegDataWidth(32),
+        .reg_req_t(reg_pkg::reg_req_t),
+        .reg_rsp_t(reg_pkg::reg_rsp_t),
+        .axi_rule_t(addr_map_hyperbus_t)
     ) hyperbus_i (
         .clk_phy_i(clk_per_i),
         .rst_phy_ni(rst_ni),
@@ -143,10 +166,10 @@ module hyperbus_subsystem
 
         // WRITE RESPONSE CHANNEL
         .axi_master_b_valid_i(axi_resp.b_valid),
-        .axi_master_b_resp_i(axi_resp.resp),
-        .axi_master_b_id_i(axi_resp.id),
-        .axi_master_b_user_i(axi_resp.user),
-        .axi_master_b_ready_o(axi_resp.b_ready),
+        .axi_master_b_resp_i(axi_resp.b.resp),
+        .axi_master_b_id_i(axi_resp.b.id),
+        .axi_master_b_user_i(axi_resp.b.user),
+        .axi_master_b_ready_o(axi_req.b_ready),
    
         .busy_o()
    );
