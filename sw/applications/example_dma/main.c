@@ -30,7 +30,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA 1
-#define PRINTF_IN_SIM 0
+#define PRINTF_IN_SIM 1
 
 #if TARGET_SIM && PRINTF_IN_SIM
 #define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
@@ -255,9 +255,9 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_SINGLE_MODE
 
-    PRINTF("\n\n\r===================================\n\n\r");
-    PRINTF("    TESTING SINGLE MODE   ");
-    PRINTF("\n\n\r===================================\n\n\r");
+    //PRINTF("\n\n\r===================================\n\n\r");
+    //PRINTF("    TESTING SINGLE MODE   ");
+    //PRINTF("\n\n\r===================================\n\n\r");
 
     TEST_SINGLE
 
@@ -288,9 +288,9 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_ADDRESS_MODE
 
-    PRINTF("\n\n\r===================================\n\n\r");
-    PRINTF("    TESTING ADDRESS MODE   ");
-    PRINTF("\n\n\r===================================\n\n\r");
+    //PRINTF("\n\n\r===================================\n\n\r");
+    //PRINTF("    TESTING ADDRESS MODE   ");
+    //PRINTF("\n\n\r===================================\n\n\r");
 
     // Prepare the data
     for (int i = 0; i < TEST_DATA_SIZE; i++)
@@ -325,7 +325,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    trans.mode = DMA_TRANS_MODE_SINGLE;
 
 #endif // TEST_ADDRESS_MODE
 
@@ -402,6 +401,7 @@ int main(int argc, char *argv[])
     tgt_src.ptr = (uint8_t *)test_data_large;
     tgt_src.size_du = TEST_DATA_LARGE;
     tgt_dst.size_du = TEST_DATA_LARGE;
+    trans.mode = DMA_TRANS_MODE_SINGLE;
 
     // trans.end = DMA_TRANS_END_INTR_WAIT; // This option makes no sense, because the launch is blocking the program until the trans finishes.
     trans.end = DMA_TRANS_END_INTR;

@@ -204,7 +204,7 @@ module dma #(
       .push_i(data_addr_in_rvalid),
       // as long as the queue is not empty we can pop new elements
       .data_o(read_addr_fifo_output),
-      .pop_i(write_fifo_pop)  // not an error!
+      .pop_i(write_fifo_pop && address_mode)  // not an error!
   );
 
   /* Write FIFO */

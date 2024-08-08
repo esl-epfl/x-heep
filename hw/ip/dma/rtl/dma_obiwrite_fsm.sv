@@ -214,7 +214,7 @@ module dma_obiwrite_fsm
         end else begin
           dma_write_fsm_n_state = DMA_WRITE_FSM_ON;
           // Wait if write fifo is empty or if the SPI TX is not ready for new data (only in SPI mode 2).
-          if (write_fifo_empty == 1'b0 && wait_for_tx == 1'b0 && (read_addr_fifo_empty  && address_mode) == 1'b0) begin
+          if (write_fifo_empty == 1'b0 && wait_for_tx == 1'b0 && (read_addr_fifo_empty && address_mode) == 1'b0) begin
             data_out_req  = 1'b1;
             data_out_we   = 1'b1;
             data_out_be   = byte_enable_out;
