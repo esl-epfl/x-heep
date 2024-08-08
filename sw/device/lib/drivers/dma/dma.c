@@ -892,7 +892,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     * the transaction as a 2D one with a second dimension of 1 du and a second dimension increment of 1 du.
     */
 
-    if (p_trans->dim == DMA_DIM_CONF_1D && p_trans->pad_left_du != 0 && p_trans->pad_right_du != 0)
+    if (p_trans->dim == DMA_DIM_CONF_1D && (p_trans->pad_left_du != 0 || p_trans->pad_right_du != 0))
     {
         p_trans->dim = DMA_DIM_CONF_2D;
         p_trans->size_d2_b = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );

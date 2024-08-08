@@ -54,10 +54,10 @@
 #define STRIDE_OUT_D2 1
 
 /* Set the padding parameters */
-#define TOP_PAD 0
-#define BOTTOM_PAD 0
-#define LEFT_PAD 0
-#define RIGHT_PAD 0
+#define TOP_PAD 1
+#define BOTTOM_PAD 1
+#define LEFT_PAD 1
+#define RIGHT_PAD 1
 
 /* Macros for dimensions computation */
 #define OUT_D1_PAD ( SIZE_EXTR_D1 + LEFT_PAD + RIGHT_PAD )
@@ -307,6 +307,7 @@ int main()
         for (int j = 0; j < OUT_D1_PAD_STRIDE; j++) {
             if (copied_data_2D_DMA[i * OUT_D1_PAD_STRIDE + j] != copied_data_2D_CPU[i * OUT_D1_PAD_STRIDE + j]) {
                 passed = 0;
+                printf("E: %d %d %d %d\n\r", i, j, copied_data_2D_DMA[i * OUT_D1_PAD_STRIDE + j], copied_data_2D_CPU[i * OUT_D1_PAD_STRIDE + j]);
             }
         }
     }

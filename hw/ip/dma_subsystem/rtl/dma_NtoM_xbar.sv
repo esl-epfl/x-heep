@@ -14,7 +14,7 @@
  *       This module is a workaround to this problem, as it is composed by a number of N-to-1 crossbars, each for a different slave
  *       (which would be a system bus master port).
  *       The amount of masters per crossbar is defined by the parameter NUM_MASTERS_PER_XBAR.
- *       It is thus possible, from an application poin of view, to use channels that are guaranteed to have a dedicated master port,
+ *       It is thus possible, from an application point of view, to use channels that are guaranteed to have a dedicated master port,
  *       reducing the need for additional arbitration logic.
  */
 

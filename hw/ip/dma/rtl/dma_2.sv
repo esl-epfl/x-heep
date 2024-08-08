@@ -46,7 +46,7 @@ module dma #(
 
   import dma_reg_pkg::*;
 
-
+  
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Parameter definition */
@@ -58,13 +58,8 @@ module dma #(
 
   /* Signals declaration */
 
-  /* Registers */
   dma_reg2hw_t reg2hw;
   dma_hw2reg_t hw2reg;
-
-  /* General signals */
-  logic dma_padding_fsm_on;
-  logic padding_fsm_done;
 
   logic [31:0] read_ptr_valid_reg;
   logic [2:0] dma_cnt_du;
@@ -84,7 +79,7 @@ module dma #(
 
   logic data_addr_in_req;
   logic data_addr_in_we;
-  logic [3:0] data_addr_in_be;
+  logic [  3:0] data_addr_in_be;
   logic [31:0] data_addr_in_addr;
   logic data_addr_in_gnt;
   logic data_addr_in_rvalid;
@@ -116,27 +111,30 @@ module dma #(
   logic read_fifo_full;
   logic read_fifo_empty;
   logic read_fifo_alm_full;
-  logic read_fifo_pop;
+  logic [31:0] read_fifo_input;
   logic [31:0] read_fifo_output;
 
   logic read_addr_fifo_full;
   logic read_addr_fifo_empty;
   logic read_addr_fifo_alm_full;
+  logic [31:0] read_addr_fifo_input;
   logic [31:0] read_addr_fifo_output;
 
   logic write_fifo_full;
   logic write_fifo_empty;
   logic write_fifo_alm_full;
-  logic write_fifo_push;
-  logic write_fifo_pop;
   logic [31:0] write_fifo_input;
   logic [31:0] write_fifo_output;
 
   /* Trigger signals */
   logic wait_for_rx;
   logic wait_for_tx;
+  
+  /* Destination datatypes */
+  dma_data_type_t dst_data_type;
+  dma_data_type_t src_data_type;
 
-  /* Datatypes */
+  /* FSM states */
   typedef enum logic [1:0] {
     DMA_DATA_TYPE_WORD,
     DMA_DATA_TYPE_HALF_WORD,
@@ -144,15 +142,26 @@ module dma #(
     DMA_DATA_TYPE_BYTE_
   } dma_data_type_t;
 
-  dma_data_type_t dst_data_type;
-
-  /* FSM states */
   enum {
     DMA_READY,
     DMA_STARTING,
     DMA_RUNNING
   }
       dma_state_q, dma_state_d;
+
+  enum logic {
+    DMA_READ_FSM_IDLE,
+    DMA_READ_FSM_ON
+  }
+      dma_read_fsm_state, dma_read_fsm_n_state, dma_read_addr_fsm_state, dma_read_addr_fsm_n_state;
+
+  enum logic {
+    DMA_WRITE_FSM_IDLE,
+    DMA_WRITE_FSM_ON
+  }
+      dma_write_fsm_state, dma_write_fsm_n_state;
+
+  logic [ 3:0] byte_enable_out;
 
   logic circular_mode;
   logic address_mode;
@@ -167,8 +176,7 @@ module dma #(
 
   /* Read FIFO */
   fifo_v3 #(
-      .DEPTH(FIFO_DEPTH),
-      .FALL_THROUGH(1'b1)
+      .DEPTH(FIFO_DEPTH)
   ) dma_read_fifo_i (
       .clk_i,
       .rst_ni,
@@ -179,8 +187,8 @@ module dma #(
       .empty_o(read_fifo_empty),
       .usage_o(read_fifo_usage),
       // as long as the queue is not full we can push new data
-      .data_i(data_in_rdata),
-      .push_i(data_in_rvalid),
+      .data_i(read_fifo_input),
+      .push_i(read_fifo_push),
       // as long as the queue is not empty we can pop new elements
       .data_o(read_fifo_output),
       .pop_i(read_fifo_pop)
@@ -188,8 +196,7 @@ module dma #(
 
   /* Read address mode FIFO */
   fifo_v3 #(
-      .DEPTH(FIFO_DEPTH),
-      .FALL_THROUGH(1'b1)
+      .DEPTH(FIFO_DEPTH)
   ) dma_read_addr_fifo_i (
       .clk_i,
       .rst_ni,
@@ -200,17 +207,16 @@ module dma #(
       .empty_o(read_addr_fifo_empty),
       .usage_o(read_addr_fifo_usage),
       // as long as the queue is not full we can push new data
-      .data_i(data_addr_in_rdata),
-      .push_i(data_addr_in_rvalid),
+      .data_i(read_addr_fifo_input),
+      .push_i(read_addr_fifo_push),
       // as long as the queue is not empty we can pop new elements
       .data_o(read_addr_fifo_output),
-      .pop_i(write_fifo_pop)  // not an error!
+      .pop_i(read_addr_fifo_pop)
   );
 
   /* Write FIFO */
   fifo_v3 #(
-      .DEPTH(FIFO_DEPTH),
-      .FALL_THROUGH(1'b1)
+      .DEPTH(FIFO_DEPTH)
   ) dma_write_fifo_i (
       .clk_i,
       .rst_ni,
@@ -242,84 +248,75 @@ module dma #(
   );
 
   /* Read FSM */
-  dma_obiread_fsm dma_obiread_fsm_i (
-      .clk_i,
-      .rst_ni,
-      .reg2hw_i(reg2hw),
-      .dma_start_i(dma_start),
-      .dma_done_i(dma_done),
-      .ext_dma_stop_i,
-      .read_fifo_full_i(read_fifo_full),
-      .read_fifo_alm_full_i(read_fifo_alm_full),
-      .dma_cnt_du_i(dma_cnt_du),
-      .wait_for_rx_i(wait_for_rx),
-      .data_in_gnt_i(data_in_gnt),
-      .data_in_rvalid_i(data_in_rvalid),
-      .data_in_req_o(data_in_req),
-      .data_in_we_o(data_in_we),
-      .data_in_be_o(data_in_be),
-      .data_in_addr_o(data_in_addr),
-      .read_fifo_flush_o(fifo_flush),
-      .read_ptr_valid_reg_o(read_ptr_valid_reg)
+  dma_obiread_fsm dma_obiread_fsm_i(
+  ) (
+    .clk_i,
+    .rst_ni,
+    .dma_start_i(dma_start),
+    .ext_dma_stop_i,
+    .read_fifo_full_i(read_fifo_full),
+    .read_fifo_alm_full_i(read_fifo_alm_full),
+    .dma_cnt_du_i(dma_cnt_du),
+    .wait_for_rx_i(wait_for_rx),
+    .data_in_rvalid_i(data_in_rvalid),
+    .data_in_req_o(data_in_req),
+    .data_in_we_o(data_in_we),
+    .data_in_be_o(data_in_be),
+    .data_in_addr_o(data_in_addr),
+    .read_fifo_flush_o(fifo_flush),
+    .read_ptr_valid_reg_o(read_ptr_valid_reg)
   );
 
   /* Read address FSM */
-  dma_obiread_addr_fsm dma_obiread_addr_fsm_i (
-      .clk_i,
-      .rst_ni,
-      .reg2hw_i(reg2hw),
-      .dma_start_i(dma_start),
-      .ext_dma_stop_i,
-      .read_fifo_addr_full_i(read_addr_fifo_full),
-      .read_fifo_addr_alm_full_i(read_addr_fifo_alm_full),
-      .address_mode_i(address_mode),
-      .data_in_gnt_i(data_addr_in_gnt),
-      .data_addr_in_req_o(data_addr_in_req),
-      .data_addr_in_we_o(data_addr_in_we),
-      .data_addr_in_be_o(data_addr_in_be),
-      .data_addr_in_addr_o(data_addr_in_addr)
+  dma_obiread_fsm_addr dma_obiread_fsm_addr_i(
+  ) (
+    .clk_i,
+    .rst_ni,
+    .dma_start_i(dma_start),
+    .read_fifo_addr_full_i(read_fifo_full),
+    .read_fifo_addr_alm_full_i(read_fifo_alm_full),
+    .address_mode_i(address_mode),
+    .data_addr_in_req_o(data_addr_in_req),
+    .data_addr_in_we_o(data_addr_in_we),
+    .data_addr_in_be_o(data_addr_in_be),
+    .data_addr_in_addr_o(data_addr_in_addr)
   );
 
   /* DMA padding FSM */
-  dma_padding_fsm dma_padding_fsm_i (
-      .clk_i,
-      .rst_ni,
-      .reg2hw_i(reg2hw),
-      .dma_padding_fsm_on_i(dma_padding_fsm_on),
-      .dma_start_i(dma_start),
-      .read_fifo_empty_i(read_fifo_empty),
-      .write_fifo_full_i(write_fifo_full),
-      .write_fifo_alm_full_i(write_fifo_alm_full),
-      .data_read_i(read_fifo_output),
-      .dma_cnt_du_i(dma_cnt_du),
-      .read_ptr_valid_reg_i(read_ptr_valid_reg),
-      .padding_fsm_done_o(padding_fsm_done),
-      .write_fifo_push_o(write_fifo_push),
-      .read_fifo_pop_o(read_fifo_pop),
-      .data_write_o(write_fifo_input)
+  dma_padding_fsm dma_padding_fsm_i(
+    .clk_i,
+    .rst_ni,
+    .dma_padding_fsm_on_i,
+    .dma_start_i(dma_start),
+    .read_fifo_empty_i(read_fifo_empty),
+    .write_fifo_full_i(write_fifo_full),
+    .write_fifo_alm_full_i(write_fifo_alm_full),
+    .data_read_i(read_fifo_output),
+    .dma_cnt_du_i(dma_cnt_du),
+    .read_ptr_valid_reg_i(read_ptr_valid_reg),
+    .padding_fsm_done_o(padding_fsm_done),
+    .write_fifo_push_o(write_fifo_push),
+    .read_fifo_pop_o(read_fifo_pop),
+    .data_write_o(write_fifo_input)
   );
 
   /* Write FSM */
-  dma_obiwrite_fsm dma_obiwrite_fsm_i (
-      .clk_i,
-      .rst_ni,
-      .reg2hw_i(reg2hw),
-      .dma_start_i(dma_start),
-      .write_fifo_empty_i(write_fifo_empty),
-      .read_addr_fifo_empty_i(read_addr_fifo_empty),
-      .dma_cnt_du_i(dma_cnt_du),
-      .fifo_output_i(write_fifo_output),
-      .wait_for_tx_i(wait_for_tx),
-      .address_mode_i(address_mode),
-      .padding_fsm_done_i(padding_fsm_done),
-      .fifo_addr_output_i(read_addr_fifo_output),
-      .data_out_gnt_i(data_out_gnt),
-      .data_out_req_o(data_out_req),
-      .data_out_we_o(data_out_we),
-      .data_out_be_o(data_out_be),
-      .data_out_addr_o(data_out_addr),
-      .data_out_wdata_o(data_out_wdata),
-      .dma_done_o(dma_done)
+  dma_obiwrite_fsm dma_obiwrite_fsm_i(
+  ) (
+    .clk_i,
+    .rst_ni,
+    .dma_start_i(dma_start),
+    .ext_dma_stop_i(ext_dma_stop_i),
+    .write_fifo_empty_i(write_fifo_empty),
+    .dma_cnt_du_i(dma_cnt_du),
+    .fifo_output_i(write_fifo_output),
+    .wait_for_tx_i(wait_for_tx),
+    .data_out_req_o(data_out_req),
+    .data_out_we_o(data_out_we),
+    .data_out_be_o(data_out_be),
+    .data_out_addr_o(data_out_addr),
+    .data_out_wdata_o(data_out_wdata),
+    .dma_done_o(dma_done)
   );
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -376,7 +373,7 @@ module dma #(
       end
     end
   end
-
+  
   /* Transaction IFR update */
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_transaction_ifr
     if (~rst_ni) begin
@@ -425,7 +422,7 @@ module dma #(
     end
   end
 
-
+  
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_dma_window_cnt
     if (~rst_ni) begin
       window_counter <= 'h0;
@@ -477,26 +474,12 @@ module dma #(
     endcase
   end
 
-  always_ff @(posedge clk_i, negedge rst_ni) begin
-    if (~rst_ni) begin
-      dma_padding_fsm_on <= 1'b0;
-    end else begin
-      if (dma_start == 1'b1) begin
-        dma_padding_fsm_on <= 1'b1;
-      end else if (dma_done == 1'b1) begin
-        dma_padding_fsm_on <= 1'b0;
-      end
-    end
-  end
-
-
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Signal assignments */
 
   assign dma_done_o = dma_done;
-  assign dma_start = (dma_state_q == DMA_STARTING);
-
+  
   /* OBI signals */
   assign dma_read_req_o.req = data_in_req;
   assign dma_read_req_o.we = data_in_we;
@@ -528,32 +511,52 @@ module dma #(
   assign data_out_rvalid = dma_write_resp_i.rvalid;
   assign data_out_rdata = dma_write_resp_i.rdata;
 
-  /* FIFO signals */
-  assign write_fifo_pop = (dma_state_q == DMA_RUNNING) & data_out_gnt; // @TOD0: check if this is correct
-
   assign dma_done_intr = transaction_ifr;
-  assign dma_done_intr_o = dma_done_intr_n;
   assign dma_window_intr = window_ifr;
-  assign dma_window_intr_o = dma_window_intr_n;
 
+  assign dma_done_intr_o = dma_done_intr_n;
   assign hw2reg.transaction_ifr.d = transaction_ifr;
+  assign dma_window_intr_o = dma_window_intr_n;
   assign hw2reg.window_ifr.d = window_ifr;
 
   assign dst_data_type = dma_data_type_t'(reg2hw.dst_data_type.q);
+  assign src_data_type = dma_data_type_t'(reg2hw.src_data_type.q);
 
   assign hw2reg.status.ready.d = (dma_state_q == DMA_READY);
+
   assign hw2reg.status.window_done.d = window_done_q;
 
   assign circular_mode = reg2hw.mode.q == 1;
   assign address_mode = reg2hw.mode.q == 2;
 
+  /* DMA Dimensionality configuration flags */
+  assign dma_conf_1d = reg2hw.dim_config.q == 0;
+  assign dma_conf_2d = reg2hw.dim_config.q == 1;
+
+  /* DMA read pointer source selection */
+  assign read_ptr_update_sel = reg2hw.dim_inv.q;
+
+  /* DMA 2D increment */
+  assign dma_src_d2_inc = reg2hw.src_ptr_inc_d2.q;
+  assign dma_src_d1_inc = reg2hw.src_ptr_inc_d1.q;
+  assign dma_dst_d2_inc = reg2hw.dst_ptr_inc_d2.q;
+  assign dma_dst_d1_inc = reg2hw.dst_ptr_inc_d1.q;
+
+  /* Sign extend flag */
+  assign write_address = address_mode ? fifo_addr_output : write_ptr_reg;
+
   assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
   assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
 
+  assign fifo_addr_empty_check = fifo_addr_empty && address_mode;
+
   assign read_fifo_alm_full = (read_fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
-  assign read_addr_fifo_alm_full = (read_addr_fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
+  assign read_fifo_addr_alm_full = (read_addr_fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
   assign write_fifo_alm_full = (write_fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
 
+  assign dma_start = (dma_state_q == DMA_STARTING);
+
+  assign read_addr_fifo_input = data_addr_in_rdata;  //never misaligned, always 32b
 
   // WINDOW EVENT
   // Count gnt write transaction and generate event pulse if WINDOW_SIZE is reached

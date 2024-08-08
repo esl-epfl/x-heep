@@ -595,9 +595,11 @@ module im2col_spc
         dma_ch_first_write[i] <= 1'b0;
       end
     end else begin
-      /* Reset the first write flags when the im2col spc is done */
-      if (im2col_fsms_done == 1'b1) begin
+      /* Reset everything with im2col start */
+      if (im2col_start == 1'b1) begin
+        dma_trans_free_channel <= 0;
         for (int i = 0; i < DMA_CH_NUM; i = i + 1) begin
+          dma_if_channels[i] <= 1'b0;
           dma_ch_first_write[i] <= 1'b0;
         end
       end
