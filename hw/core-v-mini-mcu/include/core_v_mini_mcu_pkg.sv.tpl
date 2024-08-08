@@ -13,6 +13,8 @@
  *
  */
 
+`include "axi/typedef.svh"
+
 package core_v_mini_mcu_pkg;
 
   import addr_map_rule_pkg::*;
@@ -49,7 +51,7 @@ package core_v_mini_mcu_pkg;
   //must be power of two
   localparam int unsigned MEM_SIZE = 32'h${f'{xheep.ram_size_address():08X}'};
 
-  localparam SYSTEM_XBAR_NSLAVE = ${xheep.ram_numbanks() + 5};
+  localparam SYSTEM_XBAR_NSLAVE = ${xheep.ram_numbanks() + 6};
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
@@ -96,6 +98,11 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] FLASH_MEM_SIZE = 32'h${flash_mem_size_address};
   localparam logic[31:0] FLASH_MEM_END_ADDRESS = FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE;
   localparam logic[31:0] FLASH_MEM_IDX = 32'd${xheep.ram_numbanks() + 4};
+
+  localparam logic[31:0] HYPERRAM_MEM_START_ADDRESS = 32'h${hyperram_mem_start_address};
+  localparam logic[31:0] HYPERRAM_MEM_SIZE = 32'h${hyperram_mem_size_address};
+  localparam logic[31:0] HYPERRAM_MEM_END_ADDRESS = HYPERRAM_MEM_START_ADDRESS + HYPERRAM_MEM_SIZE;
+  localparam logic[31:0] HYPERRAM_MEM_IDX = 32'd${xheep.ram_numbanks() + 5};
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS },
@@ -216,5 +223,39 @@ package core_v_mini_mcu_pkg;
     BOTTOM,
     LEFT
   } pad_side_e;
+
+  // HyperRam
+  locaparam int unsigned HyperRamNumChips = 1;
+  locaparam int unsigned HyperRamNumPhys  = 2;
+
+  // AXI definitions
+  parameter int unsigned AxiAddrWidth = 32;
+  parameter int unsigned AxiDataWidth = 32;
+  parameter int unsigned AxiIdWidth = 8;
+  parameter int unsigned AxiUserWidth = 8;
+  parameter int unsigned RegDataWidth = 32;
+  parameter int unsigned StreamDataBytes = 32;
+  localparam int unsigned AxiStrbWidth = AxiDataWidth / 8;
+  localparam int unsigned RegStrbWidth = RegDataWidth / 8;
+  typedef logic [StreamDataBytes*8-1:0] tdata_t;
+  typedef logic [StreamDataBytes-1:0] tstrb_t;
+  typedef logic [StreamDataBytes-1:0] tkeep_t;
+  typedef logic tlast_t;
+  typedef logic id_t;
+  typedef logic tdest_t;
+  typedef logic tuser_t;
+  typedef logic tready_t;
+  typedef logic[AxiAddrWidth-1:0] axi_addr_t;
+  typedef logic[AxiDataWidth-1:0] axi_data_t;
+  typedef logic[AxiStrbWidth-1:0] axi_strb_t;
+  typedef logic[AxiUserWidth-1:0] axi_user_t;
+  typedef logic[AxiIdWidth-1:0] axi_id_t;
+  `AXI_TYPEDEF_AW_CHAN_T(axi_aw_t, axi_addr_t, axi_id_t, axi_user_t)
+  `AXI_TYPEDEF_W_CHAN_T(axi_w_t, axi_data_t, axi_strb_t, axi_user_t)
+  `AXI_TYPEDEF_B_CHAN_T(axi_b_t, axi_id_t, axi_user_t)
+  `AXI_TYPEDEF_AR_CHAN_T(axi_ar_t, axi_addr_t, axi_id_t, axi_user_t)
+  `AXI_TYPEDEF_R_CHAN_T(axi_r_t, axi_data_t, axi_id_t, axi_user_t)
+  `AXI_TYPEDEF_REQ_T(axi_req_t, axi_aw_t, axi_w_t, axi_ar_t)
+  `AXI_TYPEDEF_RESP_T(axi_resp_t, axi_b_t, axi_r_t)
 
 endpackage

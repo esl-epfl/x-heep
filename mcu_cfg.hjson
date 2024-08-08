@@ -75,6 +75,10 @@
             length:  0x00010000,
             path:    "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
         },
+        hyperram_reg: {
+            offset:  0x000B0000,
+            length:  0x00010000,
+        },
     },
 
     peripherals: {
@@ -132,7 +136,13 @@
 
     flash_mem: {
         address: 0x40000000,
-        length:  0x01000000,
+        length:  0x10000000,
+    },
+
+    hyperram_mem: {
+        address: 0x50000000,
+        length:  0x40000000,
+        is_included: "yes",
     },
 
     ext_slaves: {

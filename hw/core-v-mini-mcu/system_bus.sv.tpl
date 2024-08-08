@@ -66,6 +66,9 @@ module system_bus
     output obi_req_t  flash_mem_slave_req_o,
     input  obi_resp_t flash_mem_slave_resp_i,
 
+    output obi_req_t  hyperram_req_o,
+    input  obi_resp_t hyperram_resp_i,
+
     // External slave ports
     output obi_req_t  ext_core_instr_req_o,
     input  obi_resp_t ext_core_instr_resp_i,
@@ -164,6 +167,7 @@ module system_bus
   assign ao_peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX];
   assign peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
   assign flash_mem_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::FLASH_MEM_IDX];
+  assign hyperram_req_o = int_slave_req[core_v_mini_mcu_pkg::HYPERRAM_MEM_IDX];
 
   // External slave requests
   assign ext_core_instr_req_o = demux_xbar_req[CORE_INSTR_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
@@ -182,6 +186,7 @@ module system_bus
   assign int_slave_resp[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX] = ao_peripheral_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::FLASH_MEM_IDX] = flash_mem_slave_resp_i;
+  assign int_slave_resp[core_v_mini_mcu_pkg::HYPERRAM_MEM_IDX] = hyperram_resp_i;
 
   // External slave responses
   assign demux_xbar_resp[CORE_INSTR_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_core_instr_resp_i;

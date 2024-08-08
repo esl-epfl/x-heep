@@ -16,7 +16,7 @@ module core_v_mini_mcu
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT,
-    parameter EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS
+    parameter EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS,
 ) (
 
     input logic rst_ni,
@@ -24,6 +24,17 @@ module core_v_mini_mcu
 % for pad in pad_list:
 ${pad.core_v_mini_mcu_interface}
 % endfor
+
+    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0][core_v_mini_mcu_pkg::HyperRamNumChips-1:0] hyper_cs_no,
+    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_ck_o,
+    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_ck_no,
+    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_rwds_o,
+    input  logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_rwds_i,
+    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_rwds_oe_o,
+    input  logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0][7:0]                  hyper_dq_i,
+    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0][7:0]                  hyper_dq_o,
+    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_dq_oe_o,
+    output logic [core_v_mini_mcu_pkg::HyperRamNumPhys-1:0]                       hyper_reset_no,
 
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
@@ -130,6 +141,11 @@ ${pad.core_v_mini_mcu_interface}
   obi_req_t peripheral_slave_req;
   obi_resp_t peripheral_slave_resp;
 
+  obi_req_t hyperram_req;
+  obi_resp_t hyperram_resp;
+  reg_req_t hyperram_reg_req;
+  reg_rsp_t hyperram_reg_resp;
+  
   // signals to debug unit
   logic debug_core_req;
   logic debug_reset_n;
@@ -334,6 +350,8 @@ ${pad.core_v_mini_mcu_interface}
       .ao_peripheral_slave_resp_i(ao_peripheral_slave_resp),
       .peripheral_slave_req_o(peripheral_slave_req),
       .peripheral_slave_resp_i(peripheral_slave_resp),
+      .hyperram_req_o(hyperram_req),
+      .hyperram_resp_i(hyperram_resp),
       .flash_mem_slave_req_o(flash_mem_slave_req),
       .flash_mem_slave_resp_i(flash_mem_slave_resp),
       .ext_core_instr_req_o(ext_core_instr_req_o),
@@ -405,6 +423,8 @@ ${pad.core_v_mini_mcu_interface}
       .spi_flash_intr_event_o(spi_flash_intr),
       .pad_req_o,
       .pad_resp_i,
+      .hyperram_reg_req_o(hyperram_reg_req),
+      .hyperram_reg_rsp_i(hyperram_reg_rsp),
       .fast_intr_i(fast_intr),
       .fast_intr_o(irq_fast),
       .cio_gpio_i(gpio_ao_in),
@@ -504,6 +524,37 @@ ${pad.core_v_mini_mcu_interface}
       end
     end
   end
+
+% if hyperram_is_included in ("yes"):
+  hyperbus_subsystem hyperbus_subsystem_i (
+    .clk_i,
+    .rst_ni,
+    .obi_req_i(hyperram_req),
+    .obi_resp_o(hyperram_resp),
+    .reg_req_i(hyperram_reg_req),
+    .reg_rsp_o(hyperram_reg_rsp),
+    // Physical interace: facing HyperBus PADs
+    .hyper_cs_no,
+    .hyper_ck_o,
+    .hyper_ck_no,
+    .hyper_rwds_o,
+    .hyper_rwds_i,
+    .hyper_rwds_oe_o,
+    .hyper_dq_i,
+    .hyper_dq_o,
+    .hyper_dq_oe_o,
+    .hyper_reset_no
+  );
+% else:
+    assign hyper_cs_no = '0;
+    assign hyper_ck_o = '0;
+    assign hyper_ck_no = '0;
+    assign hyper_rwds_o = '0;
+    assign hyper_rwds_oe_o = '0;
+    assign hyper_dq_o = '0;
+    assign hyper_dq_oe_o = '0;
+    assign hyper_reset_no = '0;
+% endif
 
   assign ext_cpu_subsystem_rst_no = cpu_subsystem_rst_n;
   assign ext_debug_reset_no = debug_reset_n;
