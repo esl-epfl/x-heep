@@ -119,7 +119,8 @@ module dma_padding_fsm
 
   /* Padding FSM logic */
   always_comb begin : proc_pad_fsm_logic
-
+    pad_state_d = pad_state_q;
+    
     unique case (pad_state_q)
       PAD_IDLE: begin
         /* If the padding is done, stay idle */
@@ -223,10 +224,11 @@ module dma_padding_fsm
     read_fifo_pop_o = 1'b0;
 
     if (dma_padding_fsm_on_i == 1'b1 && padding_fsm_done_o == 1'b0) begin
-      /* If we need to pad, there is no need to wait for the read fifo to have some values.
-        * If we don't have to pad, we need to wait for the read fifo to be not empty.
-        * In both cases, we need to wait for the write fifo to have some space.
-        */
+      /* 
+       * If we need to pad, there is no need to wait for the read fifo to have some values.
+       * If we don't have to pad, we need to wait for the read fifo to be not empty.
+       * In both cases, we need to wait for the write fifo to have some space.
+       */
       if (pad_on == 1'b1 & write_fifo_en == 1'b1) begin
         write_fifo_push_o = 1'b1;
       end else if (read_fifo_en == 1'b1 & write_fifo_en == 1'b1) begin
@@ -250,8 +252,8 @@ module dma_padding_fsm
         dma_cnt_d1 <= '0;
         dma_cnt_d2 <= '0;
       end else if ((dma_padding_fsm_on_i == 1'b1 && padding_fsm_done_o == 1'b0) & 
-                   (pad_on == 1'b1 & write_fifo_en == 1'b1) || 
-                   (read_fifo_en == 1'b1 & write_fifo_en == 1'b1)) begin
+                   ((pad_on == 1'b1 & write_fifo_en == 1'b1) || 
+                   (read_fifo_en == 1'b1 & write_fifo_en == 1'b1))) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
           dma_cnt_d1 <= dma_cnt_d1 - {14'h0, dma_cnt_du};
