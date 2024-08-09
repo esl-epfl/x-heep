@@ -85,6 +85,9 @@ extern "C" {
 
 #define GPIO_AO_DOMAIN_LIMIT 8
 
+// HyperRam
+#define HYPERRAMNUMCHIPS 1
+#define HYPERRAMNUMPHY   1
 
 #ifdef __cplusplus
 }  // extern "C"
