@@ -616,7 +616,8 @@ module im2col_spc
         dma_trans_free_channel <= dma_free_channel;
       end
 
-      if (dma_if_cu_d == GET_TRANSACTION) begin
+      /* Allocate a channel only if the next state won't be the IDLE state */
+      if (dma_if_cu_d == GET_TRANSACTION && dma_if_cu_q != IDLE_IF_CU) begin
         dma_if_channels[dma_trans_free_channel] <= 1'b1;
         dma_ch_first_write[dma_trans_free_channel] <= 1'b1;
       end
