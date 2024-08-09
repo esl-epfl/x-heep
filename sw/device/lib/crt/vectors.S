@@ -133,18 +133,6 @@ __no_irq_handler:
 	j __no_irq_handler
 
 
-sw_irq_handler:
-	csrr t0, mcause
-	slli t0, t0, 1  /* shift off the high bit */
-	srli t0, t0, 1
-	li t1, 2
-	beq t0, t1, handle_illegal_insn
-	li t1, 11
-	beq t0, t1, handle_ecall
-	li t1, 3
-	beq t0, t1, handle_ebreak
-	j handle_unknown
-
 .globl handle_ecall
 handle_ecall:
 	la a0, ecall_msg
