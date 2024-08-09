@@ -75,9 +75,10 @@
             length:  0x00010000,
             path:    "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
         },
-        hyperram_reg: {
+        hyperbus: {
             offset:  0x000B0000,
             length:  0x00010000,
+            path: "./hw/vendor/pulp_platform_hyperbus/hyperbus_regs.hjson"
         },
     },
 

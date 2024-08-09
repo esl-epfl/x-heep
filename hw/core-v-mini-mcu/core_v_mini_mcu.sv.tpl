@@ -132,8 +132,8 @@ ${pad.core_v_mini_mcu_interface}
 
   obi_req_t hyperram_req;
   obi_resp_t hyperram_resp;
-  reg_req_t hyperram_reg_req;
-  reg_rsp_t hyperram_reg_rsp;
+  reg_req_t hyperbus_req;
+  reg_rsp_t hyperbus_rsp;
 
   // signals to debug unit
   logic debug_core_req;
@@ -412,8 +412,8 @@ ${pad.core_v_mini_mcu_interface}
       .spi_flash_intr_event_o(spi_flash_intr),
       .pad_req_o,
       .pad_resp_i,
-      .hyperram_reg_req_o(hyperram_reg_req),
-      .hyperram_reg_rsp_i(hyperram_reg_rsp),
+      .hyperbus_req_o(hyperbus_req),
+      .hyperbus_rsp_i(hyperbus_rsp),
       .fast_intr_i(fast_intr),
       .fast_intr_o(irq_fast),
       .cio_gpio_i(gpio_ao_in),
@@ -537,8 +537,8 @@ ${pad.core_v_mini_mcu_interface}
       .rst_ni,
       .obi_req_i(hyperram_req),
       .obi_resp_o(hyperram_resp),
-      .reg_req_i(hyperram_reg_req),
-      .reg_rsp_o(hyperram_reg_rsp),
+      .reg_req_i(hyperbus_req),
+      .reg_rsp_o(hyperbus_rsp),
       // Physical interace: facing HyperBus PADs
       .hyper_cs_no,
       .hyper_ck_o,
