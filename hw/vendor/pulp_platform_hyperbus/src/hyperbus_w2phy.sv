@@ -183,6 +183,8 @@ module hyperbus_w2phy #(
               end
            end
         end
+        default: begin
+        end
       endcase
    end
 

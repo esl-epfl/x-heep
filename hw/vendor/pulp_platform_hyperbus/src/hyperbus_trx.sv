@@ -181,12 +181,17 @@ module hyperbus_trx #(
     );
 `endif
 
+    logic [7:0] rx_rwds_fifo_in_lo, rx_rwds_fifo_in_hi;
+
     // Data input DDR conversion
-    assign rx_rwds_fifo_in[7:0] = hyper_dq_i;
+    assign rx_rwds_fifo_in_lo = hyper_dq_i;
     always @(posedge rx_rwds_clk or posedge rx_rwds_soft_rst) begin : proc_ff_ddr_in
-        if(rx_rwds_soft_rst)    rx_rwds_fifo_in[15:8] <= '0;
-        else                    rx_rwds_fifo_in[15:8] <= hyper_dq_i;
+        if(rx_rwds_soft_rst)    rx_rwds_fifo_in_hi <= '0;
+        else                    rx_rwds_fifo_in_hi <= hyper_dq_i;
     end
+
+    //In Verilator blocked and non-blocking assignments to same variable are supported, thus using two variables
+    assign rx_rwds_fifo_in = {rx_rwds_fifo_in_hi, rx_rwds_fifo_in_lo};
 
     tc_clk_inverter i_rwds_clk_inverter (
        .clk_i ( rx_rwds_clk   ),

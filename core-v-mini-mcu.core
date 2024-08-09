@@ -20,7 +20,6 @@ filesets:
     - pulp-platform.org::cluster_interconnect
     - pulp-platform.org::riscv_dbg
     - pulp-platform.org::register_interface
-    - pulp-platform.org::per2axi
     - pulp-platform.org::hyperbus
     - pulp-platform.org::axi_heep
     - openhwgroup.org:ip:soc_ctrl

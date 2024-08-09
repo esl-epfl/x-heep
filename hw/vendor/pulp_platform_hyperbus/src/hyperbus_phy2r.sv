@@ -129,6 +129,8 @@ module hyperbus_phy2r #(
               state_d = Idle;
            end
         end
+        default: begin
+        end
       endcase
    end
 

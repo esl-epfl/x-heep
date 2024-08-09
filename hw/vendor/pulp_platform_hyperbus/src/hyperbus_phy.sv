@@ -369,6 +369,8 @@ module hyperbus_phy import hyperbus_pkg::*; #(
                     end
                 end
             end
+            default: begin
+            end
         endcase
     end
 
