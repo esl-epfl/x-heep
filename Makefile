@@ -33,7 +33,7 @@ endif
 # Project options are based on the app to be build (default - hello_world)
 PROJECT  ?= hello_world
 
-LINK_FOLDER ?= sw/linker
+LINK_FOLDER ?= $(mkfile_path)/sw/linker
 
 # Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
 LINKER   ?= on_chip
