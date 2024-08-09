@@ -20,15 +20,15 @@
 #define IH 10
 #define CH 1
 #define FW 3
-#define FH 4
-#define BATCH 2
+#define FH 3
+#define BATCH 1
 #define STRIDE_D1 1
-#define STRIDE_D2 1
+#define STRIDE_D2 2
 #define TOP_PAD 1
-#define BOTTOM_PAD 1
+#define BOTTOM_PAD 2
 #define LEFT_PAD 1
-#define RIGHT_PAD 1
-extern const uint32_t input_image_nchw[200];
-extern const uint32_t golden_im2col_nchw[2160];
+#define RIGHT_PAD 3
+extern const uint32_t input_image_nchw[100];
+extern const uint32_t golden_im2col_nchw[648];
 
 #endif

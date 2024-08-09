@@ -78,17 +78,17 @@ def torch_save(tensor, variable_name, dim, row_len):
 image_height = 10
 image_width = 10
 channels = 1
-batch = 2
+batch = 1
 
 # Parameters of the filter
-filter_height = 4
+filter_height = 3
 filter_width = 3
 top_pad = 1
-bottom_pad = 1
+bottom_pad = 2
 left_pad = 1
-right_pad = 1
+right_pad = 3
 stride_d1 = 1
-stride_d2 = 1
+stride_d2 = 2
 
 # Calculate the number of patches, i.e. the number the filter can fit along one dimension during convolution
 n_patches_h = (image_height + top_pad + bottom_pad - filter_height) // stride_d2 + 1
