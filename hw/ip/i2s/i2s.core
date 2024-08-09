@@ -11,6 +11,7 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::common_cells
+      - x-heep::packages
     files:
     - rtl/i2s_reg_pkg.sv
     - rtl/i2s_reg_top.sv

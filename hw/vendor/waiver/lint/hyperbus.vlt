@@ -1,0 +1,20 @@
+// Copyright 2024 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule WIDTH -file "*/src/hyperbus_pkg.sv" -match "*"
+lint_off -rule WIDTH -file "*/src/hyperbus_w2phy.sv" -match "*"
+lint_off -rule UNUSED -file "*/src/hyperbus_w2phy.sv" -match "Bits of signal are not used: 'data_i'[8:1]*"
+lint_off -rule WIDTH -file "*/src/hyperbus_phy.sv" -match "*"
+lint_off -rule UNUSED -file "*/src/hyperbus_phy.sv" -match "Bits of signal are not used: 'cfg_i'[15:6,4]*"
+lint_off -rule WIDTH -file "*/src/hyperbus_phy2r.sv" -match "*"
+lint_off -rule WIDTH -file "*/src/hyperbus_cfg_regs.sv" -match "*"
+lint_off -rule LITENDIAN -file "*/src/hyperbus_cfg_regs.sv" -match "*"
+lint_off -rule WIDTH -file "*/src/hyperbus_axi.sv" -match "*"
+lint_off -rule UNUSED -file "*/src/hyperbus_axi.sv" -match "Bits of signal are not used: 'rr_out_req_ax'[4:3]*"
+lint_off -rule UNUSED -file "*/src/hyperbus_axi.sv" -match "Bits of signal are not used: 's_r_split'[34]*"
+lint_off -rule LITENDIAN -file "*/src/hyperbus_axi.sv" -match "*"
+lint_off -rule UNUSED -file "*/src/hyperbus_phy_if.sv" -match "*"
+lint_off -rule UNOPTFLAT -file "*/src/hyperbus_axi.sv" -match "*"

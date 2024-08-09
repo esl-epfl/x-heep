@@ -68,6 +68,10 @@ extern "C" {
 #define FLASH_MEM_SIZE 0x${flash_mem_size_address}
 #define FLASH_MEM_END_ADDRESS (FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE)
 
+#define HYPERRAM_MEM_START_ADDRESS 0x${hyperram_mem_start_address}
+#define HYPERRAM_MEM_SIZE 0x${hyperram_mem_size_address}
+#define HYPERRAM_MEM_END_ADDRESS (HYPERRAM_MEM_START_ADDRESS + HYPERRAM_MEM_SIZE)
+
 #define QTY_INTR ${len(interrupts)}
 % for key, value in interrupts.items():
 #define ${key.upper()} ${value}
@@ -81,6 +85,9 @@ extern "C" {
 
 #define GPIO_AO_DOMAIN_LIMIT 8
 
+// HyperRam
+#define HYPERRAMNUMCHIPS 1
+#define HYPERRAMNUMPHY   1
 
 #ifdef __cplusplus
 }  // extern "C"

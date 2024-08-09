@@ -29,6 +29,8 @@ filesets:
     - lint/spi_host.vlt
     - lint/gpio.vlt
     - lint/fpu_ss.vlt
+    - lint/axi.vlt
+    - lint/hyperbus.vlt
     file_type: vlt
 
 

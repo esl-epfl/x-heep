@@ -1,0 +1,70 @@
+CAPI=2:
+
+name: pulp-platform.org::axi_heep
+
+# Copyright 2024 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+    - pulp-platform.org::common_cells
+    files:
+    - pulp_platform_axi/include/axi/assign.svh :  {is_include_file : true, include_path : pulp_platform_axi/include}
+    - pulp_platform_axi/include/axi/typedef.svh :  {is_include_file : true, include_path : pulp_platform_axi/include}
+    - pulp_platform_axi/src/axi_pkg.sv
+    # Level 1
+    - pulp_platform_axi/src/axi_intf.sv
+    # Level 2
+    - pulp_platform_axi/src/axi_atop_filter.sv
+    - pulp_platform_axi/src/axi_burst_splitter.sv
+    - pulp_platform_axi/src/axi_bus_compare.sv
+    - pulp_platform_axi/src/axi_cdc_dst.sv
+    - pulp_platform_axi/src/axi_cdc_src.sv
+    - pulp_platform_axi/src/axi_cut.sv
+    - pulp_platform_axi/src/axi_delayer.sv
+    - pulp_platform_axi/src/axi_demux_simple.sv
+    - pulp_platform_axi/src/axi_dw_downsizer.sv
+    - pulp_platform_axi/src/axi_dw_upsizer.sv
+    - pulp_platform_axi/src/axi_fifo.sv
+    - pulp_platform_axi/src/axi_id_remap.sv
+    - pulp_platform_axi/src/axi_id_prepend.sv
+    - pulp_platform_axi/src/axi_isolate.sv
+    - pulp_platform_axi/src/axi_join.sv
+    - pulp_platform_axi/src/axi_lite_demux.sv
+    - pulp_platform_axi/src/axi_lite_dw_converter.sv
+    - pulp_platform_axi/src/axi_lite_from_mem.sv
+    - pulp_platform_axi/src/axi_lite_join.sv
+    - pulp_platform_axi/src/axi_lite_lfsr.sv
+    - pulp_platform_axi/src/axi_lite_mailbox.sv
+    - pulp_platform_axi/src/axi_lite_mux.sv
+    - pulp_platform_axi/src/axi_lite_regs.sv
+    - pulp_platform_axi/src/axi_lite_to_apb.sv
+    - pulp_platform_axi/src/axi_lite_to_axi.sv
+    - pulp_platform_axi/src/axi_modify_address.sv
+    - pulp_platform_axi/src/axi_mux.sv
+    - pulp_platform_axi/src/axi_rw_join.sv
+    - pulp_platform_axi/src/axi_rw_split.sv
+    - pulp_platform_axi/src/axi_serializer.sv
+    - pulp_platform_axi/src/axi_slave_compare.sv
+    - pulp_platform_axi/src/axi_throttle.sv
+    - pulp_platform_axi/src/axi_to_detailed_mem.sv
+    # Level 3
+    - pulp_platform_axi/src/axi_cdc.sv
+    - pulp_platform_axi/src/axi_demux.sv
+    - pulp_platform_axi/src/axi_err_slv.sv
+    - pulp_platform_axi/src/axi_dw_converter.sv
+    - pulp_platform_axi/src/axi_from_mem.sv
+    - pulp_platform_axi/src/axi_id_serialize.sv
+    - pulp_platform_axi/src/axi_lfsr.sv
+    - pulp_platform_axi/src/axi_multicut.sv
+    - pulp_platform_axi/src/axi_to_axi_lite.sv
+    - pulp_platform_axi/src/axi_to_mem.sv
+    - pulp_platform_axi/src/axi_zero_mem.sv
+    file_type : systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

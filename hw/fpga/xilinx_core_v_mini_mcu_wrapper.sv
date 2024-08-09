@@ -36,7 +36,7 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic uart_rx_i,
     inout logic uart_tx_o,
 
-    inout logic [17:0] gpio_io,
+    inout logic [13:0] gpio_io,
 
     output logic exit_value_o,
     inout  logic exit_valid_o,
@@ -49,21 +49,29 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic spi_csb_o,
     inout logic spi_sck_o,
 
-    inout logic [3:0] spi2_sd_io,
-    inout logic [1:0] spi2_csb_o,
-    inout logic spi2_sck_o,
-
     inout logic i2c_scl_io,
     inout logic i2c_sda_io,
 
-    inout logic pdm2pcm_clk_io,
-    inout logic pdm2pcm_pdm_io,
-
     inout logic i2s_sck_io,
     inout logic i2s_ws_io,
-    inout logic i2s_sd_io
+    inout logic i2s_sd_io,
+
+    inout logic hyper_cs_nio,
+    inout logic hyper_ck_io,
+    inout logic hyper_ckn_io,
+    inout logic hyper_rwds_io_io,
+    inout logic hyper_reset_nio,
+    inout logic hyper_dq_0_io_io,
+    inout logic hyper_dq_1_io_io,
+    inout logic hyper_dq_2_io_io,
+    inout logic hyper_dq_3_io_io,
+    inout logic hyper_dq_4_io_io,
+    inout logic hyper_dq_5_io_io,
+    inout logic hyper_dq_6_io_io,
+    inout logic hyper_dq_7_io_io
 
 );
+
 
   wire                               clk_gen;
   logic [                      31:0] exit_value;
@@ -141,6 +149,8 @@ module xilinx_core_v_mini_mcu_wrapper
       .ext_dma_addr_ch0_resp_i('0),
       .ext_peripheral_slave_req_o(),
       .ext_peripheral_slave_resp_i('0),
+      .ext_dma_slot_tx_i('0),
+      .ext_dma_slot_rx_i('0),
       .external_subsystem_powergate_switch_no(),
       .external_subsystem_powergate_switch_ack_ni(),
       .external_subsystem_powergate_iso_no(),
@@ -174,10 +184,6 @@ module xilinx_core_v_mini_mcu_wrapper
       .gpio_11_io(gpio_io[11]),
       .gpio_12_io(gpio_io[12]),
       .gpio_13_io(gpio_io[13]),
-      .gpio_14_io(gpio_io[14]),
-      .gpio_15_io(gpio_io[15]),
-      .gpio_16_io(gpio_io[16]),
-      .gpio_17_io(gpio_io[17]),
       .spi_flash_sd_0_io(spi_flash_sd_io[0]),
       .spi_flash_sd_1_io(spi_flash_sd_io[1]),
       .spi_flash_sd_2_io(spi_flash_sd_io[2]),
@@ -194,20 +200,23 @@ module xilinx_core_v_mini_mcu_wrapper
       .spi_sck_io(spi_sck_o),
       .i2c_scl_io,
       .i2c_sda_io,
-      .spi2_sd_0_io(spi2_sd_io[0]),
-      .spi2_sd_1_io(spi2_sd_io[1]),
-      .spi2_sd_2_io(spi2_sd_io[2]),
-      .spi2_sd_3_io(spi2_sd_io[3]),
-      .spi2_cs_0_io(spi2_csb_o[0]),
-      .spi2_cs_1_io(spi2_csb_o[1]),
-      .spi2_sck_io(spi2_sck_o),
-      .pdm2pcm_clk_io,
-      .pdm2pcm_pdm_io,
       .i2s_sck_io(i2s_sck_io),
       .i2s_ws_io(i2s_ws_io),
       .i2s_sd_io(i2s_sd_io),
-      .ext_dma_slot_tx_i('0),
-      .ext_dma_slot_rx_i('0)
+      .hyper_cs_nio,
+      .hyper_ck_io,
+      .hyper_ckn_io,
+      .hyper_rwds_io_io,
+      .hyper_reset_nio,
+      .hyper_dq_0_io_io,
+      .hyper_dq_1_io_io,
+      .hyper_dq_2_io_io,
+      .hyper_dq_3_io_io,
+      .hyper_dq_4_io_io,
+      .hyper_dq_5_io_io,
+      .hyper_dq_6_io_io,
+      .hyper_dq_7_io_io
+
   );
 
   assign exit_value_o = exit_value[0];

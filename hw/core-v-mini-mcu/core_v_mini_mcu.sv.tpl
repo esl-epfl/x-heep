@@ -130,6 +130,11 @@ ${pad.core_v_mini_mcu_interface}
   obi_req_t peripheral_slave_req;
   obi_resp_t peripheral_slave_resp;
 
+  obi_req_t hyperram_req;
+  obi_resp_t hyperram_resp;
+  reg_req_t hyperbus_req;
+  reg_rsp_t hyperbus_rsp;
+
   // signals to debug unit
   logic debug_core_req;
   logic debug_reset_n;
@@ -334,6 +339,8 @@ ${pad.core_v_mini_mcu_interface}
       .ao_peripheral_slave_resp_i(ao_peripheral_slave_resp),
       .peripheral_slave_req_o(peripheral_slave_req),
       .peripheral_slave_resp_i(peripheral_slave_resp),
+      .hyperram_req_o(hyperram_req),
+      .hyperram_resp_i(hyperram_resp),
       .flash_mem_slave_req_o(flash_mem_slave_req),
       .flash_mem_slave_resp_i(flash_mem_slave_resp),
       .ext_core_instr_req_o(ext_core_instr_req_o),
@@ -405,6 +412,8 @@ ${pad.core_v_mini_mcu_interface}
       .spi_flash_intr_event_o(spi_flash_intr),
       .pad_req_o,
       .pad_resp_i,
+      .hyperbus_req_o(hyperbus_req),
+      .hyperbus_rsp_i(hyperbus_rsp),
       .fast_intr_i(fast_intr),
       .fast_intr_o(irq_fast),
       .cio_gpio_i(gpio_ao_in),
@@ -504,6 +513,55 @@ ${pad.core_v_mini_mcu_interface}
       end
     end
   end
+
+  logic [7:0] hyper_dq_in, hyper_dq_out;
+  logic hyper_dq_oe;
+
+  assign hyper_dq_in = {
+    hyper_dq_0_i,
+    hyper_dq_1_i,
+    hyper_dq_2_i,
+    hyper_dq_3_i,
+    hyper_dq_4_i,
+    hyper_dq_5_i,
+    hyper_dq_6_i,
+    hyper_dq_7_i
+  };
+  assign {hyper_dq_0_o, hyper_dq_1_o, hyper_dq_2_o, hyper_dq_3_o, hyper_dq_4_o, hyper_dq_5_o, hyper_dq_6_o, hyper_dq_7_o} = hyper_dq_out;
+  assign {hyper_dq_0_oe_o, hyper_dq_1_oe_o, hyper_dq_2_oe_o, hyper_dq_3_oe_o, hyper_dq_4_oe_o, hyper_dq_5_oe_o, hyper_dq_6_oe_o, hyper_dq_7_oe_o} = {8{hyper_dq_oe}};
+
+% if hyperram_is_included in ("yes"):
+  hyperbus_subsystem hyperbus_subsystem_i (
+      .clk_i,
+      .clk_per_i(clk_i),
+      .rst_ni,
+      .obi_req_i(hyperram_req),
+      .obi_resp_o(hyperram_resp),
+      .reg_req_i(hyperbus_req),
+      .reg_rsp_o(hyperbus_rsp),
+      // Physical interace: facing HyperBus PADs
+      .hyper_cs_no,
+      .hyper_ck_o,
+      .hyper_ck_no(hyper_ckn_o),
+      .hyper_rwds_o,
+      .hyper_rwds_i,
+      .hyper_rwds_oe_o,
+      .hyper_dq_i(hyper_dq_in),
+      .hyper_dq_o(hyper_dq_out),
+      .hyper_dq_oe_o(hyper_dq_oe),
+      .hyper_reset_no
+  );
+
+% else:
+    assign hyper_cs_no = '0;
+    assign hyper_ck_o = '0;
+    assign hyper_ckn_o = '0;
+    assign hyper_rwds_io_o = '0;
+    assign hyper_rwds_io_oe_o = '0;
+    assign hyper_dq_out = '0;
+    assign hyper_dq_oe = '0;
+    assign hyper_reset_no = '0;
+% endif
 
   assign ext_cpu_subsystem_rst_no = cpu_subsystem_rst_n;
   assign ext_debug_reset_no = debug_reset_n;

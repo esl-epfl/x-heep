@@ -7,7 +7,12 @@
 
   upstream: {
     url: "https://github.com/pulp-platform/axi.git",
-    rev: "442ff3375710513623f95944d66cc2bd09b2f155",
+    rev: "4e54ac6766b160217a83a74d5a23af9bbf59e6ee",
   },
 
+  exclude_from_upstream: [
+    ".github",
+    "scripts",
+    "test",
+  ]
 }
