@@ -132,25 +132,6 @@ __no_irq_handler:
 	jal ra, puts
 	j __no_irq_handler
 
-
-.globl handle_ecall
-handle_ecall:
-	la a0, ecall_msg
-	jal ra, puts
-	j end_handler
-
-.globl handle_ebreak
-handle_ebreak:
-	la a0, ebreak_msg
-	jal ra, puts
-	j end_handler
-
-.globl handle_illegal_insn
-handle_illegal_insn:
-	la a0, illegal_insn_msg
-	jal ra, puts
-	j end_handler
-
 .globl handle_unknown
 handle_unknown:
 	la a0, unknown_msg
