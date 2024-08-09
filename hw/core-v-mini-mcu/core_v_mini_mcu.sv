@@ -871,72 +871,78 @@ module core_v_mini_mcu
 
 
 
-  // AXI2CORE(OBI)
-  axi2obi #(
-  //.C_S00_AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-  //.C_S00_AXI_ADDR_WIDTH(AXI_ADDR_WIDTH)
-  ) axi2obi_bridge_virtual_r_obi_i (
-      //.gnt_i(axi_sl_m_resp.gnt),
-      .gnt_i('1),
-      //.rvalid_i(axi_sl_m_resp.rvalid),
-      //.we_o(axi_sl_m_req.we),
-      //.be_o(axi_sl_m_req.be),
-      //.addr_o(axi_sl_m_req),
-      //.wdata_o(axi_sl_m_req.wdata),
-      //.rdata_i(axi_sl_m_resp.rdata),
-      //.req_o(axi_sl_m_req.req),
-
-
-      .data_req_i(axi_sl_m_req.req),
-      .data_gnt_o(axi_sl_m_resp.gnt),
-      .data_rvalid_o(axi_sl_m_resp.rvalid),
-      .data_addr_i(axi_sl_m_req.addr),
-      .data_we_i(axi_sl_m_req.we),
-      .data_be_i(axi_sl_m_req.be),
-      .data_rdata_o(axi_sl_m_resp.rdata),
-      .data_wdata_i(axi_sl_m_req.wdata),
-
-      //.data_req_i(axi_sl_slave_req.req),
-      //.data_gnt_o(axi_sl_slave_resp.gnt),
-      //.data_rvalid_o(axi_sl_slave_resp.rvalid),
-      //.data_addr_i(axi_sl_slave_req.addr),
-      //.data_we_i(axi_sl_slave_req.we),
-      //.data_be_i(axi_sl_slave_req.be),
-      //.data_rdata_o(axi_sl_slave_resp.rdata),
-      //.data_wdata_i(axi_sl_slave_req.wdata),
-
-
-
-
-
-      .s00_axi_aclk(clk_i),
-      .s00_axi_aresetn(rst_ni),
-
-      .s00_axi_araddr (axi_in_req_i.ar.addr),
-      .s00_axi_arvalid(axi_in_req_i.ar_valid),
-      .s00_axi_arready(axi_in_rsp_o.ar_ready),
-      .s00_axi_arprot (axi_in_req_i.ar.prot),
-
-      .s00_axi_rdata (axi_in_rsp_o.r.data),
-      .s00_axi_rresp (axi_in_rsp_o.r.resp),
-      .s00_axi_rvalid(axi_in_rsp_o.r_valid),
-      .s00_axi_rready(axi_in_req_i.r_ready),
-
-      .s00_axi_awaddr (axi_in_req_i.aw.addr),
-      .s00_axi_awvalid(axi_in_req_i.aw_valid),
-      .s00_axi_awready(axi_in_rsp_o.aw_ready),
-      .s00_axi_awprot (axi_in_req_i.aw.prot),
-
-      .s00_axi_wdata (axi_in_req_i.w.data),
-      .s00_axi_wvalid(axi_in_req_i.w_valid),
-      .s00_axi_wready(axi_in_rsp_o.w_ready),
-      .s00_axi_wstrb (axi_in_req_i.w.strb),
-
-      .s00_axi_bresp (axi_in_rsp_o.b.resp),
-      .s00_axi_bvalid(axi_in_rsp_o.b_valid),
-      .s00_axi_bready(axi_in_req_i.b_ready)
-  );
-
+  //// AXI2CORE(OBI)
+  //% for peripheral in peripherals.items():
+  //% if peripheral[0] in ("obi2axi"):
+  //% if peripheral[1]['is_included'] in ("yes"):
+  //  axi2obi #(
+  //    //.C_S00_AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+  //    //.C_S00_AXI_ADDR_WIDTH(AXI_ADDR_WIDTH)
+  //  ) axi2obi_bridge_virtual_r_obi_i (
+  //    //.gnt_i(axi_sl_m_resp.gnt),
+  //    .gnt_i('1),
+  //    //.rvalid_i(axi_sl_m_resp.rvalid),
+  //    //.we_o(axi_sl_m_req.we),
+  //    //.be_o(axi_sl_m_req.be),
+  //    //.addr_o(axi_sl_m_req),
+  //    //.wdata_o(axi_sl_m_req.wdata),
+  //    //.rdata_i(axi_sl_m_resp.rdata),
+  //    //.req_o(axi_sl_m_req.req),
+  //
+  //
+  //    .data_req_i(axi_sl_m_req.req),
+  //    .data_gnt_o(axi_sl_m_resp.gnt),
+  //    .data_rvalid_o(axi_sl_m_resp.rvalid),
+  //    .data_addr_i(axi_sl_m_req.addr),
+  //    .data_we_i(axi_sl_m_req.we),
+  //    .data_be_i(axi_sl_m_req.be),
+  //    .data_rdata_o(axi_sl_m_resp.rdata),
+  //    .data_wdata_i(axi_sl_m_req.wdata),
+  //
+  //    //.data_req_i(axi_sl_slave_req.req),
+  //    //.data_gnt_o(axi_sl_slave_resp.gnt),
+  //    //.data_rvalid_o(axi_sl_slave_resp.rvalid),
+  //    //.data_addr_i(axi_sl_slave_req.addr),
+  //    //.data_we_i(axi_sl_slave_req.we),
+  //    //.data_be_i(axi_sl_slave_req.be),
+  //    //.data_rdata_o(axi_sl_slave_resp.rdata),
+  //    //.data_wdata_i(axi_sl_slave_req.wdata),
+  //
+  //
+  //
+  //
+  //
+  //    .s00_axi_aclk(clk_i),
+  //    .s00_axi_aresetn(rst_ni),
+  //
+  //    .s00_axi_araddr(axi_in_req_i.ar.addr),
+  //    .s00_axi_arvalid(axi_in_req_i.ar_valid),
+  //    .s00_axi_arready(axi_in_rsp_o.ar_ready),
+  //    .s00_axi_arprot(axi_in_req_i.ar.prot),
+  //
+  //    .s00_axi_rdata(axi_in_rsp_o.r.data),
+  //    .s00_axi_rresp(axi_in_rsp_o.r.resp),
+  //    .s00_axi_rvalid(axi_in_rsp_o.r_valid),
+  //    .s00_axi_rready(axi_in_req_i.r_ready),
+  //
+  //    .s00_axi_awaddr(axi_in_req_i.aw.addr),
+  //    .s00_axi_awvalid(axi_in_req_i.aw_valid),
+  //    .s00_axi_awready(axi_in_rsp_o.aw_ready),
+  //    .s00_axi_awprot(axi_in_req_i.aw.prot),
+  //
+  //    .s00_axi_wdata(axi_in_req_i.w.data),
+  //    .s00_axi_wvalid(axi_in_req_i.w_valid),
+  //    .s00_axi_wready(axi_in_rsp_o.w_ready),
+  //    .s00_axi_wstrb(axi_in_req_i.w.strb),
+  //
+  //    .s00_axi_bresp(axi_in_rsp_o.b.resp),
+  //    .s00_axi_bvalid(axi_in_rsp_o.b_valid),
+  //    .s00_axi_bready(axi_in_req_i.b_ready)
+  //  );
+  //  % endif
+  //% endif
+  //% endfor
+  //
 
   // SERIAL LINK
   serial_link_occamy_wrapper #(
@@ -945,13 +951,13 @@ module core_v_mini_mcu
 
       .aw_chan_t(core_v_mini_mcu_pkg::axi_aw_t),
       .ar_chan_t(core_v_mini_mcu_pkg::axi_ar_t),
-      .r_chan_t (core_v_mini_mcu_pkg::axi_r_t),
-      .w_chan_t (core_v_mini_mcu_pkg::axi_w_t),
-      .b_chan_t (core_v_mini_mcu_pkg::axi_b_t),
+      .r_chan_t(core_v_mini_mcu_pkg::axi_r_t),
+      .w_chan_t(core_v_mini_mcu_pkg::axi_w_t),
+      .b_chan_t(core_v_mini_mcu_pkg::axi_b_t),
       .cfg_rsp_t(reg_rsp_t),
-      .cfg_req_t(reg_req_t)
-      //.NumChannels(1),
-      //.NumLanes(1)
+      .cfg_req_t(reg_req_t),
+      .NumChannels(1),
+      .NumLanes(1)
   ) serial_link_occamy_wrapper_i (
       .clk_i     (clk_i),
       .fast_clock,
