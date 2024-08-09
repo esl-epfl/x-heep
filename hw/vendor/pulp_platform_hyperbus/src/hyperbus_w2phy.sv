@@ -9,7 +9,6 @@
 module hyperbus_w2phy #(
   parameter int unsigned AxiDataWidth = -1,
   parameter int unsigned NumPhys = -1,
-  parameter int unsigned BurstLength = -1,
   parameter type T = logic,
   parameter int unsigned AddrWidth = $clog2(AxiDataWidth/8)
 ) (
@@ -17,7 +16,6 @@ module hyperbus_w2phy #(
   input logic                   rst_ni,
   input logic [2:0]             size,
   input logic [AddrWidth-1:0]   start_addr,
-  input logic [BurstLength-1:0] len,
   input logic                   is_a_write,
   input logic                   trans_handshake,
   input logic                   axi_valid_i,
@@ -62,7 +60,7 @@ module hyperbus_w2phy #(
    logic [AddrWidth-1:0]         byte_idx_d, byte_idx_q;
    logic [3:0]                   size_d, size_q;
    logic [AddrWidth-1:0]         cnt_data_phy_d, cnt_data_phy_q;
-   logic                         keep_sampling, keep_sending;
+   logic                         keep_sending;
    logic                         upsize_q;
 
    assign is_8_bw = (size_d == 0);
@@ -70,7 +68,6 @@ module hyperbus_w2phy #(
    assign upsize = (is_16_bw && (NumPhys==2)) | is_8_bw ;
    assign upsize_q = ( (size_q==1) && (NumPhys==2)) | (size_q==0) ;
    assign enough_data = !upsize;
-   assign keep_sampling = (size_d<($clog2(NumPhys)+1)) && (byte_idx_d[NumPhys-1:0]!='0);
    assign keep_sending =  (size_d>($clog2(NumPhys)+1)) && (cnt_data_phy_d != byte_idx_q);
    assign word_cnt = cnt_data_phy_q>>($clog2(NumPhys)+1);
 

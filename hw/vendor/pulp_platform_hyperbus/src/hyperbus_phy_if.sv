@@ -8,8 +8,6 @@ module hyperbus_phy_if import hyperbus_pkg::*; #(
     parameter int unsigned IsClockODelayed = 1,
     parameter int unsigned NumChips = 2,
     parameter int unsigned NumPhys = 2,
-    parameter int unsigned TimerWidth = 16,
-    parameter int unsigned RxFifoLogDepth = 3,
     parameter int unsigned StartupCycles = 60000, /*MHz*/ // Conservative maximum frequency estimate
     parameter int unsigned  SyncStages  = 2,
     parameter type hyper_tx_t = logic,
@@ -119,7 +117,6 @@ module hyperbus_phy_if import hyperbus_pkg::*; #(
 
 
                hyperbus_phy #(
-                   .IsClockODelayed( IsClockODelayed   ),
                    .NumChips       ( NumChips          ),
                    .StartupCycles  ( StartupCycles     ),
                    .NumPhys        ( NumPhys           ),
@@ -140,7 +137,6 @@ module hyperbus_phy_if import hyperbus_pkg::*; #(
 
                    .tx_data_i      ( tx_i.data[16*i +:16] ),
                    .tx_strb_i      ( tx_i.strb[2*i   +:2] ),
-                   .tx_last_i      ( tx_i.last            ),
                    .tx_valid_i     ( phy_tx_valid         ),
                    .tx_ready_o     ( phy_tx_ready[i]      ),
 
@@ -169,7 +165,6 @@ module hyperbus_phy_if import hyperbus_pkg::*; #(
          end else begin // if (NumPhys==2)
 
             hyperbus_phy #(
-                 .IsClockODelayed( IsClockODelayed   ),
                  .NumChips       ( NumChips          ),
                  .StartupCycles  ( StartupCycles     ),
                  .NumPhys        ( NumPhys           ),
@@ -190,7 +185,6 @@ module hyperbus_phy_if import hyperbus_pkg::*; #(
 
                  .tx_data_i      ( tx_i.data       ),
                  .tx_strb_i      ( tx_i.strb       ),
-                 .tx_last_i      ( tx_i.last       ),
                  .tx_valid_i     ( tx_valid_i      ),
                  .tx_ready_o     ( tx_ready_o      ),
 

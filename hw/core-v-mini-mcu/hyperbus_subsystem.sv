@@ -61,7 +61,6 @@ module hyperbus_subsystem
       .axi_ar_chan_t(core_v_mini_mcu_pkg::axi_ar_t),
       .axi_r_chan_t(core_v_mini_mcu_pkg::axi_r_t),
       .axi_aw_chan_t(core_v_mini_mcu_pkg::axi_aw_t),
-      .RegAddrWidth(32),
       .RegDataWidth(32),
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t),
@@ -88,89 +87,29 @@ module hyperbus_subsystem
       .hyper_reset_no
   );
 
-  per2axi #(
-      .NB_CORES(1),
-      .AXI_ADDR_WIDTH(core_v_mini_mcu_pkg::AxiAddrWidth),
-      .AXI_DATA_WIDTH(core_v_mini_mcu_pkg::AxiDataWidth),
-      .AXI_USER_WIDTH(core_v_mini_mcu_pkg::AxiUserWidth),
-      .AXI_ID_WIDTH(core_v_mini_mcu_pkg::AxiIdWidth),
-      .AXI_STRB_WIDTH(core_v_mini_mcu_pkg::AxiStrbWidth)
-  ) per2axi_i (
-
+  axi_from_mem #(
+      .MemAddrWidth(32),
+      .AxiAddrWidth(32),
+      .DataWidth(32),
+      .MaxRequests(0),
+      .axi_req_t(core_v_mini_mcu_pkg::axi_req_t),
+      .axi_rsp_t(core_v_mini_mcu_pkg::axi_resp_t)
+  ) axi_from_mem_i (
       .clk_i,
       .rst_ni,
-      .test_en_i(1'b0),
-
-      //OBI CHANNEL
-      .per_slave_req_i(obi_req_i.req),
-      .per_slave_add_i(obi_req_i.addr),
-      .per_slave_we_i(obi_req_i.we),
-      .per_slave_wdata_i(obi_req_i.wdata),
-      .per_slave_be_i(obi_req_i.be),
-      .per_slave_id_i('0),  //TODO check if correct
-      .per_slave_gnt_o(obi_resp_o.gnt),
-      .per_slave_r_valid_o(obi_resp_o.rvalid),
-      .per_slave_r_rdata_o(obi_resp_o.rdata),
-      .per_slave_r_opc_o(),
-      .per_slave_r_id_o(),
-
-      // AXI4 CHANNEL
-
-      // WRITE ADDRESS CHANNEL
-      .axi_master_aw_valid_o(axi_req.aw_valid),
-      .axi_master_aw_addr_o(axi_req.aw.addr),
-      .axi_master_aw_prot_o(axi_req.aw.prot),
-      .axi_master_aw_region_o(axi_req.aw.region),
-      .axi_master_aw_len_o(axi_req.aw.len),
-      .axi_master_aw_size_o(axi_req.aw.size),
-      .axi_master_aw_burst_o(axi_req.aw.burst),
-      .axi_master_aw_lock_o(axi_req.aw.lock),
-      .axi_master_aw_cache_o(axi_req.aw.cache),
-      .axi_master_aw_qos_o(axi_req.aw.qos),
-      .axi_master_aw_id_o(axi_req.aw.id),
-      .axi_master_aw_user_o(axi_req.aw.user),
-      .axi_master_aw_ready_i(axi_resp.aw_ready),
-
-      // READ ADDRESS CHANNEL
-      .axi_master_ar_valid_o(axi_req.ar_valid),
-      .axi_master_ar_addr_o(axi_req.ar.addr),
-      .axi_master_ar_prot_o(axi_req.ar.prot),
-      .axi_master_ar_region_o(axi_req.ar.region),
-      .axi_master_ar_len_o(axi_req.ar.len),
-      .axi_master_ar_size_o(axi_req.ar.size),
-      .axi_master_ar_burst_o(axi_req.ar.burst),
-      .axi_master_ar_lock_o(axi_req.ar.lock),
-      .axi_master_ar_cache_o(axi_req.ar.cache),
-      .axi_master_ar_qos_o(axi_req.ar.qos),
-      .axi_master_ar_id_o(axi_req.ar.id),
-      .axi_master_ar_user_o(axi_req.ar.user),
-      .axi_master_ar_ready_i(axi_resp.ar_ready),
-
-      // WRITE DATA CHANNEL
-      .axi_master_w_valid_o(axi_req.w_valid),
-      .axi_master_w_data_o (axi_req.w.data),
-      .axi_master_w_strb_o (axi_req.w.strb),
-      .axi_master_w_user_o (axi_req.w.user),
-      .axi_master_w_last_o (axi_req.w.last),
-      .axi_master_w_ready_i(axi_resp.w_ready),
-
-      // READ DATA CHANNEL
-      .axi_master_r_valid_i(axi_resp.r_valid),
-      .axi_master_r_data_i(axi_resp.r.data),
-      .axi_master_r_resp_i(axi_resp.r.resp),
-      .axi_master_r_last_i(axi_resp.r.last),
-      .axi_master_r_id_i(axi_resp.r.id),
-      .axi_master_r_user_i(axi_resp.r.user),
-      .axi_master_r_ready_o(axi_req.r_ready),
-
-      // WRITE RESPONSE CHANNEL
-      .axi_master_b_valid_i(axi_resp.b_valid),
-      .axi_master_b_resp_i(axi_resp.b.resp),
-      .axi_master_b_id_i(axi_resp.b.id),
-      .axi_master_b_user_i(axi_resp.b.user),
-      .axi_master_b_ready_o(axi_req.b_ready),
-
-      .busy_o()
+      .mem_req_i(obi_req_i.req),
+      .mem_addr_i(obi_req_i.addr),
+      .mem_we_i(obi_req_i.we),
+      .mem_wdata_i(obi_req_i.wdata),
+      .mem_be_i(obi_req_i.be),
+      .mem_gnt_o(obi_resp_o.gnt),
+      .mem_rsp_valid_o(obi_resp_o.rvalid),
+      .mem_rsp_rdata_o(obi_resp_o.rdata),
+      .mem_rsp_error_o(),
+      .slv_aw_cache_i('0),
+      .slv_ar_cache_i('0),
+      .axi_req_o(axi_req),
+      .axi_rsp_i(axi_resp)
   );
 
 endmodule : hyperbus_subsystem

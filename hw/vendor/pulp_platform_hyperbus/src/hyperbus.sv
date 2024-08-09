@@ -21,7 +21,6 @@ module hyperbus #(
     parameter type          axi_ar_chan_t   = logic,
     parameter type          axi_r_chan_t    = logic,
     parameter type          axi_aw_chan_t   = logic,
-    parameter int unsigned  RegAddrWidth    = -1,
     parameter int unsigned  RegDataWidth    = -1,
     parameter type          reg_req_t       = logic,
     parameter type          reg_rsp_t       = logic,
@@ -33,7 +32,6 @@ module hyperbus #(
     parameter logic [RegDataWidth-1:0]  RstChipSpace = 'h1_0000, // 64 KiB: Current maximum HyperBus device size
     parameter hyperbus_pkg::hyper_cfg_t RstCfg       = hyperbus_pkg::gen_RstCfg(NumPhys),
     parameter int unsigned  PhyStartupCycles = 300 * 200, /* us*MHz */ // Conservative maximum frequency estimate
-    parameter int unsigned  AxiLogDepth = 3,
     parameter int unsigned  SyncStages  = 2
 ) (
     input  logic                        clk_phy_i,
@@ -118,7 +116,6 @@ module hyperbus #(
     hyperbus_cfg_regs #(
         .NumChips       ( NumChips      ),
         .NumPhys        ( NumPhys       ),
-        .RegAddrWidth   ( RegAddrWidth  ),
         .RegDataWidth   ( RegDataWidth  ),
         .reg_req_t      ( reg_req_t     ),
         .reg_rsp_t      ( reg_rsp_t     ),
@@ -179,7 +176,6 @@ module hyperbus #(
     );
 
     hyperbus_phy_if #(
-        .IsClockODelayed( IsClockODelayed   ),
         .NumChips       ( NumChips          ),
         .StartupCycles  ( PhyStartupCycles  ),
         .NumPhys        ( NumPhys           ),

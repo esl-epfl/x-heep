@@ -7,7 +7,6 @@
 module hyperbus_cfg_regs #(
     parameter int unsigned  NumChips        = -1,
     parameter int unsigned  NumPhys         = -1,
-    parameter int unsigned  RegAddrWidth    = -1,
     parameter int unsigned  RegDataWidth    = -1,
     parameter type          reg_req_t       = logic,
     parameter type          reg_rsp_t       = logic,
@@ -39,7 +38,7 @@ module hyperbus_cfg_regs #(
     typedef logic [RegDataWidth-1:0]    reg_data_t;
 
     // Local signals
-    hyperbus_pkg::hyper_cfg_t       cfg_d, cfg_q, cfg_rstval;
+    hyperbus_pkg::hyper_cfg_t       cfg_d, cfg_q;
     reg_data_t [NumChips-1:0][1:0]  crange_d, crange_q, crange_rstval;
     reg_idx_t   sel_reg;
     logic       sel_reg_mapped;

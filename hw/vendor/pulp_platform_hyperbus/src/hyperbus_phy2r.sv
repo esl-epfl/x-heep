@@ -50,7 +50,6 @@ module hyperbus_phy2r #(
    logic [3:0]           size_d, size_q;
    T data_buffer_d, data_buffer_q;
 
-   logic                        is_16_bw, is_8_bw;
    logic [WordCntWidth-1:0]     word_cnt;
    logic                        enough_data;
    logic                        sent_available_data;

@@ -7,7 +7,6 @@
 // Stephan Keck <kecks@ethz.ch>
 
 module hyperbus_trx #(
-    parameter int unsigned IsClockODelayed = -1,
     parameter int unsigned NumChips        = 2,
     parameter int unsigned RxFifoLogDepth  = 3,
     parameter int unsigned SyncStages      = 2
@@ -23,7 +22,6 @@ module hyperbus_trx #(
     output logic                   rwds_sample_o,
     input  logic                   rwds_sample_ena_i,
 
-    input  logic [3:0]             tx_clk_delay_i,
     input  logic                   tx_clk_ena_i,
     input  logic [15:0]            tx_data_i,
     input  logic                   tx_data_oe_i,

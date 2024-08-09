@@ -797,7 +797,8 @@ module core_v_mini_mcu
     end
   end
 
-  logic [7:0] hyper_dq_in, hyper_dq_out, hyper_dq_oe;
+  logic [7:0] hyper_dq_in, hyper_dq_out;
+  logic hyper_dq_oe;
 
   assign hyper_dq_in = {
     hyper_dq_0_i,
@@ -810,7 +811,7 @@ module core_v_mini_mcu
     hyper_dq_7_i
   };
   assign {hyper_dq_0_o, hyper_dq_1_o, hyper_dq_2_o, hyper_dq_3_o, hyper_dq_4_o, hyper_dq_5_o, hyper_dq_6_o, hyper_dq_7_o} = hyper_dq_out;
-  assign {hyper_dq_0_oe_o, hyper_dq_1_oe_o, hyper_dq_2_oe_o, hyper_dq_3_oe_o, hyper_dq_4_oe_o, hyper_dq_5_oe_o, hyper_dq_6_oe_o, hyper_dq_7_oe_o} = hyper_dq_oe;
+  assign {hyper_dq_0_oe_o, hyper_dq_1_oe_o, hyper_dq_2_oe_o, hyper_dq_3_oe_o, hyper_dq_4_oe_o, hyper_dq_5_oe_o, hyper_dq_6_oe_o, hyper_dq_7_oe_o} = {8{hyper_dq_oe}};
 
   hyperbus_subsystem hyperbus_subsystem_i (
       .clk_i,

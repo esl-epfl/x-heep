@@ -8,7 +8,6 @@
 // Paul Scheffler <paulsc@iis.ee.ethz.ch>
 
 module hyperbus_phy import hyperbus_pkg::*; #(
-    parameter int unsigned IsClockODelayed = -1,
     parameter int unsigned NumChips         = 2,
     parameter int unsigned NumPhys          = -1,
     parameter int unsigned TimerWidth       = 16,
@@ -32,7 +31,6 @@ module hyperbus_phy import hyperbus_pkg::*; #(
     output logic                tx_ready_o,
     input  logic [15:0]         tx_data_i,
     input  logic [1:0]          tx_strb_i,
-    input  logic                tx_last_i,
     // Receiving channel
     output logic                rx_valid_o,
     input  logic                rx_ready_i,
@@ -86,7 +84,6 @@ module hyperbus_phy import hyperbus_pkg::*; #(
     logic ctl_timer_zero;
     logic ctl_timer_rwr_done;
     logic ctl_rclk_ena;
-    logic ctl_rcnt_ena;
     logic ctl_wclk_ena;
 
     // Command-address
@@ -112,7 +109,6 @@ module hyperbus_phy import hyperbus_pkg::*; #(
     // =================
 
     hyperbus_trx #(
-        .IsClockODelayed( IsClockODelayed   ),
         .NumChips       ( NumChips          ),
         .RxFifoLogDepth ( RxFifoLogDepth    ),
         .SyncStages     ( SyncStages        )
@@ -125,7 +121,6 @@ module hyperbus_phy import hyperbus_pkg::*; #(
         .cs_ena_i           ( trx_cs_ena            ),
         .rwds_sample_o      ( trx_rwds_sample       ),
         .rwds_sample_ena_i  ( trx_rwds_sample_ena   ),
-        .tx_clk_delay_i     ( cfg_i.t_tx_clk_delay  ),
         .tx_clk_ena_i       ( trx_clk_ena           ),
         .tx_data_i          ( trx_tx_data           ),
         .tx_data_oe_i       ( trx_tx_data_oe        ),

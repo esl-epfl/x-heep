@@ -7,3 +7,5 @@
 lint_off -rule DECLFILENAME -file "*/pulp_platform_axi/src/*.sv" -match "*"
 lint_off -rule WIDTH -file "*/pulp_platform_axi/src/axi_pkg.sv" -match "*"
 lint_off -rule WIDTH -file "*/pulp_platform_axi/src/axi_atop_filter.sv" -match "*"
+lint_off -rule UNUSED -file "*/pulp_platform_axi/src/axi_atop_filter.sv" -match "Signal is not used: 'r_resp_cmd_push_ready'*"
+lint_off -rule WIDTH -file "*/pulp_platform_axi/src/axi_lite_to_axi.sv" -match "*"

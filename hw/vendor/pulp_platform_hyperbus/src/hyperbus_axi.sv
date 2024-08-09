@@ -124,7 +124,6 @@ module hyperbus_axi #(
     // AX handling
     logic           trans_handshake;
     logic           ax_valid, ax_ready;
-    axi_pkg::size_t ax_size_d, ax_size_q;
     chip_sel_idx_t  ax_chip_sel_idx;
     hyperbus_pkg::hyper_blen_t ax_blen_postinc;
     logic           ax_blen_inc;
@@ -160,10 +159,6 @@ module hyperbus_axi #(
     logic           trans_active_set, trans_active_reset;
     logic           trans_wready_d, trans_wready_q;
     logic           trans_wready_set, trans_wready_reset;
-
-    logic [1:0]      phys_in_use;
-
-    assign phys_in_use = (NumPhys==2) ? (phys_in_use_i + 1) : 1;
 
     // ============================
     //    Serialize requests
@@ -437,14 +432,12 @@ module hyperbus_axi #(
 
     hyperbus_w2phy #(
         .AxiDataWidth ( AxiDataWidth                  ),
-        .BurstLength  ( hyperbus_pkg::HyperBurstWidth ),
         .T            ( axi_w_chan_t                  ),
         .NumPhys      ( NumPhys                       )
         ) i_hyperbus_w2phy (
         .clk_i,
         .rst_ni,
         .size            ( rr_out_req_ax.size                      ),
-        .len             ( ax_blen_postinc                         ),
         .is_a_write      ( rr_out_req_write                        ),
         .trans_handshake ( trans_handshake                         ),
         .start_addr      ( rr_out_req_ax.addr[AxiBusAddrWidth-1:0] ),
