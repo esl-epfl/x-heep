@@ -105,6 +105,12 @@ typedef enum rv_timer_approximate_tick_params_result {
  * @param[out] out Tick parameters that will approximately produce the desired
  *         counter frequency.
  * @return The result of the operation.
+ * 
+ * The minimum value for `counter_freq` is given by:
+ * counter_freq_min = (255/4096) * clock_freq 
+ * For example, if the clock frequency is 15MHz, the minimum value for `counter_freq` is about
+ * 1 MHz.
+ * The maximum value for `counter_freq` is given by the clock frequency.
  */
 rv_timer_approximate_tick_params_result_t
 rv_timer_approximate_tick_params(uint64_t clock_freq, uint64_t counter_freq,
