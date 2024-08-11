@@ -49,19 +49,15 @@ void handler_1()
 int main(int argc, char *argv[])
 {
 
-    REG_CONFIG();
+    //REG_CONFIG();
     AXI_ISOLATE();
 
     
 
-    //unsigned int cycles1, cycles2;
-    //CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-    //CSR_WRITE(CSR_REG_MCYCLE, 0);
     printf("ASD\n");
-    WRITE_SL();
-    //CSR_READ(CSR_REG_MCYCLE, &cycles1);
-    //printf("first write finished with  %d cycles, these cycles also include GPIO signal initialisation\n\r", cycles1);
-
+    //WRITE_SL();
+    
+    
 
     printf("DONE\n");
 
@@ -147,11 +143,11 @@ void __attribute__((optimize("00"))) RAW_MODE_EN(void)
 void __attribute__((optimize("00"))) AXI_ISOLATE(void)
 {
     int32_t *addr_p_reg_ISOLATE_IN = (int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
-
+    printf("Axi isolate\n");
     //*addr_p_reg_ISOLATE_IN = (*addr_p_reg_ISOLATE_IN)& (8 << 0); // axi_in_isolate
     *addr_p_reg_ISOLATE_IN &= ~(1 << 8);
-    int32_t *addr_p_reg_ISOLATE_OUT = (int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
-    *addr_p_reg_ISOLATE_OUT &= ~(1 << 9); // axi_out_isolate
+    //int32_t *addr_p_reg_ISOLATE_OUT = (int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
+    //*addr_p_reg_ISOLATE_OUT &= ~(1 << 9); // axi_out_isolate
 }
 
 void __attribute__((optimize("00"))) EXTERNAL_BUS_SL_CONFIG(void)
