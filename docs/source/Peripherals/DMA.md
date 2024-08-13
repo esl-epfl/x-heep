@@ -801,48 +801,115 @@ The goal of this example is to develop a function that copies the content of a s
 For reference, this example follows the `dma_copy_32b()` function of the DMA SDK.
 
 Let's start!
+
+#### Setting targets & transaction objects
+
 The first step is to define the source and destination target objects, as well as the transaction object.
 
-> :warning: Declare the targets and the transaction object globally to ensure that the fields unused in this example are automatically initialized to zero. This practice prevents unintentional data corruption or unexpected behavior during the DMA transaction.
+> :warning: Declare the targets and the transaction object globally to ensure that the fields unused in this example are automatically initialized to zero. 
+This practice prevents unintentional data corruption or unexpected behavior during the DMA transaction.
 
-In this example, an array of six 32-bit words is used. The data type for both the source and destination is specified in the .type field of their respective dma_target_t structures.
-Since the data is stored in RAM, the trigger will be the default one, i.e., *DMA_TRIG_MEMORY*. Additionally, the size of the transaction, which is the number of elements to be copied, is specified in size_du. In this example, a 4-element array will be extracted from the 6-element source.
+In this example, an array of six 32-bit words is used. 
+The data type for both the source and destination is specified in the `.type` field of their respective dma_target_t structures.
+Since the data is stored in RAM, the trigger, `.trig`, will be the default one, i.e. *DMA_TRIG_MEMORY*. 
 
-Finally, the transaction mode will be the single mode so the field .mode will be *DMA_TRANS_MODE_SINGLE*. 
+In this example, a 4-element array will be extracted from the 6-element source. The size of the transaction, which is the number of elements to be copied, is specified in `.size_du`. 
+
+Finally, the transaction mode will be set to single mode, so the `.mode` field will be configured as *DMA_TRANS_MODE_SINGLE*.
 
 ```C
 
-    int size = 4;
-    uint32_t src[6] = {0x12345678, 0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f};
-    uint32_t dst[4];
+  int size = 4;
+  uint32_t src[6] = {0x12345678, 0x76543210, 0xfedcba98,
+                      0x579a6f90, 0x657d5bee, 0x758ee41f};
+  uint32_t dst[4];
 
-    dma_target_t tgt_src = {
-        .ptr = (uint8_t *) src,
-        .inc_du = 1,
-        .size_du = size,
-        .type = DMA_DATA_TYPE_WORD,
-        .trig = DMA_TRIG_MEMORY,   
-    };
+  dma_target_t tgt_src = {
+    .ptr = (uint8_t *) src,
+    .inc_du = 1,
+    .size_du = size,
+    .type = DMA_DATA_TYPE_WORD,
+    .trig = DMA_TRIG_MEMORY,   
+  };
 
-    dma_target_t tgt_dst = {
-        .ptr = (uint8_t *) dst,
-        .inc_du = 1,
-        .size_du = size,
-        .type = DMA_DATA_TYPE_WORD,
-        .trig = DMA_TRIG_MEMORY,    
-    };
+  dma_target_t tgt_dst = {
+    .ptr = (uint8_t *) dst,
+    .inc_du = 1,
+    .size_du = size,
+    .type = DMA_DATA_TYPE_WORD,
+    .trig = DMA_TRIG_MEMORY,    
+  };
 
-    dma_trans_t trans = {
-        .src = &tgt_src,
-        .dst = &tgt_dst,
-        .src_addr = NULL,
-        .mode = DMA_TRANS_MODE_SINGLE,
-        .win_du = 0,
-        .end = DMA_TRANS_END_INTR,
-    };
+  dma_trans_t trans = {
+    .src = &tgt_src,
+    .dst = &tgt_dst,
+    .src_addr = NULL,
+    .mode = DMA_TRANS_MODE_SINGLE,
+    .win_du = 0,
+    .end = DMA_TRANS_END_INTR,
+  };
 
 ```
 
+#### Perform validation, loading and launching
+
+This second step is also the final one! The only thing left to do is to perform the __validation__ of our transaction, __load__ the parameters, and __launch__ the transaction. For convenience, let's put these calls inside a dedicated function, called _run_dma_trans()_.
+
+The *DMA_ENABLE_REALIGN* flag signals the HAL to perform realignment when necessary. Similarly, the *DMA_PERFORMS_CHECKS_INTEGRITY* flag instructs the HAL to perform integrity checks.
+
+The return values of these HAL calls will be stored and returned to check for any potential issues.
+
+``` C
+
+dma_config_flags_t run_dma_trans()
+{
+  dma_config_flags_t res;
+  
+  res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
+  res |= dma_load_transaction(&trans);
+  res |= dma_launch(&trans);
+
+  return res;
+} 
+    
+```
+
+The datatype *dma_config_flags_t* is defined in the HAL header and is provided below for convenience:
+ 
+``` C
+
+typedef enum
+{
+    DMA_CONFIG_OK               = 0x0000, /*!< DMA transfer was successfully
+    configured. */
+    DMA_CONFIG_SRC              = 0x0001, /*!< An issue was encountered in the
+    source arrangement.  */
+    DMA_CONFIG_DST              = 0x0002, /*!< An issue was encountered in the
+    destination arrangement. */
+    DMA_CONFIG_MISALIGN         = 0x0004, /*!< An arrangement is misaligned. */
+    DMA_CONFIG_OVERLAP          = 0x0008, /*!< The increment is smaller than the
+     data type size. */
+    DMA_CONFIG_DISCONTINUOUS    = 0x0010, /*!< The increment is larger than the
+    data type size. */
+    DMA_CONFIG_OUTBOUNDS        = 0x0020, /*!< The operation goes beyond the
+    memory boundaries. */
+    DMA_CONFIG_INCOMPATIBLE     = 0x0040, /*!< Different arguments result in
+    incompatible requests. */
+    DMA_CONFIG_WINDOW_SIZE      = 0x0080, /*!< A small window size might result
+    in loss of syncronism. If the processing of the window takes longer than the
+    time it takes to the DMA to finish the next window, the application will not
+    be able to cope. Although "how small is too small" is highly dependent on
+    the length of the processing, this flag will be raised when the transaction
+    and window size ratio is smaller than an arbitrarily chosen ratio as a mere
+    reminder. This value can be overriden buy means of defining a non-weak
+    implementation of the dma_window_ratio_warning_threshold function. */
+    DMA_CONFIG_TRANS_OVERRIDE   = 0x0100, /*!< A transaction is running. Its
+    values cannot be modified, nor can it be re-launched. */
+    DMA_CONFIG_CRITICAL_ERROR   = 0x0200, /*!< This flag determines the function
+    will return without the DMA performing any actions. */
+} dma_config_flags_t;
+
+```
 
 
 #### Basic application
