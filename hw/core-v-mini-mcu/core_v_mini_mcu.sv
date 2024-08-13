@@ -861,16 +861,6 @@ module core_v_mini_mcu
 
 
 
-
-
-
-
-
-
-
-
-
-
   // AXI2CORE(OBI)
   axi2obi #(
   //.C_S00_AXI_DATA_WIDTH(AXI_DATA_WIDTH),

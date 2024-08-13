@@ -632,16 +632,6 @@ ${pad.core_v_mini_mcu_interface}
     //.r_size
   );
 
-
-
-
-
-
-
-
-
-
-
 % else:
 
 % endif

@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
         break;
         }
     }
+    CSR_READ(CSR_REG_MCYCLE, &cycles1);
     *addr_p = 6550039;
      while(1){
     if (*addr_p_external ==6550039){
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
         }
     }
     *addr_p = 378518920;
-             while(1){
+    while(1){
     if (*addr_p_external ==378518920){
         //CSR_READ(CSR_REG_MCYCLE, &cycles1);
         //CSR_READ(CSR_REG_MCYCLE, &cycles1);
