@@ -211,29 +211,6 @@ uint8_t window_flag[DMA_CH_NUM];
 char passed = 1;
 char flag = 0;
 
-/* Function used to simplify the register operations */
-static inline volatile void write_register( uint32_t  p_val,
-                                uint32_t  p_offset,
-                                uint32_t  p_mask,
-                                uint8_t   p_sel,
-                                dma* peri_chx ) 
-{
-    /*
-     * The index is computed to avoid needing to access the structure
-     * as a structure.
-     */
-    uint8_t index = p_offset / sizeof(int);
-
-    /*
-     * An intermediate variable "value" is used to prevent writing twice into
-     * the register.
-     */
-    uint32_t value  =  (( uint32_t * ) peri_chx ) [ index ];
-    value           &= ~( p_mask << p_sel );
-    value           |= (p_val & p_mask) << p_sel;
-    (( uint32_t * ) peri_chx ) [ index ] = value;
-};
-
 /* Strong transaction ISR implementation */
 void dma_intr_handler_trans_done(uint8_t channel)
 {

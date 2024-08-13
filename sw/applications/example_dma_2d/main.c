@@ -123,32 +123,6 @@ uint8_t stride_1d_cnt = 0;
 uint8_t stride_2d_cnt = 0;
 char passed = 1;
 
-#ifdef TEST_ID_3
-
-/* Function used to simplify register operations */
-static inline volatile void write_register( uint32_t  p_val,
-                                uint32_t  p_offset,
-                                uint32_t  p_mask,
-                                uint8_t   p_sel,
-                                dma* peri ) 
-{
-    /*
-     * The index is computed to avoid needing to access the structure
-     * as a structure.
-     */
-    uint8_t index = p_offset / sizeof(int);
-
-    /*
-     * An intermediate variable "value" is used to prevent writing twice into
-     * the register.
-     */
-    uint32_t value  =  (( uint32_t * ) peri ) [ index ];
-    value           &= ~( p_mask << p_sel );
-    value           |= (p_val & p_mask) << p_sel;
-    (( uint32_t * ) peri ) [ index ] = value;
-};
-#endif
-
 int main()
 {    
     #ifdef TEST_ID_0

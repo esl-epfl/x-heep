@@ -63,11 +63,6 @@ extern "C"
 #define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ) ) // @ToDo Add definitions for this 19 and 11
 
 /**
- * Size of a register of 32 bits.
- */
-#define DMA_REGISTER_SIZE_BYTES sizeof(int)
-
-/**
  * Mask to determine if an address is multiple of 4 (Word aligned).
  */
 #define DMA_WORD_ALIGN_MASK 3
@@ -195,26 +190,6 @@ static inline uint8_t is_region_outbound_2D(   uint8_t  *p_start,
                                             uint32_t p_size_d2_du,
                                             uint32_t p_inc_d1_du,
                                             uint32_t p_inc_d2_du );
-
-/**
- * @brief Writes a given value into the specified register. Its operation
- * mimics that of bitfield_field32_write(), but does not require the use of
- * a field structure, that is not always provided in the _regs.h file.
- * @param p_val The value to be written.
- * @param p_offset The register's offset from the peripheral's base address
- *  where the target register is located.
- * @param p_mask The variable's mask to only modify its bits inside the whole
- * register.
- * @param p_sel The selection index (i.e. From which bit inside the register
- * the value is to be written).
- * @param p_peri The peripheral where the register is located.
- */
-static inline void write_register(  uint32_t p_val,
-                                    uint32_t p_offset,
-                                    uint32_t p_mask,
-                                    uint8_t  p_sel, 
-                                    dma*     p_peri );
-
 
 /**
  * @brief Analyzes a target to determine the size of its D1 increment (in bytes).
@@ -565,7 +540,7 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
 
     /* The copy size of the source (in data units -of the source-) is
     transformed to bytes, to be used as default size.*/
-    uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(p_trans->dst->type);
+    uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(p_trans->src->type);
     p_trans->size_b = p_trans->src->size_du * dataSize_b;
     p_trans->size_d2_b = p_trans->src->size_d2_du * dataSize_b;
 
@@ -1470,32 +1445,6 @@ static inline uint8_t is_region_outbound_2D(   uint8_t  *p_start,
     return ( p_end < lastByteInsideRange );
 
     // Size is be guaranteed to be non-zero before calling this function.
-}
-
-/* @ToDo: Consider changing the "mask" parameter for a bitfield definition
-(see dma_regs.h) */
-static inline void write_register( uint32_t  p_val,
-                                  uint32_t  p_offset,
-                                  uint32_t  p_mask,
-                                  uint8_t   p_sel,
-                                  dma*      p_dma)
-{
-    /*
-     * The index is computed to avoid needing to access the structure
-     * as a structure.
-     */
-    uint8_t index = p_offset / DMA_REGISTER_SIZE_BYTES;
-    /*
-     * An intermediate variable "value" is used to prevent writing twice into
-     * the register.
-     */
-    uint32_t value  =  (( uint32_t * ) p_dma ) [ index ];
-    value           &= ~( p_mask << p_sel );
-    value           |= (p_val & p_mask) << p_sel;
-    (( uint32_t * ) p_dma ) [ index ] = value;
-
-// @ToDo: mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SLOT_REG_OFFSET), (tx_slot_mask << DMA_SLOT_TX_TRIGGER_SLOT_OFFSET) + rx_slot_mask)
-
 }
 
 static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt,
