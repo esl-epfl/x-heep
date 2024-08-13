@@ -56,7 +56,6 @@ file_path = 'im2col_data.txt'
 im2col_cpu_array, im2col_dma_2d_C_array, im2col_spc_array = read_data(file_path)
 
 # Elaborate the data
-
 parsed_1ch_CPU = parse_data(ast.literal_eval("'"+im2col_cpu_array[0]+"'"))
 parsed_1ch_DMA = parse_data(ast.literal_eval("'"+im2col_dma_2d_C_array[0]+"'"))
 parsed_1ch_spc = parse_data(ast.literal_eval("'"+im2col_spc_array[0]+"'"))

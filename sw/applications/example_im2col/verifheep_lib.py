@@ -77,7 +77,6 @@ class VerifHeep:
         self.ser = None
         self.serial_queue = None
         self.serial_thread = None
-        self.openocd_proc = None
         self.gdb = None
         self.xheep_dir = None
 
@@ -196,7 +195,6 @@ class VerifHeep:
         except pexpect.TIMEOUT:
           print("Timeout! Program didn't answer in time, exiting...")
           self.gdb.terminate()
-          self.openocd_proc.terminate()
           if en_timeout_term:
             exit(1)
           return
@@ -225,11 +223,9 @@ class VerifHeep:
             for result in self.results:
                 f.write(result + '\n')
     
-    def stopAll(self):
+    def stopDeb(self):
         self.gdb.sendcontrol('c')
         self.gdb.terminate()
-        self.gdb.logfile.close()
-        self.openocd_proc.terminate()
 
     # Performance estimation methods
     

@@ -9,6 +9,8 @@ import verifheep_lib
 from tqdm import tqdm
 import curses
 
+USBport = 2
+
 num_masters = 4
 num_slaves = 3
 max_masters_per_slave = 2
@@ -135,7 +137,7 @@ start_loop_time = time.time()
 im2colVer = verifheep_lib.VerifHeep("pynq-z2", "../../../")
 
 print("Connecting to the board...")
-serial_status = im2colVer.serialBegin("/dev/ttyUSB2", 9600)
+serial_status = im2colVer.serialBegin("/dev/ttyUSB{USBport}", 9600)
 if not serial_status:
     print("Error connecting to the board")
     exit()
@@ -152,14 +154,14 @@ total_iterations = ((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1
                     (channels_max - channels_min) * (batch_max - batch_min) *
                     (num_channels_dma - num_channels_dma_min))
 
-#def main(stdscr):
-def main():
-  #progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter",
-  #                  bar_format='{desc}: {percentage:.2f}%|{bar}| {n_fmt}/{total_fmt}')
+def main(stdscr):
+  progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter",
+                   bar_format='{desc}: {percentage:.2f}%|{bar}| {n_fmt}/{total_fmt}')
 
   cpu_done = 0
   iteration = 1
-  #curses.curs_set(0)
+  started = False
+  curses.curs_set(0)
   for i in range(num_channels_dma_min, num_channels_dma):
       print("_______________________\n\r")
       print("Number of channels used by SPC\n\r", i)
@@ -169,6 +171,13 @@ def main():
       im2col_spc = []
 
       for j in range(batch_min, batch_max):
+          
+          if started:
+            im2colVer.stopDeb()
+          else:
+            started = True
+            
+          im2colVer.setUpDeb()
 
           for k in range(channels_min, channels_max):
 
@@ -266,20 +275,19 @@ def main():
                                                       )
 
                                                       iteration += 1
-                                                      #progress_bar.update(1)
+                                                      progress_bar.update(1)
                                                       
-                                                      #stdscr.addstr(1, 0, message)
-                                                      #stdscr.refresh()
+                                                      stdscr.addstr(1, 0, message)
+                                                      stdscr.refresh()
 
       if (not cpu_done):
           im2col_cpu_array.append(im2col_cpu)
           im2col_dma_2d_C_array.append(im2col_dma_2d_C)
       im2col_spc_array.append(im2col_spc)
-      print(im2col_cpu)
       cpu_done = 1
 
-  im2colVer.stopAll()
-  #progress_bar.close()
+  im2colVer.stopDeb()
+  progress_bar.close()
 
   with open('im2col_data.txt', 'w') as file:
       file.write("im2col_cpu:\n")
@@ -299,5 +307,4 @@ def main():
 
   print("Data acquired!\n")
   
-#curses.wrapper(main)
-main()
+curses.wrapper(main)
