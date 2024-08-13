@@ -137,7 +137,7 @@ start_loop_time = time.time()
 im2colVer = verifheep_lib.VerifHeep("pynq-z2", "../../../")
 
 print("Connecting to the board...")
-serial_status = im2colVer.serialBegin("/dev/ttyUSB{USBport}", 9600)
+serial_status = im2colVer.serialBegin(f"/dev/ttyUSB{USBport}", 9600)
 if not serial_status:
     print("Error connecting to the board")
     exit()
@@ -161,24 +161,16 @@ def main(stdscr):
   cpu_done = 0
   iteration = 1
   started = False
+  counter = 100
+
   curses.curs_set(0)
   for i in range(num_channels_dma_min, num_channels_dma):
-      print("_______________________\n\r")
-      print("Number of channels used by SPC\n\r", i)
-      print("_______________________\n\n\r")
       im2col_cpu = []
       im2col_dma_2d_C = []
       im2col_spc = []
 
       for j in range(batch_min, batch_max):
           
-          if started:
-            im2colVer.stopDeb()
-          else:
-            started = True
-            
-          im2colVer.setUpDeb()
-
           for k in range(channels_min, channels_max):
 
               for l in range(im_h_min, im_h_max):
@@ -188,7 +180,7 @@ def main(stdscr):
                       for n in range(ker_h_min, ker_h_max):
 
                           for o in range(ker_w_min, ker_w_max):
-
+                              
                               for p in range(pad_top_min, pad_top_max):
 
                                   for q in range(pad_bottom_min, pad_bottom_max):
@@ -200,6 +192,15 @@ def main(stdscr):
                                               for t in range(stride_d1_min, stride_d1_max):
 
                                                   for u in range(stride_d2_min, stride_d2_max):
+                                                      
+                                                      if started and counter == 0:
+                                                        im2colVer.stopDeb()
+                                                        im2colVer.setUpDeb()
+                                                        counter = 100
+                                                      else:
+                                                        im2colVer.setUpDeb()
+                                                        started = True
+                                                        counter =- 1
                                                       
                                                       im2colVer.chronoStart()
                                                       

@@ -703,7 +703,7 @@ This use case is very impractical as it doubles the memory usage. It is intended
   
 Like every other computational unit in X-Heep, a DMA transaction can be set up and launched using direct register writes. This method achieves minimal overhead and optimal performance, as thoroughly documented in sw/applications/example_dma_2d and sw/applications/example_dma_multichannel. 
 
-However, it carries significant risks. For instance, the transaction starts immediately after writing to the size register, so the order of register writes must be strictly followed. If the code is compiled with aggressive optimization flags, these write operations might be reordered, potentially compromising DMA functionality. Additionally, errors in setting the transaction size or increments can lead to memory corruption.
+However, it carries significant risks. For instance, the transaction starts immediately after writing to the size register, so the order of register writes must be strictly followed. If the code is compiled with aggressive optimization flags, these write operations might be reordered, potentially compromising the DMA functionality. Additionally, errors in setting the transaction size or increments can lead to memory corruption.
 
 Given the criticality of DMA operations and the potential for destructive errors, direct register writes should be approached with utmost _caution_. To mitigate these risks, two software stacks have been developed:
 
@@ -778,7 +778,7 @@ _Return Values_:
 
 The interrupt handlers are critical in many applications. As stated in the structural description of the DMA [LINK STRUCTURAL DESCRIPTION], there is a single interrupt for the entire 
 
-## Usacases and examples
+## Usecases and examples
 
 This section will examine and explain several use cases in detail to provide users with a comprehensive understanding of the DMA subsystem and how to leverage it to enhance their application's performance.
 
@@ -787,7 +787,7 @@ Here is a brief overview of the examples:
 1) Simple mem2mem transaction, i.e., 1D memcpy
 2) 2D mem2mem transaction, i.e., 2D memcpy
 3) Matrix transposition
-4) Matrix padding
+4) Matrix zero padding
 5) Multichannel mem2mem transaction, focusing on the IRQ handler
 6) Multichannel flash2mem transaction using the SPI SDK
 7) BONUS: Minimizing overhead by using register writes instead of HALs
@@ -797,7 +797,52 @@ The complete code for these examples can be found in `sw/applications/example_dm
 
 ### 1. Simple mem2mem transaction
 
-The goal of this example is to develop a function that 
+The goal of this example is to develop a function that copies the content of a source array to a destination array.
+For reference, this example follows the `dma_copy_32b()` function of the DMA SDK.
+
+Let's start!
+The first step is to define the source and destination target objects, as well as the transaction object.
+
+> :warning: Declare the targets and the transaction object globally to ensure that the fields unused in this example are automatically initialized to zero. This practice prevents unintentional data corruption or unexpected behavior during the DMA transaction.
+
+In this example, an array of six 32-bit words is used. The data type for both the source and destination is specified in the .type field of their respective dma_target_t structures.
+Since the data is stored in RAM, the trigger will be the default one, i.e., *DMA_TRIG_MEMORY*. Additionally, the size of the transaction, which is the number of elements to be copied, is specified in size_du. In this example, a 4-element array will be extracted from the 6-element source.
+
+Finally, the transaction mode will be the single mode so the field .mode will be *DMA_TRANS_MODE_SINGLE*. 
+
+```C
+
+    int size = 4;
+    uint32_t src[6] = {0x12345678, 0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f};
+    uint32_t dst[4];
+
+    dma_target_t tgt_src = {
+        .ptr = (uint8_t *) src,
+        .inc_du = 1,
+        .size_du = size,
+        .type = DMA_DATA_TYPE_WORD,
+        .trig = DMA_TRIG_MEMORY,   
+    };
+
+    dma_target_t tgt_dst = {
+        .ptr = (uint8_t *) dst,
+        .inc_du = 1,
+        .size_du = size,
+        .type = DMA_DATA_TYPE_WORD,
+        .trig = DMA_TRIG_MEMORY,    
+    };
+
+    dma_trans_t trans = {
+        .src = &tgt_src,
+        .dst = &tgt_dst,
+        .src_addr = NULL,
+        .mode = DMA_TRANS_MODE_SINGLE,
+        .win_du = 0,
+        .end = DMA_TRANS_END_INTR,
+    };
+
+```
+
 
 
 #### Basic application
