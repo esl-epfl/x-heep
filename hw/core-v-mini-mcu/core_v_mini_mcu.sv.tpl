@@ -729,9 +729,9 @@ ${pad.core_v_mini_mcu_interface}
     .w_chan_t(core_v_mini_mcu_pkg::axi_w_t),
     .b_chan_t(core_v_mini_mcu_pkg::axi_b_t),
     .cfg_rsp_t(reg_rsp_t),
-    .cfg_req_t(reg_req_t)
-    //.NumChannels(1),
-    //.NumLanes(1)
+    .cfg_req_t(reg_req_t),
+    .NumChannels(1),
+    .NumLanes(1)
   ) serial_link_occamy_wrapper_i (
     .clk_i(clk_i),
     .fast_clock,

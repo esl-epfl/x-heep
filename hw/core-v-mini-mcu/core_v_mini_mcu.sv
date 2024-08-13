@@ -935,13 +935,13 @@ module core_v_mini_mcu
 
       .aw_chan_t(core_v_mini_mcu_pkg::axi_aw_t),
       .ar_chan_t(core_v_mini_mcu_pkg::axi_ar_t),
-      .r_chan_t (core_v_mini_mcu_pkg::axi_r_t),
-      .w_chan_t (core_v_mini_mcu_pkg::axi_w_t),
-      .b_chan_t (core_v_mini_mcu_pkg::axi_b_t),
+      .r_chan_t(core_v_mini_mcu_pkg::axi_r_t),
+      .w_chan_t(core_v_mini_mcu_pkg::axi_w_t),
+      .b_chan_t(core_v_mini_mcu_pkg::axi_b_t),
       .cfg_rsp_t(reg_rsp_t),
-      .cfg_req_t(reg_req_t)
-      //.NumChannels(1),
-      //.NumLanes(1)
+      .cfg_req_t(reg_req_t),
+      .NumChannels(1),
+      .NumLanes(1)
   ) serial_link_occamy_wrapper_i (
       .clk_i     (clk_i),
       .fast_clock,
