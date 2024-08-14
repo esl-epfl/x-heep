@@ -21,10 +21,12 @@ module dma_obiread_fsm
     input logic ext_dma_stop_i,
     input logic read_fifo_full_i,
     input logic read_fifo_alm_full_i,
-    input logic [2:0] dma_cnt_du_i,
     input logic wait_for_rx_i,
     input logic data_in_gnt_i,
     input logic data_in_rvalid_i,
+    input logic [31:0] data_in_rdata_i,
+
+    output logic [31:0] fifo_input_o,
     output logic data_in_req_o,
     output logic data_in_we_o,
     output logic [3:0] data_in_be_o,
@@ -63,23 +65,26 @@ module dma_obiread_fsm
   logic dma_conf_2d;
   logic data_in_rvalid;
 
-  logic [2:0] dma_cnt_du;
   logic wait_for_rx;
 
   logic [16:0] dma_src_cnt_d1;
   logic [16:0] dma_src_cnt_d2;
 
-  logic [31:0] src_ptr_reg;
+  logic [31:0] trsp_src_ptr_reg;
   logic [31:0] read_ptr_reg;
 
   logic data_in_req;
   logic data_in_we;
   logic [3:0] data_in_be;
   logic [31:0] data_in_addr;
+  logic [31:0] data_in_rdata;
 
   logic [31:0] read_ptr_valid_reg;
   logic [5:0] dma_src_d1_inc;
   logic [22:0] dma_src_d2_inc;
+
+  /* FIFO signals */
+  logic [31:0] fifo_input;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -100,16 +105,16 @@ module dma_obiread_fsm
       end else if (data_in_gnt == 1'b1) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
-          dma_src_cnt_d1 <= dma_src_cnt_d1 - {14'h0, dma_cnt_du};
+          dma_src_cnt_d1 <= dma_src_cnt_d1 - 1;
         end else if (dma_conf_2d == 1'b1) begin
           // 2D case
-          if (dma_src_cnt_d1 == {14'h0, dma_cnt_du}) begin
+          if (dma_src_cnt_d1 == 1) begin
             // In this case, the d1 is finished, so we need to decrement the d2 size and reset the d2 size
-            dma_src_cnt_d2 <= dma_src_cnt_d2 - {14'h0, dma_cnt_du};
+            dma_src_cnt_d2 <= dma_src_cnt_d2 - 1;
             dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q};
           end else begin
             // In this case, the d1 isn't finished, so we need to decrement the d1 size
-            dma_src_cnt_d1 <= dma_src_cnt_d1 - {14'h0, dma_cnt_du};
+            dma_src_cnt_d1 <= dma_src_cnt_d1 - 1;
           end
         end
       end
@@ -123,13 +128,13 @@ module dma_obiread_fsm
 
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_src_ptr_reg
     if (~rst_ni) begin
-      src_ptr_reg <= '0;
+      trsp_src_ptr_reg <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        src_ptr_reg <= reg2hw.src_ptr.q + {26'h0, dma_src_d1_inc};
+        trsp_src_ptr_reg <= reg2hw.src_ptr.q + {26'h0, dma_src_d1_inc};
       end else if (data_in_gnt == 1'b1 && dma_conf_2d == 1'b1 && read_ptr_update_sel == 1'b1 &&
-                    (dma_src_cnt_d1 == {14'h0, dma_cnt_du} && |dma_src_cnt_d2 == 1'b1)) begin
-        src_ptr_reg <= src_ptr_reg + {26'h0, dma_src_d1_inc};
+                    (dma_src_cnt_d1 == 1 && |dma_src_cnt_d2 == 1'b1)) begin
+        trsp_src_ptr_reg <= trsp_src_ptr_reg + {26'h0, dma_src_d1_inc};
       end
     end
   end
@@ -147,16 +152,17 @@ module dma_obiread_fsm
           read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc};
         end else if (dma_conf_2d == 1'b1) begin
           if (read_ptr_update_sel == 1'b0) begin
-            if (dma_src_cnt_d1 == {14'h0, dma_cnt_du} && |dma_src_cnt_d2 == 1'b1) begin
+            if (dma_src_cnt_d1 == 1 && |dma_src_cnt_d2 == 1'b1) begin
               /* In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d1)*data_unit */
               read_ptr_reg <= read_ptr_reg + {9'h0, dma_src_d2_inc};
             end else begin
               read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc}; /* Increment of the d1 increment (stride) */
             end
           end else begin
-            if (dma_src_cnt_d1 == {14'h0, dma_cnt_du} && |dma_src_cnt_d2 == 1'b1) begin
+            /* In this case, perform the transposition */
+            if (dma_src_cnt_d1 == 1 && |dma_src_cnt_d2 == 1'b1) begin
               /* In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d1)*data_unit */
-              read_ptr_reg <= src_ptr_reg;
+              read_ptr_reg <= trsp_src_ptr_reg;
             end else begin
               read_ptr_reg <= read_ptr_reg + {9'h0, dma_src_d2_inc}; /* Increment of the d2 increment (stride) */
             end
@@ -254,6 +260,27 @@ module dma_obiread_fsm
     end
   end
 
+  // Input data shift: shift the input data to be on the LSB of the fifo
+  always_comb begin : proc_input_data
+
+    fifo_input[7:0]   = data_in_rdata[7:0];
+    fifo_input[15:8]  = data_in_rdata[15:8];
+    fifo_input[23:16] = data_in_rdata[23:16];
+    fifo_input[31:24] = data_in_rdata[31:24];
+
+    case (read_ptr_valid_reg[1:0])
+      2'b00: ;
+      2'b01: fifo_input[7:0] = data_in_rdata[15:8];
+
+      2'b10: begin
+        fifo_input[7:0]  = data_in_rdata[23:16];
+        fifo_input[15:8] = data_in_rdata[31:24];
+      end
+
+      2'b11: fifo_input[7:0] = data_in_rdata[31:24];
+    endcase
+  end
+
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Signal assignments */
@@ -270,7 +297,6 @@ module dma_obiread_fsm
   assign dma_conf_2d = reg2hw.dim_config.q == 1;
   assign dma_src_d1_inc = reg2hw.src_ptr_inc_d1.q;
   assign dma_src_d2_inc = reg2hw.src_ptr_inc_d2.q;
-  assign dma_cnt_du = dma_cnt_du_i;
   assign data_in_be_o = data_in_be;
   assign data_in_addr_o = data_in_addr;
   assign data_in_req_o = data_in_req;
@@ -279,6 +305,8 @@ module dma_obiread_fsm
   assign read_fifo_flush_o = fifo_flush;
   assign wait_for_rx = wait_for_rx_i;
   assign data_in_rvalid = data_in_rvalid_i;
+  assign data_in_rdata = data_in_rdata_i;
+  assign fifo_input_o = fifo_input;
 
 
 endmodule

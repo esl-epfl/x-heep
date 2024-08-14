@@ -127,12 +127,12 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
         dma_target_t tgt_src = {
                                     .ptr        = input_image_nchw,
-                                    .inc_du     = 1,
+                                    .inc_d1_du     = 1,
                                     .size_du    = IH*IW*CH,
                                     };
         dma_target_t tgt_dst = {
                                     .ptr        = output_data_ptr,
-                                    .inc_du     = 1
+                                    .inc_d1_du     = 1
                                     };
 
         dma_trans_t trans = {
@@ -255,7 +255,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                         input_image_ptr = &input_image_nchw[0] + get_index(CH, IH, IW, b, im_c, im_row, im_col);
                         tgt_src.ptr = input_image_ptr;
                         tgt_src.size_du = size_transfer;
-                        tgt_src.inc_du = STRIDES;
+                        tgt_src.inc_d1_du = STRIDES;
 
                         tgt_dst.ptr = output_data_ptr;
                         tgt_dst.size_du = size_transfer;
@@ -318,12 +318,12 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
         dma_target_t tgt_src = {
                                     .ptr        = input_image_nchw,
-                                    .inc_du     = STRIDES,
+                                    .inc_d1_du     = STRIDES,
                                     .type       = DMA_DATA_TYPE_WORD
                             };
         dma_target_t tgt_dst = {
                                     .ptr        = output_data_ptr,
-                                    .inc_du     = 1,
+                                    .inc_d1_du     = 1,
                                     .inc_d2_du  = 1
                                     };
 

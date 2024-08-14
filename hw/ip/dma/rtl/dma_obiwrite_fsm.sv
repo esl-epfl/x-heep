@@ -19,7 +19,6 @@ module dma_obiwrite_fsm
     input logic dma_start_i,
     input logic write_fifo_empty_i,
     input logic read_addr_fifo_empty_i,
-    input logic [2:0] dma_cnt_du_i,
     input logic [31:0] fifo_output_i,
     input logic wait_for_tx_i,
     input logic address_mode_i,
@@ -50,7 +49,6 @@ module dma_obiwrite_fsm
 
   logic dma_conf_1d;
   logic dma_conf_2d;
-  logic [2:0] dma_cnt_du;
   logic dma_done;
   logic address_mode;
   logic dma_start;
@@ -111,15 +109,15 @@ module dma_obiwrite_fsm
       end else if (data_out_gnt == 1'b1) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
-          dma_dst_cnt_d1 <= dma_dst_cnt_d1 - {14'h0, dma_cnt_du};
+          dma_dst_cnt_d1 <= dma_dst_cnt_d1 - 1;
         end else if (dma_conf_2d == 1'b1) begin
           // 2D case
-          if (dma_dst_cnt_d1 == {14'h0, dma_cnt_du}) begin
+          if (dma_dst_cnt_d1 == 1) begin
             // In this case, the d1 is finished, so we need to reset the d2 size
             dma_dst_cnt_d1 <= {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q};
           end else begin
             // In this case, the d1 isn't finished, so we need to decrement the d1 size
-            dma_dst_cnt_d1 <= dma_dst_cnt_d1 - {14'h0, dma_cnt_du};
+            dma_dst_cnt_d1 <= dma_dst_cnt_d1 - 1;
           end
         end
       end
@@ -163,7 +161,7 @@ module dma_obiwrite_fsm
         if (dma_conf_1d == 1'b1) begin
           write_ptr_reg <= write_ptr_reg + {26'h0, dma_dst_d1_inc};
         end else if (dma_conf_2d == 1'b1) begin
-          if (dma_dst_cnt_d1 == {14'h0, dma_cnt_du}) begin
+          if (dma_dst_cnt_d1 == 1) begin
             // In this case, the d1 is finished, so we need to increment the pointer by sizeof(d1)*data_unit*strides
             write_ptr_reg <= write_ptr_reg + {9'h0, dma_dst_d2_inc};
           end else begin
@@ -336,7 +334,6 @@ module dma_obiwrite_fsm
   assign fifo_output = fifo_output_i;
   assign dma_dst_d1_inc = reg2hw.dst_ptr_inc_d1.q;
   assign dma_dst_d2_inc = reg2hw.dst_ptr_inc_d2.q;
-  assign dma_cnt_du = dma_cnt_du_i;
   assign wait_for_tx = wait_for_tx_i;
   assign data_out_be_o = data_out_be;
   assign data_out_addr_o = data_out_addr;

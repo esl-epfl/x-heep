@@ -20,24 +20,6 @@ int output_data[OH_NCHW*OW_NCHW];
 char im2col_done = 0;
 int ifr_status;
 
-/* Function used to simplify register operations */
-static inline volatile void write_register( uint32_t  p_val,
-                                uint32_t  p_offset,
-                                uint32_t  p_mask,
-                                uint8_t   p_sel,
-                                uint32_t  p_spc_addr ) 
-{
-    uint32_t* addr  =  (p_spc_addr + p_offset);
-    /*
-     * An intermediate variable "value" is used to prevent writing twice into
-     * the register.
-     */
-    uint32_t value  =  *addr;
-    value           &= ~( p_mask << p_sel );
-    value           |= (p_val & p_mask) << p_sel;
-    *addr = value;
-};
-
 void handler_irq_im2col_spc( void )
 {
   im2col_done = 1;
@@ -179,12 +161,11 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
         dma_target_t tgt_src = {
                                     .ptr        = input_image_nchw,
-                                    .inc_du     = 1,
-                                    .size_du    = IH*IW*CH,
+                                    .inc_d1_du     = 1,
                                     };
         dma_target_t tgt_dst = {
                                     .ptr        = output_data_ptr,
-                                    .inc_du     = 1
+                                    .inc_d1_du     = 1
                                     };
 
         dma_trans_t trans = {
@@ -309,11 +290,9 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     
                         input_image_ptr = &input_image_nchw[0] + get_index(CH, IH, IW, b, im_c, im_row, im_col);
                         tgt_src.ptr = input_image_ptr;
-                        tgt_src.size_du = size_transfer;
-                        tgt_src.inc_du = STRIDE_D1;
+                        tgt_src.inc_d1_du = STRIDE_D1;
 
                         tgt_dst.ptr = output_data_ptr;
-                        tgt_dst.size_du = size_transfer;
                         
                         dma_run(&trans);
 
@@ -372,12 +351,12 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
         dma_target_t tgt_src = {
                                     .ptr        = input_image_nchw,
-                                    .inc_du     = STRIDE_D1,
+                                    .inc_d1_du     = STRIDE_D1,
                                     .type       = DMA_DATA_TYPE_WORD
                             };
         dma_target_t tgt_dst = {
                                     .ptr        = output_data_ptr,
-                                    .inc_du     = 1,
+                                    .inc_d1_du     = 1,
                                     .inc_d2_du  = 1
                                     };
 
@@ -516,16 +495,14 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 input_image_ptr = &input_image_nchw[0] + index;
                 PRINTF_DEB("\n\rsrc_ptr: %x dst_ptr: %x\n\r", input_image_ptr, output_data_ptr);
                 tgt_src.ptr = input_image_ptr;
-                tgt_src.size_du = size_transfer;
-                tgt_src.size_d2_du = size_transfer_d2;
                 tgt_src.inc_d2_du = src_inc_d2;
 
                 tgt_dst.ptr = output_data_ptr;
-                tgt_dst.size_du = size_transfer;
-                tgt_dst.size_d2_du = size_transfer_d2;
 
                 trans.src = &tgt_src;
                 trans.dst = &tgt_dst;
+                trans.size_d1_du = size_transfer;
+                trans.size_d2_du = size_transfer_d2;
                 trans.pad_top_du = n_zeros_top;
                 trans.pad_left_du = n_zeros_left;
                 trans.pad_right_du = n_zeros_right;

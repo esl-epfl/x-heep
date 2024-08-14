@@ -464,7 +464,7 @@ module im2col_spc
       end
 
       WRITE_TOP_PAD: begin
-        dma_wdata = {24'h0, fifo_output.n_zeros_top} << (2 - reg2hw.data_type.q) & 32'h3f;
+        dma_wdata = {24'h0, fifo_output.n_zeros_top};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                   DMA_TOP_PAD_OFFSET;
@@ -472,7 +472,7 @@ module im2col_spc
       end
 
       WRITE_BOTTOM_PAD: begin
-        dma_wdata = {24'h0, fifo_output.n_zeros_bottom} << (2 - reg2hw.data_type.q) & 32'h3f;
+        dma_wdata = {24'h0, fifo_output.n_zeros_bottom};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                   DMA_BOTTOM_PAD_OFFSET;
@@ -480,7 +480,7 @@ module im2col_spc
       end
 
       WRITE_LEFT_PAD: begin
-        dma_wdata = {24'h0, fifo_output.n_zeros_left} << (2 - reg2hw.data_type.q) & 32'h3f;
+        dma_wdata = {24'h0, fifo_output.n_zeros_left};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                   DMA_LEFT_PAD_OFFSET;
@@ -488,7 +488,7 @@ module im2col_spc
       end
 
       WRITE_RIGHT_PAD: begin
-        dma_wdata = {24'h0, fifo_output.n_zeros_right} << (2 - reg2hw.data_type.q) & 32'h3f;
+        dma_wdata = {24'h0, fifo_output.n_zeros_right};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                   DMA_RIGHT_PAD_OFFSET;
@@ -544,7 +544,7 @@ module im2col_spc
       end
 
       WRITE_SIZE_D2: begin
-        dma_wdata = {16'h0, fifo_output.size_du_d2} << (2 - reg2hw.data_type.q) & 32'hffff;
+        dma_wdata = {16'h0, fifo_output.size_du_d2};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                   DMA_SIZE_D2_OFFSET;
@@ -552,7 +552,7 @@ module im2col_spc
       end
 
       WRITE_SIZE_D1: begin
-        dma_wdata = {16'h0, fifo_output.size_du_d1} << (2 - reg2hw.data_type.q) & 32'hffff;
+        dma_wdata = {16'h0, fifo_output.size_du_d1};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                   DMA_SIZE_D1_OFFSET;

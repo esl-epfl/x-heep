@@ -89,7 +89,7 @@ module dma_obiread_addr_fsm
       if (dma_start == 1'b1 && address_mode) begin
         dma_addr_cnt <= {16'h0, reg2hw.size_d1.q};
       end else if (data_addr_in_gnt == 1'b1 && address_mode) begin
-        dma_addr_cnt <= dma_addr_cnt - 32'h4;  //address always 32b
+        dma_addr_cnt <= dma_addr_cnt - 1;  //address always 32b
       end
     end
   end

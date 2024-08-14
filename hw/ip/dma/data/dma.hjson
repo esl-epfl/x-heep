@@ -37,7 +37,7 @@
       ]
     },
     { name:     "SIZE_D1",
-      desc:     "Number of bytes to copy from, defined with respect to the first dimension - Once a value is written, the copy starts",
+      desc:     "Number of elements to copy from, defined with respect to the first dimension - Once a value is written, the copy starts",
       swaccess: "rw",
       hwaccess: "hro",
       hwqe:     "true", // enable `qe` latched signal of software write pulse
@@ -47,7 +47,7 @@
       ]
     },
     { name:     "SIZE_D2",
-      desc:     "Number of bytes to copy from, defined with respect to the second dimension",
+      desc:     "Number of elements to copy from, defined with respect to the second dimension",
       swaccess: "rw",
       hwaccess: "hro",
       hwqe:     "true", // enable `qe` latched signal of software write pulse

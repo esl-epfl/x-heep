@@ -30,7 +30,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA 1
-#define PRINTF_IN_SIM 1
+#define PRINTF_IN_SIM 0
 
 #if TARGET_SIM && PRINTF_IN_SIM
 #define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
@@ -112,7 +112,7 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     }                                                                                       \
     if (errors != 0)                                                                        \
     {                                                                                       \
-        PRINTF("DMA failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b); \
+        PRINTF("DMA failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du); \
         return EXIT_FAILURE;                                                                \
     }
 
@@ -120,14 +120,12 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     tgt_src.ptr = (uint8_t *)src;                                \
     tgt_src.inc_du = 1;                                          \
     tgt_src.inc_d2_du = 0;                                       \
-    tgt_src.size_du = data_size;                                 \
     tgt_src.trig = DMA_TRIG_MEMORY;                              \
     tgt_src.type = dma_src_type;                                 \
     tgt_src.env = NULL;                                          \
     tgt_dst.ptr = (uint8_t *)dst;                                \
     tgt_dst.inc_du = 1;                                          \
     tgt_dst.inc_d2_du = 0;                                       \
-    tgt_dst.size_du = data_size;                                 \
     tgt_dst.trig = DMA_TRIG_MEMORY;                              \
     tgt_dst.type = dma_dst_type;                                 \
     tgt_dst.env = NULL;                                          \
@@ -136,6 +134,7 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     trans.src_addr = &tgt_addr;                                  \
     trans.src_type = dma_src_type;                               \
     trans.dst_type = dma_dst_type;                               \
+    trans.size_d1_du = data_size;                                \
     trans.mode = DMA_TRANS_MODE_SINGLE;                          \
     trans.win_du = 0;                                            \
     trans.sign_ext = signed;                                     \
@@ -249,15 +248,14 @@ int main(int argc, char *argv[])
     dma_target_t tgt_addr = {
         .ptr = (uint8_t *)test_addr_4B_PTR,
         .inc_du = 1,
-        .size_du = TEST_DATA_SIZE,
         .trig = DMA_TRIG_MEMORY,
     };
 
 #ifdef TEST_SINGLE_MODE
 
-    PRINTF("\n\n\r===================================\n\n\r");
-    PRINTF("    TESTING SINGLE MODE   ");
-    PRINTF("\n\n\r===================================\n\n\r");
+    //PRINTF("\n\n\r===================================\n\n\r");
+    //PRINTF("    TESTING SINGLE MODE   ");
+    //PRINTF("\n\n\r===================================\n\n\r");
 
     TEST_SINGLE
 
@@ -266,19 +264,18 @@ int main(int argc, char *argv[])
     // Initialize the DMA for the next tests
     tgt_src.ptr = (uint8_t *)test_data_4B;
     tgt_src.inc_du = 1;
-    tgt_src.size_du = TEST_DATA_SIZE;
     tgt_src.trig = DMA_TRIG_MEMORY;
     tgt_src.type = DMA_DATA_TYPE_WORD;
 
     tgt_dst.ptr = (uint8_t *)copied_data_4B;
     tgt_dst.inc_du = 1;
-    tgt_dst.size_du = TEST_DATA_LARGE;
     tgt_dst.trig = DMA_TRIG_MEMORY;
     tgt_dst.type = DMA_DATA_TYPE_WORD;
 
     trans.src = &tgt_src;
     trans.dst = &tgt_dst;
     trans.src_addr = &tgt_addr;
+    trans.size_d1_du = TEST_DATA_SIZE;
     trans.src_type = DMA_DATA_TYPE_WORD;
     trans.dst_type = DMA_DATA_TYPE_WORD;
     trans.mode = DMA_TRANS_MODE_SINGLE;
@@ -288,9 +285,9 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_ADDRESS_MODE
 
-    PRINTF("\n\n\r===================================\n\n\r");
-    PRINTF("    TESTING ADDRESS MODE   ");
-    PRINTF("\n\n\r===================================\n\n\r");
+    //PRINTF("\n\n\r===================================\n\n\r");
+    //PRINTF("    TESTING ADDRESS MODE   ");
+    //PRINTF("\n\n\r===================================\n\n\r");
 
     // Prepare the data
     for (int i = 0; i < TEST_DATA_SIZE; i++)
@@ -306,7 +303,7 @@ int main(int argc, char *argv[])
 
     PRINTF(">> Finished transaction. \n\r");
 
-    for (uint32_t i = 0; i < trans.size_b >> 2; i++)
+    for (uint32_t i = 0; i < trans.size_d1_du; i++)
     {
         if (copied_data_4B[i * 2] != test_data_4B[i])
         {
@@ -321,7 +318,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        PRINTF("DMA address mode failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b);
+        PRINTF("DMA address mode failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du);
         return EXIT_FAILURE;
     }
 
@@ -361,7 +358,7 @@ int main(int argc, char *argv[])
 
     PRINTF(">> Finished transaction. \n\r");
 
-    for (uint32_t i = 0; i < trans.size_b >> 2; i++)
+    for (uint32_t i = 0; i < trans.size_d1_du; i++)
     {
         if (ext_copied_data_4B[i * 2] != test_data_4B[i])
         {
@@ -376,7 +373,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        PRINTF("DMA address mode in external memory failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b);
+        PRINTF("DMA address mode in external memory failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du);
         return EXIT_FAILURE;
     }
 
@@ -399,13 +396,10 @@ int main(int argc, char *argv[])
     }
 
     tgt_src.ptr = (uint8_t *)test_data_large;
-    tgt_src.size_du = TEST_DATA_LARGE;
-    tgt_dst.size_du = TEST_DATA_LARGE;
+    trans.size_d1_du = TEST_DATA_LARGE;
     trans.mode = DMA_TRANS_MODE_SINGLE;
 
-    // trans.end = DMA_TRANS_END_INTR_WAIT; // This option makes no sense, because the launch is blocking the program until the trans finishes.
     trans.end = DMA_TRANS_END_INTR;
-    // trans.end = DMA_TRANS_END_POLLING;
 
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
     PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ? "Ok!" : "Error!");
@@ -477,7 +471,7 @@ int main(int argc, char *argv[])
     }
 
     tgt_src.ptr = (uint8_t *)test_data_large;
-    tgt_src.size_du = TEST_DATA_LARGE;
+    trans.size_d1_du = TEST_DATA_LARGE;
 
     tgt_src.type = DMA_DATA_TYPE_WORD;
     tgt_dst.type = DMA_DATA_TYPE_WORD;

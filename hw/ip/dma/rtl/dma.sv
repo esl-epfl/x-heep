@@ -67,7 +67,6 @@ module dma #(
   logic padding_fsm_done;
 
   logic [31:0] read_ptr_valid_reg;
-  logic [2:0] dma_cnt_du;
   logic dma_start;
   logic dma_done;
   logic dma_window_event;
@@ -117,6 +116,7 @@ module dma #(
   logic read_fifo_empty;
   logic read_fifo_alm_full;
   logic read_fifo_pop;
+  logic [31:0] read_fifo_input;
   logic [31:0] read_fifo_output;
 
   logic read_addr_fifo_full;
@@ -144,7 +144,6 @@ module dma #(
     DMA_DATA_TYPE_BYTE_
   } dma_data_type_t;
 
-  dma_data_type_t dst_data_type;
 
   /* FSM states */
   enum {
@@ -179,7 +178,7 @@ module dma #(
       .empty_o(read_fifo_empty),
       .usage_o(read_fifo_usage),
       // as long as the queue is not full we can push new data
-      .data_i(data_in_rdata),
+      .data_i(read_fifo_input),
       .push_i(data_in_rvalid),
       // as long as the queue is not empty we can pop new elements
       .data_o(read_fifo_output),
@@ -251,10 +250,11 @@ module dma #(
       .ext_dma_stop_i,
       .read_fifo_full_i(read_fifo_full),
       .read_fifo_alm_full_i(read_fifo_alm_full),
-      .dma_cnt_du_i(dma_cnt_du),
       .wait_for_rx_i(wait_for_rx),
       .data_in_gnt_i(data_in_gnt),
       .data_in_rvalid_i(data_in_rvalid),
+      .data_in_rdata_i(data_in_rdata),
+      .fifo_input_o(read_fifo_input),
       .data_in_req_o(data_in_req),
       .data_in_we_o(data_in_we),
       .data_in_be_o(data_in_be),
@@ -291,7 +291,6 @@ module dma #(
       .write_fifo_full_i(write_fifo_full),
       .write_fifo_alm_full_i(write_fifo_alm_full),
       .data_read_i(read_fifo_output),
-      .dma_cnt_du_i(dma_cnt_du),
       .read_ptr_valid_reg_i(read_ptr_valid_reg),
       .padding_fsm_done_o(padding_fsm_done),
       .write_fifo_push_o(write_fifo_push),
@@ -307,7 +306,6 @@ module dma #(
       .dma_start_i(dma_start),
       .write_fifo_empty_i(write_fifo_empty),
       .read_addr_fifo_empty_i(read_addr_fifo_empty),
-      .dma_cnt_du_i(dma_cnt_du),
       .fifo_output_i(write_fifo_output),
       .wait_for_tx_i(wait_for_tx),
       .address_mode_i(address_mode),
@@ -468,15 +466,6 @@ module dma #(
     end
   end
 
-  /* Compute the data unit */
-  always_comb begin
-    case (dst_data_type)
-      DMA_DATA_TYPE_WORD: dma_cnt_du = 3'h4;
-      DMA_DATA_TYPE_HALF_WORD: dma_cnt_du = 3'h2;
-      DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE_: dma_cnt_du = 3'h1;
-    endcase
-  end
-
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
       dma_padding_fsm_on <= 1'b0;
@@ -538,8 +527,6 @@ module dma #(
 
   assign hw2reg.transaction_ifr.d = transaction_ifr;
   assign hw2reg.window_ifr.d = window_ifr;
-
-  assign dst_data_type = dma_data_type_t'(reg2hw.dst_data_type.q);
 
   assign hw2reg.status.ready.d = (dma_state_q == DMA_READY);
   assign hw2reg.status.window_done.d = window_done_q;

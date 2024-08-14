@@ -334,25 +334,25 @@ int main()
                         dma_peri(i) );
         
         /* Padding configuration */
-        write_register( TOP_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+        write_register( TOP_PAD,
                         DMA_PAD_TOP_REG_OFFSET,
                         DMA_PAD_TOP_PAD_MASK,
                         DMA_PAD_TOP_PAD_OFFSET,
                         dma_peri(i) );
         
-        write_register( RIGHT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+        write_register( RIGHT_PAD,
                         DMA_PAD_RIGHT_REG_OFFSET,
                         DMA_PAD_RIGHT_PAD_MASK,
                         DMA_PAD_RIGHT_PAD_OFFSET,
                         dma_peri(i) );
         
-        write_register( LEFT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+        write_register( LEFT_PAD,
                         DMA_PAD_LEFT_REG_OFFSET,
                         DMA_PAD_LEFT_PAD_MASK,
                         DMA_PAD_LEFT_PAD_OFFSET,
                         dma_peri(i) );
         
-        write_register( BOTTOM_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+        write_register( BOTTOM_PAD,
                         DMA_PAD_BOTTOM_REG_OFFSET,
                         DMA_PAD_BOTTOM_PAD_MASK,
                         DMA_PAD_BOTTOM_PAD_OFFSET,
@@ -369,13 +369,13 @@ int main()
     for (int i=0; i<DMA_CH_NUM; i++)
     {
         /* Set the sizes to start the transaction */
-        write_register( SIZE_EXTR_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+        write_register( SIZE_EXTR_D2,
                         DMA_SIZE_D2_REG_OFFSET,
                         DMA_SIZE_D2_SIZE_MASK,
                         DMA_SIZE_D2_SIZE_OFFSET,
                         dma_peri(i) );
         
-        write_register( SIZE_EXTR_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+        write_register( SIZE_EXTR_D1,
                         DMA_SIZE_D1_REG_OFFSET,
                         DMA_SIZE_D1_SIZE_MASK,
                         DMA_SIZE_D1_SIZE_OFFSET,
@@ -544,22 +544,22 @@ int main()
     dma_init(NULL);
 
     tgt_src.ptr            = (uint8_t *) test_data;
-    tgt_src.inc_du         = SRC_INC_D1;
+    tgt_src.inc_d1_du         = SRC_INC_D1;
     tgt_src.inc_d2_du      = SRC_INC_D2;
-    tgt_src.size_du        = SIZE_EXTR_D1;
-    tgt_src.size_d2_du     = SIZE_EXTR_D2;
     tgt_src.trig           = DMA_TRIG_MEMORY;
     tgt_src.type           = DMA_DATA_TYPE;
 
     for (int c=0; c<DMA_CH_NUM; c++)
     { 
         tgt_dst[c].ptr            = (uint8_t *) copied_data_2D_DMA[c];
-        tgt_dst[c].inc_du         = DST_INC_D1;
+        tgt_dst[c].inc_d1_du         = DST_INC_D1;
         tgt_dst[c].inc_d2_du      = DST_INC_D2;
         tgt_dst[c].trig           = DMA_TRIG_MEMORY;
 
         trans[c].src            = &tgt_src;
         trans[c].dst            = &tgt_dst[c];
+        trans[c].size_d1_du     = SIZE_EXTR_D1;
+        trans[c].size_d2_du     = SIZE_EXTR_D2;
         trans[c].mode           = DMA_TRANS_MODE_SINGLE;
         trans[c].dim            = DMA_DIM_CONF_2D;
         trans[c].pad_top_du     = TOP_PAD;
@@ -755,18 +755,14 @@ int main()
     #endif
 
     tgt_src.ptr            = (uint8_t *) test_data;
-    tgt_src.inc_du         = SRC_INC_D1;
+    tgt_src.inc_d1_du         = SRC_INC_D1;
     tgt_src.inc_d2_du      = SRC_INC_D2;
-    tgt_src.size_du        = SIZE_EXTR_D1;
-    tgt_src.size_d2_du     = SIZE_EXTR_D2;
     tgt_src.trig           = DMA_TRIG_MEMORY;
     tgt_src.type           = DMA_DATA_TYPE;
 
     tgt_src_trsp.ptr            = (uint8_t *) test_data;
-    tgt_src_trsp.inc_du         = SRC_INC_TRSP_D1;
+    tgt_src_trsp.inc_d1_du         = SRC_INC_TRSP_D1;
     tgt_src_trsp.inc_d2_du      = SRC_INC_TRSP_D2;
-    tgt_src_trsp.size_du        = SIZE_EXTR_D1;
-    tgt_src_trsp.size_d2_du     = SIZE_EXTR_D2;
     tgt_src_trsp.trig           = DMA_TRIG_MEMORY;
     tgt_src_trsp.type           = DMA_DATA_TYPE;
 
@@ -778,7 +774,7 @@ int main()
     for (int c=0; c<DMA_CH_NUM; c++)
     { 
         tgt_dst[c].ptr            = (uint8_t *) copied_data_2D_DMA[c];
-        tgt_dst[c].inc_du         = DST_INC_D1;
+        tgt_dst[c].inc_d1_du         = DST_INC_D1;
         tgt_dst[c].inc_d2_du      = DST_INC_D2;
         tgt_dst[c].trig           = DMA_TRIG_MEMORY;
 
@@ -786,6 +782,8 @@ int main()
         {
             trans[c].src            = &tgt_src;
             trans[c].dst            = &tgt_dst[c];
+            trans[c].size_d1_du     = SIZE_EXTR_D1;
+            trans[c].size_d2_du     = SIZE_EXTR_D2;
             trans[c].mode           = DMA_TRANS_MODE_SINGLE;
             trans[c].dim            = DMA_DIM_CONF_2D;
             trans[c].pad_top_du     = TOP_PAD;
@@ -801,6 +799,8 @@ int main()
         {
             trans[c].src            = &tgt_src_trsp;
             trans[c].dst            = &tgt_dst[c];
+            trans[c].size_d1_du     = SIZE_EXTR_D1;
+            trans[c].size_d2_du     = SIZE_EXTR_D2;
             trans[c].mode           = DMA_TRANS_MODE_SINGLE;
             trans[c].dim            = DMA_DIM_CONF_2D;
             trans[c].pad_top_du     = TOP_PAD;
@@ -1059,20 +1059,20 @@ int main()
     dma_init(NULL);
 
     tgt_src.ptr            = (uint8_t *) test_data;
-    tgt_src.inc_du         = SRC_INC_D1;
+    tgt_src.inc_d1_du         = SRC_INC_D1;
     tgt_src.inc_d2_du      = SRC_INC_D2;
-    tgt_src.size_du        = SIZE_EXTR_D1;
-    tgt_src.size_d2_du     = SIZE_EXTR_D2;
     tgt_src.trig           = DMA_TRIG_MEMORY;
     tgt_src.type           = DMA_DATA_TYPE;
 
     tgt_dst[1].ptr            = (uint8_t *) copied_data_2D_DMA[1];
-    tgt_dst[1].inc_du         = DST_INC_D1;
+    tgt_dst[1].inc_d1_du         = DST_INC_D1;
     tgt_dst[1].inc_d2_du      = DST_INC_D2;
     tgt_dst[1].trig           = DMA_TRIG_MEMORY;
 
     trans[1].src            = &tgt_src;
     trans[1].dst            = &tgt_dst[1];
+    trans[1].size_d1_du     = SIZE_EXTR_D1;
+    trans[1].size_d2_du     = SIZE_EXTR_D2;
     trans[1].mode           = DMA_TRANS_MODE_SINGLE;
     trans[1].dim            = DMA_DIM_CONF_2D;
     trans[1].pad_top_du     = TOP_PAD;
