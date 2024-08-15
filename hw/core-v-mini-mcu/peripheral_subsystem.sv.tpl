@@ -601,4 +601,22 @@ module peripheral_subsystem
 % endif
 % endfor
 
+% for peripheral in peripherals.items():
+% if peripheral[0] in ("multi3x"):
+% if peripheral[1]['is_included'] in ("yes"):
+  multi3x #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) multi3x_i (
+      .clk_i(clk_cg),
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::MULTI3X_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::MULTI3X_IDX])
+  );
+% else:
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::MULTI3X_IDX] = '0;
+% endif
+% endif
+% endfor
+
 endmodule : peripheral_subsystem

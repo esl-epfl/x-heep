@@ -36,6 +36,7 @@ filesets:
     - x-heep:ip:fast_intr_ctrl
     - x-heep:ip:obi_fifo
     - x-heep:ip:pdm2pcm
+    - x-heep:ip:multi3x
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -94,6 +95,7 @@ filesets:
     - hw/system/x_heep_system.vlt
     - hw/simulation/simulation.vlt
     - hw/ip/i2s/i2s.vlt
+    - hw/ip/multi3x/multi3x.vlt
     file_type: vlt
 
   rtl-fpga:

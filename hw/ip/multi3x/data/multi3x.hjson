@@ -1,0 +1,31 @@
+// Author: Ziyue Feng 
+// Date 15.08.2024
+
+{ name: "multi3x"
+  clock_primary: "clk_i"
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ]
+  regwidth: "32"
+  registers: [
+
+    { name:     "DATAIN"
+      desc:     "Data to be multiplied, written by cpu"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "31:0",  name: "DATAIN", desc: "32bits data" }
+      ]
+    }
+
+    { name:     "DATAOUT"
+      desc:     "Result of multiplying DATAIN by 3, updated by peripheral hardware"
+      swaccess: "ro"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "31:0",  name: "DATAOUT", desc: "32bits data" }
+      ]
+    }
+
+  ]
+}

@@ -1,0 +1,29 @@
+CAPI=2:
+
+name: "x-heep:ip:multi3x"
+description: "This peripheral multiplies the written 32-bit value by 3"
+
+# Copyright 2022 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+# Author: Ziyue Feng
+# Date: 15.08.2024
+
+filesets:
+  files_rtl:
+    depend:
+#      - lowrisc:prim:all
+#      - pulp-platform.org::register_interface
+#      - pulp-platform.org::common_cells
+    files:
+      - rtl/multi3x_reg_pkg.sv 
+      - rtl/multi3x_reg_top.sv 
+      - rtl/multi3x.sv
+    
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl
