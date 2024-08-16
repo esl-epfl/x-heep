@@ -28,7 +28,7 @@
 #define GPIO_TOGGLE_READ 8 // BCS IT HAS TO BE INTERRUPT
 #define GPIO_INTR  GPIO_TOGGLE_READ +1
 
-int32_t NUM_TO_CHECK = 9;
+int32_t NUM_TO_CHECK = 429496729;
 int32_t NUM_TO_BE_CHECKED;
 
 plic_result_t plic_res;
@@ -48,18 +48,18 @@ void handler_1()
 
 int main(int argc, char *argv[])
 {
-
-    //REG_CONFIG();
+    printf("handler 1\n");
+    REG_CONFIG();
     AXI_ISOLATE();
 
     
 
     printf("ASD\n");
-    //WRITE_SL();
+    WRITE_SL();
     
     
 
-    printf("DONE\n");
+    //printf("DONE\n");
 
     return EXIT_SUCCESS;
 }
@@ -84,15 +84,8 @@ void __attribute__((optimize("00"))) WRITE_SL(void)
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     *addr_p = NUM_TO_CHECK;
     CSR_READ(CSR_REG_MCYCLE, &cycles1);
-    printf("writing 32 bits takes  %d cycles\n\r", cycles1);
-    // printf("asd\n");
+    //printf("writing 32 bits takes  %d cycles\n\r", cycles1);
 
-    //*addr_p = NUM_TO_CHECK;
-    //*addr_p = 28;
-    //*addr_p = 47;
-    //*addr_p = 5;
-    //*addr_p = 3;
-    // printf("writing %d  to %p \n",*addr_p, addr_p);
 }
 
 
@@ -103,17 +96,15 @@ void __attribute__((optimize("00"))) READ_SL(void)
 
 }
 
-void __attribute__((optimize("00"))) REG_CONFIG(void)
-{
-    volatile int32_t *addr_p_reg = (int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
-    *addr_p_reg = (*addr_p_reg) | 0x00000001; // clock enable
-                                              // printf("addr_p %x\n", *addr_p_reg);
+void __attribute__ ((optimize("00"))) REG_CONFIG(void){
+    printf("jajajjajaj 1\n");
+    volatile int32_t *addr_p_reg =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
+    printf("ffffff 1\n");
+    *addr_p_reg = (*addr_p_reg)| 0x00000001; 
+    printf("ggggggg 1\n");
+    *addr_p_reg = (*addr_p_reg)& 0x11111101; // rst on
+    *addr_p_reg = (*addr_p_reg)| 0x00000002; // rst oFF
 
-    *addr_p_reg = (*addr_p_reg) & 0x11111101; // rst on
-    *addr_p_reg = (*addr_p_reg) | 0x00000002; // rst oFF
-
-    // int32_t *addr_p_reg_flow_ctrl =(int32_t *)(SERIAL_LINK_START_ADDRESS  + SERIAL_LINK_SINGLE_CHANNEL_FLOW_CONTROL_FIFO_CLEAR_REG_OFFSET); //0x04000000
-    //*addr_p_reg_flow_ctrl = (*addr_p_reg_flow_ctrl)& 0x00000001; //0x11111110;
 }
 
 void __attribute__((optimize("00"))) RAW_MODE_EN(void)
@@ -140,41 +131,12 @@ void __attribute__((optimize("00"))) RAW_MODE_EN(void)
     *addr_p_RAW_MODE_IN_DATA_REG = (*addr_p_RAW_MODE_IN_DATA_REG) | 0x00000001;
 }
 
-void __attribute__((optimize("00"))) AXI_ISOLATE(void)
-{
-    int32_t *addr_p_reg_ISOLATE_IN = (int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
-    printf("Axi isolate\n");
+void __attribute__ ((optimize("00"))) AXI_ISOLATE(void){
+    int32_t *addr_p_reg_ISOLATE_IN =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
+
     //*addr_p_reg_ISOLATE_IN = (*addr_p_reg_ISOLATE_IN)& (8 << 0); // axi_in_isolate
-    *addr_p_reg_ISOLATE_IN &= ~(1 << 8);
-    //int32_t *addr_p_reg_ISOLATE_OUT = (int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
-    //*addr_p_reg_ISOLATE_OUT &= ~(1 << 9); // axi_out_isolate
-}
+    *addr_p_reg_ISOLATE_IN &= ~(1<<8);
+    int32_t *addr_p_reg_ISOLATE_OUT =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
+    *addr_p_reg_ISOLATE_OUT &= ~(1<<9); // axi_out_isolate
+    }
 
-void __attribute__((optimize("00"))) EXTERNAL_BUS_SL_CONFIG(void)
-{
-    // /*                     -------                     */
-    // /*  SL TESTHARNESS EXTERNAL BUS X-heep system      */
-
-    // /*  REG CONFIG                   */
-    // /*  CTRL register                */
-    volatile int32_t *addr_p_reg_ext = (int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); // 0x04000000
-    *addr_p_reg_ext = (*addr_p_reg_ext) | 0x00000001;                                                                                    // ctrl clock enable external
-
-    *addr_p_reg_ext = (*addr_p_reg_ext) & 0x11111101; // rst on
-    *addr_p_reg_ext = (*addr_p_reg_ext) | 0x00000002; // rst oFF
-
-    // //int32_t *addr_p_reg_flow_ctrl_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000  + SERIAL_LINK_SINGLE_CHANNEL_FLOW_CONTROL_FIFO_CLEAR_REG_OFFSET); //0x04000000
-    // //*addr_p_reg_flow_ctrl_ext = (*addr_p_reg_flow_ctrl_ext)& 0x11111110;
-
-    // /*  AXI ISOLATE                   */
-    // all channels are isolated by default
-    int32_t *addr_p_reg_ISOLATE_IN_ext = (int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
-    *addr_p_reg_ISOLATE_IN_ext &= ~(1 << 8);
-    int32_t *addr_p_reg_ISOLATE_OUT_ext = (int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
-    *addr_p_reg_ISOLATE_OUT_ext &= ~(1 << 9);
-
-    // //int32_t *addr_p_reg_RAW_MODE_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000  + SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_EN_REG_OFFSET);
-    // //*addr_p_reg_RAW_MODE_ext = (*addr_p_reg_RAW_MODE_ext)| 0x00000001; // raw mode en
-    // //int32_t *addr_p_RAW_MODE_IN_CH_SEL_REG_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000 + SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_DATA_REG_OFFSET);
-    // //*addr_p_RAW_MODE_IN_CH_SEL_REG_ext = (*addr_p_RAW_MODE_IN_CH_SEL_REG_ext)| 0x00000001; // raw mode select channel
-}
