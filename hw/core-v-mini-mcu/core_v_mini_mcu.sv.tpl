@@ -556,8 +556,7 @@ ${pad.core_v_mini_mcu_interface}
 % for peripheral in peripherals.items():
 % if peripheral[0] in ("obi2axi"):
 % if peripheral[1]['is_included'] in ("yes"):
-
-  core2axi #(
+core2axi #(
     //.AXI4_WDATA_WIDTH(AXI_DATA_WIDTH),
     //.AXI4_RDATA_WIDTH(AXI_DATA_WIDTH)
   ) obi2axi_bridge_virtual_obi_i (
@@ -573,7 +572,7 @@ ${pad.core_v_mini_mcu_interface}
     .data_be_i(axi_sl_slave_req.be),
     .data_rdata_o(axi_sl_slave_resp.rdata),
     .data_wdata_i(axi_sl_slave_req.wdata),
-//    
+//
     .aw_id_o(axi_out_req_o.aw.id),
     .aw_addr_o(axi_out_req_o.aw.addr),
     .aw_len_o(axi_out_req_o.aw.len),
@@ -631,6 +630,30 @@ ${pad.core_v_mini_mcu_interface}
     .r_ready_o(axi_out_req_o.r_ready)
     //.r_size
   );
+
+  //axi_lite_from_mem #(
+  //  .MemAddrWidth    ( 32'd32    ),
+  //  .AxiAddrWidth    ( 32'd32    ),
+  //  .DataWidth       ( 32'd32       ),
+  //  .MaxRequests     ( 32'd2     ),  // fifo size 
+  //  //.AxiProt         ( AxiProt  ),
+  //  .axi_req_t       ( axi_req_t  ),
+  //  .axi_rsp_t       ( axi_resp_t )
+  //) i_axi_lite_from_mem (
+  //  .clk_i,
+  //  .rst_ni,
+  //  .mem_req_i(axi_sl_slave_req.req),
+  //  .mem_addr_i(axi_sl_slave_req.addr),
+  //  .mem_we_i(axi_sl_slave_req.we),
+  //  .mem_wdata_i(axi_sl_slave_req.wdata),
+  //  .mem_be_i(axi_sl_slave_req.be),
+  //  .mem_gnt_o(axi_sl_slave_resp.gnt),
+  //  .mem_rsp_valid_o(axi_sl_slave_resp.rvalid),
+  //  .mem_rsp_rdata_o(axi_sl_slave_resp.rdata),
+  //  .mem_rsp_error_o(),
+  //  .axi_req_o       ( axi_out_req_o   ),
+  //  .axi_rsp_i       ( axi_out_rsp_i   )
+  //);
 
 % else:
 

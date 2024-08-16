@@ -48,7 +48,7 @@ void handler_1()
 
 int main(int argc, char *argv[])
 {
-    printf("handler 1\n");
+    //printf("handler 1\n");
     REG_CONFIG();
     AXI_ISOLATE();
 
@@ -83,6 +83,7 @@ void __attribute__((optimize("00"))) WRITE_SL(void)
     CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     *addr_p = NUM_TO_CHECK;
+    *addr_p = 299393;
     CSR_READ(CSR_REG_MCYCLE, &cycles1);
     //printf("writing 32 bits takes  %d cycles\n\r", cycles1);
 
@@ -97,11 +98,11 @@ void __attribute__((optimize("00"))) READ_SL(void)
 }
 
 void __attribute__ ((optimize("00"))) REG_CONFIG(void){
-    printf("jajajjajaj 1\n");
+    //printf("jajajjajaj 1\n");
     volatile int32_t *addr_p_reg =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
-    printf("ffffff 1\n");
+    //printf("ffffff 1\n");
     *addr_p_reg = (*addr_p_reg)| 0x00000001; 
-    printf("ggggggg 1\n");
+    //printf("ggggggg 1\n");
     *addr_p_reg = (*addr_p_reg)& 0x11111101; // rst on
     *addr_p_reg = (*addr_p_reg)| 0x00000002; // rst oFF
 

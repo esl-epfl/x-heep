@@ -1,6 +1,6 @@
 CAPI=2:
 
-name : pulp-platform.org::axi:0.38.0
+name : pulp-platform.org::axi:0.39.4
 
 filesets:
   rtl:
@@ -17,11 +17,12 @@ filesets:
       # Level 2
       - src/axi_atop_filter.sv
       - src/axi_burst_splitter.sv
+      - src/axi_bus_compare.sv
       - src/axi_cdc_dst.sv
       - src/axi_cdc_src.sv
       - src/axi_cut.sv
       - src/axi_delayer.sv
-      - src/axi_demux.sv
+      - src/axi_demux_simple.sv
       - src/axi_dw_downsizer.sv
       - src/axi_dw_upsizer.sv
       - src/axi_fifo.sv
@@ -30,6 +31,8 @@ filesets:
       - src/axi_isolate.sv
       - src/axi_join.sv
       - src/axi_lite_demux.sv
+      - src/axi_lite_dw_converter.sv
+      - src/axi_lite_from_mem.sv
       - src/axi_lite_join.sv
       - src/axi_lite_lfsr.sv
       - src/axi_lite_mailbox.sv
@@ -39,31 +42,43 @@ filesets:
       - src/axi_lite_to_axi.sv
       - src/axi_modify_address.sv
       - src/axi_mux.sv
+      - src/axi_rw_join.sv
+      - src/axi_rw_split.sv
       - src/axi_serializer.sv
+      - src/axi_slave_compare.sv
       - src/axi_throttle.sv
-      - src/axi_to_mem.sv
+      - src/axi_to_detailed_mem.sv
       # Level 3
       - src/axi_cdc.sv
+      - src/axi_demux.sv
       - src/axi_err_slv.sv
       - src/axi_dw_converter.sv
+      - src/axi_from_mem.sv
       - src/axi_id_serialize.sv
       - src/axi_lfsr.sv
       - src/axi_multicut.sv
       - src/axi_to_axi_lite.sv
+      - src/axi_to_mem.sv
+      - src/axi_zero_mem.sv
+      # Level 4
+      - src/axi_interleaved_xbar.sv
+      - src/axi_iw_converter.sv
+      - src/axi_lite_xbar.sv
+      - src/axi_xbar_unmuxed.sv
       - src/axi_to_mem_banked.sv
       - src/axi_to_mem_interleaved.sv
       - src/axi_to_mem_split.sv
-      # Level 4
-      - src/axi_iw_converter.sv
-      - src/axi_lite_xbar.sv
-      - src/axi_xbar.sv
+      - src/axi_chan_compare.sv
+      - src/axi_dumper.sv
       - src/axi_sim_mem.sv
       - src/axi_test.sv
       # Level 5
+      - src/axi_xbar.sv
+      # Level 6
       - src/axi_xp.sv
     file_type : systemVerilogSource
     depend :
-      - ">=pulp-platform.org::common_cells:1.26.0"
+      - ">=pulp-platform.org::common_cells:1.31.1"
   benchs:
     files:
       - test/tb_axi_dw_pkg.sv
@@ -71,6 +86,7 @@ filesets:
       - test/axi_synth_bench.sv
       - test/tb_axi_addr_test.sv
       - test/tb_axi_atop_filter.sv
+      - test/tb_axi_bus_compare.sv
       - test/tb_axi_cdc.sv
       - test/tb_axi_delayer.sv
       - test/tb_axi_dw_downsizer.sv
@@ -78,6 +94,7 @@ filesets:
       - test/tb_axi_fifo.sv
       - test/tb_axi_isolate.sv
       - test/tb_axi_iw_converter.sv
+      - test/tb_axi_lite_dw_converter.sv
       - test/tb_axi_lite_mailbox.sv
       - test/tb_axi_lite_regs.sv
       - test/tb_axi_lite_to_apb.sv
@@ -86,6 +103,7 @@ filesets:
       - test/tb_axi_modify_address.sv
       - test/tb_axi_serializer.sv
       - test/tb_axi_sim_mem.sv
+      - test/tb_axi_slave_compare.sv
       - test/tb_axi_to_axi_lite.sv
       - test/tb_axi_to_mem_banked.sv
       - test/tb_axi_xbar.sv

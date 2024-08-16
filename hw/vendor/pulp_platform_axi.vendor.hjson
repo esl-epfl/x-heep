@@ -8,7 +8,8 @@
   upstream: {
     url: "https://github.com/pulp-platform/axi.git",
     //rev: "ac5deb3ff086aa34b168f392c051e92603d6c0e2",
-    rev: "2f395b176bee1c769c80f060a4345fda965bb04b", // serial link version
+    //rev: "2f395b176bee1c769c80f060a4345fda965bb04b", // serial link version
+    rev: "4e54ac6766b160217a83a74d5a23af9bbf59e6ee"
   },
 
 }

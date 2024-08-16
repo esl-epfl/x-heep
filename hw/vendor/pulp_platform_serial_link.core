@@ -10,6 +10,7 @@ filesets:
 
     - pulp_platform_axi/src/axi_cdc_src.sv
     - pulp_platform_axi/src/axi_cdc_dst.sv
+    - pulp_platform_axi/src/axi_lite_from_mem.sv
     - pulp_platform_register_interface/src/reg_cdc.sv
     - pulp_platform_axi/src/axi_isolate_inner.sv
     - pulp_platform_serial_link/src/serial_link_pkg.sv

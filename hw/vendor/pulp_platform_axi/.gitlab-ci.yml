@@ -1,5 +1,5 @@
 variables:
-  SYNOPSYS_DC: synopsys-2019.12 dc_shell -64bit
+  SYNOPSYS_DC: synopsys-2022.03 dcnxt_shell
 
 before_script:
   - export PATH=~/.cargo/bin:$PATH
@@ -28,7 +28,7 @@ vsim:
       fi
   parallel:
     matrix:
-      - VSIM_VER: ['10.7b', '10.7e', '2021.3']
+      - VSIM_VER: ['10.7b', '2022.3']
 
 synopsys_dc:
   stage: build
@@ -41,6 +41,8 @@ synopsys_dc:
 
 fuse_xsim:
   stage: build
+  allow_failure: true
+  timeout: 5 minutes
   script:
     - bender sources
     - /usr/local/anaconda3/bin/python3 -m pip install fusesoc --user
@@ -71,7 +73,7 @@ fuse_xsim:
       fi
   parallel:
     matrix:
-      - VSIM_VER: ['10.7b', '10.7e', '2021.3']
+      - VSIM_VER: ['10.7b', '2022.3']
 
 axi_addr_test:
   <<: *run_vsim
@@ -118,6 +120,16 @@ axi_iw_converter:
   variables:
     TEST_MODULE: axi_iw_converter
 
+axi_lite_dw_converter:
+  <<: *run_vsim
+  variables:
+    TEST_MODULE: axi_lite_dw_converter
+
+axi_lite_mailbox:
+  <<: *run_vsim
+  variables:
+    TEST_MODULE: axi_lite_mailbox
+
 axi_lite_regs:
   <<: *run_vsim
   variables:
@@ -132,11 +144,6 @@ axi_lite_to_axi:
   <<: *run_vsim
   variables:
     TEST_MODULE: axi_lite_to_axi
-
-axi_lite_mailbox:
-  <<: *run_vsim
-  variables:
-    TEST_MODULE: axi_lite_mailbox
 
 axi_lite_xbar:
   <<: *run_vsim

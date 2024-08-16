@@ -702,59 +702,65 @@ module testharness #(
 
 
 
-
-      axi2obi #(
-      //.C_S00_AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-      //.C_S00_AXI_ADDR_WIDTH(AXI_ADDR_WIDTH)
-      ) axi2obi_bridge_virtual_r_obi_i (
-          //.gnt_ sp.gnt),
-          .gnt_i('1),
-          //.rvalid_i(sl_axi2obi_resp.rvalid),
-          //.we_o(sl_axi2obi_req.we),
-          //.be_o(sl_axi2obi_req.be),
-          //.addr_o(sl_axi2obi_req),
-          //.wdata_o(sl_axi2obi_req.wdata),
-          //.rdata_i(sl_axi2obi_resp.rdata),
-          //.req_o(sl_axi2obi_req.req),
-
-
-          .data_req_i(sl_axi2obi_req.req),
-          .data_gnt_o(sl_axi2obi_resp.gnt),
-          .data_rvalid_o(sl_axi2obi_resp.rvalid),
-          .data_addr_i(sl_axi2obi_req.addr),
-          .data_we_i(sl_axi2obi_req.we),
-          .data_be_i(sl_axi2obi_req.be),
-          .data_rdata_o(sl_axi2obi_resp.rdata),
-          .data_wdata_i(sl_axi2obi_req.wdata),
-
-
-          .s00_axi_aclk(clk_i),
-          .s00_axi_aresetn(rst_ni),
-
-          .s00_axi_araddr (axi_in_req_i.ar.addr),
-          .s00_axi_arvalid(axi_in_req_i.ar_valid),
-          .s00_axi_arready(axi_in_rsp_o.ar_ready),
-          .s00_axi_arprot (axi_in_req_i.ar.prot),
-
-          .s00_axi_rdata (axi_in_rsp_o.r.data),
-          .s00_axi_rresp (axi_in_rsp_o.r.resp),
-          .s00_axi_rvalid(axi_in_rsp_o.r_valid),
-          .s00_axi_rready(axi_in_req_i.r_ready),
-
-          .s00_axi_awaddr (axi_in_req_i.aw.addr),
-          .s00_axi_awvalid(axi_in_req_i.aw_valid),
-          .s00_axi_awready(axi_in_rsp_o.aw_ready),
-          .s00_axi_awprot (axi_in_req_i.aw.prot),
-
-          .s00_axi_wdata (axi_in_req_i.w.data),
-          .s00_axi_wvalid(axi_in_req_i.w_valid),
-          .s00_axi_wready(axi_in_rsp_o.w_ready),
-          .s00_axi_wstrb (axi_in_req_i.w.strb),
-
-          .s00_axi_bresp (axi_in_rsp_o.b.resp),
-          .s00_axi_bvalid(axi_in_rsp_o.b_valid),
-          .s00_axi_bready(axi_in_req_i.b_ready)
-      );
+axi_to_mem #(
+  /// AXI4+ATOP request type. See `include/axi/typedef.svh`.
+  axi_req_t(),
+  /// AXI4+ATOP response type. See `include/axi/typedef.svh`.
+  axi_resp_t(),
+  /// Address width, has to be less or equal than the width off the AXI address field.
+  /// Determines the width of `mem_addr_o`. Has to be wide enough to emit the memory region
+  /// which should be accessible.
+  .AddrWidth(32),
+  /// AXI4+ATOP data width.
+  .DataWidth,
+  /// AXI4+ATOP ID width.
+  parameter int unsigned IdWidth    = 0,
+  /// Number of banks at output, must evenly divide `DataWidth`.
+  parameter int unsigned NumBanks   = 0,
+  /// Depth of memory response buffer. This should be equal to the memory response latency.
+  parameter int unsigned BufDepth   = 1,
+  /// Hide write requests if the strb == '0
+  parameter bit          HideStrb   = 1'b0,
+  /// Depth of output fifo/fall_through_register. Increase for asymmetric backpressure (contention) on banks.
+  parameter int unsigned OutFifoDepth = 1,
+  /// Dependent parameter, do not override. Memory address type.
+  localparam type addr_t     = logic [AddrWidth-1:0],
+  /// Dependent parameter, do not override. Memory data type.
+  localparam type mem_data_t = logic [DataWidth/NumBanks-1:0],
+  /// Dependent parameter, do not override. Memory write strobe type.
+  localparam type mem_strb_t = logic [DataWidth/NumBanks/8-1:0]
+) axi_to_mem_i(
+  /// Clock input.
+  .clk_i,
+  /// Asynchronous reset, active low.
+  .rst_ni,
+  /// The unit is busy handling an AXI4+ATOP request.
+  .busy_o(),
+  /// AXI4+ATOP slave port, request input.
+  .axi_req_i,
+  /// AXI4+ATOP slave port, response output.
+  .axi_resp_o,
+  /// Memory stream master, request is valid for this bank.
+  output logic           [NumBanks-1:0]  mem_req_o,
+  /// Memory stream master, request can be granted by this bank.
+  input  logic           [NumBanks-1:0]  mem_gnt_i,
+  /// Memory stream master, byte address of the request.
+  output addr_t          [NumBanks-1:0]  mem_addr_o,
+  /// Memory stream master, write data for this bank. Valid when `mem_req_o`.
+  output mem_data_t      [NumBanks-1:0]  mem_wdata_o,
+  /// Memory stream master, byte-wise strobe (byte enable).
+  output mem_strb_t      [NumBanks-1:0]  mem_strb_o,
+  /// Memory stream master, `axi_pkg::atop_t` signal associated with this request.
+  output axi_pkg::atop_t [NumBanks-1:0]  mem_atop_o,
+  /// Memory stream master, write enable. Then asserted store of `mem_w_data` is requested.
+  output logic           [NumBanks-1:0]  mem_we_o,
+  /// Memory stream master, response is valid. This module expects always a response valid for a
+  /// request regardless if the request was a write or a read.
+  input  logic           [NumBanks-1:0]  mem_rvalid_i,
+  /// Memory stream master, read response data.
+  input  mem_data_t      [NumBanks-1:0]  mem_rdata_i
+);
+      
 
 
 

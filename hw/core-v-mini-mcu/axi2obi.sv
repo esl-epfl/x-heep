@@ -182,6 +182,7 @@ module axi2obi #(
         if (s00_axi_wvalid == '1) begin
           NS = WRITE_REQ_HANDSHAKE;
           next_rdata = s00_axi_wdata;
+          s00_axi_bvalid = '1;
 
 
 
@@ -193,6 +194,7 @@ module axi2obi #(
         if (s00_axi_wvalid == '1 && data_req_i == '1) begin
           NS = WRITE_REQ_BUFFER;
           data_gnt_o = '1;
+          s00_axi_bvalid = '1;
         end else begin
           NS = WRITE_REQ_HANDSHAKE;
         end

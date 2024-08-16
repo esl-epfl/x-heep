@@ -10,6 +10,7 @@
 //
 // Authors:
 // - Michael Rogenmoser <michaero@iis.ee.ethz.ch>
+// - Thomas Benz <tbenz@iis.ee.ethz.ch>
 
 `include "axi/assign.svh"
 /// AXI4+ATOP to memory-protocol interconnect. Completely separates the read and write channel to
@@ -49,6 +50,8 @@ module axi_to_mem_split #(
   input logic                              clk_i,
   /// Asynchronous reset, active low.
   input logic                              rst_ni,
+  /// Testmode enable
+  input  logic                             test_i,
   /// The unit is busy handling an AXI4+ATOP request.
   output logic                             busy_o,
   /// AXI4+ATOP slave port, request input.
@@ -81,27 +84,27 @@ module axi_to_mem_split #(
 
   logic read_busy, write_busy;
 
-  always_comb begin: proc_axi_rw_split
-    `AXI_SET_R_STRUCT(axi_resp_o.r, axi_read_resp.r)
-    axi_resp_o.r_valid     = axi_read_resp.r_valid;
-    axi_resp_o.ar_ready    = axi_read_resp.ar_ready;
-    `AXI_SET_B_STRUCT(axi_resp_o.b, axi_write_resp.b)
-    axi_resp_o.b_valid     = axi_write_resp.b_valid;
-    axi_resp_o.aw_ready    = axi_write_resp.aw_ready;
-    axi_resp_o.w_ready     = axi_write_resp.w_ready;
-
-    axi_write_req = '0;
-    `AXI_SET_AW_STRUCT(axi_write_req.aw, axi_req_i.aw)
-    axi_write_req.aw_valid = axi_req_i.aw_valid;
-    `AXI_SET_W_STRUCT(axi_write_req.w, axi_req_i.w)
-    axi_write_req.w_valid = axi_req_i.w_valid;
-    axi_write_req.b_ready = axi_req_i.b_ready;
-
-    axi_read_req = '0;
-    `AXI_SET_AR_STRUCT(axi_read_req.ar, axi_req_i.ar)
-    axi_read_req.ar_valid = axi_req_i.ar_valid;
-    axi_read_req.r_ready  = axi_req_i.r_ready;
-  end
+  // split AXI bus in read and write
+  axi_demux_simple #(
+    .AxiIdWidth  ( IdWidth    ),
+    .AtopSupport ( 1'b1       ),
+    .axi_req_t   ( axi_req_t  ),
+    .axi_resp_t  ( axi_resp_t ),
+    .NoMstPorts  ( 2          ),
+    .MaxTrans    ( BufDepth   ),
+    .AxiLookBits ( 1          ), // select is fixed, do not need it
+    .UniqueIds   ( 1'b1       )  // Can be set as ports are statically selected -> reduces HW
+  ) i_split_read_write (
+    .clk_i,
+    .rst_ni,
+    .test_i,
+    .slv_req_i       ( axi_req_i                       ),
+    .slv_ar_select_i ( 1'b0                            ),
+    .slv_aw_select_i ( 1'b1                            ),
+    .slv_resp_o      ( axi_resp_o                      ),
+    .mst_reqs_o      ( {axi_write_req,  axi_read_req}  ),
+    .mst_resps_i     ( {axi_write_resp, axi_read_resp} )
+  );
 
   assign busy_o = read_busy || write_busy;
 
@@ -193,6 +196,8 @@ module axi_to_mem_split_intf #(
   input  logic                               clk_i,
   /// Asynchronous reset, active low.
   input  logic                               rst_ni,
+  /// Testmode enable
+  input  logic                               test_i,
   /// See `axi_to_mem_split`, port `busy_o`.
   output logic                               busy_o,
   /// AXI4+ATOP slave interface port.
@@ -241,6 +246,7 @@ module axi_to_mem_split_intf #(
   ) i_axi_to_mem_split (
     .clk_i,
     .rst_ni,
+    .test_i,
     .busy_o,
     .axi_req_i (axi_req),
     .axi_resp_o (axi_resp),

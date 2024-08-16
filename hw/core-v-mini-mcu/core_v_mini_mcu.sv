@@ -781,79 +781,28 @@ module core_v_mini_mcu
 
   // CORE(OBI)2AXI
 
-  core2axi #(
-  //.AXI4_WDATA_WIDTH(AXI_DATA_WIDTH),
-  //.AXI4_RDATA_WIDTH(AXI_DATA_WIDTH)
-  ) obi2axi_bridge_virtual_obi_i (
+  axi_lite_from_mem #(
+      .MemAddrWidth(32'd32),
+      .AxiAddrWidth(32'd32),
+      .DataWidth   (32'd32),
+      .MaxRequests (32'd2),      // fifo size
+      //.AxiProt         ( AxiProt  ),
+      .axi_req_t   (axi_req_t),
+      .axi_rsp_t   (axi_resp_t)
+  ) i_axi_lite_from_mem (
       .clk_i,
       .rst_ni,
-      //
-      .data_req_i(axi_sl_slave_req.req),
-      //    //.data_req_i('1),
-      .data_gnt_o(axi_sl_slave_resp.gnt),
-      .data_rvalid_o(axi_sl_slave_resp.rvalid),
-      .data_addr_i(axi_sl_slave_req.addr),
-      .data_we_i(axi_sl_slave_req.we),
-      .data_be_i(axi_sl_slave_req.be),
-      .data_rdata_o(axi_sl_slave_resp.rdata),
-      .data_wdata_i(axi_sl_slave_req.wdata),
-      //
-      .aw_id_o(axi_out_req_o.aw.id),
-      .aw_addr_o(axi_out_req_o.aw.addr),
-      .aw_len_o(axi_out_req_o.aw.len),
-      .aw_size_o(axi_out_req_o.aw.size),
-      .aw_burst_o(axi_out_req_o.aw.burst),
-      .aw_lock_o(axi_out_req_o.aw.lock),
-      .aw_cache_o(axi_out_req_o.aw.cache),
-      .aw_prot_o(axi_out_req_o.aw.prot),
-      .aw_region_o(axi_out_req_o.aw.region),
-      .aw_user_o(axi_out_req_o.aw.user),
-      .aw_qos_o(axi_out_req_o.aw.qos),
-      .aw_valid_o(axi_out_req_o.aw_valid),
-      .aw_ready_i(axi_out_rsp_i.aw_ready),
-      //    //.aw_ready_i('1),
-      //    //.aw_size,
-      //
-      .w_data_o(axi_out_req_o.w.data),
-      .w_strb_o(axi_out_req_o.w.strb),
-      .w_last_o(axi_out_req_o.w.last),
-      .w_user_o(axi_out_req_o.w.user),
-      .w_valid_o(axi_out_req_o.w_valid),
-      .w_ready_i(axi_out_rsp_i.w_ready),
-      //    //.w_ready_i('1),
-      //    //.w_size,
-      //
-      .b_id_i(axi_out_rsp_i.b.id),
-      .b_resp_i(axi_out_rsp_i.b.resp),
-      .b_valid_i(axi_out_rsp_i.b_valid),
-      .b_user_i(axi_out_rsp_i.b.user),
-      .b_ready_o(axi_out_req_o.b_ready),
-      //.b_size,
-
-      .ar_id_o(axi_out_req_o.ar.id),
-      .ar_addr_o(axi_out_req_o.ar.addr),
-      .ar_len_o(axi_out_req_o.ar.len),
-      .ar_size_o(axi_out_req_o.ar.size),
-      .ar_burst_o(axi_out_req_o.ar.burst),
-      .ar_lock_o(axi_out_req_o.ar.lock),
-      .ar_cache_o(axi_out_req_o.ar.cache),
-      .ar_prot_o(axi_out_req_o.ar.prot),
-      .ar_region_o(axi_out_req_o.ar.region),
-      .ar_user_o(axi_out_req_o.ar.user),
-      .ar_qos_o(axi_out_req_o.ar.qos),
-      .ar_valid_o(axi_out_req_o.ar_valid),
-      .ar_ready_i(axi_out_rsp_i.ar_ready),
-      //.ar_size,
-
-      .r_id_i(axi_out_rsp_i.r.id),
-      .r_data_i(axi_out_rsp_i.r.data),
-      .r_resp_i(axi_out_rsp_i.r.resp),
-      .r_last_i(axi_out_rsp_i.r.last),
-      .r_user_i(axi_out_rsp_i.r.user),  //.r_user_i('0),
-      //.r_valid_i(axi_out_rsp_i.r_valid),
-      .r_valid_i('1),
-      .r_ready_o(axi_out_req_o.r_ready)
-      //.r_size
+      .mem_req_i      (axi_sl_slave_req.req),
+      .mem_addr_i     (axi_sl_slave_req.addr),
+      .mem_we_i       (axi_sl_slave_req.we),
+      .mem_wdata_i    (axi_sl_slave_req.wdata),
+      .mem_be_i       (axi_sl_slave_req.be),
+      .mem_gnt_o      (axi_sl_slave_resp.gnt),
+      .mem_rsp_valid_o(axi_sl_slave_resp.rvalid),
+      .mem_rsp_rdata_o(axi_sl_slave_resp.rdata),
+      .mem_rsp_error_o(),
+      .axi_req_o      (axi_out_req_o),
+      .axi_rsp_i      (axi_out_rsp_i)
   );
 
 
