@@ -441,7 +441,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
 }
 
 
-w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_wait_dma, uint8_t no_sanity_checks) {
+w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_wait_init_dma, uint8_t no_sanity_checks) {
 
     // Sanity checks
     if (!no_sanity_checks)  if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
@@ -453,7 +453,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     uint32_t *fifo_ptr_rx = (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
 
     // Init DMA, the integrated DMA is used (peri == NULL)
-    if(!no_wait_dma)    dma_init(NULL);
+    if(!no_wait_init_dma)    dma_init(NULL);
 
     // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
     #ifndef USE_SPI_FLASH
@@ -524,7 +524,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     spi_wait_for_ready(spi);
 
     // Wait for DMA to finish transaction
-    if(!no_wait_dma) while(!dma_is_ready(0));
+    if(!no_wait_init_dma) while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {

@@ -13,20 +13,26 @@ This unit is capable of performing complex tasks that can significantly impact o
 It can be configured to perform *1D* or *2D* transactions and it can apply **zero padding** and perform **transpositions** on-the-fly, reducing the overhead of matrix operations.
 
 The DMA **Hardware Abstraction Layer (HAL)** facilitates the configuration of transactions from the users application. Furthermore, it adds an additional layer of safety checks to reduce the risk of faulty memory accesses, data override or infinite loops.
+
+
+The DMA **SDK**, on the other hand, offers user-friendly functions for essential *memcpy* and *fill* operations. It does not include the validation capabilities of the HAL nor the 2D and padding features, prioritizing performance at the cost of an increased risk of inconsistencies.
+
+
 <br>
 
 ## Structural description
 
-INSERIRE SCHEMATICO DMA
+![alt text](./images/dma_structure.png)
 
 #### DMA channels layout
 
-The DMA subsystem is composed of a parametrized number of control units called *channels*. 
+The DMA subsystem is composed of a parametrized number of control units called **channels**. 
 Each channel can be configured, by the CPU or by an external controller, to perform a *transaction*, independently of the state of other channels.
 
-N-channels are connected to a N-to-M bus that exposes M-master ports on the system bus. Multiple channels can thus perform multiple transactions in parallel, a feature that enables memory-intense applications to greatly increase their throuhput.
+N-channels are connected to a N-to-M bus that exposes M-master ports on the system bus. **Multiple channels** can thus perform multiple transactions in parallel, a feature that enables memory-intense applications to greatly increase their throuhput.
 
 There are several ways to connect N-channels to the system bus through M-master ports.
+
 e.g.
 Let's consider a DMA subsystem with N = 4 channels and M = 2 master ports.
 
@@ -41,24 +47,25 @@ On the other hand, the second solution has a ratio of 3: the first 3 channels ar
 
 While the 1st solution is a general purpose, balanced configuration, the 2nd solution might be better suited for applications that need a low latency channel for high priority tasks.
 
-This mechanism guarantees maximum flexibility, enabling the user to adapt the DMA subsystem to its requirements, both in terms of area and performance.
+This mechanism guarantees **maximum flexibility**, enabling the user to adapt the DMA subsystem to its requirements, both in terms of area and performance.
 <br>
 
 #### Interrupts
 
-If enabled, a transaction interrupt is raised every time a DMA transaction is completed.
-Due to architectural limitations, there is only a single transaction done signal for the whole DMA subsystem. 
-In order to allow the user to identify which channel raised the transaction interrupt, an interrupt flag register system has been developed.
-It works in this way: when the DMA channel has completed the transaction and the interrupt enable register is correctly set, the transaction IFR is set to 1. This register has been developed to be cleared once read: this mechanism is very handy because it removes the need for an additional register write.
-The transaction interrupt handler takes advantage of this mechanism to identify the channel that raised the interrupt: as soon as an IFR is read high, it launches the de-facto handler, which can be redefined by the user [LINK ALLA SEZIONE HAL].
-It could happen that a channel raises an interrupt while the CPU is processing a previous interrupt of another channel: this is not an issue, because the IFR will stay set until the CPU reads its content. 
-The only issue is that this situation will cause an additional delay to the execution of the application.
-For this reason, the handler implemented by the user should be as short as possible.
+If enabled, a transaction interrupt is raised every time a DMA transaction is completed. However, due to architectural limitations, there is only a single transaction done signal for the entire DMA subsystem.
+
+To allow users to identify which channel raised the transaction interrupt, an **interrupt flag register** system has been developed. Here's how it works: when a DMA channel completes its transaction and the interrupt enable register is correctly set, the transaction **IFR** (Interrupt Flag Register) is set. This register is designed to be cleared automatically once read, which is convenient as it eliminates the need for an additional register write.
+
+The transaction interrupt handler leverages this mechanism to identify the channel that raised the interrupt. As soon as an IFR is read as high, it triggers the actual handler, which can be redefined by the user [LINK TO HAL SECTION].
+
+It is possible that a channel could raise an interrupt while the CPU is processing a previous interrupt from another channel. This is not an issue because the IFR will remain set until the CPU reads its content. However, this situation could introduce additional delay to the execution of the application.
+
+For this reason, the handler implemented by the user should be as brief as possible.
 
 #### Data FIFOs configuration
 
 Each DMA channel uses FIFOs to buffer the data to be read & written, which is crucial for mitigating the combined delays from the system bus and the DMA subsystem bus. 
-The size of the FIFOs is parametric and is, by default, the same across all channels.
+The **size of the FIFOs is parametric** and is, by default, the same across all channels.
 
 Some applications can benefit from larger FIFOs because it allows for more values to be buffered in situations where the bus is heavily utilized or the target peripheral, such as the SPI, is too slow.
 On the other hand, other applications might not require such large FIFOs, so area can be saved by reducing its size.
@@ -76,7 +83,7 @@ These are the steps to follow to take advantage this feature:
 
 In the case of memory-peripheral operations, it is common for the peripheral to have a reaction time that cannot match the system clock. For example, the SPI trasmits data with a period of circa 30 clock cycles. 
 
-This difference in response times creates the need for a communication channel between DMA subsystem and peripheral allowing the DMA operations to be suspended according to the peripheral state. These signals are called _triggers_. 
+This difference in response times creates the need for a **communication channel** between DMA subsystem and peripheral allowing the DMA operations to be suspended according to the peripheral state. These signals are called __triggers__. 
 
 They can be used both when the peripheral writes data using the DMA and when the DMA reads data from the peripheral.
 The DMA can be configured to respond to triggers by enabling the appropriate _slot_ via software, using the DMA HAL. [INSERIRE LINK A ESEMPIO SPI SLOT DMA MULTICHANNEL]
@@ -403,7 +410,7 @@ While a transaction is running, new transactions can be validated, loaded and la
 Transactions can be re-launched automatically in `circular mode`.
 
 Once the transaction has finished, a status bit is changed (that can be monitored through polling) and a fast interrupt is triggered. 
-An interrupt flag register system has been developed to overcome architectural limitations described in [LINK TO STRUCTURAL DESCRIPTION]. As explained in the HAL section [LINK TO HAL SECTION], this system enables the interrupt handler to identify which channel has raised the interrupt.
+An interrupt flag register system has been developed to overcome architectural limitations. As explained in the HAL section [LINK TO HAL SECTION], this system enables the interrupt handler to identify which channel has raised the interrupt.
 
 In the event of a transaction interrupt, the ID of the channel that raised the interrupt is passed to the weak implementation of the handler. This weak handler can be redefined by the user, as demonstrated in example_dma_multichannel.
   
@@ -702,9 +709,9 @@ This use case is very impractical as it doubles the memory usage. It is intended
 
 ## Software stack: HAL and SDK
   
-Like every other computational unit in X-Heep, a DMA transaction can be set up and launched using direct register writes. This method achieves minimal overhead and optimal performance, as thoroughly documented in sw/applications/example_dma_2d and sw/applications/example_dma_multichannel. 
+Like every other computational unit in X-Heep, a DMA transaction can be set up and launched using direct register writes. This method achieves minimal overhead and optimal performance, as thoroughly documented in `sw/applications/example_dma_2d` and `sw/applications/example_dma_multichannel`. 
 
-However, it carries significant risks. For instance, the transaction starts immediately after writing to the size register, so the order of register writes must be strictly followed. If the code is compiled with aggressive optimization flags, these write operations might be reordered, potentially compromising the DMA functionality. Additionally, errors in setting the transaction size or increments can lead to memory corruption.
+However, this strategy carries **significant risks**. For instance, the transaction starts immediately after writing to the size register, so the order of register writes must be strictly followed. If the code is compiled with aggressive optimization flags, these write operations might be reordered, potentially compromising the DMA functionality. Additionally, errors in setting the transaction size or increments can lead to memory corruption.
 
 Given the criticality of DMA operations and the potential for destructive errors, direct register writes should be approached with utmost _caution_. To mitigate these risks and ease the application development, two software stacks have been developed:
 
@@ -765,7 +772,7 @@ _Return Values_:
 - DMA_CONFIG_CRITICAL_ERROR: Indicates that the transaction contains a critical error and cannot be loaded.
 - DMA_CONFIG_TRANS_OVERRIDE: Indicates that another transaction is currently running and cannot be overridden.
 
-#### <i> dma_launch_transaction() </i>
+#### <i> dma_launch() </i>
 
 _Purpose_:
 The dma_launch function initiates a DMA transaction that has been previously configured and loaded into a DMA channel. It ensures the transaction is valid, checks for any ongoing transactions, and then starts the new transaction. If the end event is set to wait for an interrupt, the function will block until the interrupt is received.
@@ -774,27 +781,54 @@ _Parameters_:
 - dma_trans_t *p_trans: Pointer to the DMA transaction structure that contains the configuration for the transaction.
 
 _Return Values_:
-
 - DMA_CONFIG_OK: Indicates that the transaction was successfully launched.
 - DMA_CONFIG_CRITICAL_ERROR: Indicates that the transaction could not be launched due to a critical error.
 - DMA_CONFIG_TRANS_OVERRIDE: Indicates that another transaction is currently running and cannot be overridden.
 
-The interrupt handlers are critical in many applications. As stated in the structural description of the DMA [LINK STRUCTURAL DESCRIPTION], there is a single interrupt for the entire 
+#### <i> fic_irq_dma() </i>
+
+_Purpose_:
+The *fic_irq_dma* function is called whenever one of the DMA channels raises the fast interrupt line, signaling the FIC (Fast Interrupt Controller) that a transaction has completed. As thoroughly explained in Example 6 of the next section, this function identifies the channel that triggered the interrupt and calls a handler function, *dma_intr_handler_trans_done()*, passing the channel ID. 
+
+This function can be redefined by the user to perform specific actions, provided that the computational load of these tasks is kept to a minimum.
+
+_Parameters_: 
+- None
+
+_Return Values_:
+- None (void type)
+
+<br>
+
+#### <i> handler_irq_dma() </i>
+
+_Purpose_:
+The *handler_irq_dma* function is very similar to *fic_irq_dma*, but its called whenever one of the DMA channels triggers a window donw interrupt, i.e. the transaction has copied N elements. Just like the previous one, this function identifies the channel that triggered the interrupt and calls a handler function, *dma_intr_handler_window_done()*, passing the channel ID. 
+
+_Parameters_: 
+- None
+
+_Return Values_:
+- None (void type)
+
+<br>
 
 ## Usecases and examples
 
 This section will examine and explain several use cases in detail to provide users with a comprehensive understanding of the DMA subsystem and how to leverage it to enhance their application's performance.
 
+These examples focus on the use of the DMA HAL and the padding and multichannel capabilities of the DMA. The DMA SDK is straightforward enough to be fully understood through the structural and operational descriptions provided in the previous sections.
+
 Here is a brief overview of the examples:
 
 1) Simple mem2mem transaction, i.e., 1D memcpy 
 2) Simple mem2mem transaction with address mode
-3) 2D mem2mem transaction, i.e., 2D memcpy
-4) Matrix transposition
-5) Matrix zero padding
-6) Multichannel mem2mem transaction, focusing on the IRQ handler
-7) Multichannel flash2mem transaction using the SPI SDK
-8) How to minimize the overhead using direct register writes instead of the HAL
+3) Sign extension
+4) 2D mem2mem transaction, i.e., 2D memcpy
+5) Matrix transposition
+6) Matrix zero padding
+7) Multichannel mem2mem transaction, focusing on the IRQ handler
+8) Multichannel flash2mem transaction using the SPI FLASH
 
 The complete code for these examples can be found in `sw/applications/example_dma`, `sw/applications/example_dma_2d`, `sw/applications/example_dma_multichannel` and `sw/applications/example_dma_sdk`. These applications offer both verification and performance estimation modes, enabling users to verify the DMA and measure the application's execution time.
 
@@ -807,9 +841,9 @@ Let's start!
 
 #### Setting targets & transaction structs
 
-The first step is to define the source and destination target structs, as well as the transaction object.
+The first step is to define the source and destination target structs, as well as the transaction structs.
 
-> :warning: Declare the targets and the transaction object globally to ensure that the fields unused in this example are automatically initialized to zero. 
+> :warning: Declare the targets and the transaction structs globally to ensure that the fields unused in this example are automatically initialized to zero. 
 This practice prevents unintentional data corruption or unexpected behavior during the DMA transaction.
 
 In this example, an array of six 32-bit words is used. 
@@ -855,7 +889,7 @@ Finally, let's set the end event, `.end`, to *DMA_TRANS_END_INTR_WAIT*, to leave
 
 #### Perform validation, loading and launching
 
-This second step is also the final one! The only thing left to do is to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ it. For convenience, let's put these calls inside a dedicated function, called *run_dma_trans()*.
+This second step is also the final one! The only thing left to do is to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ of it. For convenience, let's put these calls inside a dedicated function, called *run_dma_trans()*.
 
 The *DMA_ENABLE_REALIGN* flag signals the HAL to perform realignment when necessary. Similarly, the *DMA_PERFORMS_CHECKS_INTEGRITY* flag instructs the HAL to perform integrity checks.
 
@@ -946,7 +980,7 @@ Let's start!
 
 #### Setting targets & transaction structs
 
-Just like in example 1., the first step is to define the source and destination target structs, as well as the transaction object.
+Just like in example 1., the first step is to define the source and destination target structs, as well as the transaction structs.
 
 This time, the address mode will be used. The DMA channel will use the content of an array as destination pointers, instead of computing them itself. These addresses will be generated in the *main()* as showed later on.
 
@@ -992,7 +1026,7 @@ This time, the address mode will be used. The DMA channel will use the content o
 
 #### Perform validation, loading and launching
 
-Once again, only two steps! Time to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ it. 
+Once again, only two steps! Time to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ of it. 
 Let's put these calls inside a dedicated function, called *run_dma_addr_trans()* and launch it in the *main()*. Finally, let's add a simple for loop to print out the result, i.e. the extracted matrix.
 
 ``` C
@@ -1035,7 +1069,98 @@ int main()
 ```
 <br>
 
-### 3. 2D mem2mem transaction
+### 3. Sign extension
+
+The goal of this example is to develop a function that transforms an array of bytes in an array of words, performing sign extension when necessary.
+
+Many examples of sign extensions are present in *TEST_SINGLE* in `example_dma`.
+
+Let's start!
+
+#### Setting targets & transaction structs
+
+First step: define the source and destination target structs, as well as the transaction structs. This time, it's important to pay attention to the data types and ensure that the sign extension feature is enabled.
+
+
+```C
+
+  #define SIZE 6
+  uint8_t src[SIZE] = {0xe7, 0x32, 0x89, 0x0a, 0x12, 0xfd}; // {-25, 50, -119, 18, -3}
+  uint32_t dst[SIZE];
+
+  dma_target_t tgt_src = {
+    .ptr = (uint8_t *) src,
+    .inc_d1_du = 1,
+    .type = DMA_DATA_TYPE_BYTE,
+    .trig = DMA_TRIG_MEMORY,   
+  };
+
+  dma_target_t tgt_dst = {
+    .ptr = (uint8_t *) dst,
+    .inc_d1_du = 1,
+    .type = DMA_DATA_TYPE_WORD,
+    .trig = DMA_TRIG_MEMORY,    
+  };
+
+  dma_trans_t trans = {
+    .src = &tgt_src,
+    .dst = &tgt_dst,
+    .size_d1_du = size,
+    .src_addr = NULL,
+    .mode = DMA_TRANS_MODE_SINGLE,
+    .win_du = 0,
+    .sign_ext = 1; // This flag enables sign extension!
+    .end = DMA_TRANS_END_INTR_WAIT,
+  };
+
+```
+
+#### Perform validation, loading and launching
+
+Once again, only two steps! Time to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ of it. 
+Let's put these calls inside a dedicated function, called *run_dma_signext_trans()* and launch it in the *main()*. Finally, let's add a simple for loop to print out the result.
+
+``` C
+
+dma_config_flags_t run_dma_signext_trans(dma_trans_t *trans)
+{
+  dma_config_flags_t res;
+  
+  res = dma_validate_transaction(trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
+  res |= dma_load_transaction(trans);
+  res |= dma_launch(trans);
+
+  return res;
+} 
+
+...
+
+int main()
+{
+  dma_init(NULL);
+  
+  dma_config_flags_t result = run_dma_signext_trans(&trans);
+
+  if (result != 0)
+  {
+    printf("Error! DMA transaction failed with code: %d\n", result);
+    return 1;
+  } else {
+    printf("Success!\n");
+    
+    for (int i=0; i<SIZE; i++){
+      printf("%x ", dst[i]);
+    }
+    printf("\n");
+
+    return 0;
+  }
+  
+}
+
+```
+
+### 4. 2D mem2mem transaction
 
 The goal of this example is to develop a function that extracts a submatrix from a source matrix and copies it to a destination matrix.
 
@@ -1043,7 +1168,7 @@ Let's start!
 
 #### Setting targets & transaction structs
 
-Just like in example 1., the first step is to define the source and destination target structs, as well as the transaction object.
+Just like in example 1., the first step is to define the source and destination target structs, as well as the transaction structs.
 
 This time, a few parameters are changed. Let's imagine that the source is now a 4x4 matrix, and we want to extract the top-left 2x2 matrix from it. For the sake of variation, this time we will use a half-word data type.
 
@@ -1107,7 +1232,7 @@ Finally, set the dimensionality flag to 1 to configure it for 2D transactions.
 
 <br>
 
-### 4. Matrix transposition
+### 5. Matrix transposition
 
 The goal of this example is to develop a function that extracts a submatrix from a source matrix, transpose it and copies it to a destination matrix.
 
@@ -1115,7 +1240,7 @@ Let's start!
 
 #### Setting targets & transaction structs
 
-Once again, the first step is to define the source and destination target structs, as well as the transaction object.
+Once again, the first step is to define the source and destination target structs, as well as the transaction structs.
 
 Let's use the same formula as in example 2 to extract a 2x2 matrix from a 4x4 source matrix. So in this case too, the source 2D increment will be 3 data units, while the destination increment will be 1.
 
@@ -1171,7 +1296,7 @@ To perform the transposition, we simply need to set a specific tag in the transa
 
 #### Perform validation, loading and launching
 
-Once again, only two steps! Time to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ it. 
+Once again, only two steps! Time to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ of it. 
 Let's put these calls inside a dedicated function, called *run_dma_2d_transp_trans()* and launch it in the *main()*. Finally, let's add a simple for loop to print out the result, i.e. the extracted matrix.
 
 ``` C
@@ -1204,7 +1329,7 @@ int main()
     
     for (int i=0; i<SIZE_EXTR_D2; i++){
       for (int j=0; j<SIZE_EXTR_D1; j++){
-        printf("%d ", dst[i * SIZE_EXTR_D1 + j]);
+        printf("%x ", dst[i * SIZE_EXTR_D1 + j]);
       }
       printf("\n\r");
     }
@@ -1276,7 +1401,7 @@ The rest of the code remains unchanged w.r.t. the square matrix example.
 
 <br>
 
-### 5. Matrix zero padding
+### 6. Matrix zero padding
 
 The goal of this example is to develop a function that extracts a submatrix from a source matrix, applies zero padding on it and copies it to a destination matrix.
 
@@ -1284,7 +1409,7 @@ Let's start!
 
 #### Setting targets & transaction structs
 
-Once again, the first step is to define the source and destination target structs, as well as the transaction object.
+Once again, the first step is to define the source and destination target structs, as well as the transaction structs.
 
 Let's use the same formula as in example 2 to extract a 2x2 matrix from a 4x4 source matrix. So in this case too, the source 2D increment will be 3 data units, while the destination increment will be 1.
 
@@ -1353,7 +1478,7 @@ As thoroughly explained in [ADD LINK], the padding is performed on the fly but i
 
 #### Perform validation, loading and launching
 
-Once again, only two steps! Time to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ it. 
+Once again, only two steps! Time to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ of it. 
 Let's put these calls inside a dedicated function, called *run_dma_2d_pad_trans()* and launch it in the *main()*. Finally, let's add a simple for loop to print out the result.
 
 ``` C
@@ -1386,7 +1511,7 @@ int main()
     
     for (int i=0; i<OUT_DIM_2D; i++){
       for (int j=0; j<OUT_DIM_1D; j++){
-        printf("%d ", dst[i * SIZE_EXTR_1D + j]);
+        printf("%x ", dst[i * SIZE_EXTR_1D + j]);
       }
       printf("\n\r");
     }
@@ -1398,7 +1523,7 @@ int main()
 
 ```
 
-### 6. Multichannel mem2mem transaction, focus on the IRQ handler
+### 7. Multichannel mem2mem transaction, focus on the IRQ handler
 
 The goal of this example is to develop a function that extracts two submatrices from a source matrix at the same time and copies it to two destination matrices.
 
@@ -1408,13 +1533,13 @@ Let's start!
 
 #### Setting targets & transaction structs
 
-Just like in previous examples, the first step is to define the source and destination target structs, as well as the transaction object.
+Just like in previous examples, the first step is to define the source and destination target structs, as well as the transaction structs.
 
 Using the same formula as in example 2 to extract a 2x2 matrix from a 4x4 source matrix, the source 2D increment will be 3 data units, while the destination increment will be 1.
 
 Let's use the DMA CH0 to copy the {0x1234, 0x7654, 0x5912, 0xabcd} 2x2 matrix and the DMA CH1 to copy the {0x758e, 0xabba, 0xb2b2, 0xf4f4} matrix. These channels will copy the extracted matrices to two different destinations, *dst_ch0* and *dst_ch1*. Each transaction struct should have its _.ch_ field set accordingly.
 
-Finallt, let's set the end event to *DMA_TRANS_END_INTR* to handle manually the interrupt event.
+Finally, let's set the end event to *DMA_TRANS_END_INTR* to handle manually the interrupt event.
 
 ```C
 
@@ -1590,7 +1715,7 @@ void dma_intr_handler_trans_done(uint8_t channel)
 
 #### Perform validation, loading and launching
 
-Once again, only two steps! Time to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ it. 
+Once again, only two steps! Time to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ of it. 
 Let's put these calls inside a dedicated function, called *run_dma_2d_multi_trans()* and launch it in the *main()*. Finally, let's add a simple for loop to print out the result and to check on the interrupt flags.
 
 Last but not least, **wait for CH1** to finish its transaction and raise the interrupt. Since both transactions has identical size there is no risk of the first one finishing before the other, so it's safe to assume that CH1 will be the last to terminate.
@@ -1637,10 +1762,20 @@ int main()
   } else {
     printf("Success!\n");
     
-    printf("Output:\n\r");
+    printf("Output CH0:\n\r");
     for (int i=0; i<SIZE_EXTR_D2; i++){
       for (int j=0; j<SIZE_EXTR_D1; j++){
-        printf("%d ", dst[i * SIZE_EXTR_D1 + j]);
+        printf("%x ", dst_ch0[i * SIZE_EXTR_D1 + j]);
+      }
+      printf("\n\r");
+    }
+    
+    printf("\n\r");
+
+    printf("Output CH1:\n\r");
+    for (int i=0; i<SIZE_EXTR_D2; i++){
+      for (int j=0; j<SIZE_EXTR_D1; j++){
+        printf("%x ", dst_ch1[i * SIZE_EXTR_D1 + j]);
       }
       printf("\n\r");
     }
@@ -1655,15 +1790,15 @@ int main()
 
 <br>
 
-### 7. Multichannel flash2mem transaction using the SPI SDK
+### 8. Multichannel flash2mem transaction using the SPI FLASH
 
 The goal of this example is to develop a function that performs:
-- A matrix extraction from a source matrix stored in the RAM
 - A matrix extraction from a source matrix stored in the FLASH
+- A matrix extraction from a source matrix stored in the RAM
 These operations are performed using CH0 and CH1 in parallel.
 
 > :warning: This example can be executed only on QuestaSim or FPGA targets with the appropriate compilation flags.
-Checkout the SPI documentation or `example_dma_multichannel` for additional information
+Checkout the SPI documentation or `example_dma_multichannel` for additional information.
 
 > :warning: Make sure to configure X-Heep to have at least two DMA channels! 
 
@@ -1671,7 +1806,7 @@ Let's start!
 
 #### Setting targets & transaction structs
 
-Just like in previous examples, the first step is to define the source and destination target structs, as well as the transaction object.
+Just like in previous examples, the first step is to define the source and destination target structs, as well as the transaction structs. This time we only need to set up the CH1 transaction, as for the 
 
 Most of this example is similar to the previous one, but particular care is required for the setup of FLASH stored data. In x-Heep, this is achieved by using the directive:
 
@@ -1694,35 +1829,20 @@ Most of this example is similar to the previous one, but particular care is requ
     };
 
   uint16_t src[SIZE_IN_D1*SIZE_IN_D2] = {
-    0x1234, 0x7654, 0xfedc, 0xffff,
-    0x5912, 0xabcd, 0xcdef, 0xfafa,
-    0x579a, 0x657d, 0x758e, 0xabba,
-    0xa1a1, 0xc3c3, 0xb2b2, 0xf4f4
+    0x1111, 0x2222, 0x3333, 0xfccf,
+    0x4444, 0x5555, 0x6666, 0xfbba,
+    0x7777, 0x8888, 0x9999, 0xadda,
+    0x1010, 0x1212, 0x4142, 0xfca4
     };
+
   uint16_t dst_ch0[SIZE_EXTR_D1*SIZE_EXTR_D2], dst_ch1[SIZE_EXTR_D1*SIZE_EXTR_D2];
 
-  dma_target_t tgt_src_ch0 = {
+  dma_target_t tgt_src_ch1 = {
     .ptr = (uint8_t *) src,
     .inc_d1_du = 1,
     .inc_d1_du_d2 = SRC_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,   
-  };
-
-  dma_target_t tgt_src_ch1 = {
-    .ptr = (uint8_t *) src_flash,
-    .inc_d1_du = 1,
-    .inc_d1_du_d2 = SRC_INC_D2,
-    .type = DMA_DATA_TYPE_HALF_WORD,
-    .trig = DMA_TRIG_MEMORY,   
-  };
-
-  dma_target_t tgt_dst_ch0 = {
-    .ptr = (uint8_t *) dst_ch0,
-    .inc_d1_du = 1,
-    .inc_d1_du_d2 = DST_INC_D2,
-    .type = DMA_DATA_TYPE_HALF_WORD,
-    .trig = DMA_TRIG_MEMORY,    
   };
 
   dma_target_t tgt_dst_ch1 = {
@@ -1731,20 +1851,6 @@ Most of this example is similar to the previous one, but particular care is requ
     .inc_d1_du_d2 = DST_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,    
-  };
-
-  dma_trans_t trans_2d_ch0 = {
-    .src = &tgt_src,
-    .dst = &tgt_dst_ch0,
-    .src_addr = NULL,
-    .mode = DMA_TRANS_MODE_SINGLE,
-    .dim = DMA_DIM_CONF_2D,
-    .size_d1_du = SIZE_EXTR_D1,
-    .size_d2_du = SIZE_EXTR_D2,
-    .mode = DMA_TRANS_MODE_SINGLE,
-    .win_du = 0,
-    .end = DMA_TRANS_END_INTR,
-    .ch = 0 // This flag specifies the channel used to run the transaction!
   };
 
   dma_trans_t trans_2d_ch1 = {
@@ -1763,117 +1869,64 @@ Most of this example is similar to the previous one, but particular care is requ
 
 ```
 
-#### IRQ handler
+#### Set up of the SPI FLASH
 
-Due to hardware limitations, there is just a **single fast interrupt** line dedicated to the DMA subsystem. In order to identify which channel raised the interrupt line, the DMA HAL performs a check on the IFR of each channel.
-As soon as an IFR is read high, the HAL calls a weak implementation of the interrupt handler, called **dma_intr_handler_trans_done()** and it passed the channel ID.
-After the call, the loop continues to look for interrupts in other channels, and then returns.
+There are just a few step to follow to correctly set up the SPI for the FLASH transaction.
 
-There is, however, an **additional level of customization** provided by the HAL. 
-It's possible to set an index to differentiate between low and high priority channels by setting *DMA_HP_INTR_INDEX* in `dma.h`. In other words, when a channel whose ID is lower or equal to that index raises an interrupt, the *handler_irq_dma()* calls the user-defined IRQ handler and then returns, instead of compleating the loop.
-This means that low ID channels, i.e. high priority channels, have a higher probability of being serviced that the rest of the channels.
+The first step is the initialization of the *soc_ctrl*, followed by the pick of the correct SPI device, based on the target, and the bridge set up.
 
-However, this feature could cause low priority channels to never be serviced if the high priority interrupts are raised at a faster frequency and the user-defined handler executes long and complex operations.
-
-There are two solutions to this problem:
-- Use the **universal good design practice** of minimizing the tasks to perform in the IRQ handler.
-- Set *DMA_NUM_HP_INTR* to limit the number of consecutive IRQ handler calls that high priority channels can make without checking for low priority interrupts.
-
-This mechanism is reported from `dma.c` here below:
+> :warning: Remember to use *flash_load* when compiling the software!
 
 ```C
+void SPI_setup(){
 
-void fic_irq_dma(void)
-{
-    /* 
-     * Find out which channel raised the interrupt and call
-     * either the weak implementation provided in this module,
-     * or the non-weak implementation.
-     */
-    
-    for (int i = 0; i < DMA_CH_NUM; i++)
-    {
-        if (dma_subsys_per[i].peri->TRANSACTION_IFR == 1)
-        {
-            dma_subsys_per[i].intrFlag = 1;
-            dma_intr_handler_trans_done(i);
+  soc_ctrl_t soc_ctrl;
+  soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
-            #ifdef DMA_HP_INTR_INDEX
-            /* 
-             * If the channel that raised the interrupt is among the high priority channels,
-             * return to break the loop. 
-             */
+  /* Pick the correct spi device based on simulation type */
+  spi_host_t *spi;
 
-            #ifdef DMA_NUM_HP_INTR
+  #ifndef USE_SPI_FLASH
+  spi = spi_host1;
+  #else
+  spi = spi_flash;
+  #endif
 
-            if (i <= DMA_HP_INTR_INDEX && dma_hp_tr_intr_counter < DMA_NUM_HP_INTR)
-            {
-                dma_hp_tr_intr_counter++;
-                return;
-            }
-            else if (i > DMA_HP_INTR_INDEX)
-            {
-                dma_hp_tr_intr_counter = 0;
-            }
-
-            #else
-
-            if (i <= DMA_HP_INTR_INDEX)
-            {
-                return;
-            }
-            #endif
-
-            #endif
-        }
-    }
-    return;
+  /* Init SPI host and SPI<->Flash bridge parameters */
+  if (w25q128jw_init(spi) != FLASH_OK)
+  {
+      PRINTF("Error initializing the flash SPI\n\r");
+      return EXIT_FAILURE;
+  }
 }
-
-```
-
-Everything that has been explained in this paragraph is true for the **window count interrupts** too.
-
-In this example, none of these additional functionalities are necessary, as the IRQ handler will be used to simply set a flag. 
-A detailed explaination of how these mechanisms work was still necessary, since they are very useful in a variety of applications.
-
-Let's redefine *dma_intr_handler_trans_done()* to set some flags:
-
-``` C
-char intr_ch0_flag = 0;
-char intr_ch1_flag = 0;
-
-/* Strong transaction ISR implementation */
-void dma_intr_handler_trans_done(uint8_t channel)
-{
-    if (channel == 0){
-      intr_ch0_flag = 1;
-    } else {
-      intr_ch1_flag = 1;
-    }
-    return;
-}
-
 ```
 
 #### Perform validation, loading and launching
 
-Once again, only two steps! Time to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ it. 
-Let's put these calls inside a dedicated function, called *run_dma_2d_multi_trans()* and launch it in the *main()*. Finally, let's add a simple for loop to print out the result and to check on the interrupt flags.
+Once the SPI has been set up, the next step it's time to perform the __validation__ of the transaction, __load__ the parameters, and __launch__ of it. 
 
-Last but not least, **wait for CH1** to finish its transaction and raise the interrupt. Since both transactions has identical size there is no risk of the first one finishing before the other, so it's safe to assume that CH1 will be the last to terminate.
+As for the SPI, there is a function defined in `w25q.c` that simplifies the operation:
+
+<p style="text-align: center;"><code>w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_wait_init_dma, uint8_t no_sanity_checks)</code></p>
+
+
+The flags *no_wait_init_dma* and *no_sanity_checks* are necessary for running the application, as they prevent the DMA from being reset or using a blocking wait for its interrupt. However, the function is quite handy since it takes care of everything else.
+Note that the *w25q128jw_read_standard_dma()* uses **CH0**!
+
+**Suggestion:** To further understand how to interface the DMA with the SPI, study the functions in `w25q.c` that employ it.
+
+As usual, let's put these calls inside a dedicated function, called *run_dma_2d_spi_trans()* and launch it in the *main()*. Finally, let's add a simple for loop to print out the result and to check on the interrupt flags.
+
+Last but not least, **wait for CH0** to finish its transaction and raise the interrupt, since the SPI will always be slower than a standard DMA transaction of equal size.
 
 ``` C
 
-dma_config_flags_t run_dma_2d_multi_trans(dma_trans_t *trans_ch0, dma_trans_t *trans_ch1)
+dma_config_flags_t run_dma_2d_spi_trans(dma_trans_t *trans_ch0, dma_trans_t *trans_ch1)
 {
   dma_config_flags_t res;
   
-  res = dma_validate_transaction(trans_ch0, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
   res |= dma_validate_transaction(trans_ch1, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
-  res |= dma_load_transaction(trans_ch0);
   res |= dma_load_transaction(trans_ch1);
-  res |= dma_launch(trans_ch0);
   res |= dma_launch(trans_ch1);
 
   return res;
@@ -1886,6 +1939,14 @@ int main()
   dma_init(NULL);
 
   dma_config_flags_t result = run_dma_2d_multi_trans(&trans);
+
+  /* Start the reading process from the SPI, avoiding both sanity checks and waiting for the DMA to finish */
+  w25q_error_codes_t status = w25q128jw_read_standard_dma(TEST_DATA_FLASH_PTR, copied_test_data_flash, TEST_DATA_FLASH_SIZE*4, 1, 1);
+  if (status != FLASH_OK)
+  {
+      PRINTF("Error reading from flash\n\r");
+      return EXIT_FAILURE;
+  }
 
   // Wait for CH1 to finish
   while (!dma_is_ready(1))                   
@@ -1905,21 +1966,34 @@ int main()
   } else {
     printf("Success!\n");
     
-    printf("Output:\n\r");
+    printf("Output CH0:\n\r");
     for (int i=0; i<SIZE_EXTR_D2; i++){
       for (int j=0; j<SIZE_EXTR_D1; j++){
-        printf("%d ", dst[i * SIZE_EXTR_D1 + j]);
+        printf("%x ", dst_ch0[i * SIZE_EXTR_D1 + j]);
       }
       printf("\n\r");
     }
+    
+    printf("\n\r");
 
-    printf("IF:\n\rCH0: %d - CH1: %d\n\r", intr_ch0_flag, intr_ch1_flag);
+    printf("Output CH1:\n\r");
+    for (int i=0; i<SIZE_EXTR_D2; i++){
+      for (int j=0; j<SIZE_EXTR_D1; j++){
+        printf("%x ", dst_ch1[i * SIZE_EXTR_D1 + j]);
+      }
+      printf("\n\r");
+    }
 
     return 0;
   }
 }
 
 ```
+
+<br>
+
+
+
 
 #### Basic application
 

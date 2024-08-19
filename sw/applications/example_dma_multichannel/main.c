@@ -1132,14 +1132,14 @@ int main()
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
 
-    /* Wait for CH1 to end */
-    while(!dma_is_ready(1)) {
+    /* Wait for CH0 to end, since the SPI will be slower than the DMA */
+    while(!dma_is_ready(0)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready(1) == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
             /* From here the core wakes up even if we did not jump to the ISR */
         }
