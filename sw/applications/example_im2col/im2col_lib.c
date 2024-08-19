@@ -9,7 +9,7 @@
     Info: im2col_lib.c describes functions used to calculate im2col and verify it using 
     the golden result in im2colGolden.c.
 
-    Notes: im2col_nchw_int32() and im2col_nhwc_int32() algorithms are inspired from the library SHL, developed by T-HEAD Semi.
+    Notes: im2col_nchw_int32() algorithm is inspired from the library SHL, developed by T-HEAD Semi.
     For reference, check out the following link:
     https:/*github.com/T-head-Semi/csi-nn2/blob/main/source/reference/im2col.c
 */
@@ -151,197 +151,8 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         #endif
     }
 
-    /* Implementation of im2col algorithm using the DMA 1D */
-    else if (test_id == 1)
-    {
-        uint32_t* input_image_ptr = &input_image_nchw[0];
-        uint32_t* output_data_ptr = &output_data[0];
-
-        dma_config_flags_t res;
-
-        dma_target_t tgt_src = {
-                                    .ptr        = input_image_nchw,
-                                    .inc_d1_du     = 1,
-                                    };
-        dma_target_t tgt_dst = {
-                                    .ptr        = output_data_ptr,
-                                    .inc_d1_du     = 1
-                                    };
-
-        dma_trans_t trans = {
-                                    .src        = &tgt_src,
-                                    .dst        = &tgt_dst
-                                    };
-
-        uint32_t* ptr; 
-
-        #if TIMING  
-        CSR_READ(CSR_REG_MCYCLE, &cycles_A);
-        #endif
-
-        /* The DMA is initialized (i.e. Any current transaction is cleaned.) */
-        dma_init(NULL);
-
-        for (int c = 0; c < CH_COL; ++c) {
-            /* Calculate offsets within the kernel window. */
-            /* These are used to move the filter around the input image. */
-
-            w_offset = c % FW; 
-            h_offset = (c / FW) % FH; 
-            im_c = c / (FH * FW); 
-
-            /* Iterate over each BATCH. */
-            for (int32_t b = 0; b < BATCH; ++b) {
-                /* Iterate over each patch on the IW of the input matrix. */
-                for (int h = 0; h < N_PATCHES_H; ++h) {
-
-                    im_row = h_offset + h * STRIDE_D2 - TOP_PAD;
-
-                    im_col = w_offset - LEFT_PAD;
-
-                    n_zeros_left = 0;
-                    n_zeros_right = 0;
-                    size_transfer = 0;
-                    minimum = 0;
-                    start_max = 0;
-                    start_min = 0;
-                    stray_elements = 0;
-                    last_position = 0;
-                    tmp_pad = 0;
-
-                    PRINTF_DEB("\n\rim_row: %d, im_col: %d, TOP_PAD: %d", im_row, im_col, TOP_PAD);
-                    PRINTF_DEB("\n\rw_offset: %d, h_offset: %d\n\r", w_offset, h_offset);
-
-                    /* Iterate over each patch on the heigth in the output matrix. */
-                    
-                    if (TOP_PAD > 0 && im_row < 0)
-                    {
-                        /* im_row < 0 case: only the output_image_ptr needs to be updated */
-                        output_data_ptr += N_PATCHES_W;
-                        PRINTF_DEB("\n\rAdded the initial full row of 0s, %d elements", N_PATCHES_W);
-                    } 
-                    else if (BOTTOM_PAD > 0 && im_row >= IW)
-                    {
-                        /* im_row >= IH case: only the output_image_ptr needs to be updated */
-                        output_data_ptr += N_PATCHES_W;
-                        PRINTF_DEB("\n\rAdded the final full row of 0s, %d elements", N_PATCHES_W);
-                    }
-                    else
-                    {
-
-                        /* Computing the number of zeros before the first element of the patch */
-
-                        /* In the offset of the element in the filter is bigger than P, then no zeros are needed */
-                        if ( w_offset >= LEFT_PAD)
-                        {
-                            n_zeros_left = 0;
-                        }
-                        else if ( (LEFT_PAD - w_offset) % STRIDE_D1 == 0 )
-                        {
-                            n_zeros_left = (LEFT_PAD - w_offset) / STRIDE_D1;
-                        }
-                        else
-                        {
-                            n_zeros_left = (LEFT_PAD - w_offset) / STRIDE_D1 + 1;
-                        }
-
-                        /* Computing the number of zeros after the last element of the patch */
-
-                        /* The stray elements are the elements that are not covered by the patches */
-                        stray_elements = (LEFT_PAD + TOP_PAD + IW) - STRIDE_D1 * (N_PATCHES_W - 1) - FW;
-
-                        /* This computes the last position of the current element of the filter */
-                        last_position = LEFT_PAD + TOP_PAD + IW - stray_elements - FW + w_offset;
-
-                        /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
-                        /* by removing the elements of the row uncovered by the sliding filter */
-                        tmp_pad = RIGHT_PAD - stray_elements; // ToDo: to test if it's right or left pad
-
-                        if (FW - 1 - w_offset >= RIGHT_PAD)
-                        {
-                            n_zeros_right = 0;
-                        }
-                        else if ( (tmp_pad - (FW - 1 - w_offset)) % STRIDE_D1 == 0 )
-                        {
-                            n_zeros_right = (tmp_pad - (FW - 1 - w_offset)) / STRIDE_D1;
-                        }
-                        else
-                        {
-                            n_zeros_right = (tmp_pad - (FW - 1 - w_offset)) / STRIDE_D1 + 1;
-                        }
-
-                        /* Compute the number of elements to transfer */
-                        size_transfer = N_PATCHES_W - n_zeros_left - n_zeros_right;
-
-                        if (n_zeros_left > 0)
-                        {
-                            /* im_col < 0 case: only the output_image_ptr needs to be updated */
-                            output_data_ptr += n_zeros_left;
-                            
-                            PRINTF_DEB("\n\rAdded %d '0's before",  n_zeros_left);
-
-                            im_col += n_zeros_left * STRIDE_D1;
-                        }
-
-                        /* DMA setup and transaction run */
-
-                        PRINTF_DEB("\n\rn_zeros_left: %d, n_zeros_right: %d", n_zeros_left, n_zeros_right);
-                        PRINTF_DEB("\n\rsize_transfer: %d\n\r", size_transfer);
-    
-                        input_image_ptr = &input_image_nchw[0] + get_index(CH, IH, IW, b, im_c, im_row, im_col);
-                        tgt_src.ptr = input_image_ptr;
-                        tgt_src.inc_d1_du = STRIDE_D1;
-
-                        tgt_dst.ptr = output_data_ptr;
-                        
-                        dma_run(&trans);
-
-                        ptr = output_data_ptr;
-
-                        #if DEBUG
-                        PRINTF_DEB("\n\rWrote %d elements from input", tgt_src.size_du);
-                        for (int i=0; i<tgt_src.size_du; i++)
-                        {
-                            PRINTF_DEB("\n\r%p %d", ptr, *ptr);
-                            ptr += 1;
-                        }
-                        #endif
-
-                        output_data_ptr += size_transfer;
-
-                        if (n_zeros_right > 0)
-                        {
-                            /* im_col < 0 case: only the output_image_ptr needs to be updated */
-                            output_data_ptr += n_zeros_right;
-                            PRINTF_DEB("\n\rAdded %d '0's after",  n_zeros_right);
-                        } 
-                        PRINTF_DEB("\n\r");
-                    }
-
-                    #if DEBUG
-                    PRINTF_DEB("\n\rCurrent output matrix: \n\r");
-                    for (int i=0; i<OH_NCHW; i++)
-                    {
-                        for (int j=0; j<OW_NCHW; j++)
-                        {
-                            PRINTF_DEB("%d ", output_data[i*OW_NCHW + j]);
-                        }
-                        PRINTF_DEB("\n\r");
-                    }
-                    #endif
-                    }
-                    PRINTF_DEB("\n\r");
-                }        
-        }
-
-        #if TIMING  
-        CSR_READ(CSR_REG_MCYCLE, &cycles_B);
-        *cycles = (cycles_B - cycles_A);
-        #endif
-    }
-
     /* Implementation of the nchw im2col algorithm using the DMA 2D feature */
-    else if (test_id == 2)
+    else if (test_id == 1)
     {
         /* Iterate over each row of the output matrix. */
         uint32_t* input_image_ptr = &input_image_nchw[0];
@@ -575,7 +386,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     }
 
     /* Implementation of im2col algorithm using the dedicated Smart Peripheral Controller */
-    else if (test_id == 3)
+    else if (test_id == 2)
     {
         uint32_t* input_image_ptr = &input_image_nchw[0];
         uint32_t* output_data_ptr = &output_data[0];

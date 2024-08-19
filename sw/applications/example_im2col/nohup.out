@@ -1,1125 +1,0 @@
-Connecting to the board...
-Connection successful
-Connected!
-
-GDB process is still running.
-_______________________
-
-Number of channels used by SPC
- 1
-_______________________
-
-
-Running test example_im2col with input size 100...
->: 
->: 
-Compilation successful!
-Current gdb output: b'load\r\n'
->: 
->: 0:14966:0
->: 2:12325:0
->: 3:4011:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 100...
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 0:17356:0
->: 2:16267:0
->: 3:4741:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 100...
->: 
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 0:18000:0
->: 2:16290:0
->: 3:4739:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 100...
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 0:20843:0
->: 2:21472:0
->: 3:5640:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 200...
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: 0:31166:0
->: 2:24739:0
->: 3:7296:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 200...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 0:36522:0
->: 2:32673:0
->: 3:8760:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 200...
->: 
->: 
-Compilation successful!
-Current gdb output: b'\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/Desktop/X-Heep/'
->: 
->: 
->: 0:36835:0
->: 2:32671:0
->: 3:8756:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 200...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 0:42113:0
->: 2:43095:0
->: 3:10550:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 300...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 0:46744:0
->: 2:37162:0
->: 3:10586:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 300...
->: 
->: 
-Compilation successful!
-Current gdb output: b'\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/Desktop/X-Heep/'
->: 
->: 
->: 0:54827:0
->: 2:49057:0
->: 3:12779:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 300...
->: 
->: 
-Compilation successful!
-Current gdb output: b'\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/Desktop/X-Heep/'
->: 
->: 
->: 0:55438:0
->: 2:49052:0
->: 3:12775:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 300...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 0:63165:0
->: 2:64632:0
->: 3:15466:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 200...
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: 0:29485:0
->: 2:24741:0
->: 3:7310:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 200...
->: 
->: 
-Compilation successful!
-Current gdb output: b"`/home/tommi/Desktop/X-Heep/Source/x-heep-main/x-heep/sw/build/main.elf' has changed; re-reading sym"
->: 
->: 
->: 0:35158:0
->: 2:32636:0
->: 3:8758:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 200...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 0:35494:0
->: 2:32727:0
->: 3:8762:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 200...
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: 0:44265:0
->: 2:43081:0
->: 3:10547:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 400...
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: 0:63137:0
->: 2:49560:0
->: 3:13903:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 400...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 
->: 0:71939:0
->: 2:65319:0
->: 3:16797:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 400...
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: 0:71942:0
->: 2:65408:0
->: 3:16807:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 400...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 
->: 0:88842:0
->: 2:86207:0
->: 3:20376:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 600...
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: 
->: 0:94700:0
->: 2:74312:0
->: 3:20497:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 600...
->: 
->: 
-Compilation successful!
-Current gdb output: b'\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/Desktop/X-Heep/'
->: 
->: 
->: 
->: 0:112980:0
->: 2:101271:0
->: 3:24837:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 600...
->: 
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: 0:113233:0
->: 2:98279:0
->: 3:24857:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 600...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 
->: 0:133258:0
->: 2:133761:0
->: 3:30205:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 300...
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: 0:43858:0
->: 2:36835:0
->: 3:10602:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 300...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 0:52642:0
->: 2:48507:0
->: 3:12781:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 300...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 0:52750:0
->: 2:48720:0
->: 3:12786:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 300...
->: 
->: 
-Compilation successful!
-Current gdb output: b'\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/Desktop/X-Heep/'
->: 
->: 
->: 
->: 0:66265:0
->: 2:64151:0
->: 3:15466:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 600...
->: 
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: 0:88913:0
->: 2:73702:0
->: 3:20486:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 600...
->: 
->: 
-Compilation successful!
-Current gdb output: b'\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/Desktop/X-Heep/'
->: 
->: 
->: 
->: 0:106957:0
->: 2:100571:0
->: 3:24841:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 600...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 
->: 0:111782:0
->: 2:97370:0
->: 3:24852:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 600...
->: 
->: 
-Compilation successful!
->: 
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 0:126730:0
->: 2:132819:0
->: 3:30210:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 900...
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: 
->: 0:133364:0
->: 2:114445:0
->: 3:30375:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 900...
->: 
->: 
-Compilation successful!
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: 
->: 
->: 0:168132:0
->: 2:151054:0
->: 3:36897:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 900...
->: 
->: 
-Compilation successful!
->: 
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 
->: 0:159745:0
->: 2:151327:0
->: 3:36918:0
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 900...
->: 
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 
->: 0:190090:0
->: 2:199207:0
->: 3:44950:0
->: &
-Received &: end of serial transmission thread
-['CH_SPC: 1, B: 1, C: 1, H: 10, W: 10, FH: 3, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 14966', 'CH_SPC: 1, B: 1, C: 1, H: 10, W: 10, FH: 3, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 17356', 'CH_SPC: 1, B: 1, C: 1, H: 10, W: 10, FH: 4, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 18000', 'CH_SPC: 1, B: 1, C: 1, H: 10, W: 10, FH: 4, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 20843', 'CH_SPC: 1, B: 1, C: 2, H: 10, W: 10, FH: 3, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 31166', 'CH_SPC: 1, B: 1, C: 2, H: 10, W: 10, FH: 3, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 36522', 'CH_SPC: 1, B: 1, C: 2, H: 10, W: 10, FH: 4, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 36835', 'CH_SPC: 1, B: 1, C: 2, H: 10, W: 10, FH: 4, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 42113', 'CH_SPC: 1, B: 1, C: 3, H: 10, W: 10, FH: 3, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 46744', 'CH_SPC: 1, B: 1, C: 3, H: 10, W: 10, FH: 3, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 54827', 'CH_SPC: 1, B: 1, C: 3, H: 10, W: 10, FH: 4, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 55438', 'CH_SPC: 1, B: 1, C: 3, H: 10, W: 10, FH: 4, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 63165', 'CH_SPC: 1, B: 2, C: 1, H: 10, W: 10, FH: 3, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 29485', 'CH_SPC: 1, B: 2, C: 1, H: 10, W: 10, FH: 3, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 35158', 'CH_SPC: 1, B: 2, C: 1, H: 10, W: 10, FH: 4, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 35494', 'CH_SPC: 1, B: 2, C: 1, H: 10, W: 10, FH: 4, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 44265', 'CH_SPC: 1, B: 2, C: 2, H: 10, W: 10, FH: 3, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 63137', 'CH_SPC: 1, B: 2, C: 2, H: 10, W: 10, FH: 3, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 71939', 'CH_SPC: 1, B: 2, C: 2, H: 10, W: 10, FH: 4, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 71942', 'CH_SPC: 1, B: 2, C: 2, H: 10, W: 10, FH: 4, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 88842', 'CH_SPC: 1, B: 2, C: 3, H: 10, W: 10, FH: 3, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 94700', 'CH_SPC: 1, B: 2, C: 3, H: 10, W: 10, FH: 3, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 112980', 'CH_SPC: 1, B: 2, C: 3, H: 10, W: 10, FH: 4, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 113233', 'CH_SPC: 1, B: 2, C: 3, H: 10, W: 10, FH: 4, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 133258', 'CH_SPC: 1, B: 3, C: 1, H: 10, W: 10, FH: 3, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 43858', 'CH_SPC: 1, B: 3, C: 1, H: 10, W: 10, FH: 3, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 52642', 'CH_SPC: 1, B: 3, C: 1, H: 10, W: 10, FH: 4, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 52750', 'CH_SPC: 1, B: 3, C: 1, H: 10, W: 10, FH: 4, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 66265', 'CH_SPC: 1, B: 3, C: 2, H: 10, W: 10, FH: 3, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 88913', 'CH_SPC: 1, B: 3, C: 2, H: 10, W: 10, FH: 3, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 106957', 'CH_SPC: 1, B: 3, C: 2, H: 10, W: 10, FH: 4, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 111782', 'CH_SPC: 1, B: 3, C: 2, H: 10, W: 10, FH: 4, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 126730', 'CH_SPC: 1, B: 3, C: 3, H: 10, W: 10, FH: 3, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 133364', 'CH_SPC: 1, B: 3, C: 3, H: 10, W: 10, FH: 3, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 168132', 'CH_SPC: 1, B: 3, C: 3, H: 10, W: 10, FH: 4, FW: 3, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 159745', 'CH_SPC: 1, B: 3, C: 3, H: 10, W: 10, FH: 4, FW: 4, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 190090']
-_______________________
-
-Number of channels used by SPC
- 2
-_______________________
-
-
-Running test example_im2col with input size 100...
->: 
->: 
-Compilation successful!
->: 
-Current gdb output: b'Continuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/De'
->: 
->: 
->: ERROR: Golden: 64221, Output: 0, at 7 0
->: ERROR: Golden: 10344, Output: 64221, at 7 1
->: ERROR: Golden: 38314, Output: 10344, at 7 2
->: ERROR: Golden: 5787, Output: 38314, at 7 3
->: ERROR: Golden: 27123, Output: 5787, at 7 4
->: ERROR: Golden: 33592, Output: 27123, at 7 5
->: ERROR: Golden: 30940, Output: 33592, at 7 6
->: ERROR: Golden: 25255, Output: 30940, at 7 7
->: ERROR: Golden: 64683, Output: 25255, at 7 8
->: ERROR: Golden: 61805, Output: 64683, at 7 9
->: ERROR: Golden: 62096, Output: 61805, at 7 10
->: ERROR: Golden: 63464, Output: 62096, at 7 11
->: ERROR: Golden: 34006, Output: 63464, at 7 12
->: ERROR: Golden: 40161, Output: 34006, at 7 13
->: ERROR: Golden: 39919, Output: 40161, at 7 14
->: ERROR: Golden: 38248, Output: 39919, at 7 15
->: ERROR: Golden: 27470, Output: 38248, at 7 16
->: ERROR: Golden: 15522, Output: 27470, at 7 17
->: ERROR: Golden: 37587, Output: 15522, at 7 18
->: ERROR: Golden: 38514, Output: 37587, at 7 19
->: ERROR: Golden: 840, Output: 38514, at 7 20
->: ERROR: Golden: 29958, Output: 840, at 7 21
->: ERROR: Golden: 14572, Output: 29958, at 7 22
->: ERROR: Golden: 21847, Output: 14572, at 7 23
->: ERROR: Golden: 13482, Output: 21847, at 7 24
->: ERROR: Golden: 56631, Output: 13482, at 7 25
->: ERROR: Golden: 52657, Output: 56631, at 7 26
->: ERROR: Golden: 3639, Output: 52657, at 7 27
->: ERROR: Golden: 37261, Output: 3639, at 7 28
->: ERROR: Golden: 39340, Output: 37261, at 7 29
->: ERROR: Golden: 19666, Output: 39340, at 7 30
->: ERROR: Golden: 41700, Output: 19666, at 7 31
->: ERROR: Golden: 63090, Output: 41700, at 7 32
->: ERROR: Golden: 62618, Output: 63090, at 7 33
->: ERROR: Golden: 21956, Output: 62618, at 7 34
->: ERROR: Golden: 32718, Output: 21956, at 7 35
->: ERROR: Golden: 5779, Output: 32718, at 7 36
->: ERROR: Golden: 43432, Output: 5779, at 7 37
->: ERROR: Golden: 31858, Output: 43432, at 7 38
->: ERROR: Golden: 49078, Output: 31858, at 7 39
->: ERROR: Golden: 49357, Output: 49078, at 7 40
->: ERROR: Golden: 18406, Output: 49357, at 7 41
->: ERROR: Golden: 36711, Output: 18406, at 7 42
->: ERROR: Golden: 24933, Output: 36711, at 7 43
->: ERROR: Golden: 2427, Output: 24933, at 7 44
->: ERROR: Golden: 15182, Output: 2427, at 7 45
->: ERROR: Golden: 42487, Output: 15182, at 7 46
->: ERROR: Golden: 13923, Output: 42487, at 7 47
->: ERROR: Golden: 37752, Output: 13923, at 7 48
->: ERROR: Golden: 29737, Output: 37752, at 7 49
->: ERROR: Golden: 21181, Output: 29737, at 7 50
->: ERROR: Golden: 59695, Output: 21181, at 7 51
->: ERROR: Golden: 4191, Output: 59695, at 7 52
->: ERROR: Golden: 16214, Output: 4191, at 7 53
->: ERROR: Golden: 39571, Output: 16214, at 7 54
->: ERROR: Golden: 51203, Output: 39571, at 7 55
->: ERROR: Golden: 12337, Output: 51203, at 7 56
->: ERROR: Golden: 51404, Output: 12337, at 7 57
->: ERROR: Golden: 37574, Output: 51404, at 7 58
->: ERROR: Golden: 58452, Output: 37574, at 7 59
->: ERROR: Golden: 15395, Output: 58452, at 7 60
->: ERROR: Golden: 38535, Output: 15395, at 7 61
->: ERROR: Golden: 62790, Output: 38535, at 7 62
->: ERROR: Golden: 49456, Output: 62790, at 7 63
->: ERROR: Golden: 11994, Output: 49456, at 7 64
->: ERROR: Golden: 27439, Output: 11994, at 7 65
->: ERROR: Golden: 16518, Output: 27439, at 7 66
->: ERROR: Golden: 58545, Output: 16518, at 7 67
->: ERROR: Golden: 49233, Output: 58545, at 7 68
->: ERROR: Golden: 22174, Output: 49233, at 7 69
->: ERROR: Golden: 33852, Output: 22174, at 7 70
->: ERROR: Golden: 59711, Output: 33852, at 7 71
->: ERROR: Golden: 4652, Output: 59711, at 7 72
->: ERROR: Golden: 37780, Output: 4652, at 7 73
->: ERROR: Golden: 7330, Output: 37780, at 7 74
->: ERROR: Golden: 58914, Output: 7330, at 7 75
->: ERROR: Golden: 11986, Output: 58914, at 7 76
->: ERROR: Golden: 58167, Output: 11986, at 7 77
->: ERROR: Golden: 21983, Output: 58167, at 7 78
->: ERROR: Golden: 10450, Output: 21983, at 7 79
->: ERROR: Golden: 23311, Output: 10450, at 7 80
->: ERROR: Golden: 47467, Output: 23311, at 7 81
->: ERROR: Golden: 22027, Output: 47467, at 7 82
->: ERROR: Golden: 30376, Output: 22027, at 7 83
->: ERROR: Golden: 39150, Output: 30376, at 7 84
->: ERROR: Golden: 22408, Output: 39150, at 7 85
->: ERROR: Golden: 44369, Output: 22408, at 7 86
->: ERROR: Golden: 41787, Output: 44369, at 7 87
->: ERROR: Golden: 57704, Output: 41787, at 7 88
->: ERROR: Golden: 41146, Output: 57704, at 7 89
->: 3:3153:1
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 100...
->: 
->: 
-Compilation successful!
-Current gdb output: b'\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/Desktop/X-Heep/'
->: 
->: 
->: 
->: ERROR: Golden: 1029, Output: 0, at 9 0
->: ERROR: Golden: 29756, Output: 1029, at 9 1
->: ERROR: Golden: 16874, Output: 29756, at 9 2
->: ERROR: Golden: 33587, Output: 16874, at 9 3
->: ERROR: Golden: 3805, Output: 33587, at 9 4
->: ERROR: Golden: 21728, Output: 3805, at 9 5
->: ERROR: Golden: 49588, Output: 21728, at 9 6
->: ERROR: Golden: 60428, Output: 49588, at 9 7
->: ERROR: Golden: 21166, Output: 60428, at 9 8
->: ERROR: Golden: 50756, Output: 20143, at 9 9
->: ERROR: Golden: 32524, Output: 50756, at 9 10
->: ERROR: Golden: 38579, Output: 32524, at 9 11
->: ERROR: Golden: 848, Output: 38579, at 9 12
->: ERROR: Golden: 49036, Output: 848, at 9 13
->: ERROR: Golden: 50235, Output: 49036, at 9 14
->: ERROR: Golden: 47533, Output: 50235, at 9 15
->: ERROR: Golden: 1910, Output: 47533, at 9 16
->: ERROR: Golden: 54804, Output: 1910, at 9 17
->: ERROR: Golden: 2791, Output: 11523, at 9 18
->: ERROR: Golden: 43492, Output: 2791, at 9 19
->: ERROR: Golden: 26675, Output: 43492, at 9 20
->: ERROR: Golden: 462, Output: 26675, at 9 21
->: ERROR: Golden: 44689, Output: 462, at 9 22
->: ERROR: Golden: 52533, Output: 44689, at 9 23
->: ERROR: Golden: 29709, Output: 52533, at 9 24
->: ERROR: Golden: 4508, Output: 29709, at 9 25
->: ERROR: Golden: 27704, Output: 4508, at 9 26
->: ERROR: Golden: 56887, Output: 10012, at 9 27
->: ERROR: Golden: 47436, Output: 56887, at 9 28
->: ERROR: Golden: 52081, Output: 47436, at 9 29
->: ERROR: Golden: 60456, Output: 52081, at 9 30
->: ERROR: Golden: 30625, Output: 60456, at 9 31
->: ERROR: Golden: 61824, Output: 30625, at 9 32
->: ERROR: Golden: 6146, Output: 61824, at 9 33
->: ERROR: Golden: 20082, Output: 6146, at 9 34
->: ERROR: Golden: 56355, Output: 20082, at 9 35
->: ERROR: Golden: 28987, Output: 20172, at 9 36
->: ERROR: Golden: 50617, Output: 28987, at 9 37
->: ERROR: Golden: 9666, Output: 50617, at 9 38
->: ERROR: Golden: 40919, Output: 9666, at 9 39
->: ERROR: Golden: 20778, Output: 40919, at 9 40
->: ERROR: Golden: 10180, Output: 20778, at 9 41
->: ERROR: Golden: 32863, Output: 10180, at 9 42
->: ERROR: Golden: 38974, Output: 32863, at 9 43
->: ERROR: Golden: 1870, Output: 38974, at 9 44
->: ERROR: Golden: 29574, Output: 21791, at 9 45
->: ERROR: Golden: 60265, Output: 29574, at 9 46
->: ERROR: Golden: 30739, Output: 60265, at 9 47
->: ERROR: Golden: 15781, Output: 30739, at 9 48
->: ERROR: Golden: 63429, Output: 15781, at 9 49
->: ERROR: Golden: 60264, Output: 63429, at 9 50
->: ERROR: Golden: 35621, Output: 60264, at 9 51
->: ERROR: Golden: 63621, Output: 35621, at 9 52
->: ERROR: Golden: 46502, Output: 63621, at 9 53
->: ERROR: Golden: 40363, Output: 30875, at 9 54
->: ERROR: Golden: 48097, Output: 40363, at 9 55
->: ERROR: Golden: 28279, Output: 48097, at 9 56
->: ERROR: Golden: 50896, Output: 28279, at 9 57
->: ERROR: Golden: 3047, Output: 50896, at 9 58
->: ERROR: Golden: 41915, Output: 3047, at 9 59
->: ERROR: Golden: 17165, Output: 41915, at 9 60
->: ERROR: Golden: 17199, Output: 17165, at 9 61
->: ERROR: Golden: 39040, Output: 17199, at 9 62
->: ERROR: Golden: 17800, Output: 36244, at 9 63
->: ERROR: Golden: 38411, Output: 17800, at 9 64
->: ERROR: Golden: 30627, Output: 38411, at 9 65
->: ERROR: Golden: 48458, Output: 30627, at 9 66
->: ERROR: Golden: 64785, Output: 48458, at 9 67
->: ERROR: Golden: 9689, Output: 64785, at 9 68
->: ERROR: Golden: 17735, Output: 9689, at 9 69
->: ERROR: Golden: 22718, Output: 17735, at 9 70
->: ERROR: Golden: 7455, Output: 22718, at 9 71
->: ERROR: Golden: 33673, Output: 23485, at 9 72
->: ERROR: Golden: 43143, Output: 33673, at 9 73
->: ERROR: Golden: 970, Output: 43143, at 9 74
->: ERROR: Golden: 3579, Output: 970, at 9 75
->: ERROR: Golden: 23368, Output: 3579, at 9 76
->: ERROR: Golden: 1590, Output: 23368, at 9 77
->: ERROR: Golden: 8280, Output: 1590, at 9 78
->: ERROR: Golden: 54695, Output: 8280, at 9 79
->: ERROR: Golden: 62088, Output: 54695, at 9 80
->: 3:3588:1
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 100...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 
->: ERROR: Golden: 43207, Output: 0, at 7 0
->: ERROR: Golden: 48406, Output: 43207, at 7 1
->: ERROR: Golden: 20454, Output: 48406, at 7 2
->: ERROR: Golden: 27017, Output: 20454, at 7 3
->: ERROR: Golden: 41634, Output: 27017, at 7 4
->: ERROR: Golden: 35264, Output: 41634, at 7 5
->: ERROR: Golden: 53571, Output: 35264, at 7 6
->: ERROR: Golden: 24150, Output: 53571, at 7 7
->: ERROR: Golden: 52029, Output: 24150, at 7 8
->: ERROR: Golden: 6995, Output: 52029, at 7 9
->: ERROR: Golden: 60441, Output: 6995, at 7 10
->: ERROR: Golden: 33789, Output: 60441, at 7 11
->: ERROR: Golden: 47347, Output: 33789, at 7 12
->: ERROR: Golden: 64373, Output: 47347, at 7 13
->: ERROR: Golden: 63608, Output: 64373, at 7 14
->: ERROR: Golden: 29886, Output: 63608, at 7 15
->: ERROR: Golden: 46407, Output: 29886, at 7 16
->: ERROR: Golden: 39270, Output: 46407, at 7 17
->: ERROR: Golden: 48137, Output: 39270, at 7 18
->: ERROR: Golden: 29129, Output: 48137, at 7 19
->: ERROR: Golden: 10548, Output: 29129, at 7 20
->: ERROR: Golden: 25085, Output: 10548, at 7 21
->: ERROR: Golden: 18970, Output: 25085, at 7 22
->: ERROR: Golden: 61231, Output: 18970, at 7 23
->: ERROR: Golden: 28609, Output: 61231, at 7 24
->: ERROR: Golden: 31503, Output: 28609, at 7 25
->: ERROR: Golden: 48510, Output: 31503, at 7 26
->: ERROR: Golden: 30760, Output: 48510, at 7 27
->: ERROR: Golden: 37534, Output: 30760, at 7 28
->: ERROR: Golden: 52682, Output: 37534, at 7 29
->: ERROR: Golden: 63445, Output: 52682, at 7 30
->: ERROR: Golden: 21201, Output: 63445, at 7 31
->: ERROR: Golden: 49716, Output: 21201, at 7 32
->: ERROR: Golden: 45340, Output: 49716, at 7 33
->: ERROR: Golden: 61481, Output: 45340, at 7 34
->: ERROR: Golden: 22384, Output: 61481, at 7 35
->: ERROR: Golden: 59202, Output: 22384, at 7 36
->: ERROR: Golden: 22583, Output: 59202, at 7 37
->: ERROR: Golden: 57345, Output: 22583, at 7 38
->: ERROR: Golden: 61076, Output: 57345, at 7 39
->: ERROR: Golden: 60845, Output: 61076, at 7 40
->: ERROR: Golden: 14342, Output: 60845, at 7 41
->: ERROR: Golden: 15396, Output: 14342, at 7 42
->: ERROR: Golden: 464, Output: 15396, at 7 43
->: ERROR: Golden: 16993, Output: 464, at 7 44
->: ERROR: Golden: 8612, Output: 16993, at 7 45
->: ERROR: Golden: 6043, Output: 8612, at 7 46
->: ERROR: Golden: 36633, Output: 6043, at 7 47
->: ERROR: Golden: 22987, Output: 36633, at 7 48
->: ERROR: Golden: 52744, Output: 22987, at 7 49
->: ERROR: Golden: 50726, Output: 52744, at 7 50
->: ERROR: Golden: 51175, Output: 50726, at 7 51
->: ERROR: Golden: 20582, Output: 51175, at 7 52
->: ERROR: Golden: 15025, Output: 20582, at 7 53
->: ERROR: Golden: 6811, Output: 15025, at 7 54
->: ERROR: Golden: 6143, Output: 6811, at 7 55
->: ERROR: Golden: 57057, Output: 6143, at 7 56
->: ERROR: Golden: 22075, Output: 57057, at 7 57
->: ERROR: Golden: 26164, Output: 22075, at 7 58
->: ERROR: Golden: 2037, Output: 26164, at 7 59
->: ERROR: Golden: 7919, Output: 2037, at 7 60
->: ERROR: Golden: 45708, Output: 7919, at 7 61
->: ERROR: Golden: 24894, Output: 45708, at 7 62
->: ERROR: Golden: 52969, Output: 24894, at 7 63
->: ERROR: Golden: 9783, Output: 52969, at 7 64
->: ERROR: Golden: 10368, Output: 9783, at 7 65
->: ERROR: Golden: 21605, Output: 10368, at 7 66
->: ERROR: Golden: 9256, Output: 21605, at 7 67
->: ERROR: Golden: 58189, Output: 9256, at 7 68
->: ERROR: Golden: 35551, Output: 58189, at 7 69
->: ERROR: Golden: 35766, Output: 35551, at 7 70
->: ERROR: Golden: 18762, Output: 35766, at 7 71
->: ERROR: Golden: 53966, Output: 18762, at 7 72
->: ERROR: Golden: 44853, Output: 53966, at 7 73
->: ERROR: Golden: 3606, Output: 44853, at 7 74
->: ERROR: Golden: 40037, Output: 3606, at 7 75
->: ERROR: Golden: 36757, Output: 40037, at 7 76
->: ERROR: Golden: 28513, Output: 36757, at 7 77
->: ERROR: Golden: 39348, Output: 28513, at 7 78
->: ERROR: Golden: 45341, Output: 39348, at 7 79
->: ERROR: Golden: 42787, Output: 45341, at 7 80
->: ERROR: Golden: 17073, Output: 42787, at 7 81
->: ERROR: Golden: 31057, Output: 17073, at 7 82
->: ERROR: Golden: 61742, Output: 31057, at 7 83
->: ERROR: Golden: 43966, Output: 61742, at 7 84
->: ERROR: Golden: 58037, Output: 43966, at 7 85
->: ERROR: Golden: 49966, Output: 58037, at 7 86
->: ERROR: Golden: 53646, Output: 49966, at 7 87
->: ERROR: Golden: 17864, Output: 53646, at 7 88
->: ERROR: Golden: 19185, Output: 17864, at 7 89
->: 3:3590:1
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 100...
->: 
->: 
-Compilation successful!
-Current gdb output: b'\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/home/tommi/'
->: 
->: 
->: 
->: ERROR: Golden: 41751, Output: 0, at 9 0
->: ERROR: Golden: 26265, Output: 41751, at 9 1
->: ERROR: Golden: 13621, Output: 26265, at 9 2
->: ERROR: Golden: 1566, Output: 13621, at 9 3
->: ERROR: Golden: 36728, Output: 1566, at 9 4
->: ERROR: Golden: 32158, Output: 36728, at 9 5
->: ERROR: Golden: 25853, Output: 32158, at 9 6
->: ERROR: Golden: 64665, Output: 25853, at 9 7
->: ERROR: Golden: 887, Output: 64665, at 9 8
->: ERROR: Golden: 45366, Output: 3433, at 9 9
->: ERROR: Golden: 25776, Output: 45366, at 9 10
->: ERROR: Golden: 22348, Output: 25776, at 9 11
->: ERROR: Golden: 3299, Output: 22348, at 9 12
->: ERROR: Golden: 30204, Output: 3299, at 9 13
->: ERROR: Golden: 21132, Output: 30204, at 9 14
->: ERROR: Golden: 56199, Output: 21132, at 9 15
->: ERROR: Golden: 20980, Output: 56199, at 9 16
->: ERROR: Golden: 5922, Output: 20980, at 9 17
->: ERROR: Golden: 64551, Output: 18809, at 9 18
->: ERROR: Golden: 31056, Output: 64551, at 9 19
->: ERROR: Golden: 52044, Output: 31056, at 9 20
->: ERROR: Golden: 31232, Output: 52044, at 9 21
->: ERROR: Golden: 26802, Output: 31232, at 9 22
->: ERROR: Golden: 64625, Output: 26802, at 9 23
->: ERROR: Golden: 13685, Output: 64625, at 9 24
->: ERROR: Golden: 19966, Output: 13685, at 9 25
->: ERROR: Golden: 57560, Output: 19966, at 9 26
->: ERROR: Golden: 39403, Output: 29158, at 9 27
->: ERROR: Golden: 16514, Output: 39403, at 9 28
->: ERROR: Golden: 55355, Output: 16514, at 9 29
->: ERROR: Golden: 1244, Output: 55355, at 9 30
->: ERROR: Golden: 5334, Output: 1244, at 9 31
->: ERROR: Golden: 34585, Output: 5334, at 9 32
->: ERROR: Golden: 44576, Output: 34585, at 9 33
->: ERROR: Golden: 50201, Output: 44576, at 9 34
->: ERROR: Golden: 49158, Output: 50201, at 9 35
->: ERROR: Golden: 5894, Output: 2830, at 9 36
->: ERROR: Golden: 18309, Output: 5894, at 9 37
->: ERROR: Golden: 56052, Output: 18309, at 9 38
->: ERROR: Golden: 5022, Output: 56052, at 9 39
->: ERROR: Golden: 20080, Output: 5022, at 9 40
->: ERROR: Golden: 26619, Output: 20080, at 9 41
->: ERROR: Golden: 53466, Output: 26619, at 9 42
->: ERROR: Golden: 20410, Output: 53466, at 9 43
->: ERROR: Golden: 54104, Output: 20410, at 9 44
->: ERROR: Golden: 5208, Output: 19795, at 9 45
->: ERROR: Golden: 43565, Output: 5208, at 9 46
->: ERROR: Golden: 30987, Output: 43565, at 9 47
->: ERROR: Golden: 9695, Output: 30987, at 9 48
->: ERROR: Golden: 38457, Output: 9695, at 9 49
->: ERROR: Golden: 3293, Output: 38457, at 9 50
->: ERROR: Golden: 30848, Output: 3293, at 9 51
->: ERROR: Golden: 17902, Output: 30848, at 9 52
->: ERROR: Golden: 44916, Output: 17902, at 9 53
->: ERROR: Golden: 19359, Output: 40151, at 9 54
->: ERROR: Golden: 62888, Output: 19359, at 9 55
->: ERROR: Golden: 14432, Output: 62888, at 9 56
->: ERROR: Golden: 8196, Output: 14432, at 9 57
->: ERROR: Golden: 33656, Output: 8196, at 9 58
->: ERROR: Golden: 33028, Output: 33656, at 9 59
->: ERROR: Golden: 437, Output: 33028, at 9 60
->: ERROR: Golden: 6777, Output: 437, at 9 61
->: ERROR: Golden: 24358, Output: 6777, at 9 62
->: ERROR: Golden: 2294, Output: 56826, at 9 63
->: ERROR: Golden: 38629, Output: 2294, at 9 64
->: ERROR: Golden: 29031, Output: 38629, at 9 65
->: ERROR: Golden: 24313, Output: 29031, at 9 66
->: ERROR: Golden: 14455, Output: 24313, at 9 67
->: ERROR: Golden: 46839, Output: 14455, at 9 68
->: ERROR: Golden: 21411, Output: 46839, at 9 69
->: ERROR: Golden: 62785, Output: 21411, at 9 70
->: ERROR: Golden: 24068, Output: 62785, at 9 71
->: ERROR: Golden: 27430, Output: 5039, at 9 72
->: ERROR: Golden: 17654, Output: 27430, at 9 73
->: ERROR: Golden: 40588, Output: 17654, at 9 74
->: ERROR: Golden: 35714, Output: 40588, at 9 75
->: ERROR: Golden: 45621, Output: 35714, at 9 76
->: ERROR: Golden: 61018, Output: 45621, at 9 77
->: ERROR: Golden: 48435, Output: 61018, at 9 78
->: ERROR: Golden: 20861, Output: 48435, at 9 79
->: ERROR: Golden: 26763, Output: 20861, at 9 80
->: ERROR: Golden: 45366, Output: 0, at 13 0
->: ERROR: Golden: 25776, Output: 45366, at 13 1
->: ERROR: Golden: 22348, Output: 25776, at 13 2
->: ERROR: Golden: 3299, Output: 22348, at 13 3
->: ERROR: Golden: 30204, Output: 3299, at 13 4
->: ERROR: Golden: 21132, Output: 30204, at 13 5
->: ERROR: Golden: 56199, Output: 21132, at 13 6
->: ERROR: Golden: 20980, Output: 56199, at 13 7
->: ERROR: Golden: 5922, Output: 20980, at 13 8
->: ERROR: Golden: 64551, Output: 18809, at 13 9
->: ERROR: Golden: 31056, Output: 64551, at 13 10
->: ERROR: Golden: 52044, Output: 31056, at 13 11
->: ERROR: Golden: 31232, Output: 52044, at 13 12
->: ERROR: Golden: 26802, Output: 31232, at 13 13
->: ERROR: Golden: 64625, Output: 26802, at 13 14
->: ERROR: Golden: 13685, Output: 64625, at 13 15
->: ERROR: Golden: 19966, Output: 13685, at 13 16
->: ERROR: Golden: 57560, Output: 19966, at 13 17
->: ERROR: Golden: 39403, Output: 29158, at 13 18
->: ERROR: Golden: 16514, Output: 39403, at 13 19
->: ERROR: Golden: 55355, Output: 16514, at 13 20
->: ERROR: Golden: 1244, Output: 55355, at 13 21
->: ERROR: Golden: 5334, Output: 1244, at 13 22
->: ERROR: Golden: 34585, Output: 5334, at 13 23
->: ERROR: Golden: 44576, Output: 34585, at 13 24
->: ERROR: Golden: 50201, Output: 44576, at 13 25
->: ERROR: Golden: 49158, Output: 50201, at 13 26
->: ERROR: Golden: 5894, Output: 2830, at 13 27
->: ERROR: Golden: 18309, Output: 5894, at 13 28
->: ERROR: Golden: 56052, Output: 18309, at 13 29
->: ERROR: Golden: 5022, Output: 56052, at 13 30
->: ERROR: Golden: 20080, Output: 5022, at 13 31
->: ERROR: Golden: 26619, Output: 20080, at 13 32
->: ERROR: Golden: 53466, Output: 26619, at 13 33
->: ERROR: Golden: 20410, Output: 53466, at 13 34
->: ERROR: Golden: 54104, Output: 20410, at 13 35
->: ERROR: Golden: 5208, Output: 19795, at 13 36
->: ERROR: Golden: 43565, Output: 5208, at 13 37
->: ERROR: Golden: 30987, Output: 43565, at 13 38
->: ERROR: Golden: 9695, Output: 30987, at 13 39
->: ERROR: Golden: 38457, Output: 9695, at 13 40
->: ERROR: Golden: 3293, Output: 38457, at 13 41
->: ERROR: Golden: 30848, Output: 3293, at 13 42
->: ERROR: Golden: 17902, Output: 30848, at 13 43
->: ERROR: Golden: 44916, Output: 17902, at 13 44
->: ERROR: Golden: 19359, Output: 40151, at 13 45
->: ERROR: Golden: 62888, Output: 19359, at 13 46
->: ERROR: Golden: 14432, Output: 62888, at 13 47
->: ERROR: Golden: 8196, Output: 14432, at 13 48
->: ERROR: Golden: 33656, Output: 8196, at 13 49
->: ERROR: Golden: 33028, Output: 33656, at 13 50
->: ERROR: Golden: 437, Output: 33028, at 13 51
->: ERROR: Golden: 6777, Output: 437, at 13 52
->: ERROR: Golden: 24358, Output: 6777, at 13 53
->: ERROR: Golden: 2294, Output: 56826, at 13 54
->: ERROR: Golden: 38629, Output: 2294, at 13 55
->: ERROR: Golden: 29031, Output: 38629, at 13 56
->: ERROR: Golden: 24313, Output: 29031, at 13 57
->: ERROR: Golden: 14455, Output: 24313, at 13 58
->: ERROR: Golden: 46839, Output: 14455, at 13 59
->: ERROR: Golden: 21411, Output: 46839, at 13 60
->: ERROR: Golden: 62785, Output: 21411, at 13 61
->: ERROR: Golden: 24068, Output: 62785, at 13 62
->: ERROR: Golden: 27430, Output: 5039, at 13 63
->: ERROR: Golden: 17654, Output: 27430, at 13 64
->: ERROR: Golden: 40588, Output: 17654, at 13 65
->: ERROR: Golden: 35714, Output: 40588, at 13 66
->: ERROR: Golden: 45621, Output: 35714, at 13 67
->: ERROR: Golden: 61018, Output: 45621, at 13 68
->: ERROR: Golden: 48435, Output: 61018, at 13 69
->: ERROR: Golden: 20861, Output: 48435, at 13 70
->: ERROR: Golden: 26763, Output: 20861, at 13 71
->: 3:4180:1
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 200...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 
->: ERROR: Golden: 6381, Output: 0, at 7 0
->: ERROR: Golden: 3857, Output: 6381, at 7 1
->: ERROR: Golden: 17876, Output: 3857, at 7 2
->: ERROR: Golden: 37588, Output: 17876, at 7 3
->: ERROR: Golden: 55553, Output: 37588, at 7 4
->: ERROR: Golden: 45725, Output: 55553, at 7 5
->: ERROR: Golden: 46178, Output: 45725, at 7 6
->: ERROR: Golden: 43010, Output: 46178, at 7 7
->: ERROR: Golden: 25457, Output: 43010, at 7 8
->: ERROR: Golden: 36847, Output: 25457, at 7 9
->: ERROR: Golden: 43127, Output: 36847, at 7 10
->: ERROR: Golden: 46389, Output: 43127, at 7 11
->: ERROR: Golden: 38772, Output: 46389, at 7 12
->: ERROR: Golden: 48884, Output: 38772, at 7 13
->: ERROR: Golden: 37240, Output: 48884, at 7 14
->: ERROR: Golden: 40820, Output: 37240, at 7 15
->: ERROR: Golden: 57174, Output: 40820, at 7 16
->: ERROR: Golden: 38393, Output: 57174, at 7 17
->: ERROR: Golden: 20608, Output: 38393, at 7 18
->: ERROR: Golden: 62663, Output: 20608, at 7 19
->: ERROR: Golden: 5863, Output: 62663, at 7 20
->: ERROR: Golden: 47166, Output: 5863, at 7 21
->: ERROR: Golden: 2523, Output: 47166, at 7 22
->: ERROR: Golden: 46137, Output: 2523, at 7 23
->: ERROR: Golden: 63038, Output: 46137, at 7 24
->: ERROR: Golden: 39189, Output: 63038, at 7 25
->: ERROR: Golden: 11854, Output: 39189, at 7 26
->: ERROR: Golden: 13943, Output: 11854, at 7 27
->: ERROR: Golden: 4588, Output: 13943, at 7 28
->: ERROR: Golden: 21393, Output: 4588, at 7 29
->: ERROR: Golden: 64772, Output: 21393, at 7 30
->: ERROR: Golden: 21234, Output: 64772, at 7 31
->: ERROR: Golden: 6571, Output: 21234, at 7 32
->: ERROR: Golden: 16036, Output: 6571, at 7 33
->: ERROR: Golden: 38363, Output: 16036, at 7 34
->: ERROR: Golden: 13453, Output: 38363, at 7 35
->: ERROR: Golden: 16944, Output: 13453, at 7 36
->: ERROR: Golden: 61010, Output: 16944, at 7 37
->: ERROR: Golden: 1234, Output: 61010, at 7 38
->: ERROR: Golden: 39636, Output: 1234, at 7 39
->: ERROR: Golden: 6017, Output: 39636, at 7 40
->: ERROR: Golden: 22349, Output: 6017, at 7 41
->: ERROR: Golden: 9036, Output: 22349, at 7 42
->: ERROR: Golden: 56598, Output: 9036, at 7 43
->: ERROR: Golden: 12928, Output: 56598, at 7 44
->: ERROR: Golden: 49581, Output: 12928, at 7 45
->: ERROR: Golden: 11939, Output: 49581, at 7 46
->: ERROR: Golden: 64958, Output: 11939, at 7 47
->: ERROR: Golden: 39272, Output: 64958, at 7 48
->: ERROR: Golden: 17842, Output: 39272, at 7 49
->: ERROR: Golden: 39320, Output: 17842, at 7 50
->: ERROR: Golden: 54935, Output: 39320, at 7 51
->: ERROR: Golden: 53279, Output: 54935, at 7 52
->: ERROR: Golden: 40644, Output: 53279, at 7 53
->: ERROR: Golden: 10269, Output: 40644, at 7 54
->: ERROR: Golden: 29683, Output: 10269, at 7 55
->: ERROR: Golden: 39843, Output: 29683, at 7 56
->: ERROR: Golden: 42442, Output: 39843, at 7 57
->: ERROR: Golden: 8655, Output: 42442, at 7 58
->: ERROR: Golden: 13182, Output: 8655, at 7 59
->: ERROR: Golden: 28045, Output: 13182, at 7 60
->: ERROR: Golden: 40274, Output: 28045, at 7 61
->: ERROR: Golden: 9404, Output: 40274, at 7 62
->: ERROR: Golden: 33661, Output: 9404, at 7 63
->: ERROR: Golden: 62936, Output: 33661, at 7 64
->: ERROR: Golden: 61521, Output: 62936, at 7 65
->: ERROR: Golden: 20259, Output: 61521, at 7 66
->: ERROR: Golden: 51855, Output: 20259, at 7 67
->: ERROR: Golden: 58503, Output: 51855, at 7 68
->: ERROR: Golden: 15178, Output: 58503, at 7 69
->: ERROR: Golden: 11724, Output: 15178, at 7 70
->: ERROR: Golden: 57065, Output: 11724, at 7 71
->: ERROR: Golden: 51286, Output: 57065, at 7 72
->: ERROR: Golden: 54471, Output: 51286, at 7 73
->: ERROR: Golden: 44865, Output: 54471, at 7 74
->: ERROR: Golden: 20903, Output: 44865, at 7 75
->: ERROR: Golden: 20265, Output: 20903, at 7 76
->: ERROR: Golden: 33332, Output: 20265, at 7 77
->: ERROR: Golden: 41080, Output: 33332, at 7 78
->: ERROR: Golden: 40479, Output: 41080, at 7 79
->: ERROR: Golden: 39467, Output: 40479, at 7 80
->: ERROR: Golden: 9004, Output: 39467, at 7 81
->: ERROR: Golden: 30967, Output: 9004, at 7 82
->: ERROR: Golden: 24028, Output: 30967, at 7 83
->: ERROR: Golden: 42967, Output: 24028, at 7 84
->: ERROR: Golden: 32725, Output: 42967, at 7 85
->: ERROR: Golden: 3469, Output: 32725, at 7 86
->: ERROR: Golden: 55904, Output: 3469, at 7 87
->: ERROR: Golden: 2835, Output: 55904, at 7 88
->: ERROR: Golden: 38367, Output: 2835, at 7 89
->: 3:5412:1
->: &
-Received &: end of serial transmission thread
-Running test example_im2col with input size 200...
->: 
->: 
-Compilation successful!
-Current gdb output: b'continue\r\nContinuing.\r\n\r\nBreakpoint 1, \x1b[33m_exit\x1b[m (\x1b[36mexit_status\x1b[m=0)\x1b[m\r\n   \x1b[m at \x1b[32m/hom'
->: 
->: 
->: 
->: ERROR: Golden: 64184, Output: 0, at 9 0
->: ERROR: Golden: 59469, Output: 64184, at 9 1
->: ERROR: Golden: 26583, Output: 59469, at 9 2
->: ERROR: Golden: 56071, Output: 26583, at 9 3
->: ERROR: Golden: 17683, Output: 56071, at 9 4
->: ERROR: Golden: 26397, Output: 17683, at 9 5
->: ERROR: Golden: 6305, Output: 26397, at 9 6
->: ERROR: Golden: 26837, Output: 6305, at 9 7
->: ERROR: Golden: 1408, Output: 26837, at 9 8
->: ERROR: Golden: 28730, Output: 34473, at 9 9
->: ERROR: Golden: 23980, Output: 28730, at 9 10
->: ERROR: Golden: 54332, Output: 23980, at 9 11
->: ERROR: Golden: 21403, Output: 54332, at 9 12
->: ERROR: Golden: 2193, Output: 21403, at 9 13
->: ERROR: Golden: 17331, Output: 2193, at 9 14
->: ERROR: Golden: 32847, Output: 17331, at 9 15
->: ERROR: Golden: 11261, Output: 32847, at 9 16
->: ERROR: Golden: 21006, Output: 11261, at 9 17
->: ERROR: Golden: 55071, Output: 34574, at 9 18
->: ERROR: Golden: 23269, Output: 55071, at 9 19
->: ERROR: Golden: 10960, Output: 23269, at 9 20
->: ERROR: Golden: 26007, Output: 10960, at 9 21
->: ERROR: Golden: 23586, Output: 26007, at 9 22
->: ERROR: Golden: 60919, Output: 23586, at 9 23
->: ERROR: Golden: 62607, Output: 60919, at 9 24
->: ERROR: Golden: 15957, Output: 62607, at 9 25
->: ERROR: Golden: 34800, Output: 15957, at 9 26
->: ERROR: Golden: 31493, Output: 38010, at 9 27
->: ERROR: Golden: 36499, Output: 31493, at 9 28
->: ERROR: Golden: 38569, Output: 36499, at 9 29
->: ERROR: Golden: 46536, Output: 38569, at 9 30
->: ERROR: Golden: 30496, Output: 46536, at 9 31
->: ERROR: Golden: 714, Output: 30496, at 9 32
->: ERROR: Golden: 40457, Output: 714, at 9 33
->: ERROR: Golden: 60702, Output: 40457, at 9 34
->: ERROR: Golden: 3157, Output: 60702, at 9 35
->: ERROR: Golden: 33827, Output: 42595, at 9 36
->: ERROR: Golden: 60043, Output: 33827, at 9 37
->: ERROR: Golden: 39637, Output: 60043, at 9 38
->: ERROR: Golden: 43132, Output: 39637, at 9 39
->: ERROR: Golden: 44387, Output: 43132, at 9 40
->: ERROR: Golden: 65156, Output: 44387, at 9 41
->: ERROR: Golden: 48025, Output: 65156, at 9 42
->: ERROR: Golden: 11272, Output: 48025, at 9 43
->: ERROR: Golden: 63966, Output: 11272, at 9 44
->: ERROR: Golden: 56890, Output: 61830, at 9 45
->: ERROR: Golden: 36862, Output: 56890, at 9 46
->: ERROR: Golden: 52070, Output: 36862, at 9 47
->: ERROR: Golden: 3856, Output: 52070, at 9 48
->: ERROR: Golden: 51306, Output: 3856, at 9 49
->: ERROR: Golden: 19689, Output: 51306, at 9 50
->: ERROR: Golden: 4913, Output: 19689, at 9 51
->: ERROR: Golden: 56809, Output: 4913, at 9 52
-Traceback (most recent call last):
-  File "verifHEEP_pynqz2.py", line 303, in <module>
-    main()
-  File "verifHEEP_pynqz2.py", line 235, in main
-    im2colVer.launchTest("example_im2col", input_size=j*k*l*m)
-  File "/home/tommi/Desktop/X-Heep/Source/x-heep-main/x-heep/sw/applications/example_im2col/verifheep_lib.py", line 205, in launchTest
-    self.serial_thread.join()
-  File "/home/tommi/miniconda3/envs/core-v-mini-mcu/lib/python3.8/threading.py", line 1011, in join
-    self._wait_for_tstate_lock()
-  File "/home/tommi/miniconda3/envs/core-v-mini-mcu/lib/python3.8/threading.py", line 1027, in _wait_for_tstate_lock
-    elif lock.acquire(block, timeout):
-KeyboardInterrupt
-Exception ignored in: <module 'threading' from '/home/tommi/miniconda3/envs/core-v-mini-mcu/lib/python3.8/threading.py'>
-Traceback (most recent call last):
-  File "/home/tommi/miniconda3/envs/core-v-mini-mcu/lib/python3.8/threading.py", line 1388, in _shutdown
-    lock.acquire()
-KeyboardInterrupt: 
->: ERROR: Golden: 30289, Output: 56809, at 9 53
->: ERROR: Golden: 44016, Output: 24823, at 9 54
->: ERROR: Golden: 31394, Output: 44016, at 9 55
->: ERROR: Golden: 32696, Output: 31394, at 9 56
->: ERROR: Golden: 17300, Output: 32696, at 9 57
->: ERROR: Golden: 4295, Output: 17300, at 9 58
->: ERROR: Golden: 51961, Output: 4295, at 9 59
->: ERROR: Golden: 20185, Output: 51961, at 9 60
->: ERROR: Golden: 5435, Output: 20185, at 9 61
->: ERROR: Golden: 11034, Output: 5435, at 9 62
->: ERROR: Golden: 9140, Output: 2289, at 9 63
->: ERROR: Golden: 41955, Output: 9140, at 9 64
->: ERROR: Golden: 16098, Output: 41955, at 9 65
->: ERROR: Golden: 64603, Output: 16098, at 9 66
->: ERROR: Golden: 27703, Output: 64603, at 9 67
->: ERROR: Golden: 56984, Output: 27703, at 9 68
->: ERROR: Golden: 18568, Output: 56984, at 9 69
->: ERROR: Golden: 21006, Output: 18568, at 9 70
->: ERROR: Golden: 5010, Output: 21006, at 9 71
->: ERROR: Golden: 30969, Output: 3655, at 9 72
->: ERROR: Golden: 37520, Output: 30969, at 9 73

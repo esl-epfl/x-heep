@@ -22,7 +22,9 @@ The DMA **SDK**, on the other hand, offers user-friendly functions for essential
 
 ## Structural description
 
-![alt text](./images/dma_structure.png)
+![DMA subsystem structure](https://github.com/esl-epfl/x-heep/docs/images/dma_structure.png)
+
+<p  align="center">Figure 1: Structure of the DMA subsystem in X-Heep </p>
 
 #### DMA channels layout
 
@@ -56,7 +58,7 @@ If enabled, a transaction interrupt is raised every time a DMA transaction is co
 
 To allow users to identify which channel raised the transaction interrupt, an **interrupt flag register** system has been developed. Here's how it works: when a DMA channel completes its transaction and the interrupt enable register is correctly set, the transaction **IFR** (Interrupt Flag Register) is set. This register is designed to be cleared automatically once read, which is convenient as it eliminates the need for an additional register write.
 
-The transaction interrupt handler leverages this mechanism to identify the channel that raised the interrupt. As soon as an IFR is read as high, it triggers the actual handler, which can be redefined by the user [LINK TO HAL SECTION].
+The transaction interrupt handler leverages this mechanism to identify the channel that raised the interrupt. As soon as an IFR is read as high, it triggers the actual handler, which can be redefined by the user. An example of this mechanism at work is explained in [Example 7](#7-multichannel-mem2mem-transaction-focus-on-the-irq-handler).
 
 It is possible that a channel could raise an interrupt while the CPU is processing a previous interrupt from another channel. This is not an issue because the IFR will remain set until the CPU reads its content. However, this situation could introduce additional delay to the execution of the application.
 
@@ -64,7 +66,8 @@ For this reason, the handler implemented by the user should be as brief as possi
 
 #### Data FIFOs configuration
 
-Each DMA channel uses FIFOs to buffer the data to be read & written, which is crucial for mitigating the combined delays from the system bus and the DMA subsystem bus. 
+Each DMA channel uses FIFOs to buffer the data to be read and written, which is crucial for mitigating the combined delays from the system bus and the Always On Peripheral Bus (**AOPB**). 
+
 The **size of the FIFOs is parametric** and is, by default, the same across all channels.
 
 Some applications can benefit from larger FIFOs because it allows for more values to be buffered in situations where the bus is heavily utilized or the target peripheral, such as the SPI, is too slow.
@@ -74,9 +77,23 @@ A hybrid system, where some channels have large FIFO sizes and others have small
 It is possible to specify the size of each DMA channel FIFOs in `dma_subsystem.sv`. 
 These are the steps to follow to take advantage this feature:
 
-- Uncomment `//define EN_SET_FIFO_CH_SIZE;` to enable the mechanism
-- Adjust the parameters _L_, _M_ and _S_. They define the size of a large, medium and small FIFOs.
+- Uncomment `//'define EN_SET_FIFO_CH_SIZE;` to enable the mechanism
+- Adjust the parameters *LARGE_FIFO_CH_SIZE*, *MEDIUM_FIFO_CH_SIZE* and *SMALL_FIFO_CH_SIZE*. They define the size of a large, medium and small FIFOs.
 - Modify the parameter `typedef enum {L, M, S} fifo_ch_size_t;` to assign individual sizes to the FIFOs. The number of elements must reflect the number of DMA channels.
+
+e.g.
+
+Let's imagine to configure X-Heep to have 4 channels. These are the definitions of the sizes:
+- *LARGE_FIFO_CH_SIZE*: 10
+- *MEDIUM_FIFO_CH_SIZE*: 4
+- *SMALL_FIFO_CH_SIZE*: 2
+
+Now, let's set the first 2 channels, CH0 and CH1, to the large size, CH2 to small and CH3 to medium. This is the *fifo_ch_size_t* that would result from that configuration:
+
+<div style="text-align: center;">
+<pre style="display: inline-block; text-align: center;"><code>typedef enum {L, L, S, M} fifo_ch_size_t;</code></pre>
+</div>
+
 <br>
 
 #### Triggers
@@ -86,7 +103,8 @@ In the case of memory-peripheral operations, it is common for the peripheral to 
 This difference in response times creates the need for a **communication channel** between DMA subsystem and peripheral allowing the DMA operations to be suspended according to the peripheral state. These signals are called __triggers__. 
 
 They can be used both when the peripheral writes data using the DMA and when the DMA reads data from the peripheral.
-The DMA can be configured to respond to triggers by enabling the appropriate _slot_ via software, using the DMA HAL. [INSERIRE LINK A ESEMPIO SPI SLOT DMA MULTICHANNEL]
+The DMA can be configured to respond to triggers by enabling the appropriate _slot_ via software, using the DMA HAL.
+
 <br>
 
 #### Tips for DMA-based accelerator developers
@@ -95,7 +113,7 @@ The DMA subsystem has been developed with specific features to facilitate the cr
 
 - **Always-On Peripheral Bus** (AOPB): it exposes the register interface of the units in the Always-On subsystem to any Smart Peripheral Controller (SPC). 
 In the case of the DMA subsystem, this feature allows the developers to configure the DMA subsystem without any CPU action, reducing power consumption while at the same time increasing the performance and effectiveness of the accelerator. 
-Check out the _im2col SPC_ in the `\ip_examples` folder for a detailed example..
+Check out the _im2col SPC_ in the `\ip_examples` folder for a detailed example.
 <br>
 
 - **Triggers**: useful to synchronize the data streams to and from the accelerator.
@@ -105,20 +123,20 @@ Check out the _im2col SPC_ in the `\ip_examples` folder for a detailed example..
 A good example of such an accelerator is a level crossing subsampler, which writes sampled data only when they cross a specific threshold.
 <br>
 
-- **VerifHEEP**: it's a python library that has been developed to test computational units and accelerators developed on X-Heep. 
-It has been deployed succesfully to validate the _im2col SPC_ as it is expecially useful for data-intense accelerators.
-[LINK ALLA DOCUMENTAZIONE DI VERIFHEEP]
-It includes methods to: 
+- **VerifHEEP**: this python library has been developed to test computational units and accelerators deployed on X-Heep. 
+It has been deployed succesfully to verify the _im2col SPC_ as it is expecially useful for data-driven accelerators.
+Additional documentation can be found in the **VerifHEEP documentation**, but in brief it includes methods to: 
   - Generate random inputs and compute the corresponding golden results
   - Launch synthesis & simulations on QuestaSim and Verilator
-  - Compile, program & launch applications on FPGA targets for a tenfold reduction in test & verification times
-  - Analyze the performance of the tests and plot the results. 
+  - Compile, program & launch applications on FPGA targets for a tenfold reduction in test and verification times
+  - Analyze the performance of the tests. 
 <br>
 
 ### Registers description
 
 This section will describe every register of a DMA channel and their function.
 The complete addres of a DMA channel register is the following:
+
 <p style="text-align: center;"><code>DMA_START_ADDRESS + DMA_CH_SIZE * channel + REGISTER_OFFSET</code></p>
 
 The previous parameters, including the register offsets, can be found at `sw/device/lib/runtime/core_v_mini_mcu.h` and `sw/device/lib/drivers/dma/dma_regs.h`
@@ -154,7 +172,7 @@ The previous parameters, including the register offsets, can be found at `sw/dev
 
 - **ADDR_PTR_REG**
   - _SW access_: rw
-  - _Description_: Used only with the address mode [LINK ALLE MODALITA']. It contains the pointer to the source, which in this case must data stored in memory.
+  - _Description_: Used only with the [address mode](#transaction-modes) . It contains the pointer to the source, which in this case must data stored in memory.
 
 <hr>
 
@@ -211,7 +229,7 @@ The previous parameters, including the register offsets, can be found at `sw/dev
 - **SRC_PTR_INC_D2**
   - _SW access_: rw
   - _Description_: increment in bytes to apply to the source pointer every time a "row" is copied, in order to go to the new line. It's necessary only for 2D transactions. 
-  From an application perspective, this value has to be computed depending on the size of the input matrix and the 2D stride. Check the functional description paragraph for more information.
+  From an application perspective, this value has to be computed depending on the size of the input matrix and the 2D stride. Check the functional description paragraph for more information or [Example 4](#4-2d-mem2mem-transaction).
 
 <hr>
 
@@ -274,7 +292,7 @@ The previous parameters, including the register offsets, can be found at `sw/dev
     - 0: _word_, i.e. 4 bytes
     - 1: _half word_, i.e. 2 bytes
     - 2 or 3: _byte_
-    If wider than the source datatype and signe extension is enable, the output data will be sign extended
+    If wider than the source datatype and sign extension is enabled, the output data will be sign extended
 
 <hr>
 
@@ -285,7 +303,7 @@ The previous parameters, including the register offsets, can be found at `sw/dev
 
 - **SIGN_EXT**
   - _SW access_: rw
-  - _Description_: enables the sign extension, which can be performed only if the output datatype is wider that the source datatype
+  - _Description_: enables the sign extension, which can be performed only if the output datatype is wider than the source datatype
 
 <hr>
 
@@ -377,7 +395,7 @@ The previous parameters, including the register offsets, can be found at `sw/dev
 
 - **TRANSACTION_IFR**
   - _SW access_: r0
-  - _Description_: interrupt flag register for transaction interrupts. It is set to '1' when the transaction interrupts are enabled and the transaction is completed. It is cleared when it's read by the CPU in the IRQ handler. This feature enables the handler to identify which channel raised the interrupt, more on this mechanism in the functional description paragraph.
+  - _Description_: interrupt flag register for transaction interrupts. It is set to '1' when the transaction interrupts are enabled and the transaction is completed. It is cleared when it's read by the CPU in the IRQ handler. This feature enables the handler to identify which channel raised the interrupt, as explained [here](#interrupts).
 
 <hr>
 
@@ -388,14 +406,14 @@ The previous parameters, including the register offsets, can be found at `sw/dev
 
 - **WINDOW_IFR**
   - _SW access_: r0
-  - _Description_: interrupt flag register for window interrupts. It is set to '1' when the window interrupts are enabled and the window is done. It is cleared when it's read by the CPU in the IRQ handler. This feature enables the handler to identify which channel raised the interrupt, more on this mechanism in the functional description paragraph.
+  - _Description_: interrupt flag register for window interrupts. It is set to '1' when the window interrupts are enabled and the window is done. It is cleared when it's read by the CPU in the IRQ handler.
 
   
 ## Functional description
 
 ### Dictionary
 
-The implementation of this software layer introduced some concepts that need to be understood in order to make proper use of the DMA's functionalities.
+The implementation of the software layer introduced some concepts that need to be understood in order to make proper use of the DMA's functionalities.
 
   
 
@@ -409,16 +427,12 @@ While a transaction is running, new transactions can be validated, loaded and la
 
 Transactions can be re-launched automatically in `circular mode`.
 
-Once the transaction has finished, a status bit is changed (that can be monitored through polling) and a fast interrupt is triggered. 
-An interrupt flag register system has been developed to overcome architectural limitations. As explained in the HAL section [LINK TO HAL SECTION], this system enables the interrupt handler to identify which channel has raised the interrupt.
-
-In the event of a transaction interrupt, the ID of the channel that raised the interrupt is passed to the weak implementation of the handler. This weak handler can be redefined by the user, as demonstrated in example_dma_multichannel.
+Once the transaction has finished, a status bit is changed (that can be monitored through polling) and a fast interrupt is triggered. The channel that raised the interrupt is identified and it's passed to the the handler itself, which can be redefined by the user, as shown in [Example 7](#7-multichannel-mem2mem-transaction-focus-on-the-irq-handler) or in `example_dma_multichannel` in the application folder.
   
 
 #### Source and destination
 
-Sources and destinations are the two pointers that will exchange data. Bytes will be copied from the source and into the destination address. If the destination size is wider that the source one and sign extension is enabled, the channel will sign extend the data.
-
+Sources and destinations are the two pointers that will exchange data. Bytes will be copied from the source and into the destination address. 
   
 
 #### Data type
@@ -429,7 +443,7 @@ For example, 16 bytes can be 16 data units if the data type is `Byte`, but 8 dat
 Source and destination can have different data types and if the destination type is larger than the source type, data can be sign extended.
 
 #### Sign extension
-It can be enabled by setting the bit in the corresponding register [LINK SEZIONE REGISTRI].
+It can be enabled by setting the bit in the corresponding [register](#registers-description).
 If the destination data type is larger than the source type, the source data is sign extended to fill up the size of the destination data type.
 
 
@@ -438,7 +452,7 @@ If the destination data type is larger than the source type, the source data is 
 The DMA can perform both **1D transactions** and **2D transactions**. 
 In a 1D transaction, the DMA copies a certain number of elements from the source pointer to the destination pointer using a single increment.
 On the other hand, in a 2D transaction the DMA copies data from the source pointer to the destination pointer using two separate increments, which can be interpreted as a 1D and a 2D increment. 
-In this way, two-dimensional data manipulations (i.e. matrix manipulations) can be performed in a single DMA transaction.
+In this way, two-dimensional data manipulations, i.e. matrix manipulations, can be performed in a single DMA transaction.
 
 #### Increment
 
@@ -474,8 +488,6 @@ In order to achieve this result, these are the setup of the increments:
 
 Moreover, by exploiting the 2D increment, it is possible to implement a 2D non-continuous read and/or write.
 
-[INSERIRE ESEMPIO GRAFICO PRESO DAI DISEGNI DELL'IM2COL]
-
 Detailed formulas for the computation of 2D increments are reported in the example application in the `\example_dma_2d` folder.
   
 #### Zero padding
@@ -500,7 +512,7 @@ e.g. Let's consider a 2x3 matrix:
 It's important to highlight that the padding is performed (conceptually) only *after* the matrix has been extracted.
 So the padding parameters refers only to the extracted matrix, not to the entire source matrix.
 
-Let's revisit the previous 2x2 extraction example, this time adding a left and top padding of 1 word:
+Let's revisit the previous 2x2 extraction example, this time adding a left and top padding of 1 element:
 
 
 	| 3 | 5 | 7 | 9 |                        | 0 | 0 | 0 |
@@ -611,101 +623,6 @@ The DMA HAL can follow up on these changes or let the application be in charge o
 
 *  **Interrupt wait**: The DMA HAL will block the program in a `wfi()` state until the _transaction done interrupt_ is triggered.
 
-  
-  
-
-## Operation
-
-This section will explain the operation of the DMA through the DMA HAL.
-
-There is a DMA subsystem instance inside X-HEEP, but others can be connected outside through the bus (see the `example_external_peripheral` application in `sw/aplications/example_external_peripheral/main.c`). 
-As long as the DMA instance is the same and the registers are memory mapped with the same structure, the DMA HAL can be used.
-
-  
-
-The DMA HAL adds an extra computational overhead to transactions in order to check the consistency of the transaction configurations. By-passing this layer (and the steps here described) is risky. For the efficiency-hungry applications, doing at least one pass with the whole validation process is recommended. The HAL allows to load and launch transactions with minimum overhead afterwards.
-
-  
-
-The following explanation makes use of Figure 1.
-
-  
-
-![DMA HAL-HW + addresses](https://github.com/esl-epfl/x-heep/assets/54960111/3092faa5-c72c-4cd9-a4d4-4c87de63d1c7)
-
-<p  align="center">Figure 1: Example operation of the DMA and its HAL</p>
-
-  
-
----
-
-  
-
-The use of the DMA starts with the application creating a set of targets (<span  style="color:red">**a**</span>) . In the figure, the source target is a peripheral connected to an SPI and to the DMA. The address of the reception FIFO (_Rx FIFO_) of this SPI is `0x70` (<span  style="color:red">**b**</span>) . The destination target is a region of memory of address `0x16` (<span  style="color:red">**c**</span>). It is located inside an environment that spans from `0x12` to `0x35`. Any number of environments and targets can be created, and not used.
-
-  
-
-Additionally, in the application the transaction is created. The _operation mode_ and _window size_ are selected.
-
-  
-
-The application calls the validation function of the HAL. If the configurations do not raise a critical flag, it then calls the loading function. By doing so, the desired values are written into their corresponding registers (<span  style="color:red">**d**</span>). The only register that is not immediately written is the _transaction size_, as it is the one responsible for launching the transaction when changed from zero to a non-zero value. It is only written once the application calls the launching function (<span  style="color:red">**e**</span>).
-
-  
-
-Note that there could be some changes between the configuration input in the application and the values written in the registers. For example, a _window size_ of 2 refers to _2 data units_ (i.e. 2 half-words, as such is the data type of the source in Figure 1); however, when writing on the register, this is translated to bytes, so 4 is written instead.
-
-  
-
-Once launched, the transaction will execute completely (it cannot be stopped). Upon finishing, it will check the _operation mode_ and _transaction size_ registers. If any of both is non-zero, it will relaunch. Note that the selecting _circular mode_ during the configuration loading does not launch the transaction (despite what step (<span  style="color:red">**f**</span>) might suggest, which is only illustrative).
-
-  
-  
-
-Once the transaction is launched, the DMA will take care of copying as many data units as were requested from the source target (<span  style="color:red">**g**</span>), and pasting them into the destination target (<span  style="color:red">**h**</span>). The data width of the transaction is determined by the _data type_ of the source target (<span  style="color:red">**i**</span>). However, this might be changed (for a smaller width) in case of misalignment. It is possible to reject changes by the DMA HAL and raise an error in case of misalignments instead.
-
-  
-
-The selected slot will query the state of a trigger from the peripheral (<span  style="color:red">**j**</span>). In case the peripheral's FIFO is empty/full (for reception/transmission respectively), the transaction is paused until the trigger enables it again.
-
-  
-
-The source and destination increments will determine the amount of steps the pointer should jump after every read and write, respectively. For peripherals it should always be zero (as it should always take the first element of the FIFO).
-
-  
-
-The DMA will consider a data unit was transferred once it is sent (<span  style="color:red">**k**</span>). It does not wait for an acknowledge by the destination target.
-
-  
-
-The _interrupts_ register controls whether the events triggered by the DMA upon finishing a window or a whole transaction should be propagated as interrupts (<span  style="color:red">**l**</span>).
-
-  
-
-Every time _window size_ data units have been transferred the window count is incremented and a PLIC interrupt is triggered (if enabled) (<span  style="color:red">**m**</span>).
-
-  
-
-Every time a transaction is finished a FIC interrupt is triggered and the restart condition is evaluated (<span  style="color:red">**f**</span>).
-
-  
-
-If the window size is a multiple of the transaction size, upon finishing the transaction there will be first an interrupt for the whole transaction (through the FIC), and then an interrupt for the window (through the PLIC, which is slower).
-
-  
-  
-
-The DMA HAL has weak implementations to handle each interrupt. It is up to the application to do something useful with this. the HAL will only forward the interrupt (<span  style="color:red">**n**</span>).
-
-  
-
-> :warning: If the window size is too small (i.e. the time the DMA requires to make the copy is smaller than the time required to attend the interrupt handling), data might be lost. The HAL implements a warning in case the transaction-window size ratio is to small. The warning can be re-configured to an appropriate threshold by overriding a weak implementation. The user should do its own testing and choose this threshold accordingly. The same type of issue might be found on circular mode. The user should be sure it can attend an interrupt before the next one occurs. There is no warning from the HAL in this case.
-
-  
-
-The same result from this example could have been achieved by setting the transaction mode to _address_. It requires an array of destination addresses (<span  style="color:red">**p**</span>) that must be provided as the destination target pointer. Instead of copying information to that pointer, the DMA will read from there and copy the information into the addresses stored in each word (<span  style="color:red">**o**</span>).
-
-This use case is very impractical as it doubles the memory usage. It is intended to be used along In-Memory-Computing architectures and algorithms.
 
 ## Software stack: HAL and SDK
   
@@ -832,6 +749,11 @@ Here is a brief overview of the examples:
 
 The complete code for these examples can be found in `sw/applications/example_dma`, `sw/applications/example_dma_2d`, `sw/applications/example_dma_multichannel` and `sw/applications/example_dma_sdk`. These applications offer both verification and performance estimation modes, enabling users to verify the DMA and measure the application's execution time.
 
+The user is strongly incouraged to look at these applications, as well as any other application that employs the DMA, to gain insight in practical examples of the use of this peripheral. Some aspects or specific usecases might in fact not be present in this guide and could be found in the applications.
+
+> :warning: If you have any relevant questions about the DMA or other topics, feel free to open a _question_ on our GitHub repository page!
+
+<br>
 
 ### 1. Simple mem2mem transaction
 
@@ -1413,7 +1335,7 @@ Once again, the first step is to define the source and destination target struct
 
 Let's use the same formula as in example 2 to extract a 2x2 matrix from a 4x4 source matrix. So in this case too, the source 2D increment will be 3 data units, while the destination increment will be 1.
 
-As thoroughly explained in [ADD LINK], the padding is performed on the fly but is conceptually applied to the extracted matrix, not to the entire input matrix. In this example, a right padding of 1 and a top padding of 2 will be applied. Since the padding modifies the size of the output, the output dimensions will need to be adjusted accordingly. The formula used are the same used in `example_dma_2d`.
+As thoroughly explained in [the functional description](#zero-padding), the padding is performed on the fly but is conceptually applied to the extracted matrix, not to the entire input matrix. In this example, a right padding of 1 and a top padding of 2 will be applied. Since the padding modifies the size of the output, the output dimensions will need to be adjusted accordingly. The formula used are the same used in `example_dma_2d`.
 
 ```C
 
@@ -1987,847 +1909,5 @@ int main()
     return 0;
   }
 }
-
-```
-
-<br>
-
-
-
-
-#### Basic application
-
-This example will provide a simplified code for copying data from one region of memory to another. For a real implementation please refer to the `dma_example` application in `sw/applications/dma_example/main.c`.
-
-
-
-The objective of this app would be to copy the content of an array into another.
-
-  
-
----
-
-  
-
-Start the application by calling
-
-```C
-
-dma_init( NULL );
-
-```
-
-  
-
-This will reset the DMA registers. The `NULL` parameter tells the HAL that the devices internal DMA is to be used.
-
-  
-
-The most basic implementation requires the creation of **two targets** and a **transaction** relating them both.
-
-  
-
-A target will include the information of the source or destination pointer and the characteristics of the expected transaction.
-
-  
-
-Theoretically, there is no required difference between a _source_ and _destination_ target. They will only be differentiated once the transaction is created. Eventually, they could be interchanged from one transaction to the next. In this example they will be given explicit names and will take different arguments for the sake of clarity.
-
-  
-
-```C
-static dma_target_t tgt_src = {
-				.ptr        = copy_buffer,
-				.inc_d1_du     = 1,
-				.size_du    = sizeof(copy_buffer),
-				.type       = DMA_DATA_TYPE_WORD
-				};
-```
-
-  
-
-Here, `ptr = copy_buffer` is a `uint32_t` pointer from where the information will be extracted. `inc_d1_du = 1` is telling the DMA that for each word copied, the pointer should be incremented by 1 unit, therefore words will be copied consecutively without gaps.
-
-  
-
-This configuration is implicitly initializing the rest of the target configurations as zero (as of [C99](https://gcc.gnu.org/onlinedocs/gcc/Designated-Inits.html)). This means that:
-
-* No environment is set.
-
-* Data type is set to _word_ (32-bits).
-
-* The trigger is set to _memory_ (vs. a peripheral).
-```C
-static dma_target_t tgt_dst = {
-                                .ptr        = copy_buffer,
-                                .inc_d1_du     = 1,
-                                .size_du    = sizeof(copy_buffer),
-                                .type       = DMA_DATA_TYPE_WORD
-                                };
-```
-Both destination and source targets have to contain a data type (they can be different) and size in data units (they should be the same).
-Finally, a transaction is created to relate both targets:
-
-  
-
-```C
-
-static  dma_trans_t trans = {
-
-.src = &tgt_src,
-
-.dst = &tgt_dst,
-
-};
-
-```
-
-  
-
-This will also imply some configurations set to zero:
-
-* Mode is set to singular (only one transaction will be executed).
-
-* There will be no window interrupts.
-
-* The application will have to do polling to know when the transaction has finished.
-
-  
-
-The transaction can now be created (some extra configurations are computed from the targets), loaded into the DMA and launched.
-
-  
-
-```C
-
-dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-
-dma_load_transaction( &trans );
-
-dma_launch( &trans );
-
-  
-
-```
-
-  
-
-When creating the transaction, the two last parameters are allowing the DMA to perform integrity checks and try some fixes (at the expense of efficiency) if misalignments are found.
-
-  
-
-As there will be no interrupts set, the application has to check by itself the status of the transaction.
-
-  
-
-```C
-
-while( ! dma_is_ready() ){}
-
-// The transaction has finished!
-
-```
-
-  
-  
-
-### Complete Application
-
-The objective of this example is to show various special cases, precautions and considerations that can be taken. For a real example refer to the `spi_flash_write` application in `sw/applications/spi_flash_write/main.c`.
-
-  
-
-This example will copy every other byte from a buffer in RAM to a FLASH connected via an SPI to the DMA. Then, it will copy information from an SPI peripheral continuously into a small buffer.
-
-  
-
-This explanation assumes you have read the previous example.
-
-  
-
----
-
-  
-
-Start the application by calling
-
-```C
-
-dma_init( NULL );
-
-```
-
-  
-
-The first source target will be pointing to a `uint16_t` buffer in memory. Data will be copied in chunks of 1 byte. For every half-word (16 bits), the only the second half (second 8 bits) will be copied.
-
-  
-
-```C
-
-static  dma_target_t tgt1= {
-
-.ptr = (uint8_t*)(copy_buffer + 1),
-
-.inc_d1_du = 2,
-
-.size_du = sizeof(copy_buffer),
-
-.type = DMA_DATA_TYPE_BYTE,
-
-};
-
-  
-
-```
-
-  
-
-To start copying information from the second byte of `copy_buffer`, the source pointer is set to the address of `copy_buffer` plus one byte.
-
-In order to copy one byte and skip another, the data type is set to byte, and the increment is set to two data units (i.e. two bytes). As for every half-word of the buffer a data unit will be copied, the transaction size is the same as the size of the `copy_buffer`.
-
-  
-  
-
-The second target will point to the address of the SPI FLASH transmission FIFO. On this example, this value was already computed and stored in a constant `ADDRESS_SPI_FLASH_TX_FIFO`.
-
-  
-  
-
-```C
-
-static  uint32_t *spi_flash_fifo_tx = ADDRESS_SPI_FLASH_TX_FIFO;
-
-  
-  
-
-static  dma_target_t tgt2= {
-
-.inc_d1_du = 0,
-
-.trig = DMA_TRIG_SLOT_SPI_FLASH_TX,
-
-};
-
-  
-
-tgt2.ptr = spi_flash_fifo_tx;
-
-  
-
-```
-
-  
-
-Because structure initializers need to be constants, the pointer value (which is a non-constant variable) needs to be initialized outside the designated initializer.
-
-  
-  
-
-There is no need to assign a value of transaction size or data type. By default, the DMA will use the source's values. The data type could eventually be modified by the HAL if there is a misalignment and `DMA_ENABLE_REALIGN` is set when creating the transaction.
-
-  
-
-The increment needs to be set to zero as the pointer should always be set to the FIFO address.
-
-  
-
-Because the SPI FLASH transmission FIFO has a line connected to slot number 4 (codified as a `1` in the fourth bit of the `trig` element) to let the DMA know if the FIFO is full, a trigger is set in that position by passing `.trig = DMA_TRIG_SLOT_SPI_FLASH_TX`.
-
-  
-  
-
-The transaction is formed by selecting the source and destination targets
-
-  
-
-```C
-
-static  dma_trans_t trans = {
-
-.src = &tgt1,
-
-.dst = &tgt2,
-
-.end = DMA_TRANS_END_INTR_WAIT,
-
-};
-
-```
-
-  
-
-To enable interrupts, the end event is set to `DMA_TRANS_END_INTR_WAIT`.
-
-  
-  
-
-To create the transaction allowing the DMA to perform necessary realignments and integrity checks such arguments are passed to the creation function along with a pointer to the transaction.
-
-  
-
-```C
-
-dma_config_flags_t res;
-
-res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-
-```
-
-  
-
-The result variable `res` contains configuration flags that can be used to check that no errors or warnings were raised. These are codified as bits in the 16-bit `res` variable.
-
-If only one flag was raised, the value of `res` will be equal to it. Otherwise, they can be checked by selecting individual bits, with inequalities, or comparing the result to a bitwise-or of flags.
-
-  
-
-```C
-
-if( res == DMA_CONFIG_OK ) // Everything was ok.
-
-if( res & DMA_CONFIG_CRITICAL_ERROR ) // A critical error was found. It has to be fixed or the transaction will not be loaded.
-
-if( res >= DMA_CONFIG_OVERLAP && res =< DMA_CONFIG_TRANS_OVERRIDE ) // One or more warning flags were raised between those two.
-
-if( res & ( DMA_CONFIG_SRC | DMA_CONFIG_DST) ) // Either one of the flags was raised.
-
-```
-
-  
-
-The transaction can then be loaded into the DMA registers by calling the load function
-
-```C
-
-res = dma_load_transaction( &trans );
-
-```
-
-  
-
-and launched
-
-```C
-
-res = dma_load_transaction( &trans );
-
-```
-
-  
-
-Because the DMA will raise an interrupt as soon as it has sent all of its information, it is recommended to wait for the SPI interrupt.
-
-```C
-
-while( spi_intr_flag == 0 )
-
-{
-
-wait_for_interrupt();
-
-}
-
-```
-
-  
-
-If something is to be done as soon as the DMA finishes (like preparing a new transaction) it can be triggered by the interrupt attention routine:
-
-```C
-
-void  dma_intr_handler_trans_done()
-
-{
-
-// Raise a flag to trigger an action
-
-}
-
-```
-
-This function is a strong implementation defined in the application of the weak one in `dma.c`.
-
-  
-  
-
-During this transaction
-
-* The DMA grabbed the first byte of from the pointer (i.e. the second of the buffer, letter `B` in the chart below).
-
-* Sent it to the SPI, where it will be treated as a 32-bit word.
-
-* The flash stored the byte wherever it was configured to.
-
-* The source pointer was increased by two data units (i.e. two bytes) to point letter `D` from the chart.
-
-* The DMA grabbed that byte and sent it to the SPI.
-
-* The process went on until the the last byte (letter `L`) is sent to the SPI.
-
-  
-  
-
-<style  type="text/css">
-
-.tg {border-collapse:collapse;border-spacing:0;}
-
-.tg  td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-
-overflow:hidden;padding:10px  5px;word-break:normal;}
-
-.tg  th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-
-font-weight:normal;overflow:hidden;padding:10px  5px;word-break:normal;}
-
-.tg  .tg-wp8o{border-color:#000000;text-align:center;vertical-align:top}
-
-</style>
-
-<table  class="tg">
-
-<thead>
-
-<tr>
-
-<td  class="tg-wp8o"  colspan="4">RAM</td>
-
-<td  class="tg-wp8o"  rowspan="5"></td>
-
-<td  class="tg-wp8o"  colspan="4">FLASH</td>
-
-</tr>
-
-<tr>
-
-<td  class="tg-wp8o">A</td>
-
-<td  class="tg-wp8o">B</td>
-
-<td  class="tg-wp8o">C</td>
-
-<td  class="tg-wp8o">D</td>
-
-<td  class="tg-wp8o">0</td>
-
-<td  class="tg-wp8o">0</td>
-
-<td  class="tg-wp8o">0</td>
-
-<td  class="tg-wp8o">B</td>
-
-</tr>
-
-<tr>
-
-<td  class="tg-wp8o">E</td>
-
-<td  class="tg-wp8o">F</td>
-
-<td  class="tg-wp8o">G</td>
-
-<td  class="tg-wp8o">H</td>
-
-<td  class="tg-wp8o">0</td>
-
-<td  class="tg-wp8o">0</td>
-
-<td  class="tg-wp8o">0</td>
-
-<td  class="tg-wp8o">D</td>
-
-</tr>
-
-<tr>
-
-<td  class="tg-wp8o">I</td>
-
-<td  class="tg-wp8o">J</td>
-
-<td  class="tg-wp8o">K</td>
-
-<td  class="tg-wp8o">L</td>
-
-<td  class="tg-wp8o">0</td>
-
-<td  class="tg-wp8o">0</td>
-
-<td  class="tg-wp8o">0</td>
-
-<td  class="tg-wp8o">F</td>
-
-</tr>
-
-<tr>
-
-<td  class="tg-wp8o">.</td>
-
-<td  class="tg-wp8o">.</td>
-
-<td  class="tg-wp8o">.</td>
-
-<td  class="tg-wp8o">.</td>
-
-<td  class="tg-wp8o">.</td>
-
-<td  class="tg-wp8o">.</td>
-
-<td  class="tg-wp8o">.</td>
-
-<td  class="tg-wp8o">.</td>
-
-</tr>
-
-</thead>
-
-</table>
-
-  
-  
-
----
-
-  
-  
-
-For the second part of this example, the targets will be modified and their role switched.
-
-  
-
-The source of the data will be a peripheral connected to the SPI, which will be continuously sending information in half-word format, in streams of 4096 bytes (2048 half-words). Every 1024 half-words there should be a `MILESTONE-CHARACTER`, if there is not, the data flow should be stopped.
-
-  
-
-```C
-
-tgt2.ptr = spi_peripheral_fifo_rx;
-
-tgt2.size_du = 2048;
-
-tgt2.type = DMA_DATA_TYPE_HALF_WORD;
-
-tgt2.trig = DMA_TRIG_SLOT_SPI_RX;
-
-```
-
-  
-
-The source pointer is set to the reception FIFO of the SPI, and the appropriate slot is chosen.
-
-The increment is kept in zero.
-
-  
-
-The destination pointer will be given by a function.
-
-  
-
-```C
-
-tgt1.ptr = (uint8_t*) myApp_getDestination();
-
-```
-
-  
-
-To guarantee that the result of this function will not cause the DMA to write in undesired regions of memory, an environment can be created.
-
-It requires two pointers to the first and last byte where the DMA will be authorized to make any action.
-
-```C
-
-static  dma_env_t safe_zone = {
-
-.start = ADDRESS_START_OF_SAFE_ZONE,
-
-.end = ADDRESS_END_OF_SAFE_ZONE,
-
-};
-
-```
-
-  
-
-The environment can be assigned to the target.
-
-```C
-
-tgt1.env = &safe_zone;
-
-tgt1.inc_d1_du = 1;
-
-```
-
-  
-
-Size and data type is up to the source, and the rest of the configurations are inherited from the last transaction.
-
-  
-
-The transaction is conformed as:
-
-```C
-
-window_size_du = 1024;
-
-  
-
-trans.src = &tgt2;
-
-trans.dst = &tgt1;
-
-trans.mode = DMA_TRANS_MODE_CIRCULAR;
-
-trans.win_du = window_size_du;
-
-  
-
-```
-
-  
-
-Meaning that the information will start to flow into the target 1 from target 2, and every 1024 half-words transferred the application will get an interrupt to check if the `MILESTONE_SYMBOL` is present. Upon finishing the transaction, it shall start again to refill the buffer as it was set in `CIRCULAR_MODE`.
-
-  
-
-The amount of times the buffer was filled will be updated on every _transaction done_ interrupt.
-
-```C
-
-void  dma_intr_handler_trans_done()
-
-{
-
-transaction_count++;
-
-}
-
-```
-
-  
-
-The search for the `MILESTONE_SYMBOL` can be done inside the _window done_ interrupt handling.
-
-```C
-
-void  dma_intr_handler_window_done()
-
-{
-
-/* The current window is obtained. The count is zero when no windows have yet been written. When it is set to one, the window zero is ready. */
-
-window_count = dma_get_window_count() -1;
-
-/* The pointer to the symbol is obtained from the destination pointer + the amount of half-words that have been written. this assumes the symbol is on the first element of each chunk.*/
-
-address = (uint16_t *)trans.dst->ptr + window_count*window_size_du;
-
-symbol = *address;
-
-if( symbol != MILESTONE_SYMBOL )
-
-{
-
-/* If the symbol was not the expected one, future transactions should not be carried out.*/
-
-dma_stop_circular();
-
-/* The number of the first window with error is saved to analyze it later.*/
-
-error_window = error_window == 0 ? window_count : error_window;
-
-}
-
-}
-
-```
-
-> :warning: Interrupt attention routines are advised to be kept as short as possible. This example is merely illustrative.
-
-  
-
-Once the `dma_stop_circular()` function is called, the DMA will still finish the transaction it is currently executing (which could be a whole transaction if the faulty window was the last one). It is important to save valuable information that might be overridden by the ongoing transaction (like the faulty window number).
-
-  
-  
-
-## Testing
-
-This section will describe the available example application in X-HEEP using the DMA, and will outline the testing that needs to be performed in order to validate its proper operation.
-
-  
-  
-
-### Available Applications
-
-  
-
-There are 6 applications using the DMA:
-
-*  `dma_example`: Tests memory-to-memory transfer, the blocking of transactions while another one is in progress, and window interrupts.
-
-*  `example_external_peripheral`: Tests the use of the DMA HAL one a DMA instance external to X-HEEP. Only available for simulation.
-
-*  `example_virtual_flash`: Tests the transfer to/from an external flash through the DMA.
-
-*  `spi_flash_write`: Tests the transfer to/from the flash. Tests circular mode. Not available on FPGA if linker is `flash-exec`. Should be used with `mcu gen BUS=NtoM CPU=cv32e40p` to test circular mode.
-
-*  `spi_host_dma_exampe`: Test the transfer of data through the SPI host. Not available on Verilator.
-
-*  `spi_host_dma_power_gate_example`: Test the transfer of data through the SPI host. Not available on Verilator.
-
-  
-  
-
-## 😎 X-pert Zone:
-
-  
-
-If you know what you are doing and want to minimize the overhead of using the DMA, you can try by-passing the HAL and writing directly on the configuration registers.
-
-  
-
-```c
-/* We will copy a set of 25 half-words of 16 bits into a buffer of 32-bit words.
-Each word in the destination buffer will have its 16 MSB set to 0, and the 16 LSB with the corresponding value from the source.*/
-#define HALF_WORDS_TO_COPY 25
-static  uint16_t  src_buffer[HALF_WORDS_TO_COPY]; // The source buffer
-static  uint32_t  dst_buffer[HALF_WORDS_TO_COPY]; // The destination buffer
-  
-/* Set the DMA's control block's peripheral structure to point to the address defined in core_v_mini_mcu.h */
-dma_cb.peri = dma_peri;
-/* Activate interrupts*/
-dma_cb.peri->INTERRUPT_EN |= INTR_EN_TRANS_DONE;
-/* Set the source and destination pointers*/
-dma_cb.peri->SRC_PTR = (uint16_t*) source_buffer;
-dma_cb.peri->DST_PTR = (uint32_t*) dst_buffer;
-  
-/* Set the source increment as 2 bytes (because the source buffer is uint16_t).
-Set the destination increment as 4 bytes (because the destination buffer is uint32_t).
-We write 1026 = 0000 0100 0000 0010,
-as the first 8 LSB refer to the source, and the next 8 bits for the destination. */
-dma_cb.peri->PTR_INC = (uint32_t) 1026;
-  
-/* Make sure that the DMA will point to memory.*/
-dma_cb.peri->SLOT = DMA_TRIG_MEMORY;
-  
-/* Set the data transfer type as half-words.*/
-dma_cb.peri->TYPE = DMA_DATA_TYPE_HALF_WORD;
-  
-/* Set the transaction size, this will launch the transaction.
-If you want to restart the same transaction again, just run from here.*/
-dma_cb.peri->SIZE = HALF_WORDS_TO_COPY;
-  
-/* Go to sleep until the DMA finishes.*/
-while( dma_cb.peri->STATUS == 0 ) {
-	/* Disable the interrupts MSTATUS to avoid going to sleep AFTER the interrupt
-	was triggered.*/
-	CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-	/* If the transaction has not yet finished, go to sleep*/
-	if (dma_cb.peri->STATUS == 0) {
-		/* If a interrupt happened before, the core would still wake-up,
-		but will not jump to the interrupt handler MSTATUS is not re-set. */
-		{ asm  volatile("wfi"); }
-	}
-	/* Restore the interrupts. */
-	CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-}
-  
-  
-```
-
-  
-
-/* We will copy a set of 25 half-words of 16 bits into a buffer of 32-bit words.
-
-Each word in the destination buffer will have its 16 MSB set to 0, and the 16 LSB with the corresponding value from the source.*/
-
-#define HALF_WORDS_TO_COPY 25
-
-static  uint16_t  src_buffer[HALF_WORDS_TO_COPY]; // The source buffer
-
-static  uint32_t  dst_buffer[HALF_WORDS_TO_COPY]; // The destination buffer
-
-  
-
-/* Set the DMA's control block's peripheral structure to point to the address defined in core_v_mini_mcu.h */
-
-dma_cb.peri = dma_peri;
-
-/* Activate interrupts*/
-
-dma_cb.peri->INTERRUPT_EN |= INTR_EN_TRANS_DONE;
-
-/* Set the source and destination pointers*/
-
-dma_cb.peri->SRC_PTR = (uint16_t*) source_buffer;
-
-dma_cb.peri->DST_PTR = (uint32_t*) dst_buffer;
-
-  
-
-/* Set the source increment as 2 bytes (because the source buffer is uint16_t).
-
-Set the destination increment as 4 bytes (because the destination buffer is uint32_t).
-
-We write 1026 = 0000 0100 0000 0010,
-
-as the first 8 LSB refer to the source, and the next 8 bits for the destination. */
-
-dma_cb.peri->PTR_INC = (uint32_t) 1026;
-
-  
-
-/* Make sure that the DMA will point to memory.*/
-
-dma_cb.peri->SLOT = DMA_TRIG_MEMORY;
-
-  
-
-/* Set the data transfer type as half-words.*/
-
-dma_cb.peri->TYPE = DMA_DATA_TYPE_HALF_WORD;
-
-  
-
-/* Set the transaction size, this will launch the transaction.
-
-If you want to restart the same transaction again, just run from here.*/
-
-dma_cb.peri->SIZE = HALF_WORDS_TO_COPY;
-
-  
-
-/* Go to sleep until the DMA finishes.*/
-
-while( dma_cb.peri->STATUS == 0 ) {
-
-/* Disable the interrupts MSTATUS to avoid going to sleep AFTER the interrupt
-
-was triggered.*/
-
-CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-
-/* If the transaction has not yet finished, go to sleep*/
-
-if (dma_cb.peri->STATUS == 0) {
-
-/* If a interrupt happened before, the core would still wake-up,
-
-but will not jump to the interrupt handler MSTATUS is not re-set. */
-
-{ asm  volatile("wfi"); }
-
-}
-
-/* Restore the interrupts. */
-
-CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-
-}
-
-  
-  
 
 ```

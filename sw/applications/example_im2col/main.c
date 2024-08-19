@@ -21,40 +21,35 @@ unsigned int cycles;
 
 int main()
 {
-    /* Testing NCHW format */
-    for (int i=START_ID; i<4; i++)
+    for (int i=START_ID; i<3; i++)
     {
-        if (i != 1)
-        {
-            im2col_nchw_int32(i, &cycles);
-        
-            #if TEST_EN == 0
-            PRINTF("im2col NCHW test %d executed\n\r", i);
-            PRINTF_TIM("Total number of cycles: [%d]\n\r", cycles);
-            #endif
+      im2col_nchw_int32(i, &cycles);
 
-            errors = verify();
-            
-            if (errors != 0)
-            {
-                #if TEST_EN == 0
-                PRINTF("TEST %d FAILED: %d errors\n\r", i, errors);
-                return EXIT_FAILURE;
-                #else
-                PRINTF_TIM("%d:%d:1\n\r", i, cycles);
-                #endif
-                
-            } 
-            else
-            {
-                #if TEST_EN == 0
-                PRINTF("TEST PASSED!\n\r\n\r");
-                #else
-                PRINTF_TIM("%d:%d:0\n\r", i, cycles);                
-                #endif
-            } 
-        }
-        
+      #if TEST_EN == 0
+      PRINTF("im2col NCHW test %d executed\n\r", i);
+      PRINTF_TIM("Total number of cycles: [%d]\n\r", cycles);
+      #endif
+
+      errors = verify();
+
+      if (errors != 0)
+      {
+          #if TEST_EN == 0
+          PRINTF("TEST %d FAILED: %d errors\n\r", i, errors);
+          return EXIT_FAILURE;
+          #else
+          PRINTF_TIM("%d:%d:1\n\r", i, cycles);
+          #endif
+          
+      } 
+      else
+      {
+          #if TEST_EN == 0
+          PRINTF("TEST PASSED!\n\r\n\r");
+          #else
+          PRINTF_TIM("%d:%d:0\n\r", i, cycles);                
+          #endif
+      } 
     }
     
     /* Print the end word for verification */

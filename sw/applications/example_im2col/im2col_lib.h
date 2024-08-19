@@ -15,7 +15,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "im2colGolden.h"
+#include "im2col_golden.h"
+#include "im2col_input.h"
 #include "dma.h"
 #include "im2col_spc_regs.h"
 #include "core_v_mini_mcu.h"
@@ -43,7 +44,7 @@
 
 /* Defines which DMA channels are available to the SPC, depending on HW specifications */
 //@ToDo: see what include in the open source version
-#define SPC_CH_MASK 0b1111 
+#define SPC_CH_MASK 0b1000 
 
 /* Base address of the im2col SPC */
 #define IM2COL_SPC_BASE_ADDR EXT_PERIPHERAL_START_ADDRESS + 0x4000
@@ -103,7 +104,7 @@
 #define OW_NHWC (FW * FH * CH * BATCH)
 #define OH_NHWC (N_PATCHES_W) * (N_PATCHES_H)
 
-#define START_ID 3
+#define START_ID 0
 
 #define TEST_EN 1
 

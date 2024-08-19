@@ -9,7 +9,7 @@
 #     Info: This library can be used to implement a software-based verification of X-Heep on a variety of targets,
 #           including Verilator, QuestaSim and FPGA (pynq-z2), using gdb and OpenOCD. 
 #           Some useful information:
-
+#
 #           1) In order to enable the elaboration of the outcome of a test, the SW testbench should produce data using
 #              the following format:
 #              - 1st line to n line: "<ID>:<cycles>:<outcome>"
@@ -33,9 +33,6 @@
 #              of the iterations that have already been executed. 
 #              This is useful to estimate the remaining time of the execution of a multi-iteration test.
 #           
-#           4) The library provides methods to plot the results of the tests. It is fully customizable, it's possible to plot
-#              one or multiple tests on the same graph, to add trendlines, to interpolate the data, to change the colors and 
-#              the labels.
 #
 
 import subprocess
@@ -48,11 +45,11 @@ import queue
 import random
 import matplotlib.pyplot as plt
 import pandas as pd
-import ast
 import numpy as np
+import os
 
 # Set this to True to enable debugging prints
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 def PRINT_DEB(*args, **kwargs):
     if DEBUG_MODE:
@@ -248,23 +245,26 @@ class VerifHeep:
     
     # Data generation methods
 
-    def genInputDataset(self, dataset_size, range_min=0, range_max=1, dataset_dir="input_dataset.h", dataset_name="input_dataset", datatype="uint32_t"):
-        with open(dataset_dir, 'w') as f:
+    def genInputDataset(self, dataset_size, parameters, row_size=0, range_min=0, range_max=1, dataset_dir="input_dataset.h", dataset_dir_c="", dataset_name="input_dataset", datatype="uint32_t"):
+        
+        if dataset_dir_c == "":
+          with open(dataset_dir, 'w') as f:
             # Add license
-            f.write(f"#ifndef {dataset_name.upper()}_INPUT_H\n")
-            f.write(f"#define {dataset_name.upper()}_INPUT_H\n\n")
+            f.write(f"#ifndef {dataset_name.upper()}_H\n")
+            f.write(f"#define {dataset_name.upper()}_H\n\n")
             license = "/*\n\tCopyright EPFL contributors.\n\tLicensed under the Apache License, Version 2.0, see LICENSE for details.\n\tSPDX-License-Identifier: Apache-2.0\n*/\n\n"
             f.write(license)
+            f.write(f"#include <stdint.h>\n\n")
 
             # Vector declaration
-            f.write(f"{datatype} {dataset_name}[{dataset_size}] = " + "{{\n")
+            f.write(f"{datatype} {dataset_name}[{dataset_size}] = " + "{\n")
             
             # Generate the random vector
             for i in range(dataset_size):
                 if 'float' in datatype:
                     value = random.uniform(range_min, range_max)  # float
                 elif 'uint' in datatype:
-                    if ('8' in datatype or '16' in datatype or '32' in datatype) and range_min > 0 and range_max > 0:
+                    if ('8' in datatype or '16' in datatype or '32' in datatype) and range_min >= 0 and range_max > 0:
                         value = random.randint(range_min, range_max)
                     else:
                         print("Error: invalid datatype. Choose one among:\n- float\n- u/int8_t\n- u/int16_t\n- u/int32_t\n")
@@ -280,15 +280,79 @@ class VerifHeep:
                   exit(1)
 
                 if i < dataset_size - 1:
-                    f.write(f" {value},\n")
+                    f.write(f" {value},")
                 else:
-                    f.write(f" {value}\n")
+                    f.write(f" {value}")
+              
+                if row_size > 0 and (i + 1) % row_size == 0:
+                  f.write("\n")
             
             # Close the file
             f.write("};\n\n")
-            f.write(f"#endif // {dataset_name.upper()}_INPUT_H\n")
+            f.write(f"#endif // {dataset_name.upper()}_H\n")
+        else:
+          with open(dataset_dir_c, 'w') as f:
+            # Add license
+            license = "/*\n\tCopyright EPFL contributors.\n\tLicensed under the Apache License, Version 2.0, see LICENSE for details.\n\tSPDX-License-Identifier: Apache-2.0\n*/\n\n"
+            f.write(license)
+            f.write(f'#include "{os.path.basename(dataset_dir)}"\n\n')
+            
+            # Vector declaration
+            f.write(f"{datatype} {dataset_name}[{dataset_size}] = " + "{\n")
+            
+            # Generate the random vector
+            for i in range(dataset_size):
+                if 'float' in datatype:
+                    value = random.uniform(range_min, range_max)  # float
+                elif 'uint' in datatype:
+                    if ('8' in datatype or '16' in datatype or '32' in datatype) and range_min >= 0 and range_max > 0:
+                        value = random.randint(range_min, range_max)
+                    else:
+                        print("Error: invalid datatype. Choose one among:\n- float\n- u/int8_t\n- u/int16_t\n- u/int32_t\n")
+                        exit(1)
+                elif 'int' in datatype:
+                    if ('8' in datatype or '16' in datatype or '32' in datatype):
+                        value = random.randint(range_min, range_max)
+                    else:
+                        print("Error: invalid datatype. Choose one among:\n- float\n- u/int8_t\n- u/int16_t\n- u/int32_t\n")
+                        exit(1)
+                else:
+                  print("Error: invalid datatype. Choose one among:\n- float\n- u/int8_t\n- u/int16_t\n- u/int32_t\n")
+                  exit(1)
 
-    def genGoldenResult(self, function, golden_size, input_size, output_datatype, input_dataset_dir="input_dataset.h", golden_dir="golden_output.h", golden_name = "golden_output"):
+                if i < dataset_size - 1:
+                    f.write(f" {value},")
+                else:
+                    f.write(f" {value}")
+              
+                if row_size > 0 and (i + 1) % row_size == 0:
+                  f.write("\n")
+              
+            # Close the file
+            f.write("};\n\n")
+          
+          with open(dataset_dir, 'w') as f:
+            # Add license
+            f.write(f"#ifndef {dataset_name.upper()}_H\n")
+            f.write(f"#define {dataset_name.upper()}_H\n\n")
+            license = "/*\n\tCopyright EPFL contributors.\n\tLicensed under the Apache License, Version 2.0, see LICENSE for details.\n\tSPDX-License-Identifier: Apache-2.0\n*/\n\n"
+            f.write(license)
+            f.write(f"#include <stdint.h>\n\n")
+
+            # Write the parameters, if there are any
+            if parameters:
+                for key, value in parameters.items():
+                    f.write(f"#define {key} {value}\n")
+            
+            f.write("\n")
+
+            # Vector declaration
+            f.write(f"extern const {datatype} {dataset_name}[{dataset_size}];\n\n")
+            
+            # Close the file
+            f.write(f"#endif // {dataset_name.upper()}_H\n")
+
+    def genGoldenResult(self, function, golden_size, parameters, row_size=0, output_datatype="uint32_t",  input_dataset_dir="input_dataset.h", golden_dir_c="", golden_dir="golden_output.h", golden_name = "golden_output"):
         
         # Recover the input dataset
         with open(input_dataset_dir, 'r') as f:
@@ -315,66 +379,94 @@ class VerifHeep:
             values = [int(value) for value in values]
 
         # Generate the golden result
-        (golden_values, parameters) = function(values, input_size)
+        (golden_values, output_parameters) = function(values, parameters)
 
-        # Write the golden result to a file
-        f.write(f"#ifndef {golden_name.upper()}_GOLDEN_H\n")
-        f.write(f"#define {golden_name.upper()}_GOLDEN_H\n\n")
-        license = "/*\n\tCopyright EPFL contributors.\n\tLicensed under the Apache License, Version 2.0, see LICENSE for details.\n\tSPDX-License-Identifier: Apache-2.0\n*/\n\n"
-        f.write(license)
+        if golden_dir_c == "":
+          with open(golden_dir, 'w') as f:
+            # Write the golden result to a file
+            f.write(f"#ifndef {golden_name.upper()}_H\n")
+            f.write(f"#define {golden_name.upper()}_H\n\n")
+            license = "/*\n\tCopyright EPFL contributors.\n\tLicensed under the Apache License, Version 2.0, see LICENSE for details.\n\tSPDX-License-Identifier: Apache-2.0\n*/\n\n"
+            f.write(license)
+            f.write(f"#include <stdint.h>\n\n")
 
-        # Write the parameters
-        for key, value in parameters.items():
-            f.write(f"#define {key} {value}\n")
+            # Write the parameters that could have been returned from the function
+            if output_parameters:
+              for key, value in output_parameters.items():
+                  f.write(f"#define {key} {value}\n")
+            
+            f.write("\n")
+
+            # Vector declaration
+            f.write(f"const {output_datatype} {golden_name}[{golden_size}] = " + "{\n")
+
+            for i in range(golden_size):
+              if i < golden_size - 1:
+                f.write(f" {golden_values[i]},")
+              else:
+                f.write(f" {golden_values[i]}")
+              
+              if row_size > 0 and (i + 1) % row_size == 0:
+                f.write("\n")
+
+            # Close the file
+            f.write("};\n\n")
+            f.write(f"#endif // {golden_name.upper()}_H\n")
+        else:
+          with open(golden_dir_c, 'w') as f:
+            # Write the golden result to a file
+            license = "/*\n\tCopyright EPFL contributors.\n\tLicensed under the Apache License, Version 2.0, see LICENSE for details.\n\tSPDX-License-Identifier: Apache-2.0\n*/\n\n"
+            f.write(license)
+            f.write(f'#include "{os.path.basename(golden_dir)}"\n')
+            
+            f.write("\n")
+
+            # Vector declaration
+            f.write(f"const {output_datatype} {golden_name}[{golden_size}] = " + "{\n")
+
+            for i in range(golden_size):
+              if i < golden_size - 1:
+                f.write(f" {golden_values[i]},")
+              else:
+                f.write(f" {golden_values[i]}")
+                
+              if row_size > 0 and (i + 1) % row_size == 0:
+                f.write("\n")
+
+            # Close the file
+            f.write("};\n\n")
+
+          with open(golden_dir, 'w') as f:
+            # Write the golden result to a file
+            f.write(f"#ifndef {golden_name.upper()}_H\n")
+            f.write(f"#define {golden_name.upper()}_H\n\n")
+            license = "/*\n\tCopyright EPFL contributors.\n\tLicensed under the Apache License, Version 2.0, see LICENSE for details.\n\tSPDX-License-Identifier: Apache-2.0\n*/\n\n"
+            f.write(license)
+            f.write(f"#include <stdint.h>\n\n")
+
+            # Write the parameters that could have been returned from the function
+            if output_parameters:
+              for key, value in output_parameters.items():
+                  f.write(f"#define {key} {value}\n")
+            
+            f.write("\n")
+
+            # Vector declaration
+            f.write(f"extern const {output_datatype} {golden_name}[{golden_size}];\n\n")
+
+            # Close the file
+            f.write(f"#endif // {golden_name.upper()}_H\n")
+
+    def modifyFile(self, filename, pattern, replacement):
         
-        f.write("\n")
+        with open(filename, 'r') as f:
+          content = f.read()
 
-        # Vector declaration
-        f.write(f"{output_datatype} {golden_name}[{golden_size}] = " + "{{\n")
+        # Replace the pattern with the replacement
+        new_content = re.sub(pattern, replacement, content)
 
-        for i in range(golden_size):
-          if i < golden_size - 1:
-            f.write(f" {golden_values},\n")
-          else:
-            f.write(f" {golden_values}\n")
-
-        # Close the file
-        f.write("};\n\n")
-        f.write(f"#endif // {golden_name.upper()}_GOLDEN_H\n")
-
-    def plotSingleTest(self, test_id, name="Input size vs Cycles", color="blue", label="Test outcome", trendline_en=False, n_interpole=False, n_grade=2, extra_graph_color="blue", extra_graph_alpha=0.6):
-        if trendline_en and n_interpole:
-            print("Error: only one between trendline_en and n_interpole can be enabled.")
-            exit(1)
-
-        df_tests = pd.DataFrame(self.results)
-        df_single_test = df_tests[df_tests["ID"] == test_id]
-
-        # Plot the data
-        plt.figure(0, figsize=(12, 8))
-
-        # Scatter plots
-        plt.scatter(df_single_test['Input size'], df_single_test['Cycles'], color=color, label=label, alpha=1)
-
-        # Trendline plots
-        if trendline_en:
-          poly = np.polyfit(df_single_test['Input size'],df_single_test['Cycles'],  1)
-          extra_graph = np.polyval(poly, df_single_test['Input size'])
-        elif n_interpole:
-          poly = np.polyfit(df_single_test['Input size'],df_single_test['Cycles'],  n_grade)
-          extra_graph = np.polyval(poly, df_single_test['Input size'])
-        
-        if trendline_en or n_interpole:
-          plt.plot(extra_graph['Input size'], extra_graph, color=extra_graph_color, linestyle='-', alpha=extra_graph_alpha)
-
-        plt.title(name)
-        plt.xlabel('Input size')
-        plt.ylabel('Cycles')
-        plt.grid(True)
-        
-        # Legend
-        plt.legend()
-
+        with open(filename, 'w') as f:
+          f.write(new_content)
 
 # Serial communication thread
 
