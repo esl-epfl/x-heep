@@ -160,9 +160,6 @@ def im2col_function(input_array, parameters):
     # Convert the PyTorch tensor to a NumPy array and then to a list (simple array)
     unfolded_array = unfolded_tensor.numpy().flatten().tolist()
 
-    print(unfolded_array)
-    print("\n\nAAA\n\n")
-
     return unfolded_array, ""
 
 
@@ -279,6 +276,9 @@ def main(stdscr):
                                                       else:
                                                           im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", start_id_pattern, f'#define START_ID 0')
                                                       
+                                                      # Launch the test
+                                                      im2colVer.launchTest("../../../sw/applications/example_im2col", input_size=j*k*l*m)
+
                                                       # Format the parameters of the current run and store them for plots
                                                       for test in im2colVer.results:
                                                           string = f'CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {test["Cycles"]}'
@@ -318,7 +318,6 @@ def main(stdscr):
                                                       
                                                       stdscr.addstr(1, 0, message)
                                                       stdscr.refresh()
-                                                      exit(0)
 
       if (not cpu_done):
           im2col_cpu_array.append(im2col_cpu)
