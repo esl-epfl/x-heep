@@ -257,7 +257,7 @@ class VerifHeep:
             f.write(f"#include <stdint.h>\n\n")
 
             # Vector declaration
-            f.write(f"{datatype} {dataset_name}[{dataset_size}] = " + "{\n")
+            f.write(f"const {datatype} {dataset_name}[{dataset_size}] = " + "{\n")
             
             # Generate the random vector
             for i in range(dataset_size):
@@ -298,7 +298,7 @@ class VerifHeep:
             f.write(f'#include "{os.path.basename(dataset_dir)}"\n\n')
             
             # Vector declaration
-            f.write(f"{datatype} {dataset_name}[{dataset_size}] = " + "{\n")
+            f.write(f"const {datatype} {dataset_name}[{dataset_size}] = " + "{\n")
             
             # Generate the random vector
             for i in range(dataset_size):
