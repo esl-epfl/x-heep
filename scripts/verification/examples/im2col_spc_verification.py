@@ -277,7 +277,7 @@ def main(stdscr):
                                                           im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", start_id_pattern, f'#define START_ID 0')
                                                       
                                                       # Launch the test
-                                                      im2colVer.launchTest("../../../sw/applications/example_im2col", input_size=j*k*l*m)
+                                                      im2colVer.launchTest("example_im2col", input_size=j*k*l*m)
 
                                                       # Format the parameters of the current run and store them for plots
                                                       for test in im2colVer.results:
