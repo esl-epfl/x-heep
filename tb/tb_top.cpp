@@ -106,7 +106,9 @@ int main (int argc, char * argv[])
   }
 
   if(run_all==false) {
-    runCycles(max_sim_time, dut, m_trace);
+    for(unsigned int t=0; t<max_sim_time && dut->exit_valid_o!=1; t+=500) {
+      runCycles(500, dut, m_trace);
+    }
   } else {
     while(dut->exit_valid_o!=1) {
       runCycles(500, dut, m_trace);
@@ -116,7 +118,10 @@ int main (int argc, char * argv[])
   if(dut->exit_valid_o==1) {
     std::cout<<"Program Finished with value "<<dut->exit_value_o<<std::endl;
     exit_val = EXIT_SUCCESS;
-  } else exit_val = EXIT_FAILURE;
+  } else {
+    std::cout<<"Simulation was terminated before program finished"<<std::endl;
+    exit_val = 2; // exit 2 to indicate successful run but premature termination
+  }
 
   m_trace->close();
   delete dut;
