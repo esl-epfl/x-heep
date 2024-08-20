@@ -152,6 +152,8 @@ module ao_peripheral_subsystem
   logic [23:0] cio_gpio_en_unused;
 
   /* DMA signals */
+  logic dma_clk_gate_en_ni[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0];
+  power_manager_out_t dma_subsystem_pwr_ctrl_o[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0];
   logic [DMA_GLOBAL_TRIGGER_SLOT_NUM-1:0] dma_global_trigger_slots;
   logic [DMA_EXT_TRIGGER_SLOT_NUM-1:0] dma_ext_trigger_slots;
   obi_pkg::obi_req_t busfifo2regconv_req;
@@ -179,6 +181,13 @@ module ao_peripheral_subsystem
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_trigger_slots_gen
       assign dma_ext_trigger_slots[2*i]   = ext_dma_slot_tx_i[i];
       assign dma_ext_trigger_slots[2*i+1] = ext_dma_slot_rx_i[i];
+    end
+  endgenerate
+
+  /* DMA clock gating */
+  generate
+    for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_clk_gate_gen
+      assign dma_clk_gate_en_ni[i] = dma_subsystem_pwr_ctrl_o[i].clkgate_en_n;
     end
   endgenerate
 
@@ -350,7 +359,8 @@ module ao_peripheral_subsystem
       .cpu_subsystem_pwr_ctrl_i,
       .peripheral_subsystem_pwr_ctrl_i,
       .memory_subsystem_pwr_ctrl_i,
-      .external_subsystem_pwr_ctrl_i
+      .external_subsystem_pwr_ctrl_i,
+      .dma_subsystem_pwr_ctrl_o
   );
 
   /* ??? */
@@ -390,6 +400,7 @@ module ao_peripheral_subsystem
   ) dma_subsystem_i (
       .clk_i,
       .rst_ni,
+      .clk_gate_en_ni(dma_clk_gate_en_ni),
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
       .dma_read_req_o,

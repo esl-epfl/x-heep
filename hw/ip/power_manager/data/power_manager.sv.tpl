@@ -49,6 +49,7 @@ module power_manager import power_manager_pkg::*; #(
     output power_manager_out_t peripheral_subsystem_pwr_ctrl_o,
     output power_manager_out_t memory_subsystem_pwr_ctrl_o[core_v_mini_mcu_pkg::NUM_BANKS-1:0],
     output power_manager_out_t external_subsystem_pwr_ctrl_o[EXT_DOMAINS_RND-1:0],
+    output power_manager_out_t dma_subsystem_pwr_ctrl_o[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0],
 
     // Power Manager input signals
     input power_manager_in_t cpu_subsystem_pwr_ctrl_i,
@@ -129,6 +130,10 @@ module power_manager import power_manager_pkg::*; #(
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].isogate_en_n = memory_subsystem_banks_powergate_iso_n[${bank.name()}];
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].rst_n = 1'b1;
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].clkgate_en_n = ~reg2hw.ram_${bank.name()}_clk_gate.q;
+% endfor
+
+% for channel in range(int(dma_ch_count)):
+  assign dma_subsystem_pwr_ctrl_o[${channel}].clkgate_en_n = ~reg2hw.dma_ch${channel}_clk_gate.q;
 % endfor
 
 % if external_domains != 0:

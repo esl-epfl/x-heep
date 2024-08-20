@@ -118,13 +118,13 @@ dma_data_type_t C_type_2_dma_type(int C_type)
 
 #define INIT_TEST(signed, data_size, dma_src_type, dma_dst_type) \
     tgt_src.ptr = (uint8_t *)src;                                \
-    tgt_src.inc_du = 1;                                          \
+    tgt_src.inc_d1_du = 1;                                          \
     tgt_src.inc_d2_du = 0;                                       \
     tgt_src.trig = DMA_TRIG_MEMORY;                              \
     tgt_src.type = dma_src_type;                                 \
     tgt_src.env = NULL;                                          \
     tgt_dst.ptr = (uint8_t *)dst;                                \
-    tgt_dst.inc_du = 1;                                          \
+    tgt_dst.inc_d1_du = 1;                                          \
     tgt_dst.inc_d2_du = 0;                                       \
     tgt_dst.trig = DMA_TRIG_MEMORY;                              \
     tgt_dst.type = dma_dst_type;                                 \
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
     dma_target_t tgt_dst;
     dma_target_t tgt_addr = {
         .ptr = (uint8_t *)test_addr_4B_PTR,
-        .inc_du = 1,
+        .inc_d1_du = 1,
         .trig = DMA_TRIG_MEMORY,
     };
 
@@ -263,12 +263,12 @@ int main(int argc, char *argv[])
 
     // Initialize the DMA for the next tests
     tgt_src.ptr = (uint8_t *)test_data_4B;
-    tgt_src.inc_du = 1;
+    tgt_src.inc_d1_du = 1;
     tgt_src.trig = DMA_TRIG_MEMORY;
     tgt_src.type = DMA_DATA_TYPE_WORD;
 
     tgt_dst.ptr = (uint8_t *)copied_data_4B;
-    tgt_dst.inc_du = 1;
+    tgt_dst.inc_d1_du = 1;
     tgt_dst.trig = DMA_TRIG_MEMORY;
     tgt_dst.type = DMA_DATA_TYPE_WORD;
 

@@ -20,6 +20,7 @@
     ao_peripherals: {
         address: 0x20000000,
         length:  0x00100000,
+        num_spc:        0x1,
         soc_ctrl: {
             offset:  0x00000000,
             length:  0x00010000,
@@ -42,6 +43,8 @@
             length:  0x00010000,
             ch_length:    0x100,
             num_channels:   0x1,
+            num_master_ports: 0x1,
+            num_channels_per_master_port: 0x1,
             path:    "./hw/ip/dma/data/dma.hjson"
         },
         power_manager: {

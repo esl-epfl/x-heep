@@ -20,6 +20,7 @@ module dma_subsystem #(
 ) (
     input logic clk_i,
     input logic rst_ni,
+    input logic clk_gate_en_ni [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0],
 
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
@@ -123,6 +124,7 @@ module dma_subsystem #(
       ) dma_i (
           .clk_i,
           .rst_ni,
+          .clk_gate_en_ni(clk_gate_en_ni[i]),
           .ext_dma_stop_i(ext_dma_stop_i[i]),
           .reg_req_i(submodules_req[i]),
           .reg_rsp_o(submodules_rsp[i]),

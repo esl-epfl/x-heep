@@ -21,6 +21,7 @@ module dma #(
 ) (
     input logic clk_i,
     input logic rst_ni,
+    input logic clk_gate_en_ni,
 
     input logic ext_dma_stop_i,
 
@@ -57,6 +58,9 @@ module dma #(
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Signals declaration */
+
+  /* Gated clock */
+  logic clk_cg;
 
   /* Registers */
   dma_reg2hw_t reg2hw;
@@ -164,12 +168,33 @@ module dma #(
 
   /* Module instantiation */
 
+  /* Clock gating cell */
+
+`ifndef FPGA_SYNTHESIS
+`ifndef VERILATOR
+  tc_clk_gating clk_gating_cell (
+      .clk_i,
+      .en_i(clk_gate_en_ni),
+      .test_en_i(1'b0),
+      .clk_o(clk_cg)
+  );
+
+`else
+  assign clk_cg = clk_i & clk_gate_en_ni;
+`endif
+
+`else
+  assign clk_cg = clk_i & clk_gate_en_ni;
+`endif
+
+
+
   /* Read FIFO */
   fifo_v3 #(
       .DEPTH(FIFO_DEPTH),
       .FALL_THROUGH(1'b1)
   ) dma_read_fifo_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .flush_i(fifo_flush),
       .testmode_i(1'b0),
@@ -190,7 +215,7 @@ module dma #(
       .DEPTH(FIFO_DEPTH),
       .FALL_THROUGH(1'b1)
   ) dma_read_addr_fifo_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .flush_i(fifo_flush),
       .testmode_i(1'b0),
@@ -211,7 +236,7 @@ module dma #(
       .DEPTH(FIFO_DEPTH),
       .FALL_THROUGH(1'b1)
   ) dma_write_fifo_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .flush_i(fifo_flush),
       .testmode_i(1'b0),
@@ -231,7 +256,7 @@ module dma #(
       .reg_req_t(reg_req_t),
       .reg_rsp_t(reg_rsp_t)
   ) dma_reg_top_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .reg_req_i,
       .reg_rsp_o,
@@ -242,7 +267,7 @@ module dma #(
 
   /* Read FSM */
   dma_obiread_fsm dma_obiread_fsm_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .reg2hw_i(reg2hw),
       .dma_start_i(dma_start),
@@ -265,7 +290,7 @@ module dma #(
 
   /* Read address FSM */
   dma_obiread_addr_fsm dma_obiread_addr_fsm_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .reg2hw_i(reg2hw),
       .dma_start_i(dma_start),
@@ -282,7 +307,7 @@ module dma #(
 
   /* DMA padding FSM */
   dma_padding_fsm dma_padding_fsm_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .reg2hw_i(reg2hw),
       .dma_padding_fsm_on_i(dma_padding_fsm_on),
@@ -300,7 +325,7 @@ module dma #(
 
   /* Write FSM */
   dma_obiwrite_fsm dma_obiwrite_fsm_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .reg2hw_i(reg2hw),
       .dma_start_i(dma_start),
@@ -354,7 +379,7 @@ module dma #(
   end
 
   /* Update DMA state */
-  always_ff @(posedge clk_i, negedge rst_ni) begin
+  always_ff @(posedge clk_cg, negedge rst_ni) begin
     if (~rst_ni) begin
       dma_state_q <= DMA_READY;
     end else begin
@@ -363,7 +388,7 @@ module dma #(
   end
 
   /* DMA pulse start when dma_start register is written */
-  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
+  always_ff @(posedge clk_cg or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
       dma_start_pending <= 1'b0;
     end else begin
@@ -376,7 +401,7 @@ module dma #(
   end
 
   /* Transaction IFR update */
-  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_transaction_ifr
+  always_ff @(posedge clk_cg, negedge rst_ni) begin : proc_ff_transaction_ifr
     if (~rst_ni) begin
       transaction_ifr <= '0;
     end else if (reg2hw.interrupt_en.transaction_done.q == 1'b1) begin
@@ -391,7 +416,7 @@ module dma #(
   end
 
   /* Delayed transaction interrupt signals */
-  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_intr
+  always_ff @(posedge clk_cg, negedge rst_ni) begin : proc_ff_intr
     if (~rst_ni) begin
       dma_done_intr_n <= '0;
     end else begin
@@ -400,7 +425,7 @@ module dma #(
   end
 
   /* Window IFR update */
-  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_window_ifr
+  always_ff @(posedge clk_cg, negedge rst_ni) begin : proc_ff_window_ifr
     if (~rst_ni) begin
       window_ifr <= '0;
     end else if (reg2hw.interrupt_en.window_done.q == 1'b1) begin
@@ -415,7 +440,7 @@ module dma #(
   end
 
   /* Delayed window interrupt signals */
-  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_window_intr
+  always_ff @(posedge clk_cg, negedge rst_ni) begin : proc_ff_window_intr
     if (~rst_ni) begin
       dma_window_intr_n <= '0;
     end else begin
@@ -424,7 +449,7 @@ module dma #(
   end
 
 
-  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_dma_window_cnt
+  always_ff @(posedge clk_cg, negedge rst_ni) begin : proc_dma_window_cnt
     if (~rst_ni) begin
       window_counter <= 'h0;
     end else begin
@@ -457,7 +482,7 @@ module dma #(
   // update window_done flag
   // set on dma_window_event
   // reset on read
-  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_dma_window_done
+  always_ff @(posedge clk_cg, negedge rst_ni) begin : proc_dma_window_done
     if (~rst_ni) begin
       window_done_q <= 1'b0;
     end else begin
@@ -466,7 +491,7 @@ module dma #(
     end
   end
 
-  always_ff @(posedge clk_i, negedge rst_ni) begin
+  always_ff @(posedge clk_cg, negedge rst_ni) begin
     if (~rst_ni) begin
       dma_padding_fsm_on <= 1'b0;
     end else begin

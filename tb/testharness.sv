@@ -482,6 +482,7 @@ module testharness #(
       ) dma_i (
           .clk_i,
           .rst_ni,
+          .clk_gate_en_ni('1),
           .ext_dma_stop_i('0),
           .reg_req_i(ext_periph_slv_req[testharness_pkg::MEMCOPY_CTRL_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::MEMCOPY_CTRL_IDX]),

@@ -10,6 +10,10 @@
 #           and the golden result, then it runs the test on the PYNQ-Z2 board and stores the results 
 #           in a file. The data can be then read and plotted using the plotter.py script.
 #
+#           It requires the user to perform the synthesis and to program the FPGA with the bitstream,
+#           as it is a delicate and device-dependent operation. 
+#           Another very important step required is the connection to GDB using X-Heep script "make openOCD_bscan"
+#
 
 import re
 import time
@@ -285,9 +289,9 @@ def main(stdscr):
                                                           
                                                           if int(test["ID"]) == 0:
                                                               im2col_cpu.append(string)
-                                                          elif int(test["ID"]) == 2:
+                                                          elif int(test["ID"]) == 1:
                                                               im2col_dma_2d_C.append(string)
-                                                          elif int(test["ID"]) == 3:
+                                                          elif int(test["ID"]) == 2:
                                                               im2col_spc.append(string)
                                                       
                                                       # Stop the chrono and calculate the remaining time of the verification

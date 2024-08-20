@@ -33,7 +33,6 @@
 #              of the iterations that have already been executed. 
 #              This is useful to estimate the remaining time of the execution of a multi-iteration test.
 #           
-#
 
 import subprocess
 import re
@@ -43,9 +42,6 @@ import pexpect
 import threading
 import queue
 import random
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
 import os
 
 # Set this to True to enable debugging prints
@@ -58,8 +54,10 @@ def PRINT_DEB(*args, **kwargs):
 class VerifHeep:
     def __init__(self, target, xheep_dir, opt_en=False):
         self.target = target
+        if target not in ['verilator', 'questasim', 'pynq-z2']:
+            raise Exception(f'Target {target} not supported. Choose one among:\n- verilator\n- questasim (with optional optimization)\n- pynq-z2\n')
         if (target != 'pynq-z2' and opt_en) or (target != 'verilator' and opt_en):
-            raise Exception(f'Target {target} not supported with {opt_en}. Choose one among:\n- Verilator\n- QuestaSim (with optional optimization)\n- Pynq-z2\n')
+            raise Exception(f'Target {target} not supported with {opt_en}. Choose one among:\n- verilator\n- questasim (with optional optimization)\n- pynq-z2\n')
 
         self.opt_en = opt_en
         self.xheep_dir = xheep_dir
@@ -144,8 +142,12 @@ class VerifHeep:
             if self.gdb.signalstatus is not None:
                 print(f"GDB terminated by signal: {self.gdb.signalstatus}")
             exit(1)
+            
+    def stopDeb(self):
+        self.gdb.sendcontrol('c')
+        self.gdb.terminate()
 
-    def launchTest(self, example_name, input_size=0, pattern=r'(\d+):(\d+):(\d+)', en_timeout_term=0):
+    def launchTest(self, example_name, input_size=0, pattern=r'(\d+):(\d+):(\d+)', en_timeout_term=False):
         PRINT_DEB(f"Running test {example_name} with input size {input_size}...")
 
         # Check that the serial connection is still open
@@ -219,10 +221,6 @@ class VerifHeep:
         with open(filename, 'w') as f:
             for result in self.results:
                 f.write(result + '\n')
-    
-    def stopDeb(self):
-        self.gdb.sendcontrol('c')
-        self.gdb.terminate()
 
     # Performance estimation methods
     
@@ -245,7 +243,7 @@ class VerifHeep:
     
     # Data generation methods
 
-    def genInputDataset(self, dataset_size, parameters, row_size=0, range_min=0, range_max=1, dataset_dir="input_dataset.h", dataset_dir_c="", dataset_name="input_dataset", datatype="uint32_t"):
+    def genInputDataset(self, dataset_size, parameters="", row_size=0, range_min=0, range_max=1, dataset_dir="input_dataset.h", dataset_dir_c="", dataset_name="input_dataset", datatype="uint32_t"):
         
         if dataset_dir_c == "":
           with open(dataset_dir, 'w') as f:
@@ -255,6 +253,11 @@ class VerifHeep:
             license = "/*\n\tCopyright EPFL contributors.\n\tLicensed under the Apache License, Version 2.0, see LICENSE for details.\n\tSPDX-License-Identifier: Apache-2.0\n*/\n\n"
             f.write(license)
             f.write(f"#include <stdint.h>\n\n")
+
+            # Write the parameters, if there are any
+            if parameters:
+                for key, value in parameters.items():
+                    f.write(f"#define {key} {value}\n")
 
             # Vector declaration
             f.write(f"const {datatype} {dataset_name}[{dataset_size}] = " + "{\n")
@@ -457,15 +460,15 @@ class VerifHeep:
             # Close the file
             f.write(f"#endif // {golden_name.upper()}_H\n")
 
-    def modifyFile(self, filename, pattern, replacement):
+    def modifyFile(self, file_dir, pattern, replacement):
         
-        with open(filename, 'r') as f:
+        with open(file_dir, 'r') as f:
           content = f.read()
 
         # Replace the pattern with the replacement
         new_content = re.sub(pattern, replacement, content)
 
-        with open(filename, 'w') as f:
+        with open(file_dir, 'w') as f:
           f.write(new_content)
 
 # Serial communication thread
