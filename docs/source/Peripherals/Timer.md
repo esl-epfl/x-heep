@@ -99,7 +99,7 @@ void timer_wait_us(uint32_t ms);
 Get the time taken to execute a certain number of cycles, returned as a float representing the time in microseconds.
 
 ```c
-float get_time(uint32_t cycles);
+float get_time_from_cycles(uint32_t cycles);
 ```
 
 ## Example Usage

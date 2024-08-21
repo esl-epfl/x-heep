@@ -116,6 +116,6 @@ void enable_timer_interrupt();
  * 
  * @return float value representing the time taken in microseconds
  */
-float get_time(uint32_t cycles);
+float get_time_from_cycles(uint32_t cycles);
 
 #endif /* TIMER_SDK_H_ */

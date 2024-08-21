@@ -131,7 +131,7 @@ void enable_timer_interrupt()
     CSR_SET_BITS(CSR_REG_MIE, mask);
 }
 
-float get_time(uint32_t cycles){
+float get_time_from_cycles(uint32_t cycles){
     // Get current Frequency
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);

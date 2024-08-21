@@ -96,7 +96,7 @@ int main(){
         asm volatile ("nop");
     }
     timer_cycles = timer_stop();  
-    PRINTF("Microseconds for 1000 NOPs:\t%d μs\n\r", (uint32_t)get_time(timer_cycles) );
+    PRINTF("Microseconds for 1000 NOPs:\t%d μs\n\r", (uint32_t)get_time_from_cycles(timer_cycles) );
 
     PRINTF("Wait 5 seconds\n\r");
     timer_wait_us(5000000);       // Wait for 5 seconds 
