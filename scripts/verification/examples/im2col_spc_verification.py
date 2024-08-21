@@ -9,10 +9,12 @@
 #     Info: This is a usecase of the VerifHeep tool. It generates a dataset for the im2col function 
 #           and the golden result, then it runs the test on the PYNQ-Z2 board and stores the results 
 #           in a file. The data can be then read and plotted using the plotter.py script.
-#
-#           It requires the user to perform the synthesis and to program the FPGA with the bitstream,
-#           as it is a delicate and device-dependent operation. 
-#           Another very important step required is the connection to GDB using X-Heep script "make openOCD_bscan"
+#           
+#           In order to be run, these steps has to be followed:
+#           1. Run this command to include Verifheep: 
+#               export PYTHONPATH="$PYTHONPATH:/<X-Heep project directory in your system>/scripts/verification"
+#           2. Perform the synthesis with Vivado and to program the FPGA with the bitstream
+#           3. Connect the board using GDB by running X-Heep script "make openOCD_bscan". Close Vivado to avoid conflicts
 #
 
 import re
@@ -30,7 +32,7 @@ USBport = 2
 # Define the parameters for the test
 
 num_masters = 4
-num_slaves = 3
+num_slaves = 2
 max_masters_per_slave = 2
 
 num_channels_dma = 5
