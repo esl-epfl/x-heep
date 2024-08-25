@@ -5,6 +5,7 @@
 module x_heep_system
   import obi_pkg::*;
   import reg_pkg::*;
+  import ao_spc_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -36,8 +37,8 @@ module x_heep_system
     output obi_req_t  ext_dma_addr_req_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
     input  obi_resp_t ext_dma_addr_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
 
-    input reg_req_t ext_ao_peripheral_req_i[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
-    output reg_rsp_t ext_ao_peripheral_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
+    input reg_req_t ext_ao_peripheral_req_i[ao_spc_pkg::AO_SPC_NUM-1:0],
+    output reg_rsp_t ext_ao_peripheral_resp_o[ao_spc_pkg::AO_SPC_NUM-1:0],
     
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
@@ -136,10 +137,8 @@ ${pad.core_v_mini_mcu_bonding}
     .pad_resp_i(pad_resp),
     .ext_xbar_master_req_i,
     .ext_xbar_master_resp_o,
-    % if int(ao_peripherals_num_spc) > 0:
     .ext_ao_peripheral_slave_req_i(ext_ao_peripheral_req_i),
     .ext_ao_peripheral_slave_resp_o(ext_ao_peripheral_resp_o),
-    % endif
     .ext_core_instr_req_o,
     .ext_core_instr_resp_i,
     .ext_core_data_req_o,

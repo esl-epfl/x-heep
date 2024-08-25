@@ -46,6 +46,7 @@ module testharness #(
 
   import obi_pkg::*;
   import reg_pkg::*;
+  import ao_spc_pkg::*;
   import testharness_pkg::*;
   import addr_map_rule_pkg::*;
   import core_v_mini_mcu_pkg::*;
@@ -151,8 +152,9 @@ module testharness #(
   ) ext_if ();
 
   // External SPC interface signals
-  reg_req_t ext_ao_peripheral_req[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0];
-  reg_rsp_t ext_ao_peripheral_resp[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0];
+  reg_req_t ext_ao_peripheral_req[ao_spc_pkg::AO_SPC_NUM-1:0];
+  reg_rsp_t ext_ao_peripheral_resp[ao_spc_pkg::AO_SPC_NUM-1:0];
+
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_busy;
 
   always_comb begin
@@ -188,6 +190,7 @@ module testharness #(
   end
 `endif
 
+  // X-HEEP system
   x_heep_system #(
       .COREV_PULP(COREV_PULP),
       .FPU(FPU),
@@ -514,8 +517,6 @@ module testharness #(
           .acc_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER3_IDX])
       );
 
-
-      // Im2col SPC peripheral
       im2col_spc im2col_spc_i (
           .clk_i,
           .rst_ni,

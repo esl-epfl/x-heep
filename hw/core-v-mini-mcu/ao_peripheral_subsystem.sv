@@ -1,7 +1,6 @@
 // Copyright 2022 OpenHW Group
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-/* verilator lint_off UNOPTFLAT */
 
 module ao_peripheral_subsystem
   import obi_pkg::*;
@@ -15,11 +14,11 @@ module ao_peripheral_subsystem
     input logic clk_i,
     input logic rst_ni,
 
-    input  reg_req_t bus2ao_req_i,
-    output reg_rsp_t ao2bus_resp_o,
+    input  reg_req_t slave_req_i,
+    output reg_rsp_t slave_resp_o,
 
-    input  reg_req_t spc2ao_req_i [core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
-    output reg_rsp_t ao2spc_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
+    input  reg_req_t spc2ao_req_i [ao_spc_pkg::AO_SPC_NUM-1:0],
+    output reg_rsp_t ao2spc_resp_o[ao_spc_pkg::AO_SPC_NUM-1:0],
 
     // SOC CTRL
     input  logic        boot_select_i,
@@ -119,8 +118,8 @@ module ao_peripheral_subsystem
   import core_v_mini_mcu_pkg::*;
   import tlul_pkg::*;
 
-  parameter DMA_GLOBAL_TRIGGER_SLOT_NUM = 5;
-  parameter DMA_EXT_TRIGGER_SLOT_NUM = core_v_mini_mcu_pkg::DMA_CH_NUM * 2;
+  localparam DMA_GLOBAL_TRIGGER_SLOT_NUM = 5;
+  localparam DMA_EXT_TRIGGER_SLOT_NUM = core_v_mini_mcu_pkg::DMA_CH_NUM * 2;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -152,12 +151,12 @@ module ao_peripheral_subsystem
   logic [23:0] cio_gpio_en_unused;
 
   /* DMA signals */
-  logic dma_clk_gate_en_ni[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0];
-  power_manager_out_t dma_subsystem_pwr_ctrl_o[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0];
+  logic dma_clk_gate_en_n[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0];
+  power_manager_out_t dma_subsystem_pwr_ctrl[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0];
   logic [DMA_GLOBAL_TRIGGER_SLOT_NUM-1:0] dma_global_trigger_slots;
   logic [DMA_EXT_TRIGGER_SLOT_NUM-1:0] dma_ext_trigger_slots;
-  obi_pkg::obi_req_t busfifo2regconv_req;
-  obi_pkg::obi_resp_t regconv2busfifo_resp;
+  obi_pkg::obi_req_t slave_fifoout_req;
+  obi_pkg::obi_resp_t slave_fifoout_resp;
   reg_req_t perconv2regdemux_req;
   reg_rsp_t regdemux2perconv_resp;
 
@@ -187,7 +186,7 @@ module ao_peripheral_subsystem
   /* DMA clock gating */
   generate
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_clk_gate_gen
-      assign dma_clk_gate_en_ni[i] = dma_subsystem_pwr_ctrl_o[i].clkgate_en_n;
+      assign dma_clk_gate_en_n[i] = dma_subsystem_pwr_ctrl[i].clkgate_en_n;
     end
   endgenerate
 
@@ -199,10 +198,10 @@ module ao_peripheral_subsystem
   obi_fifo obi_fifo_i (
       .clk_i,
       .rst_ni,
-      .producer_req_i (bus2ao_req_i),
-      .producer_resp_o(ao2bus_resp_o),
-      .consumer_req_o (busfifo2regconv_req),
-      .consumer_resp_i(regconv2busfifo_resp)
+      .producer_req_i (slave_req_i),
+      .producer_resp_o(slave_resp_o),
+      .consumer_req_o (slave_fifoout_req),
+      .consumer_resp_i(slave_fifoout_resp)
   );
 
   /* Peripheral to register interface converter*/
@@ -213,38 +212,38 @@ module ao_peripheral_subsystem
   ) periph_to_reg_i (
       .clk_i,
       .rst_ni,
-      .req_i(busfifo2regconv_req.req),
-      .add_i(busfifo2regconv_req.addr),
-      .wen_i(~busfifo2regconv_req.we),
-      .wdata_i(busfifo2regconv_req.wdata),
-      .be_i(busfifo2regconv_req.be),
+      .req_i(slave_fifoout_req.req),
+      .add_i(slave_fifoout_req.addr),
+      .wen_i(~slave_fifoout_req.we),
+      .wdata_i(slave_fifoout_req.wdata),
+      .be_i(slave_fifoout_req.be),
       .id_i('0),
-      .gnt_o(regconv2busfifo_resp.gnt),
-      .r_rdata_o(regconv2busfifo_resp.rdata),
+      .gnt_o(slave_fifoout_resp.gnt),
+      .r_rdata_o(slave_fifoout_resp.rdata),
       .r_opc_o(),
       .r_id_o(),
-      .r_valid_o(regconv2busfifo_resp.rvalid),
+      .r_valid_o(slave_fifoout_resp.rvalid),
       .reg_req_o(peripheral_req),
       .reg_rsp_i(peripheral_rsp)
   );
 
   /* SPC crossbar & FIFOs */
   generate
-    if (core_v_mini_mcu_pkg::AO_SPC_NUM > 0) begin
+    if (ao_spc_pkg::AO_SPC_NUM > 0) begin
       /* Assign the bus port to the first input port of the AOPB */
-      reg_req_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] packet_req;
-      reg_rsp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] packet_rsp;
+      reg_req_t [ao_spc_pkg::AO_SPC_NUM:0] packet_req;
+      reg_rsp_t [ao_spc_pkg::AO_SPC_NUM:0] packet_rsp;
 
       assign packet_req[0]  = peripheral_req;
       assign peripheral_rsp = packet_rsp[0];
 
-      for (genvar i = 0; i < core_v_mini_mcu_pkg::AO_SPC_NUM; i++) begin : gen_spc
+      for (genvar i = 0; i < ao_spc_pkg::AO_SPC_NUM; i++) begin : gen_spc
         assign packet_req[i+1]  = spc2ao_req_i[i];
         assign ao2spc_resp_o[i] = packet_rsp[i+1];
       end
 
       reg_mux #(
-          .NoPorts(core_v_mini_mcu_pkg::AO_SPC_NUM + 1),
+          .NoPorts(ao_spc_pkg::AO_SPC_NUM + 1),
           .req_t  (reg_pkg::reg_req_t),
           .rsp_t  (reg_pkg::reg_rsp_t),
           .AW     (32),
@@ -360,7 +359,7 @@ module ao_peripheral_subsystem
       .peripheral_subsystem_pwr_ctrl_i,
       .memory_subsystem_pwr_ctrl_i,
       .external_subsystem_pwr_ctrl_i,
-      .dma_subsystem_pwr_ctrl_o
+      .dma_subsystem_pwr_ctrl_o(dma_subsystem_pwr_ctrl)
   );
 
   /* ??? */
@@ -400,7 +399,7 @@ module ao_peripheral_subsystem
   ) dma_subsystem_i (
       .clk_i,
       .rst_ni,
-      .clk_gate_en_ni(dma_clk_gate_en_ni),
+      .clk_gate_en_ni(dma_clk_gate_en_n),
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
       .dma_read_req_o,

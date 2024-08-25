@@ -5,6 +5,7 @@
 module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
+  import ao_spc_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -285,8 +286,8 @@ module core_v_mini_mcu
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
-    input  reg_req_t ext_ao_peripheral_slave_req_i [core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
-    output reg_rsp_t ext_ao_peripheral_slave_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
+    input  reg_req_t ext_ao_peripheral_slave_req_i [ao_spc_pkg::AO_SPC_NUM-1:0],
+    output reg_rsp_t ext_ao_peripheral_slave_resp_o[ao_spc_pkg::AO_SPC_NUM-1:0],
 
     // External slave ports
     output obi_req_t ext_core_instr_req_o,
@@ -360,12 +361,12 @@ module core_v_mini_mcu
   obi_resp_t core_data_resp;
   obi_req_t debug_master_req;
   obi_resp_t debug_master_resp;
-  obi_req_t dma_read_req[1:0];
-  obi_resp_t dma_read_resp[1:0];
-  obi_req_t dma_write_req[1:0];
-  obi_resp_t dma_write_resp[1:0];
-  obi_req_t dma_addr_req[1:0];
-  obi_resp_t dma_addr_resp[1:0];
+  obi_req_t dma_read_req[0:0];
+  obi_resp_t dma_read_resp[0:0];
+  obi_req_t dma_write_req[0:0];
+  obi_resp_t dma_write_resp[0:0];
+  obi_req_t dma_addr_req[0:0];
+  obi_resp_t dma_addr_resp[0:0];
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -621,8 +622,8 @@ module core_v_mini_mcu
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
       .clk_i,
       .rst_ni(rst_ni && debug_reset_n),
-      .bus2ao_req_i(ao_peripheral_slave_req),
-      .ao2bus_resp_o(ao_peripheral_slave_resp),
+      .slave_req_i(ao_peripheral_slave_req),
+      .slave_resp_o(ao_peripheral_slave_resp),
       .spc2ao_req_i(ext_ao_peripheral_slave_req_i),
       .ao2spc_resp_o(ext_ao_peripheral_slave_resp_o),
       .boot_select_i,

@@ -8,8 +8,10 @@ In particular, VerifHeep enables **on FPGA** verification, testing and performan
 This library employs a _software-based_ verification approach, meaning it conducts its tests by compiling a specific software application, running it on the target unit, and analyzing the results. The user is required to develop an application that can test and verify the target unit and display the data in accordance with specific formats.
 
 This library has been developed with a focus on verifying and characterizing external accelerators, such as the _im2col Smart Peripheral Controller_ (SPC). 
-In fact, the `scripts/examples` folder contains the verification environment for this very accelerator, `im2col_verificaiton.py`, along with `im2col_spc_plotter.py` to plot the acquired data. 
+In fact, the `scripts/examples` folder contains the verification environment for this very accelerator, `im2col_spc_verification.py`, along with `im2col_spc_plotter.py` to plot the acquired data. 
 Users are encouraged to refer to this file as a real-world example of how to use the library and can use it as starting point to develop their own verification environment.
+
+> :warning: Make sure to follow the preliminary steps explained in `im2col_spc_verification.py` in order to test it!
 
 This guide aims to address any questions that might arise from studying the *im2col_spc* example. It provides a detailed explanation of each method in VerifHeep, along with the parameters required for its proper functioning.
 

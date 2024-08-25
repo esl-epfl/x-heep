@@ -11,6 +11,8 @@
 #           in a file. The data can be then read and plotted using the plotter.py script.
 #           
 #           In order to be run, these steps has to be followed:
+#           0. Set the X-Heep configuration to have 4 channels,
+#              while there are no limits on the number of master ports
 #           1. Run this command to include Verifheep: 
 #               export PYTHONPATH="$PYTHONPATH:/<X-Heep project directory in your system>/scripts/verification"
 #           2. Perform the synthesis with Vivado and to program the FPGA with the bitstream
@@ -31,9 +33,9 @@ USBport = 2
 
 # Define the parameters for the test
 
-num_masters = 4
-num_slaves = 2
-max_masters_per_slave = 2
+num_masters = 4 # Number of DMA CH
+num_slaves = 2 # Number of BUS master ports
+max_masters_per_slave = 2 # Maximum number of DMA CH per BUS master port
 
 num_channels_dma = 5
 num_channels_dma_min = 1

@@ -5,6 +5,7 @@
 module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
+  import ao_spc_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -39,10 +40,8 @@ ${pad.core_v_mini_mcu_interface}
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
-% if int(ao_peripherals_num_spc) > 0:
-    input reg_req_t ext_ao_peripheral_slave_req_i[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
-    output reg_rsp_t ext_ao_peripheral_slave_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
-% endif
+    input reg_req_t ext_ao_peripheral_slave_req_i[ao_spc_pkg::AO_SPC_NUM-1:0],
+    output reg_rsp_t ext_ao_peripheral_slave_resp_o[ao_spc_pkg::AO_SPC_NUM-1:0],
 
     // External slave ports
     output obi_req_t  ext_core_instr_req_o,
@@ -373,15 +372,10 @@ ${pad.core_v_mini_mcu_interface}
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
       .clk_i,
       .rst_ni(rst_ni && debug_reset_n),
-      .bus2ao_req_i(ao_peripheral_slave_req),
-      .ao2bus_resp_o(ao_peripheral_slave_resp),
-      % if int(ao_peripherals_num_spc) > 0:
+      .slave_req_i(ao_peripheral_slave_req),
+      .slave_resp_o(ao_peripheral_slave_resp),
       .spc2ao_req_i(ext_ao_peripheral_slave_req_i),
       .ao2spc_resp_o(ext_ao_peripheral_slave_resp_o),
-      % else:
-      .spc2ao_req_i(),
-      .ao2spc_resp_o(),
-      % endif
       .boot_select_i,
       .execute_from_flash_i,
       .exit_valid_o,

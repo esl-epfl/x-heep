@@ -511,7 +511,6 @@ def main():
         exit("Number of DMA channels has to be between 0 and 256, excluded")
 
     dma_ch_size = ao_peripherals["dma"]["ch_length"]
-    ao_peripherals_num_spc = string2int(obj['ao_peripherals']['num_spc'])
 
     # Number of master ports for the dma subsystem
     num_dma_master_ports = ao_peripherals["dma"]["num_master_ports"]
@@ -524,7 +523,7 @@ def main():
         exit("Number of DMA channels per system bus master ports has to be between 0 and " + str(dma_ch_count) + ", excluded")
 
     if (int(num_dma_master_ports) > 1):
-        # Calcolo di full_masters_xbars
+        # Computation of full_masters_xbars
         temp_full_masters_xbars = math.floor(int(dma_ch_count) / int(num_dma_xbar_channels_per_master_port))
         if temp_full_masters_xbars < int(num_dma_master_ports) and temp_full_masters_xbars * int(num_dma_xbar_channels_per_master_port) == int(dma_ch_count):
             full_masters_xbars = temp_full_masters_xbars - 1
@@ -532,10 +531,10 @@ def main():
             full_masters_xbars = temp_full_masters_xbars
         last = int(num_dma_xbar_channels_per_master_port) * full_masters_xbars
 
-        # Inizializzazione dell'array
+        # Array initialization
         array_xbar_gen = [0] * int(num_dma_master_ports)
 
-        # Popolamento dell'array
+        # Computation of the number of xbar channels for each master port
         for i in range(int(num_dma_master_ports)):
             if i < full_masters_xbars:
                 array_xbar_gen[i] = int(num_dma_xbar_channels_per_master_port)
@@ -550,7 +549,7 @@ def main():
     else:
         if (int(num_dma_xbar_channels_per_master_port) != int(dma_ch_count)):
             exit("With 1 master port, the number of DMA channels per master port has to be equal to the number of DMA channels")
-        dma_xbar_array = "default: 0"
+        dma_xbar_array = "default: 1"
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -872,7 +871,6 @@ def main():
         "dma_ch_size"                      : dma_ch_size,
         "num_dma_master_ports"             : num_dma_master_ports,
         "num_dma_xbar_channels_per_master_port" : num_dma_xbar_channels_per_master_port,
-        "ao_peripherals_num_spc"           : ao_peripherals_num_spc,
         "dma_xbar_masters_array"           : dma_xbar_array,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
