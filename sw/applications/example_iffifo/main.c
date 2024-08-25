@@ -180,7 +180,7 @@ int main(int argc, char *argv[]) {
     tgt_dst.trig       = DMA_TRIG_MEMORY;
     tgt_dst.type       = DMA_DATA_TYPE_WORD;
 
-    trans.size_du    = 4;
+    trans.size_d1_du    = 4;
     trans.src        = &tgt_src;
     trans.dst        = &tgt_dst;
     trans.end        = DMA_TRANS_END_INTR;
