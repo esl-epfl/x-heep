@@ -131,7 +131,6 @@ void setup()
     tgt_src.inc_d1_du     = 0;
     tgt_src.trig       = DMA_TRIG_SLOT_I2S;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
-    tgt_src.size_du    = AUDIO_DATA_NUM;
 
     tgt_dst.ptr        = audio_data_0;
     tgt_dst.inc_d1_du     = 1;
@@ -140,6 +139,7 @@ void setup()
 
     trans.src        = &tgt_src;
     trans.dst        = &tgt_dst;
+    trans.size_d1_du    = AUDIO_DATA_NUM;
     trans.end        = DMA_TRANS_END_INTR;
 
     dma_config_flags_t res;

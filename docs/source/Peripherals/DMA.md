@@ -1124,7 +1124,7 @@ Finally, set the dimensionality flag to 1 to configure it for 2D transactions.
   dma_target_t tgt_src = {
     .ptr = (uint8_t *) src,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = SRC_INC_D2,
+    .inc_d2_du = SRC_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,   
   };
@@ -1132,7 +1132,7 @@ Finally, set the dimensionality flag to 1 to configure it for 2D transactions.
   dma_target_t tgt_dst = {
     .ptr = (uint8_t *) dst,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = DST_INC_D2,
+    .inc_d2_du = DST_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,    
   };
@@ -1188,7 +1188,7 @@ To perform the transposition, we simply need to set a specific tag in the transa
   dma_target_t tgt_src = {
     .ptr = (uint8_t *) src,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = SRC_INC_D2,
+    .inc_d2_du = SRC_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,   
   };
@@ -1196,7 +1196,7 @@ To perform the transposition, we simply need to set a specific tag in the transa
   dma_target_t tgt_dst = {
     .ptr = (uint8_t *) dst,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = DST_INC_D2,
+    .inc_d2_du = DST_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,    
   };
@@ -1291,7 +1291,7 @@ The 2D increment, on the other hand, is the number of elements along the d2 axis
   dma_target_t tgt_src = {
     .ptr = (uint8_t *) src,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = SRC_INC_D2,
+    .inc_d2_du = SRC_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,   
   };
@@ -1299,7 +1299,7 @@ The 2D increment, on the other hand, is the number of elements along the d2 axis
   dma_target_t tgt_dst = {
     .ptr = (uint8_t *) dst,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = DST_INC_D2,
+    .inc_d2_du = DST_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,    
   };
@@ -1367,7 +1367,7 @@ As thoroughly explained in [the functional description](#zero-padding), the padd
   dma_target_t tgt_src = {
     .ptr = (uint8_t *) src,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = SRC_INC_D2,
+    .inc_d2_du = SRC_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,   
   };
@@ -1375,7 +1375,7 @@ As thoroughly explained in [the functional description](#zero-padding), the padd
   dma_target_t tgt_dst = {
     .ptr = (uint8_t *) dst,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = DST_INC_D2,
+    .inc_d2_du = DST_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,    
   };
@@ -1483,7 +1483,7 @@ Finally, let's set the end event to *DMA_TRANS_END_INTR* to handle manually the 
   dma_target_t tgt_src_ch0 = {
     .ptr = (uint8_t *) src,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = SRC_INC_D2,
+    .inc_d2_du = SRC_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,   
   };
@@ -1491,7 +1491,7 @@ Finally, let's set the end event to *DMA_TRANS_END_INTR* to handle manually the 
   dma_target_t tgt_src_ch1 = {
     .ptr = (uint8_t *) &src[10], // This is the address of the "0x758e" element
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = SRC_INC_D2,
+    .inc_d2_du = SRC_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,   
   };
@@ -1499,7 +1499,7 @@ Finally, let's set the end event to *DMA_TRANS_END_INTR* to handle manually the 
   dma_target_t tgt_dst_ch0 = {
     .ptr = (uint8_t *) dst_ch0,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = DST_INC_D2,
+    .inc_d2_du = DST_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,    
   };
@@ -1507,7 +1507,7 @@ Finally, let's set the end event to *DMA_TRANS_END_INTR* to handle manually the 
   dma_target_t tgt_dst_ch1 = {
     .ptr = (uint8_t *) dst_ch1,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = DST_INC_D2,
+    .inc_d2_du = DST_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,    
   };
@@ -1762,7 +1762,7 @@ Most of this example is similar to the previous one, but particular care is requ
   dma_target_t tgt_src_ch1 = {
     .ptr = (uint8_t *) src,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = SRC_INC_D2,
+    .inc_d2_du = SRC_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,   
   };
@@ -1770,7 +1770,7 @@ Most of this example is similar to the previous one, but particular care is requ
   dma_target_t tgt_dst_ch1 = {
     .ptr = (uint8_t *) dst_ch1,
     .inc_d1_du = 1,
-    .inc_d1_du_d2 = DST_INC_D2,
+    .inc_d2_du = DST_INC_D2,
     .type = DMA_DATA_TYPE_HALF_WORD,
     .trig = DMA_TRIG_MEMORY,    
   };
