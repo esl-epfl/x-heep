@@ -9,7 +9,6 @@
 // specific language governing permissions and limitations under the License.
 
 // Florian Zaruba <zarubaf@iis.ee.ethz.ch>
-/* verilator lint_off UNUSED */
 
 `include "register_interface/typedef.svh"
 
