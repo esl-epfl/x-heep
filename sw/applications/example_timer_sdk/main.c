@@ -98,17 +98,29 @@ int main(){
     timer_cycles = timer_stop();  
     PRINTF("Microseconds for 1000 NOPs:\t%d μs\n\r", (uint32_t)get_time_from_cycles(timer_cycles) );
 
-    PRINTF("Wait 5 seconds\n\r");
-    timer_wait_us(5000000);       // Wait for 5 seconds 
-    timer_cycles = timer_stop();     
-    PRINTF("Done\n\r");
+    #ifdef TARGET_IS_FPGA
+        PRINTF("Wait 5 second\n\r");
+        timer_wait_us(5000000);       // Wait for 5 seconds 
+        timer_cycles = timer_stop();     
+        PRINTF("Done\n\r");
 
-    if(abs(timer_cycles-(5*freq_hz)) > TIMER_WAIT_TOLERANCE){ 
-        PRINTF("Timer wait failed\n\r");
-        return EXIT_FAILURE;
-    }
+        if(abs(timer_cycles-(5*freq_hz)) > TIMER_WAIT_TOLERANCE){ 
+            PRINTF("Timer wait failed\n\r");
+            return EXIT_FAILURE;
+        }
+    #endif
+    #ifdef TARGET_SIM  // Reduced time for simulation for faster testing
+        PRINTF("Wait 0.001 second\n\r");
+        timer_wait_us(1000);       // Wait for 1 millisecond
+        timer_cycles = timer_stop();     
+        PRINTF("Done\n\r");
+
+        if(abs(timer_cycles-(0.001*freq_hz)) > TIMER_WAIT_TOLERANCE){ 
+            PRINTF("Timer wait failed\n\r");
+            return EXIT_FAILURE;
+        }
+    #endif
 
     PRINTF("All tests passed\n\r");
     return EXIT_SUCCESS;
 }
-

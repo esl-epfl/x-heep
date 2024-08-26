@@ -19,7 +19,7 @@
 /******************************/
 
 // Timer value
-uint32_t hw_timer_value = 0;
+int32_t hw_timer_value = 0;
 
 rv_timer_t timer;
 
@@ -80,7 +80,8 @@ void timer_start()
 }
 
 void timer_reset()
-{
+{  
+    hw_timer_value = 0;
     rv_timer_reset(&timer);
 }
 

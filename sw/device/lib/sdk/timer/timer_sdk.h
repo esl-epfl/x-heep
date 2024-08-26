@@ -27,7 +27,7 @@
 /******************************/
 
 // Timer value
-extern uint32_t hw_timer_value;
+extern int32_t hw_timer_value;
 
 extern rv_timer_t timer;
 
