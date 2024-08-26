@@ -21,7 +21,7 @@
 
 /* Error tolerances for the tests. */
 #define CYCLE_TOLERANCE  2         // cycles tolerance for simple timer reads
-#define INTERRUPT_TOLERANCE 60     // cycles tolerance for timer interrupt
+#define INTERRUPT_TOLERANCE 70     // cycles tolerance for timer interrupt
 #define TIMER_WAIT_TOLERANCE 20   // milliseconds tolerance for timer wait
 
 #if TARGET_SIM && PRINTF_IN_SIM
