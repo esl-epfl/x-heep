@@ -643,6 +643,7 @@ This section will include a brief overview of the functionalities offered by the
 
 Let's start with the structures that enable users to define a DMA transaction and its targets, defined in `dma.h`:
 
+> :warning: Remember to declare these structure as **global**, i.e. outside the main() function, or **static** if they need to be local. This is **critical** as it ensures that the fields that are not needed are initialized correctly.
 
 #### <i> dma_target_t </i>
 
