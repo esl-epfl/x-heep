@@ -5,15 +5,16 @@
 module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
-  import ao_spc_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,
     parameter ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0,
     parameter X_EXT = 0,  // eXtension interface in cv32e40x
+    parameter AO_SPC_NUM = 0,
     parameter EXT_HARTS = 0,
     //do not touch these parameters
+    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 1 : AO_SPC_NUM,
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT,
@@ -40,8 +41,8 @@ ${pad.core_v_mini_mcu_interface}
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
-    input reg_req_t ext_ao_peripheral_slave_req_i[ao_spc_pkg::AO_SPC_NUM-1:0],
-    output reg_rsp_t ext_ao_peripheral_slave_resp_o[ao_spc_pkg::AO_SPC_NUM-1:0],
+    input reg_req_t ext_ao_peripheral_slave_req_i[AO_SPC_NUM_RND-1:0],
+    output reg_rsp_t ext_ao_peripheral_slave_resp_o[AO_SPC_NUM_RND-1:0],
 
     // External slave ports
     output obi_req_t  ext_core_instr_req_o,
@@ -369,7 +370,9 @@ ${pad.core_v_mini_mcu_interface}
       .set_retentive_ni(memory_subsystem_banks_set_retentive_n)
   );
 
-  ao_peripheral_subsystem ao_peripheral_subsystem_i (
+  ao_peripheral_subsystem #(
+      .AO_SPC_NUM(AO_SPC_NUM)
+  ) ao_peripheral_subsystem_i (
       .clk_i,
       .rst_ni(rst_ni && debug_reset_n),
       .slave_req_i(ao_peripheral_slave_req),

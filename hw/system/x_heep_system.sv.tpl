@@ -5,14 +5,15 @@
 module x_heep_system
   import obi_pkg::*;
   import reg_pkg::*;
-  import ao_spc_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,
     parameter ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0,
     parameter X_EXT = 0,  // eXtension interface in cv32e40x
+    parameter AO_SPC_NUM = 0,
     //do not touch these parameters
+    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 1 : AO_SPC_NUM,
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
@@ -37,8 +38,8 @@ module x_heep_system
     output obi_req_t  ext_dma_addr_req_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
     input  obi_resp_t ext_dma_addr_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
 
-    input reg_req_t ext_ao_peripheral_req_i[ao_spc_pkg::AO_SPC_NUM-1:0],
-    output reg_rsp_t ext_ao_peripheral_resp_o[ao_spc_pkg::AO_SPC_NUM-1:0],
+    input reg_req_t ext_ao_peripheral_req_i[AO_SPC_NUM_RND-1:0],
+    output reg_rsp_t ext_ao_peripheral_resp_o[AO_SPC_NUM_RND-1:0],
     
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
@@ -119,6 +120,7 @@ ${pad.internal_signals}
     .ZFINX(ZFINX),
     .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
     .X_EXT(X_EXT),
+    .AO_SPC_NUM(AO_SPC_NUM),
     .EXT_HARTS(EXT_HARTS)
   ) core_v_mini_mcu_i (
 

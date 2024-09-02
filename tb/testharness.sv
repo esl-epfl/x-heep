@@ -11,6 +11,7 @@ module testharness #(
     parameter FPU                         = 0,
     parameter ZFINX                       = 0,
     parameter X_EXT                       = 0,         // eXtension interface in cv32e40x
+    parameter AO_SPC_NUM                  = 1,
     parameter JTAG_DPI                    = 0,
     parameter USE_EXTERNAL_DEVICE_EXAMPLE = 1,
     parameter CLK_FREQUENCY               = 'd100_000  //KHz
@@ -46,7 +47,6 @@ module testharness #(
 
   import obi_pkg::*;
   import reg_pkg::*;
-  import ao_spc_pkg::*;
   import testharness_pkg::*;
   import addr_map_rule_pkg::*;
   import core_v_mini_mcu_pkg::*;
@@ -152,8 +152,8 @@ module testharness #(
   ) ext_if ();
 
   // External SPC interface signals
-  reg_req_t ext_ao_peripheral_req[ao_spc_pkg::AO_SPC_NUM-1:0];
-  reg_rsp_t ext_ao_peripheral_resp[ao_spc_pkg::AO_SPC_NUM-1:0];
+  reg_req_t ext_ao_peripheral_req[AO_SPC_NUM-1:0];
+  reg_rsp_t ext_ao_peripheral_resp[AO_SPC_NUM-1:0];
 
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_busy;
 
