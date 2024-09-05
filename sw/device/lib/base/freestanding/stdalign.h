@@ -13,10 +13,16 @@
  * S4p6. This header is specified in detail in S7.15 of the same.
  */
 
+
+
+#ifndef __cplusplus
 #define alignas _Alignas
 #define __alignas_is_defined 1
 
 #define alignof _Alignof
 #define __alignof_is_defined 1
+#endif  // __cplusplus
+
+
 
 #endif  // OPENTITAN_SW_DEVICE_LIB_BASE_FREESTANDING_STDALIGN_H_

@@ -31,7 +31,9 @@
 /*                             MODULES USED                                 */
 /**                                                                        **/
 /****************************************************************************/
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "spi_host.h"
 
 #include "bitfield.h"
@@ -184,14 +186,14 @@ volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi)
 {
     // Returning an impossible value (tx fifo is 76 words long...)
     SPI_NULL_CHECK(spi, UINT8_MAX)
-    return spi_get_status(spi)->txqd;
+    return spi_get_status(spi).txqd;
 }
 
 volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi)
 {
     // Returning an impossible value (rx fifo is 64 words long...)
     SPI_NULL_CHECK(spi, UINT8_MAX)
-    return spi_get_status(spi)->rxqd;
+    return spi_get_status(spi).rxqd;
 }
 
 volatile uint32_t spi_get_csid(spi_host_t* spi)
@@ -207,9 +209,9 @@ spi_return_flags_e spi_sw_reset(spi_host_t* spi)
     SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, BIT_MASK_1, 
                                           SPI_HOST_CONTROL_SW_RST_BIT, true);
 
-    volatile spi_status_t* status = spi_get_status(spi);
+    volatile spi_status_t status = spi_get_status(spi);
     // Wait for spi active and txqd & rxqd both go to 0
-    while (status->active || status->txqd || status->rxqd);
+    while (status.active || status.txqd || status.rxqd);
     // Deassert spi reset bit
     SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, BIT_MASK_1, 
                                           SPI_HOST_CONTROL_SW_RST_BIT, false);
@@ -452,22 +454,22 @@ spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events) {
     // telling which event triggered the interrupt, we just read the status register and
     // map the statuses to their respective event. This allows to pass a pseudo-event
     // variable to the event handlers.
-    volatile spi_status_t* status = spi_get_status(spi);
+    volatile spi_status_t status = spi_get_status(spi);
     // Also, we do not need any NULL check since this function is made to be called
     // __ONLY__ from `handler_irq_spi`, `fic_irq_spi`, `fic_irq_spi_flash`.
     // Therefore we know that spi argument will not be NULL.
     *events = bitfield_write(*events, BIT_MASK_1, 
-                             SPI_HOST_EVENT_ENABLE_RXFULL_BIT,  status->rxfull);
+                             SPI_HOST_EVENT_ENABLE_RXFULL_BIT,  status.rxfull);
     *events = bitfield_write(*events, BIT_MASK_1, 
-                             SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT, status->txempty);
+                             SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT, status.txempty);
     *events = bitfield_write(*events, BIT_MASK_1, 
-                             SPI_HOST_EVENT_ENABLE_RXWM_BIT,    status->rxwm);
+                             SPI_HOST_EVENT_ENABLE_RXWM_BIT,    status.rxwm);
     *events = bitfield_write(*events, BIT_MASK_1, 
-                             SPI_HOST_EVENT_ENABLE_TXWM_BIT,    status->txwm);
+                             SPI_HOST_EVENT_ENABLE_TXWM_BIT,    status.txwm);
     *events = bitfield_write(*events, BIT_MASK_1, 
-                             SPI_HOST_EVENT_ENABLE_READY_BIT,   status->ready);
+                             SPI_HOST_EVENT_ENABLE_READY_BIT,   status.ready);
     *events = bitfield_write(*events, BIT_MASK_1, 
-                             SPI_HOST_EVENT_ENABLE_IDLE_BIT,   ~status->active);
+                             SPI_HOST_EVENT_ENABLE_IDLE_BIT,   ~status.active);
     return SPI_FLAG_OK;
 }
 
@@ -479,7 +481,9 @@ spi_return_flags_e spi_acknowledge_event(spi_host_t* spi) {
                                              SPI_HOST_INTR_STATE_SPI_EVENT_BIT, true);
     return SPI_FLAG_OK;
 }
-
+#ifdef __cplusplus
+}
+#endif
 /****************************************************************************/
 /**                                                                        **/
 /*                                 EOF                                      */

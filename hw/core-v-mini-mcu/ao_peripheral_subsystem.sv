@@ -104,8 +104,10 @@ module ao_peripheral_subsystem
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    input logic ext_dma_slot_tx_i,
-    input logic ext_dma_slot_rx_i
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
+
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -312,23 +314,33 @@ module ao_peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
 
-  parameter DMA_TRIGGER_SLOT_NUM = 7;
-  logic [DMA_TRIGGER_SLOT_NUM-1:0] dma_trigger_slots;
-  assign dma_trigger_slots[0] = spi_rx_valid_i;
-  assign dma_trigger_slots[1] = spi_tx_ready_i;
-  assign dma_trigger_slots[2] = spi_flash_rx_valid;
-  assign dma_trigger_slots[3] = spi_flash_tx_ready;
-  assign dma_trigger_slots[4] = i2s_rx_valid_i;
-  assign dma_trigger_slots[5] = ext_dma_slot_tx_i;
-  assign dma_trigger_slots[6] = ext_dma_slot_rx_i;
+  parameter DMA_GLOBAL_TRIGGER_SLOT_NUM = 5;
+  parameter DMA_EXT_TRIGGER_SLOT_NUM = core_v_mini_mcu_pkg::DMA_CH_NUM * 2;
 
-  dma #(
-      .reg_req_t (reg_pkg::reg_req_t),
-      .reg_rsp_t (reg_pkg::reg_rsp_t),
-      .obi_req_t (obi_pkg::obi_req_t),
+  logic [DMA_GLOBAL_TRIGGER_SLOT_NUM-1:0] dma_global_trigger_slots;
+  logic [DMA_EXT_TRIGGER_SLOT_NUM-1:0] dma_ext_trigger_slots;
+
+  assign dma_global_trigger_slots[0] = spi_rx_valid_i;
+  assign dma_global_trigger_slots[1] = spi_tx_ready_i;
+  assign dma_global_trigger_slots[2] = spi_flash_rx_valid;
+  assign dma_global_trigger_slots[3] = spi_flash_tx_ready;
+  assign dma_global_trigger_slots[4] = i2s_rx_valid_i;
+
+  generate
+    for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_trigger_slots_gen
+      assign dma_ext_trigger_slots[2*i]   = ext_dma_slot_tx_i[i];
+      assign dma_ext_trigger_slots[2*i+1] = ext_dma_slot_rx_i[i];
+    end
+  endgenerate
+
+  dma_subsystem #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t),
+      .obi_req_t(obi_pkg::obi_req_t),
       .obi_resp_t(obi_pkg::obi_resp_t),
-      .SLOT_NUM  (DMA_TRIGGER_SLOT_NUM)
-  ) dma_i (
+      .GLOBAL_SLOT_NUM(DMA_GLOBAL_TRIGGER_SLOT_NUM),
+      .EXT_SLOT_NUM(DMA_EXT_TRIGGER_SLOT_NUM)
+  ) dma_subsystem_i (
       .clk_i,
       .rst_ni,
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
@@ -339,7 +351,9 @@ module ao_peripheral_subsystem
       .dma_write_ch0_resp_i,
       .dma_addr_ch0_req_o,
       .dma_addr_ch0_resp_i,
-      .trigger_slot_i(dma_trigger_slots),
+      .global_trigger_slot_i(dma_global_trigger_slots),
+      .ext_trigger_slot_i(dma_ext_trigger_slots),
+      .ext_dma_stop_i(ext_dma_stop_i),
       .dma_done_intr_o(dma_done_intr_o),
       .dma_window_intr_o(dma_window_intr_o)
   );

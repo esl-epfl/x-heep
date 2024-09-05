@@ -48,8 +48,9 @@ module x_heep_system
 
     output logic [31:0] exit_value_o,
 
-    input logic ext_dma_slot_tx_i,
-    input logic ext_dma_slot_rx_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
 
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
@@ -82,8 +83,6 @@ ${pad.x_heep_system_interface}
   logic cpu_subsystem_powergate_switch_ack_n;
   logic peripheral_subsystem_powergate_switch_n;
   logic peripheral_subsystem_powergate_switch_ack_n;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_n;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_n;
 
   // PAD controller
   reg_req_t pad_req;
@@ -101,6 +100,11 @@ ${pad.x_heep_system_interface}
 % for pad in total_pad_list:
 ${pad.internal_signals}
 % endfor
+
+`ifdef FPGA_SYNTHESIS
+  assign cpu_subsystem_powergate_switch_ack_n = cpu_subsystem_powergate_switch_n;
+  assign peripheral_subsystem_powergate_switch_ack_n = peripheral_subsystem_powergate_switch_n;
+`endif
 
   core_v_mini_mcu #(
     .COREV_PULP(COREV_PULP),
@@ -138,6 +142,7 @@ ${pad.core_v_mini_mcu_bonding}
     .ext_dma_write_ch0_resp_i,
     .ext_dma_addr_ch0_req_o,
     .ext_dma_addr_ch0_resp_i,
+    .ext_dma_stop_i,
     .ext_peripheral_slave_req_o,
     .ext_peripheral_slave_resp_i,
     .ext_debug_req_o(ext_debug_req),
@@ -146,8 +151,6 @@ ${pad.core_v_mini_mcu_bonding}
     .cpu_subsystem_powergate_switch_ack_ni(cpu_subsystem_powergate_switch_ack_n),
     .peripheral_subsystem_powergate_switch_no(peripheral_subsystem_powergate_switch_n),
     .peripheral_subsystem_powergate_switch_ack_ni(peripheral_subsystem_powergate_switch_ack_n),
-    .memory_subsystem_banks_powergate_switch_no(memory_subsystem_banks_powergate_switch_n),
-    .memory_subsystem_banks_powergate_switch_ack_ni(memory_subsystem_banks_powergate_switch_ack_n),
     .external_subsystem_powergate_switch_no,
     .external_subsystem_powergate_switch_ack_ni,
     .external_subsystem_powergate_iso_no,

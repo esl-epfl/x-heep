@@ -63,7 +63,11 @@ module halfband #(
   genvar k;
   generate
     for (k = 0; k < TOTCOEFS; k = k + 1) begin : coeffs_mapping
-      assign coeffs[k] = lessfreecoeffs[int'($floor($sqrt($pow((TOTCOEFS-1)/2.0-k, 2))))];
+      // Remove $pow function to avoid errors in Synopsys DC
+      // assign coeffs[k] = lessfreecoeffs[int'($floor($sqrt($pow((TOTCOEFS-1)/2.0-k, 2))))];
+      assign coeffs[k] = lessfreecoeffs[int'($floor(
+          $sqrt(((TOTCOEFS-1)/2.0-k)*((TOTCOEFS-1)/2.0-k))
+      ))];
     end
   endgenerate
 

@@ -60,7 +60,8 @@ SECTIONS {
         KEEP (*(.text.spi_wait_for_rx_watermark*))
         KEEP (*(.text.spi_read_word*))
         KEEP (*(.text.memcpy))
-        KEEP (*(.text.w25q128jw_read_standard*)) /* as this function is used in the crt0, link it in the top, should be before 1024 Bytes loaded by the bootrom */
+        KEEP (*(.text.w25q128jw_read_standard)) /* as this function is used in the crt0, link it in the top, should be before 1024 Bytes loaded by the bootrom */
+        KEEP (*(.text.w25q128jw_read_standard.*)) /* sometimes the function is renamed as  w25q128jw_read_standard.part */
         *(.xheep_init_data_crt0) /* this global variables are used in the crt0 */
         KEEP (*_bswapsi2*(.text)) /* this function is used in the w25q128jw_read_standard */
     } >ram0 AT >FLASH0
