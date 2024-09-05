@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: "x-heep:ip:dma"
-description: "core-v-mini-mcu dma peripheral"
+description: "core-v-mini-mcu dma channel"
 
 # Copyright 2021 OpenHW Group
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.

@@ -145,6 +145,10 @@ module dma_reg_top #(
   logic interrupt_en_window_done_qs;
   logic interrupt_en_window_done_wd;
   logic interrupt_en_window_done_we;
+  logic transaction_ifr_qs;
+  logic transaction_ifr_re;
+  logic window_ifr_qs;
+  logic window_ifr_re;
 
   // Register instances
   // R[src_ptr]: V(False)
@@ -853,9 +857,41 @@ module dma_reg_top #(
   );
 
 
+  // R[transaction_ifr]: V(True)
+
+  prim_subreg_ext #(
+      .DW(1)
+  ) u_transaction_ifr (
+      .re (transaction_ifr_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.transaction_ifr.d),
+      .qre(reg2hw.transaction_ifr.re),
+      .qe (),
+      .q  (reg2hw.transaction_ifr.q),
+      .qs (transaction_ifr_qs)
+  );
 
 
-  logic [23:0] addr_hit;
+  // R[window_ifr]: V(True)
+
+  prim_subreg_ext #(
+      .DW(1)
+  ) u_window_ifr (
+      .re (window_ifr_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.window_ifr.d),
+      .qre(reg2hw.window_ifr.re),
+      .qe (),
+      .q  (reg2hw.window_ifr.q),
+      .qs (window_ifr_qs)
+  );
+
+
+
+
+  logic [25:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_SRC_PTR_OFFSET);
@@ -882,6 +918,8 @@ module dma_reg_top #(
     addr_hit[21] = (reg_addr == DMA_WINDOW_SIZE_OFFSET);
     addr_hit[22] = (reg_addr == DMA_WINDOW_COUNT_OFFSET);
     addr_hit[23] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
+    addr_hit[24] = (reg_addr == DMA_TRANSACTION_IFR_OFFSET);
+    addr_hit[25] = (reg_addr == DMA_WINDOW_IFR_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -912,7 +950,9 @@ module dma_reg_top #(
                (addr_hit[20] & (|(DMA_PERMIT[20] & ~reg_be))) |
                (addr_hit[21] & (|(DMA_PERMIT[21] & ~reg_be))) |
                (addr_hit[22] & (|(DMA_PERMIT[22] & ~reg_be))) |
-               (addr_hit[23] & (|(DMA_PERMIT[23] & ~reg_be)))));
+               (addr_hit[23] & (|(DMA_PERMIT[23] & ~reg_be))) |
+               (addr_hit[24] & (|(DMA_PERMIT[24] & ~reg_be))) |
+               (addr_hit[25] & (|(DMA_PERMIT[25] & ~reg_be)))));
   end
 
   assign src_ptr_we = addr_hit[0] & reg_we & !reg_error;
@@ -990,6 +1030,10 @@ module dma_reg_top #(
 
   assign interrupt_en_window_done_we = addr_hit[23] & reg_we & !reg_error;
   assign interrupt_en_window_done_wd = reg_wdata[1];
+
+  assign transaction_ifr_re = addr_hit[24] & reg_re & !reg_error;
+
+  assign window_ifr_re = addr_hit[25] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin
@@ -1092,6 +1136,14 @@ module dma_reg_top #(
       addr_hit[23]: begin
         reg_rdata_next[0] = interrupt_en_transaction_done_qs;
         reg_rdata_next[1] = interrupt_en_window_done_qs;
+      end
+
+      addr_hit[24]: begin
+        reg_rdata_next[0] = transaction_ifr_qs;
+      end
+
+      addr_hit[25]: begin
+        reg_rdata_next[0] = window_ifr_qs;
       end
 
       default: begin

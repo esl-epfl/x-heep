@@ -34,7 +34,7 @@
 #include "i2s_structs.h"
 
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
 #define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      16
 #define I2S_CLK_DIV           8
@@ -104,7 +104,7 @@ void handler_irq_i2s(uint32_t id) {
 }
 
 #ifdef USE_DMA
-void dma_intr_handler_trans_done(void)
+void dma_intr_handler_trans_done(uint8_t channel)
 {
     dma_intr_flag = 1;
 }
@@ -173,7 +173,7 @@ void setup()
 int main(int argc, char *argv[]) {
     bool success = true;
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
     for (uint32_t i = 0; i < 0x10000; i++) asm volatile("nop");
 #endif
     PRINTF("I2S DEMO\r\n\r");
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
 
     //PRINTF("Setup done!\r\n\r");
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
 
 
     for (uint32_t i = 0; i < I2S_WAIT_CYCLES; i++) asm volatile("nop");
