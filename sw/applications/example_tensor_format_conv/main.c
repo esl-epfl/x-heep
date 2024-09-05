@@ -11,7 +11,7 @@
  *        This is a simple example of a HWC tensor with 3 channels, 2 rows and 2 columns:
  *             (1, 2, 3) (4, 5, 6)
  *             (7, 8, 9) (10, 11, 12)
- *        (1, 2, 3) are the values of the first "pixel" of the tensor across differenta channels, 1 for CH0, 2 for CH1 and 3 for CH2.
+ *        (1, 2, 3) are the values of the first "pixel" of the tensor across different channels, 1 for CH0, 2 for CH1 and 3 for CH2.
  *        
  *        On the other hand, this is the same tensor represented with the CHW format:
  * 

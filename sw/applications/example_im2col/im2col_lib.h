@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include "im2col_golden.h"
 #include "im2col_input.h"
+#include "im2col.h"
 #include "dma.h"
 #include "im2col_spc_regs.h"
 #include "core_v_mini_mcu.h"

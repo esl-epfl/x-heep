@@ -33,28 +33,11 @@ module im2col_spc
   import core_v_mini_mcu_pkg::*;
   import dma_if_pkg::*;
   import im2col_spc_reg_pkg::*;
+  import dma_reg_pkg::*;
 
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Parameter definition */
-
-  /* DMA register offsets */
-  localparam DMA_DIMENSIONALITY_OFFSET = 32'h3C;
-  localparam DMA_SRC_PTR_OFFSET = 32'h0;
-  localparam DMA_DST_PTR_OFFSET = 32'h4;
-  localparam DMA_INC_SRC_D1_OFFSET = 32'h18;
-  localparam DMA_INC_SRC_D2_OFFSET = 32'h1C;
-  localparam DMA_INC_DST_D1_OFFSET = 32'h20;
-  localparam DMA_INC_DST_D2_OFFSET = 32'h24;
-  localparam DMA_SIZE_D2_OFFSET = 32'h10;
-  localparam DMA_SIZE_D1_OFFSET = 32'hC;
-  localparam DMA_SRC_DATATYPE_OFFSET = 32'h2C;
-  localparam DMA_DST_DATATYPE_OFFSET = 32'h30;
-  localparam DMA_TOP_PAD_OFFSET = 32'h44;
-  localparam DMA_BOTTOM_PAD_OFFSET = 32'h48;
-  localparam DMA_RIGHT_PAD_OFFSET = 32'h4C;
-  localparam DMA_LEFT_PAD_OFFSET = 32'h50;
-  localparam DMA_SLOTS_OFFSET = 32'h28;
 
   /* FIFO dimension */
   localparam FIFO_DEPTH = 8;
@@ -435,7 +418,7 @@ module im2col_spc
         dma_wdata = 32'h1;
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                    dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                   DMA_DIMENSIONALITY_OFFSET;
+                   {25'h0, dma_reg_pkg::DMA_DIM_CONFIG_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -443,7 +426,7 @@ module im2col_spc
         dma_wdata = {reg2hw.slot.tx_trigger_slot.q, reg2hw.slot.rx_trigger_slot.q};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_SLOTS_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_SLOT_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -451,7 +434,7 @@ module im2col_spc
         dma_wdata = {30'h0, reg2hw.data_type.q} & 32'h3;
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_SRC_DATATYPE_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_SRC_DATA_TYPE_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -459,7 +442,7 @@ module im2col_spc
         dma_wdata = {30'h0, reg2hw.data_type.q} & 32'h3;
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_DST_DATATYPE_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_DST_DATA_TYPE_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -467,7 +450,7 @@ module im2col_spc
         dma_wdata = {24'h0, fifo_output.n_zeros_top};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_TOP_PAD_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_PAD_TOP_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -475,7 +458,7 @@ module im2col_spc
         dma_wdata = {24'h0, fifo_output.n_zeros_bottom};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_BOTTOM_PAD_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_PAD_BOTTOM_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -483,7 +466,7 @@ module im2col_spc
         dma_wdata = {24'h0, fifo_output.n_zeros_left};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_LEFT_PAD_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_PAD_LEFT_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -491,7 +474,7 @@ module im2col_spc
         dma_wdata = {24'h0, fifo_output.n_zeros_right};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_RIGHT_PAD_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_PAD_RIGHT_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -499,7 +482,7 @@ module im2col_spc
         dma_wdata = fifo_output.input_ptr;
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_SRC_PTR_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_SRC_PTR_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -507,7 +490,7 @@ module im2col_spc
         dma_wdata = fifo_output.output_ptr;
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_DST_PTR_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_DST_PTR_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -515,7 +498,7 @@ module im2col_spc
         dma_wdata = (1 << {28'h0, reg2hw.log_strides_d1.q}) << (2 - reg2hw.data_type.q) & 32'h3f;
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_INC_SRC_D1_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_SRC_PTR_INC_D1_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -523,7 +506,7 @@ module im2col_spc
         dma_wdata = {9'h0, fifo_output.in_inc_d2} << (2 - reg2hw.data_type.q) & 32'h7fffff;
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_INC_SRC_D2_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_SRC_PTR_INC_D2_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -531,7 +514,7 @@ module im2col_spc
         dma_wdata = (4 >> reg2hw.data_type.q) & 32'h3f;
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_INC_DST_D1_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_DST_PTR_INC_D1_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -539,7 +522,7 @@ module im2col_spc
         dma_wdata = (4 >> reg2hw.data_type.q) & 32'h7fffff;
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_INC_DST_D2_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_DST_PTR_INC_D2_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -547,7 +530,7 @@ module im2col_spc
         dma_wdata = {16'h0, fifo_output.size_du_d2};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_SIZE_D2_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_SIZE_D2_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -555,7 +538,7 @@ module im2col_spc
         dma_wdata = {16'h0, fifo_output.size_du_d1};
         dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  DMA_SIZE_D1_OFFSET;
+                  {25'h0, dma_reg_pkg::DMA_SIZE_D1_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 

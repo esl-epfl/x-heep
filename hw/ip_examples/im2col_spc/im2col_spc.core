@@ -11,6 +11,7 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::common_cells
+      - x-heep:ip:dma
     files:
     - rtl/im2col_spc_reg_pkg.sv
     - rtl/im2col_spc_reg_top.sv

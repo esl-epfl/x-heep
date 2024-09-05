@@ -1,0 +1,66 @@
+/*
+    Copyright EPFL contributors.
+    Licensed under the Apache License, Version 2.0, see LICENSE for details.
+    SPDX-License-Identifier: Apache-2.0
+
+    Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+                            <tommaso.terzano@gmail.com>
+
+    Info: This simple HAL is used to load the im2col SPC and to run it.
+*/
+
+#ifndef _IM2COL_SPC_
+#define _IM2COL_SPC_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include "dma.h"
+#include "im2col_spc_regs.h"
+#include "core_v_mini_mcu.h"
+#include "x-heep.h"
+#include "rv_plic.h"
+#include "csr.h"
+#include <math.h>
+
+#include "mmio.h"
+#include "handler.h"
+#include "hart.h"
+#include "fast_intr_ctrl.h"
+
+// uint32_t IW, uint32_t IH, uint32_t FW, uint32_t FH, uint32_t CH, uint32_t CH_COL,
+//                 uint32_t STRIDE_D1, uint32_t STRIDE_D2, uint32_t BATCH, uint32_t N_PATCHES_W,
+//                 uint32_t N_PATCHES_H, uint32_t LEFT_PAD, uint32_t RIGHT_PAD, uint32_t TOP_PAD,
+//                 uint32_t BOTTOM_PAD, uint32_t ADPT_PAD_RIGHT, uint32_t ADPT_PAD_BOTTOM,
+
+typedef struct
+{
+    uint32_t* src;   /*!< Target from where the data will be copied. */
+    uint32_t* dst;   /*!< Target to where the data will be copied. */
+    uint32_t ch_mask;    /*!< Mask of the channels to be used. */
+    uint32_t im_width;    /*!< Width of the input image. */
+    uint32_t im_height;    /*!< Height of the input image. */
+    uint32_t filter_width;    /*!< Width of the filter. */
+    uint32_t filter_height;    /*!< Height of the filter. */
+    uint32_t num_channels;    /*!< Number of channels. */
+    uint32_t num_channels_col;    /*!< Number of channels to be processed. */
+    uint32_t stride_d1;    /*!< Stride in the first dimension. */
+    uint32_t stride_d2;    /*!< Stride in the second dimension. */
+    uint32_t batch;    /*!< Number of batches. */
+    uint32_t n_patches_w;    /*!< Number of patches in the width. */
+    uint32_t n_patches_h;    /*!< Number of patches in the height. */
+    uint32_t left_pad;    /*!< Padding on the left. */
+    uint32_t right_pad;    /*!< Padding on the right. */
+    uint32_t top_pad;    /*!< Padding on the top. */
+    uint32_t bottom_pad;    /*!< Padding on the bottom. */
+    uint32_t adpt_pad_right;    /*!< Adaptive padding on the right. */
+    uint32_t adpt_pad_bottom;    /*!< Adaptive padding on the bottom. */
+} im2col_trans_t;
+
+/* Base address of the im2col SPC */
+#define IM2COL_SPC_BASE_ADDR EXT_PERIPHERAL_START_ADDRESS + 0x4000
+
+int run_im2col(im2col_trans_t trans);
+__attribute__((weak, optimize("00"))) void handler_irq_im2col_spc(void);
+
+#endif

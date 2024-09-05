@@ -391,31 +391,6 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         uint32_t* input_image_ptr = &input_image_nchw[0];
         uint32_t* output_data_ptr = &output_data[0];
 
-        /* Initializing PLIC */
-        if(plic_Init()) 
-        {
-            return EXIT_FAILURE;
-        };
-
-        if(plic_irq_set_priority(EXT_INTR_2, 1)) 
-        {
-            return EXIT_FAILURE;
-        };
-
-        if(plic_irq_set_enabled(EXT_INTR_2, kPlicToggleEnabled)) 
-        {
-            return EXIT_FAILURE;
-        };
-        
-        plic_assign_external_irq_handler(EXT_INTR_2, &handler_irq_im2col_spc);
-        
-        /* Enable global interrupt for machine-level interrupts */
-        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-
-        /* Set mie.MEIE bit to one to enable machine-level external interrupts */
-        const uint32_t mask = 1 << 11;
-        CSR_SET_BITS(CSR_REG_MIE, mask);
-        
         #if TIMING
         CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
         CSR_WRITE(CSR_REG_MCYCLE, 0);
@@ -424,157 +399,32 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         #if TIMING  
         CSR_READ(CSR_REG_MCYCLE, &cycles_A);
         #endif
-        
-        dma_init(NULL);
 
-        /* Write the number of DMA channels the SPC has access to */
-        write_register( SPC_CH_MASK,
-                        IM2COL_SPC_SPC_CH_MASK_REG_OFFSET,
-                        0xffffffff,
-                        0,
-                        IM2COL_SPC_BASE_ADDR );
+        static im2col_trans_t im2col_spc_trans = {
+          .ch_mask = SPC_CH_MASK,
+          .im_width = IW,
+          .im_height = IH,
+          .filter_width = FW,
+          .filter_height = FH,
+          .num_channels = CH,
+          .num_channels_col = CH_COL,
+          .stride_d1 = STRIDE_D1,
+          .stride_d2 = STRIDE_D2,
+          .batch = BATCH,
+          .n_patches_w = N_PATCHES_W,
+          .n_patches_h = N_PATCHES_H,
+          .left_pad = LEFT_PAD,
+          .right_pad = RIGHT_PAD,
+          .top_pad = TOP_PAD,
+          .bottom_pad = BOTTOM_PAD,
+          .adpt_pad_right = ADPT_PAD_RIGHT,
+          .adpt_pad_bottom = ADPT_PAD_BOTTOM
+        };
 
-        /* Write the source */
-        write_register( input_image_ptr,
-                        IM2COL_SPC_SRC_PTR_REG_OFFSET,
-                        0xffffffff,
-                        0,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        /* Write the destination */
-        write_register( output_data_ptr,
-                        IM2COL_SPC_DST_PTR_REG_OFFSET,
-                        0xffffffff,
-                        0,
-                        IM2COL_SPC_BASE_ADDR );
+        im2col_spc_trans.src = input_image_ptr;
+        im2col_spc_trans.dst = output_data_ptr;
 
-        /* Write the datatype */
-        write_register( DMA_DATA_TYPE_WORD,
-                        IM2COL_SPC_DATA_TYPE_REG_OFFSET,
-                        IM2COL_SPC_DATA_TYPE_DATA_TYPE_MASK,
-                        IM2COL_SPC_DATA_TYPE_DATA_TYPE_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        /* Write the filter dimensions */
-        write_register( FW,
-                        IM2COL_SPC_FW_REG_OFFSET,
-                        IM2COL_SPC_FW_SIZE_MASK,
-                        IM2COL_SPC_FW_SIZE_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        write_register( FH,
-                        IM2COL_SPC_FH_REG_OFFSET,
-                        IM2COL_SPC_FH_SIZE_MASK,
-                        IM2COL_SPC_FH_SIZE_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-
-        /* Write the image dimensions */
-        write_register( IW,
-                        IM2COL_SPC_IW_REG_OFFSET,
-                        0xffffffff,
-                        0,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        write_register( IH,
-                        IM2COL_SPC_IH_REG_OFFSET,
-                        0xffffffff,
-                        0,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        /* Write the CH_COL */
-        write_register( CH_COL,
-                        IM2COL_SPC_CH_COL_REG_OFFSET,
-                        IM2COL_SPC_CH_COL_NUM_MASK,
-                        IM2COL_SPC_CH_COL_NUM_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        /* Write n_patches */
-        write_register( N_PATCHES_W,
-                        IM2COL_SPC_N_PATCHES_W_REG_OFFSET,
-                        IM2COL_SPC_N_PATCHES_W_NUM_MASK,
-                        IM2COL_SPC_N_PATCHES_W_NUM_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        write_register( N_PATCHES_H,
-                        IM2COL_SPC_N_PATCHES_H_REG_OFFSET,
-                        IM2COL_SPC_N_PATCHES_H_NUM_MASK,
-                        IM2COL_SPC_N_PATCHES_H_NUM_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-
-        /* Write the padding */
-        write_register( LEFT_PAD,
-                        IM2COL_SPC_PAD_LEFT_REG_OFFSET,
-                        IM2COL_SPC_PAD_LEFT_PAD_MASK,
-                        IM2COL_SPC_PAD_LEFT_PAD_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        write_register( RIGHT_PAD,
-                        IM2COL_SPC_PAD_RIGHT_REG_OFFSET,
-                        IM2COL_SPC_PAD_RIGHT_PAD_MASK,
-                        IM2COL_SPC_PAD_RIGHT_PAD_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        write_register( TOP_PAD,
-                        IM2COL_SPC_PAD_TOP_REG_OFFSET,
-                        IM2COL_SPC_PAD_TOP_PAD_MASK,
-                        IM2COL_SPC_PAD_TOP_PAD_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-
-        write_register( BOTTOM_PAD,
-                        IM2COL_SPC_PAD_BOTTOM_REG_OFFSET,
-                        IM2COL_SPC_PAD_BOTTOM_PAD_MASK,
-                        IM2COL_SPC_PAD_BOTTOM_PAD_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        /* 
-         * Write the strides. With respect to test_2 these are the application-point-of-view
-         * strides, so they are the same as STRIDE_D1 and STRIDE_D2.
-         */
-        write_register( (int) log2(STRIDE_D1),
-                        IM2COL_SPC_LOG_STRIDES_D1_REG_OFFSET,
-                        IM2COL_SPC_LOG_STRIDES_D1_SIZE_MASK,
-                        IM2COL_SPC_LOG_STRIDES_D1_SIZE_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        write_register( (int) log2(STRIDE_D2),
-                        IM2COL_SPC_LOG_STRIDES_D2_REG_OFFSET,
-                        IM2COL_SPC_LOG_STRIDES_D2_SIZE_MASK,
-                        IM2COL_SPC_LOG_STRIDES_D2_SIZE_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-
-        /* Write the batch size */
-        write_register( BATCH,
-                        IM2COL_SPC_BATCH_REG_OFFSET,
-                        IM2COL_SPC_BATCH_SIZE_MASK,
-                        IM2COL_SPC_BATCH_SIZE_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        /* Write the adapted pad regions */
-        write_register( ADPT_PAD_RIGHT,
-                        IM2COL_SPC_ADPT_PAD_RIGHT_REG_OFFSET,
-                        0xffffffff,
-                        0,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        write_register( ADPT_PAD_BOTTOM,
-                        IM2COL_SPC_ADPT_PAD_BOTTOM_REG_OFFSET,
-                        0xffffffff,
-                        0,
-                        IM2COL_SPC_BASE_ADDR );
-
-        /* Enable the interrupt logic */
-        write_register( 0x1,
-                        IM2COL_SPC_INTERRUPT_EN_REG_OFFSET,
-                        0x1,
-                        IM2COL_SPC_INTERRUPT_EN_EN_BIT,
-                        IM2COL_SPC_BASE_ADDR );
-        
-        /* Write the number of channels to start the process */
-        write_register( CH,
-                        IM2COL_SPC_NUM_CH_REG_OFFSET,
-                        IM2COL_SPC_NUM_CH_NUM_MASK,
-                        IM2COL_SPC_NUM_CH_NUM_OFFSET,
-                        IM2COL_SPC_BASE_ADDR );
+        run_im2col(im2col_spc_trans);
 
         waiting_for_spc_irq();
 
