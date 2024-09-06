@@ -401,3 +401,10 @@ If you plan to store source files in a different location that the one proposed,
 make app PROJECT=your_app SOURCE=<path_to_your_sw_relative_to_x_heep_sw>
 ```
 Consider that inside this `sw` folder the same structure than the one proposed is required.
+
+
+## Inter-process communication using Verilator's DPI
+
+The following [repository](https://github.com/specs-feup/x-heep) uses X-HEEP and the Verilator simulator to model a CPU-CGRA hybrid system. This architecture simulates the CPU integrated into the X-HEEP system, and an external Java process simulates the accelerator. Both components require a communication channel to exchange instructions and data. Using the existing infrastructure to to interact with an external OS process is not feasible at first sight, given that the X-HEEP ecosystem's pipeline encapsulates most of the simulation build and execution, with all modules supplied directly to Verilator. 
+
+To circumvent this issue, this project uses [Direct Programming Interface (DPI)](https://verilator.org/guide/latest/connecting.html) calls (defined in `hw/ip_examples/cgraitf/cgraitfdpi.c`) to establish a connection and communicate with an external process through a Unix Domain Socket. This behavior mirrors the UART module (used as the skeleton code) that connects and outputs _printf_ information to the pseudo-terminal. These calls are embedded in a mock CGRA peripheral/interface, located in `hw/ip_examples/cgraitf/cgraitf.sv`. The module overrides reads and writes to the specified peripheral address, with the proper socket-based mechanism (_send_ or _recv_). The _simple_accelerator_ module could also be similarly customized to perform the same operations, using X-HEEP's  interfaces and memory access protocols. A given user program executed in the CPU (such as `sw/applications/cgra_itf/main.c`) must then select assignments to or from the address to trigger the appropriate action.
