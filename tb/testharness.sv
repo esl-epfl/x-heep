@@ -115,12 +115,12 @@ module testharness #(
   obi_resp_t heep_core_data_resp;
   obi_req_t heep_debug_master_req;
   obi_resp_t heep_debug_master_resp;
-  obi_req_t heep_dma_read_req[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0];
-  obi_resp_t heep_dma_read_resp[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0];
-  obi_req_t heep_dma_write_req[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0];
-  obi_resp_t heep_dma_write_resp[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0];
-  obi_req_t heep_dma_addr_req[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0];
-  obi_resp_t heep_dma_addr_resp[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0];
+  obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_req;
+  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_resp;
+  obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_req;
+  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_resp;
+  obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_req;
+  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_resp;
   obi_req_t [EXT_XBAR_NSLAVE-1:0] ext_slave_req;
   obi_resp_t [EXT_XBAR_NSLAVE-1:0] ext_slave_resp;
   reg_req_t periph_slave_req;
@@ -152,8 +152,8 @@ module testharness #(
   ) ext_if ();
 
   // External SPC interface signals
-  reg_req_t ext_ao_peripheral_req[AO_SPC_NUM-1:0];
-  reg_rsp_t ext_ao_peripheral_resp[AO_SPC_NUM-1:0];
+  reg_req_t [AO_SPC_NUM-1:0] ext_ao_peripheral_req;
+  reg_rsp_t [AO_SPC_NUM-1:0] ext_ao_peripheral_resp;
 
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_busy;
 

@@ -41,8 +41,8 @@ ${pad.core_v_mini_mcu_interface}
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
-    input reg_req_t ext_ao_peripheral_slave_req_i[AO_SPC_NUM_RND-1:0],
-    output reg_rsp_t ext_ao_peripheral_slave_resp_o[AO_SPC_NUM_RND-1:0],
+    input reg_req_t  [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_slave_req_i,
+    output reg_rsp_t [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_slave_resp_o,
 
     // External slave ports
     output obi_req_t  ext_core_instr_req_o,
@@ -51,12 +51,12 @@ ${pad.core_v_mini_mcu_interface}
     input  obi_resp_t ext_core_data_resp_i,
     output obi_req_t  ext_debug_master_req_o,
     input  obi_resp_t ext_debug_master_resp_i,
-    output obi_req_t  ext_dma_read_req_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
-    input  obi_resp_t ext_dma_read_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
-    output obi_req_t  ext_dma_write_req_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
-    input  obi_resp_t ext_dma_write_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
-    output obi_req_t  ext_dma_addr_req_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
-    input  obi_resp_t ext_dma_addr_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_req_o,
+    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_resp_i,
+    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_req_o,
+    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_resp_i,
+    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
+    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i,
 
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
 

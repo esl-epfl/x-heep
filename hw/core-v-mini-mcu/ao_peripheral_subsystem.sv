@@ -19,8 +19,8 @@ module ao_peripheral_subsystem
     input  reg_req_t slave_req_i,
     output reg_rsp_t slave_resp_o,
 
-    input  reg_req_t spc2ao_req_i [AO_SPC_NUM_RND-1:0],
-    output reg_rsp_t ao2spc_resp_o[AO_SPC_NUM_RND-1:0],
+    input  reg_req_t [AO_SPC_NUM_RND-1:0] spc2ao_req_i,
+    output reg_rsp_t [AO_SPC_NUM_RND-1:0] ao2spc_resp_o,
 
     // SOC CTRL
     input  logic        boot_select_i,
