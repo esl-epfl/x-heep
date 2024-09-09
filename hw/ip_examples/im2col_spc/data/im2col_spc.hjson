@@ -87,7 +87,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "7:0", name: "NUM", desc: "Number of patches" }
+        { bits: "15:0", name: "NUM", desc: "Number of patches" }
       ]
     },
     { name:     "N_PATCHES_H",
@@ -95,7 +95,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "7:0", name: "NUM", desc: "Number of patches" }
+        { bits: "15:0", name: "NUM", desc: "Number of patches" }
       ]
     },
     { name:     "ADPT_PAD_RIGHT",
@@ -234,12 +234,21 @@
       ]
     },
     { name:    "SPC_CH_MASK",
-      desc:    '''Mask that defines which DMA channels the SPC can access''',
+      desc:    '''Mask that defines which DMA channel the SPC can access''',
       swaccess: "rw",
       hwaccess: "hro",
       resval:        1,
       fields: [
-        { bits: "31:0", name: "NUM", desc: "Number of DMA channels" }
+        { bits: "31:0", name: "MASK", desc: "Mask of DMA channel" }
+      ]
+    },
+    { name:    "SPC_CH_OFFSET",
+      desc:    '''Offset of the DMA channel the SPC can access''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:        1,
+      fields: [
+        { bits: "31:0", name: "OFF", desc: "Offset of DMA channels" }
       ]
     }
    ]

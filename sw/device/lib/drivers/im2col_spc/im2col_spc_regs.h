@@ -167,8 +167,11 @@ extern "C" {
 #define IM2COL_SPC_SPC_IFR_REG_OFFSET 0x5c
 #define IM2COL_SPC_SPC_IFR_FLAG_BIT 0
 
-// Mask that defines which DMA channels the SPC can access
+// Mask that defines which DMA channel the SPC can access
 #define IM2COL_SPC_SPC_CH_MASK_REG_OFFSET 0x60
+
+// Offset of the DMA channel the SPC can access
+#define IM2COL_SPC_SPC_CH_OFFSET_REG_OFFSET 0x64
 
 #ifdef __cplusplus
 }  // extern "C"

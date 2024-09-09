@@ -18,6 +18,24 @@ void handler_irq_im2col_spc( void )
   return;
 }
 
+/* Simple function to extract the channel from the channel mask */
+int get_channel_number(uint32_t mask) {
+    int channel = 0;
+    
+    // Check the position of the first set bit
+    while (mask > 0) {
+        channel++;
+        if (mask & 1) {  // If the least significant bit is set
+            printf("%d\n", channel);
+            return channel;
+        }
+        mask >>= 1;  // Right shift the mask to check the next bit
+    }
+    
+    // If no bit is set, return 0 indicating no valid channel
+    return 0;
+}
+
 int run_im2col(im2col_trans_t trans){
 
   /* Initializing PLIC */
@@ -47,9 +65,16 @@ int run_im2col(im2col_trans_t trans){
 
   dma_init(NULL);
 
-  /* Write the number of DMA channels the SPC has access to */
+  /* Write the DMA channel mask that the SPC has access to */
   write_register( trans.ch_mask,
                   IM2COL_SPC_SPC_CH_MASK_REG_OFFSET,
+                  0xffffffff,
+                  0,
+                  IM2COL_SPC_BASE_ADDR );
+
+  /* Write the offset of the DMA channel the SPC has access to */
+  write_register( get_channel_number(trans.ch_mask) * DMA_CH_SIZE + DMA_START_ADDRESS,
+                  IM2COL_SPC_SPC_CH_OFFSET_REG_OFFSET,
                   0xffffffff,
                   0,
                   IM2COL_SPC_BASE_ADDR );

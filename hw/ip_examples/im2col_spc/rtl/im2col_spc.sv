@@ -72,15 +72,13 @@ module im2col_spc
 
   /* DMA interface unit signals */
   logic im2col_param_done;
-  logic [DMA_CH_NUM-1:0] dma_if_channels;
-  logic [DMA_CH_NUM-1:0] dma_ch_first_write;
-  logic [(DMA_CH_NUM == 1) ? 0 : ($clog2(DMA_CH_NUM) - 1):0] dma_free_channel;
-  logic [(DMA_CH_NUM == 1) ? 0 : ($clog2(DMA_CH_NUM) - 1):0] dma_trans_free_channel;
+  logic dma_ch_free;
+  logic dma_ch_first_write;
   logic [31:0] dma_ch_en_mask;
-  logic dma_if_loaded;
-  logic dma_channels_full;
+  logic [31:0] dma_ch_offset;
   logic [31:0] dma_addr;
   logic [31:0] dma_wdata;
+  logic dma_if_loaded;
   logic dma_regintfc_start;
   logic dma_regintfc_done;
 
@@ -205,7 +203,7 @@ module im2col_spc
 
     unique case (dma_if_cu_d)
       IDLE_IF_CU: begin
-        if (fifo_empty == 1'b0 && im2col_fsms_done == 1'b0 && dma_channels_full == 1'b0) begin
+        if (fifo_empty == 1'b0 && im2col_fsms_done == 1'b0 && dma_ch_free == 1'b1) begin
           dma_if_cu_q = GET_TRANSACTION;
         end else begin
           dma_if_cu_q = IDLE_IF_CU;
@@ -213,7 +211,7 @@ module im2col_spc
       end
 
       GET_TRANSACTION: begin
-        if (fifo_empty == 1'b0 && dma_channels_full == 1'b0) begin
+        if (fifo_empty == 1'b0 && dma_ch_free == 1'b1) begin
           dma_if_cu_q = LOAD_TRANSACTION;
         end else begin
           dma_if_cu_q = IDLE_IF_CU;
@@ -222,7 +220,7 @@ module im2col_spc
 
       LOAD_TRANSACTION: begin
         if (dma_if_loaded == 1'b1) begin
-          if (im2col_fsms_done == 1'b0 && dma_channels_full == 1'b0) begin
+          if (im2col_fsms_done == 1'b0 && dma_ch_free == 1'b1) begin
             dma_if_cu_q = GET_TRANSACTION;
           end else begin
             dma_if_cu_q = IDLE_IF_CU;
@@ -251,8 +249,8 @@ module im2col_spc
   always_comb begin : proc_comb_dma_if_trans_load_fsm
     unique case (dma_if_cu_load_d)
       IDLE_IF_LOAD: begin
-        if (dma_if_cu_d == GET_TRANSACTION && im2col_fsms_done == 1'b0 && dma_channels_full == 1'b0) begin
-          if (dma_ch_first_write[dma_trans_free_channel] == 1'b0) begin
+        if (dma_if_cu_d == GET_TRANSACTION && im2col_fsms_done == 1'b0 && dma_ch_free == 1'b1) begin
+          if (dma_ch_first_write == 1'b0) begin
             dma_if_cu_load_q = WRITE_DIMENSIONALITY;
           end else begin
             dma_if_cu_load_q = WRITE_TOP_PAD;
@@ -416,129 +414,97 @@ module im2col_spc
 
       WRITE_DIMENSIONALITY: begin
         dma_wdata = 32'h1;
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                   dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                   {25'h0, dma_reg_pkg::DMA_DIM_CONFIG_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_DIM_CONFIG_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_SLOTS: begin
         dma_wdata = {reg2hw.slot.tx_trigger_slot.q, reg2hw.slot.rx_trigger_slot.q};
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_SLOT_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_SLOT_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_SRC_DATATYPE: begin
         dma_wdata = {30'h0, reg2hw.data_type.q} & 32'h3;
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_SRC_DATA_TYPE_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_SRC_DATA_TYPE_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_DST_DATATYPE: begin
         dma_wdata = {30'h0, reg2hw.data_type.q} & 32'h3;
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_DST_DATA_TYPE_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_DST_DATA_TYPE_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_TOP_PAD: begin
         dma_wdata = {24'h0, fifo_output.n_zeros_top};
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_PAD_TOP_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_PAD_TOP_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_BOTTOM_PAD: begin
         dma_wdata = {24'h0, fifo_output.n_zeros_bottom};
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_PAD_BOTTOM_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_PAD_BOTTOM_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_LEFT_PAD: begin
         dma_wdata = {24'h0, fifo_output.n_zeros_left};
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_PAD_LEFT_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_PAD_LEFT_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_RIGHT_PAD: begin
         dma_wdata = {24'h0, fifo_output.n_zeros_right};
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_PAD_RIGHT_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_PAD_RIGHT_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_INPUT_PTR: begin
         dma_wdata = fifo_output.input_ptr;
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_SRC_PTR_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_SRC_PTR_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_OUTPUT_PTR: begin
         dma_wdata = fifo_output.output_ptr;
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_DST_PTR_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_DST_PTR_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_INC_SRC_D1: begin
         dma_wdata = (1 << {28'h0, reg2hw.log_strides_d1.q}) << (2 - reg2hw.data_type.q) & 32'h3f;
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_SRC_PTR_INC_D1_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_SRC_PTR_INC_D1_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_INC_SRC_D2: begin
         dma_wdata = {9'h0, fifo_output.in_inc_d2} << (2 - reg2hw.data_type.q) & 32'h7fffff;
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_SRC_PTR_INC_D2_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_SRC_PTR_INC_D2_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_INC_DST_D1: begin
         dma_wdata = (4 >> reg2hw.data_type.q) & 32'h3f;
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_DST_PTR_INC_D1_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_DST_PTR_INC_D1_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_INC_DST_D2: begin
         dma_wdata = (4 >> reg2hw.data_type.q) & 32'h7fffff;
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_DST_PTR_INC_D2_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_DST_PTR_INC_D2_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_SIZE_D2: begin
         dma_wdata = {16'h0, fifo_output.size_du_d2};
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_SIZE_D2_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_SIZE_D2_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
       WRITE_SIZE_D1: begin
         dma_wdata = {16'h0, fifo_output.size_du_d1};
-        dma_addr = core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
-                  dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                  {25'h0, dma_reg_pkg::DMA_SIZE_D1_OFFSET};
+        dma_addr = dma_ch_offset + {25'h0, dma_reg_pkg::DMA_SIZE_D1_OFFSET};
         dma_regintfc_start = 1'b1;
       end
 
@@ -558,51 +524,20 @@ module im2col_spc
     end
   end
 
-  /* Free channel finder */
-  always_comb begin : proc_comb_free_channel
-    dma_free_channel = 0;
-    for (int i = 0; i < DMA_CH_NUM; i = i + 1) begin
-      if (dma_if_channels[i] == 1'b0 && dma_ch_en_mask[i] == 1'b1) begin
-        dma_free_channel = i[(DMA_CH_NUM==1)?0 : ($clog2(DMA_CH_NUM)-1):0];
-        break;
-      end
-    end
-  end
-
   /* Channel tracker */
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_control_unit
     if (!rst_ni) begin
-      dma_trans_free_channel <= 0;
-      for (int i = 0; i < DMA_CH_NUM; i = i + 1) begin
-        dma_if_channels[i] <= 1'b0;
-        dma_ch_first_write[i] <= 1'b0;
-      end
+      dma_ch_free <= 1'b1;
     end else begin
-      /* Reset everything with im2col start */
-      if (im2col_start == 1'b1) begin
-        dma_trans_free_channel <= 0;
-        for (int i = 0; i < DMA_CH_NUM; i = i + 1) begin
-          dma_if_channels[i] <= 1'b0;
-          dma_ch_first_write[i] <= 1'b0;
-        end
+      /* Set the dma_ch_free when im2col starts or when a transaction is finished */
+      if ((im2col_start == 1'b1) | (|(dma_ch_en_mask[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] & dma_done_i)) == 1'b1) begin
+        dma_ch_free <= 1'b1;
       end
 
-      /* If an occupied channel asserts a done signal, free it up */
-      for (int i = 0; i < DMA_CH_NUM; i = i + 1) begin
-        if (dma_if_channels[i] == 1'b1 && dma_done_i[i] == 1'b1) begin
-          dma_if_channels[i] <= 1'b0;
-        end
-      end
-
-      /* If a transaction has to take place, occupy the free channel */
-      if (dma_if_cu_q == GET_TRANSACTION) begin
-        dma_trans_free_channel <= dma_free_channel;
-      end
-
-      /* Allocate a channel only if the next state won't be the IDLE state */
+      /* Clear the ch free flag only if the next state won't be the IDLE state */
       if (dma_if_cu_d == GET_TRANSACTION && dma_if_cu_q != IDLE_IF_CU) begin
-        dma_if_channels[dma_trans_free_channel] <= 1'b1;
-        dma_ch_first_write[dma_trans_free_channel] <= 1'b1;
+        dma_ch_first_write <= 1'b1;
+        dma_ch_free <= 1'b0;
       end
     end
   end
@@ -613,17 +548,6 @@ module im2col_spc
       fifo_flush <= 1'b1;
     end else begin
       fifo_flush <= 1'b0;
-    end
-  end
-
-  /* Channels full flag logic */
-  always_comb begin : proc_comb_channels_full
-    dma_channels_full = 1'b1;
-    for (int i = 0; i < DMA_CH_NUM; i = i + 1) begin
-      if (dma_if_channels[i] == 1'b0 && dma_ch_en_mask[i] == 1'b1) begin
-        dma_channels_full = 1'b0;
-        break;
-      end
     end
   end
 
@@ -660,7 +584,7 @@ module im2col_spc
     if (!rst_ni) begin
       im2col_done <= 1'b0;
     end else begin
-      if (im2col_fsms_done == 1'b1 && |dma_if_channels == 1'b0) begin
+      if (im2col_fsms_done == 1'b1 && dma_ch_free == 1'b1) begin
         im2col_done <= 1'b1;
       end else begin
         im2col_done <= 1'b0;
@@ -684,5 +608,8 @@ module im2col_spc
 
   /* DMA channels mask register */
   assign dma_ch_en_mask = reg2hw.spc_ch_mask.q;
+
+  /* DMA channel offset */
+  assign dma_ch_offset = reg2hw.spc_ch_offset.q;
 
 endmodule
