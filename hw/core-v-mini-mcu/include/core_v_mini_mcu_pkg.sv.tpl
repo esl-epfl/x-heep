@@ -142,9 +142,9 @@ package core_v_mini_mcu_pkg;
   localparam DMA_CH_SIZE = 32'h${dma_ch_size};
   localparam DMA_NUM_MASTER_PORTS = ${num_dma_master_ports};
 % if int(num_dma_master_ports) > 1:
-  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS-1:0] = '{${dma_xbar_masters_array[::-1]}};
+  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma_xbar_masters_array[::-1]}};
 % else:
-  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS-1:0] = '{${dma_xbar_masters_array}};
+  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma_xbar_masters_array}};
 % endif
   
 % for peripheral, addr in ao_peripherals.items():
