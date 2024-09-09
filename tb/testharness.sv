@@ -11,7 +11,6 @@ module testharness #(
     parameter FPU                         = 0,
     parameter ZFINX                       = 0,
     parameter X_EXT                       = 0,         // eXtension interface in cv32e40x
-    parameter AO_SPC_NUM                  = 1,
     parameter JTAG_DPI                    = 0,
     parameter USE_EXTERNAL_DEVICE_EXAMPLE = 1,
     parameter CLK_FREQUENCY               = 'd100_000  //KHz
@@ -51,6 +50,7 @@ module testharness #(
   import addr_map_rule_pkg::*;
   import core_v_mini_mcu_pkg::*;
 
+  localparam AO_SPC_NUM = 1;
   localparam SWITCH_ACK_LATENCY = 15;
   localparam EXT_XBAR_NMASTER_RND = USE_EXTERNAL_DEVICE_EXAMPLE ? testharness_pkg::EXT_XBAR_NMASTER : 1;
   localparam HEEP_EXT_XBAR_NMASTER = USE_EXTERNAL_DEVICE_EXAMPLE ? testharness_pkg::EXT_XBAR_NMASTER : 0;

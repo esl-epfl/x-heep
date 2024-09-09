@@ -30,7 +30,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "Image width" }
+        { bits: "15:0", name: "SIZE", desc: "Image width" }
       ]
     },
     { name:     "IH",
@@ -38,7 +38,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "Image heigth" }
+        { bits: "15:0", name: "SIZE", desc: "Image heigth" }
       ]
     },
     { name:     "FW",

@@ -514,12 +514,12 @@ module im2col_spc_param_fsm
   assign size_transfer_2d = reg2hw.n_patches_h.q - {8'h0, n_zeros_top} - {8'h0, n_zeros_bottom};
 
   assign index_comp1_n = ({24'h0, batch_counter} * {24'h0, reg2hw.num_ch.q} + {24'h0, im_c});
-  assign index_comp2_n = index_comp1 * reg2hw.ih.q;
+  assign index_comp2_n = index_comp1 * {16'h0, reg2hw.ih.q};
   assign index_comp3_n = (index_comp2 + ({{24{im_row[7]}}, im_row} + ({24'h0, n_zeros_top} << {4'h0, reg2hw.log_strides_d2.q})));
-  assign index_comp4_n = index_comp3 * reg2hw.iw.q + {{24{im_col[7]}}, im_col};
+  assign index_comp4_n = index_comp3 * {16'h0, reg2hw.iw.q} + {{24{im_col[7]}}, im_col};
   assign index = index_comp4 + ({24'h0, n_zeros_left} << {24'h0, reg2hw.log_strides_d1.q});
 
-  assign source_inc_d2 = ((reg2hw.iw.q << {24'h0, reg2hw.log_strides_d2.q}) - (({16'h0, size_transfer_1d} - 1) << {24'h0, reg2hw.log_strides_d1.q}));
+  assign source_inc_d2 = (({16'h0, reg2hw.iw.q} << {24'h0, reg2hw.log_strides_d2.q}) - (({16'h0, size_transfer_1d} - 1) << {24'h0, reg2hw.log_strides_d1.q}));
   assign input_data_ptr = reg2hw.src_ptr.q + (index << 2);
   assign out_data_ptr_inc = ({16'h0, reg2hw.n_patches_h.q} * {16'h0, reg2hw.n_patches_w.q}) << 2;
 

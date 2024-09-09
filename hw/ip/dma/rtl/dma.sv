@@ -1,12 +1,7 @@
-/* verilator lint_off WIDTH */
-
 /*
  * Copyright 2024 EPFL
  * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
  * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
- *
- * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
- *                         <tommaso.terzano@gmail.com>
  *  
  * Info: Direct Memory Access (DMA) channel module.
  */
