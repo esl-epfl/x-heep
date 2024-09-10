@@ -74,11 +74,11 @@ module im2col_spc_reg_top #(
   logic [31:0] dst_ptr_qs;
   logic [31:0] dst_ptr_wd;
   logic dst_ptr_we;
-  logic [31:0] iw_qs;
-  logic [31:0] iw_wd;
+  logic [15:0] iw_qs;
+  logic [15:0] iw_wd;
   logic iw_we;
-  logic [31:0] ih_qs;
-  logic [31:0] ih_wd;
+  logic [15:0] ih_qs;
+  logic [15:0] ih_wd;
   logic ih_we;
   logic [7:0] fw_qs;
   logic [7:0] fw_wd;
@@ -206,9 +206,9 @@ module im2col_spc_reg_top #(
   // R[iw]: V(False)
 
   prim_subreg #(
-    .DW      (32),
+    .DW      (16),
     .SWACCESS("RW"),
-    .RESVAL  (32'h0)
+    .RESVAL  (16'h0)
   ) u_iw (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -233,9 +233,9 @@ module im2col_spc_reg_top #(
   // R[ih]: V(False)
 
   prim_subreg #(
-    .DW      (32),
+    .DW      (16),
     .SWACCESS("RW"),
-    .RESVAL  (32'h0)
+    .RESVAL  (16'h0)
   ) u_ih (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -929,10 +929,10 @@ module im2col_spc_reg_top #(
   assign dst_ptr_wd = reg_wdata[31:0];
 
   assign iw_we = addr_hit[2] & reg_we & !reg_error;
-  assign iw_wd = reg_wdata[31:0];
+  assign iw_wd = reg_wdata[15:0];
 
   assign ih_we = addr_hit[3] & reg_we & !reg_error;
-  assign ih_wd = reg_wdata[31:0];
+  assign ih_wd = reg_wdata[15:0];
 
   assign fw_we = addr_hit[4] & reg_we & !reg_error;
   assign fw_wd = reg_wdata[7:0];
@@ -1014,11 +1014,11 @@ module im2col_spc_reg_top #(
       end
 
       addr_hit[2]: begin
-        reg_rdata_next[31:0] = iw_qs;
+        reg_rdata_next[15:0] = iw_qs;
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[31:0] = ih_qs;
+        reg_rdata_next[15:0] = ih_qs;
       end
 
       addr_hit[4]: begin

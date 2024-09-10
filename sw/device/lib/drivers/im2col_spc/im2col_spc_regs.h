@@ -24,9 +24,17 @@ extern "C" {
 
 // Image width
 #define IM2COL_SPC_IW_REG_OFFSET 0x8
+#define IM2COL_SPC_IW_SIZE_MASK 0xffff
+#define IM2COL_SPC_IW_SIZE_OFFSET 0
+#define IM2COL_SPC_IW_SIZE_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_IW_SIZE_MASK, .index = IM2COL_SPC_IW_SIZE_OFFSET })
 
 // Image heigth
 #define IM2COL_SPC_IH_REG_OFFSET 0xc
+#define IM2COL_SPC_IH_SIZE_MASK 0xffff
+#define IM2COL_SPC_IH_SIZE_OFFSET 0
+#define IM2COL_SPC_IH_SIZE_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_IH_SIZE_MASK, .index = IM2COL_SPC_IH_SIZE_OFFSET })
 
 // Filter width
 #define IM2COL_SPC_FW_REG_OFFSET 0x10

@@ -22,11 +22,11 @@ package im2col_spc_reg_pkg;
   } im2col_spc_reg2hw_dst_ptr_reg_t;
 
   typedef struct packed {
-    logic [31:0] q;
+    logic [15:0] q;
   } im2col_spc_reg2hw_iw_reg_t;
 
   typedef struct packed {
-    logic [31:0] q;
+    logic [15:0] q;
   } im2col_spc_reg2hw_ih_reg_t;
 
   typedef struct packed {
@@ -139,10 +139,10 @@ package im2col_spc_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    im2col_spc_reg2hw_src_ptr_reg_t src_ptr; // [363:332]
-    im2col_spc_reg2hw_dst_ptr_reg_t dst_ptr; // [331:300]
-    im2col_spc_reg2hw_iw_reg_t iw; // [299:268]
-    im2col_spc_reg2hw_ih_reg_t ih; // [267:236]
+    im2col_spc_reg2hw_src_ptr_reg_t src_ptr; // [331:300]
+    im2col_spc_reg2hw_dst_ptr_reg_t dst_ptr; // [299:268]
+    im2col_spc_reg2hw_iw_reg_t iw; // [267:252]
+    im2col_spc_reg2hw_ih_reg_t ih; // [251:236]
     im2col_spc_reg2hw_fw_reg_t fw; // [235:228]
     im2col_spc_reg2hw_fh_reg_t fh; // [227:220]
     im2col_spc_reg2hw_batch_reg_t batch; // [219:212]
@@ -241,8 +241,8 @@ package im2col_spc_reg_pkg;
   parameter logic [3:0] IM2COL_SPC_PERMIT [26] = '{
     4'b 1111, // index[ 0] IM2COL_SPC_SRC_PTR
     4'b 1111, // index[ 1] IM2COL_SPC_DST_PTR
-    4'b 1111, // index[ 2] IM2COL_SPC_IW
-    4'b 1111, // index[ 3] IM2COL_SPC_IH
+    4'b 0011, // index[ 2] IM2COL_SPC_IW
+    4'b 0011, // index[ 3] IM2COL_SPC_IH
     4'b 0001, // index[ 4] IM2COL_SPC_FW
     4'b 0001, // index[ 5] IM2COL_SPC_FH
     4'b 0001, // index[ 6] IM2COL_SPC_BATCH
