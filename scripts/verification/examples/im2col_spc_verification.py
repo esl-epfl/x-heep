@@ -37,9 +37,6 @@ num_masters = 4 # Number of DMA CH
 num_slaves = 2 # Number of BUS master ports
 max_masters_per_slave = 2 # Maximum number of DMA CH per BUS master port
 
-num_channels_dma = 5
-num_channels_dma_min = 1
-
 batch_max = 4
 batch_min = 1
 
@@ -78,8 +75,7 @@ total_iterations = ((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1
                     (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) *
                     (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) *
                     (im_w_max - im_w_min) * (im_h_max - im_h_min) *
-                    (channels_max - channels_min) * (batch_max - batch_min) *
-                    (num_channels_dma - num_channels_dma_min))
+                    (channels_max - channels_min) * (batch_max - batch_min))
 
 # Define the patterns to be used for modifying the im2col_lib.h file
 spc_mask_pattern = re.compile(r'#define SPC_CH_MASK 0b\d+')
@@ -90,39 +86,6 @@ test_en_pattern = re.compile(r'#define TEST_EN \d+')
 im2col_cpu_array = []
 im2col_dma_2d_C_array = []
 im2col_spc_array = []
-
-# Function to generate the mask for the im2col SPC. It allows the accelerator to use a subset 
-# of the available channels, useful to both verify the unit and to test the performance of the
-# accelerator with different configurations
-def generate_mask(num_masters, num_slaves, max_masters_per_slave, num_channels):
-    
-    # Initialize the mask with all zeros
-    mask = [0] * num_masters
-
-    # Calculate the number of crossbars needed
-    crossbars = []
-    master_index = 0
-    for _ in range(num_slaves):
-        if master_index >= num_masters:
-            break
-        end_index = min(master_index + max_masters_per_slave, num_masters)
-        crossbars.append(list(range(master_index, end_index)))
-        master_index = end_index
-
-    # Generate the mask for the specified number of channels
-    used_channels = set()
-
-    while len(used_channels) < num_channels:
-        for cb in crossbars:
-            if len(used_channels) >= num_channels:
-                break
-            for master in cb:
-                if master not in used_channels:
-                    used_channels.add(master)
-                    mask[master] = 1
-                    break
-
-    return ''.join(map(str, mask))
 
 # Function to generate the input dataset for the im2col test to be passed to the VerifHeep tool
 def im2col_function(input_array, parameters):
@@ -198,134 +161,130 @@ def main(stdscr):
   started = False
   counter = 100
 
+  # Set CH0 to be the SPC channel
+  mask = "0001"
+  im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", spc_mask_pattern, f'#define SPC_CH_MASK 0b{mask}')
+  
+  # Set the correct output format by setting the TEST_EN define
+  im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", test_en_pattern, f'#define TEST_EN 1')
+                                                  
   curses.curs_set(0)
-  for i in range(num_channels_dma_min, num_channels_dma):
+  for j in range(batch_min, batch_max):
       im2col_cpu = []
       im2col_dma_2d_C = []
       im2col_spc = []
-
-      for j in range(batch_min, batch_max):
+      for k in range(channels_min, channels_max):
           
-          for k in range(channels_min, channels_max):
+          for l in range(im_h_min, im_h_max):
 
-              for l in range(im_h_min, im_h_max):
+              for m in range(im_w_min, im_w_max):
 
-                  for m in range(im_w_min, im_w_max):
+                  for n in range(ker_h_min, ker_h_max):
 
-                      for n in range(ker_h_min, ker_h_max):
+                      for o in range(ker_w_min, ker_w_max):
+                          
+                          for p in range(pad_top_min, pad_top_max):
 
-                          for o in range(ker_w_min, ker_w_max):
-                              
-                              for p in range(pad_top_min, pad_top_max):
+                              for q in range(pad_bottom_min, pad_bottom_max):
 
-                                  for q in range(pad_bottom_min, pad_bottom_max):
+                                  for r in range(pad_left_min, pad_left_max):
 
-                                      for r in range(pad_left_min, pad_left_max):
+                                      for s in range(pad_right_min, pad_right_max):
 
-                                          for s in range(pad_right_min, pad_right_max):
+                                          for t in range(stride_d1_min, stride_d1_max):
 
-                                              for t in range(stride_d1_min, stride_d1_max):
+                                              for u in range(stride_d2_min, stride_d2_max):
+                                                  
+                                                  # Start the chrono
+                                                  if started and counter == 0:
+                                                    im2colVer.stopDeb()
+                                                    im2colVer.setUpDeb()
+                                                    counter = 100
+                                                  else:
+                                                    im2colVer.setUpDeb()
+                                                    started = True
+                                                    counter =- 1
+                                                  
+                                                  im2colVer.chronoStart()
 
-                                                  for u in range(stride_d2_min, stride_d2_max):
+                                                  # Generate the input dataset and the golden result
+                                                  n_patches_h = (l + p + q - n) // u + 1
+                                                  n_patches_w = (m + s + r - o) // t + 1
+                                                  OH = o * n * k * j # Number of rows in a column -> size of a column
+                                                  OW = n_patches_h * n_patches_w # Numver of columns in a row -> size of a row
+                                                  input_size = k * l * m * j
+                                                  golden_size = OH * OW
+
+                                                  parameters = {
+                                                      'IH': l,
+                                                      'IW': m,
+                                                      'CH': k,
+                                                      'BATCH': j,
+                                                      'FH': n,
+                                                      'FW': o,
+                                                      'TOP_PAD': p,
+                                                      'BOTTOM_PAD': q,
+                                                      'LEFT_PAD': r,
+                                                      'RIGHT_PAD': s,
+                                                      'STRIDE_D1': t,
+                                                      'STRIDE_D2': u
+                                                  }
+                                                  
+                                                  im2colVer.genInputDataset(input_size, row_size=m, range_max=65500, dataset_dir_c="../../../sw/applications/example_im2col/im2col_input.c", 
+                                                                            dataset_dir="../../../sw/applications/example_im2col/im2col_input.h", parameters=parameters, dataset_name="input_image_nchw")
+                                                  
+                                                  im2colVer.genGoldenResult(im2col_function, golden_size, parameters, row_size=OW, golden_dir="../../../sw/applications/example_im2col/im2col_golden.h", 
+                                                                            golden_dir_c="../../../sw/applications/example_im2col/im2col_golden.c", input_dataset_dir="../../../sw/applications/example_im2col/im2col_input.c",
+                                                                            golden_name="golden_im2col_nchw")
+                                                  
+                                                  # Optimize the test: since the CPU and DMA 2D C tests are the same for different SPC channels configurations,
+                                                  # we can run them only once and then skip them for the rest of the tests
+                                                  if cpu_done == 1:
+                                                      im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", start_id_pattern, f'#define START_ID 2')
+                                                  else:
+                                                      im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", start_id_pattern, f'#define START_ID 0')
+                                                  
+                                                  # Launch the test
+                                                  im2colVer.launchTest("example_im2col", input_size=j*k*l*m)
+
+                                                  # Format the parameters of the current run and store them for plots
+                                                  for test in im2colVer.results:
+                                                      string = f'CH_SPC: 1, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {test["Cycles"]}'
                                                       
-                                                      # Start the chrono
-                                                      if started and counter == 0:
-                                                        im2colVer.stopDeb()
-                                                        im2colVer.setUpDeb()
-                                                        counter = 100
-                                                      else:
-                                                        im2colVer.setUpDeb()
-                                                        started = True
-                                                        counter =- 1
-                                                      
-                                                      im2colVer.chronoStart()
+                                                      if int(test["ID"]) == 0:
+                                                          im2col_cpu.append(string)
+                                                      elif int(test["ID"]) == 1:
+                                                          im2col_dma_2d_C.append(string)
+                                                      elif int(test["ID"]) == 2:
+                                                          im2col_spc.append(string)
+                                                  
+                                                  # Stop the chrono and calculate the remaining time of the verification
+                                                  im2colVer.clearResults()
+                                                  im2colVer.chronoStop()
+                                                  time_rem = im2colVer.chronoExecutionEst(((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min)))
+                                                  
+                                                  # Update the progress bar
+                                                  message = (
+                                                      f"Batch size:    {j:>5}\n"
+                                                      f"Input channels:{k:>5}\n"
+                                                      f"Image height:  {l:>5}\n"
+                                                      f"Image width:   {m:>5}\n"
+                                                      f"Kernel height: {n:>5}\n"
+                                                      f"Kernel width:  {o:>5}\n"
+                                                      f"Pad top:       {p:>5}\n"
+                                                      f"Pad bottom:    {q:>5}\n"
+                                                      f"Pad left:      {r:>5}\n"
+                                                      f"Pad right:     {s:>5}\n"
+                                                      f"Stride d1:     {t:>5}\n"
+                                                      f"Stride d2:     {u:>5}\n"
+                                                      f"Remaining time:{time_rem['hours']:>2}h:{time_rem['minutes']:>2}m:{time_rem['seconds']:.2f}s\n"
+                                                  )
 
-                                                      # Generate the input dataset and the golden result
-                                                      n_patches_h = (l + p + q - n) // u + 1
-                                                      n_patches_w = (m + s + r - o) // t + 1
-                                                      OH = o * n * k * j # Number of rows in a column -> size of a column
-                                                      OW = n_patches_h * n_patches_w # Numver of columns in a row -> size of a row
-                                                      input_size = k * l * m * j
-                                                      golden_size = OH * OW
-
-                                                      parameters = {
-                                                          'IH': l,
-                                                          'IW': m,
-                                                          'CH': k,
-                                                          'BATCH': j,
-                                                          'FH': n,
-                                                          'FW': o,
-                                                          'TOP_PAD': p,
-                                                          'BOTTOM_PAD': q,
-                                                          'LEFT_PAD': r,
-                                                          'RIGHT_PAD': s,
-                                                          'STRIDE_D1': t,
-                                                          'STRIDE_D2': u
-                                                      }
-                                                      
-                                                      im2colVer.genInputDataset(input_size, row_size=m, range_max=65500, dataset_dir_c="../../../sw/applications/example_im2col/im2col_input.c", 
-                                                                                dataset_dir="../../../sw/applications/example_im2col/im2col_input.h", parameters=parameters, dataset_name="input_image_nchw")
-                                                      
-                                                      im2colVer.genGoldenResult(im2col_function, golden_size, parameters, row_size=OW, golden_dir="../../../sw/applications/example_im2col/im2col_golden.h", 
-                                                                                golden_dir_c="../../../sw/applications/example_im2col/im2col_golden.c", input_dataset_dir="../../../sw/applications/example_im2col/im2col_input.c",
-                                                                                golden_name="golden_im2col_nchw")
-                                                      
-                                                      # Generate the mask for the SPC channels and modify the im2col_lib.h file accordingly
-                                                      mask = generate_mask(num_masters, num_slaves, max_masters_per_slave, i)
-                                                      im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", spc_mask_pattern, f'#define SPC_CH_MASK 0b{mask}')
-                                                      
-                                                      # Set the correct output format by setting the TEST_EN define
-                                                      im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", test_en_pattern, f'#define TEST_EN 1')
-                                                      
-                                                      # Optimize the test: since the CPU and DMA 2D C tests are the same for different SPC channels configurations,
-                                                      # we can run them only once and then skip them for the rest of the tests
-                                                      if cpu_done == 1:
-                                                          im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", start_id_pattern, f'#define START_ID 2')
-                                                      else:
-                                                          im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", start_id_pattern, f'#define START_ID 0')
-                                                      
-                                                      # Launch the test
-                                                      im2colVer.launchTest("example_im2col", input_size=j*k*l*m)
-
-                                                      # Format the parameters of the current run and store them for plots
-                                                      for test in im2colVer.results:
-                                                          string = f'CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {test["Cycles"]}'
-                                                          
-                                                          if int(test["ID"]) == 0:
-                                                              im2col_cpu.append(string)
-                                                          elif int(test["ID"]) == 1:
-                                                              im2col_dma_2d_C.append(string)
-                                                          elif int(test["ID"]) == 2:
-                                                              im2col_spc.append(string)
-                                                      
-                                                      # Stop the chrono and calculate the remaining time of the verification
-                                                      im2colVer.clearResults()
-                                                      im2colVer.chronoStop()
-                                                      time_rem = im2colVer.chronoExecutionEst(((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)))
-                                                      
-                                                      # Update the progress bar
-                                                      message = (
-                                                          f"SPC channels:  {i:>5}\n"
-                                                          f"Batch size:    {j:>5}\n"
-                                                          f"Input channels:{k:>5}\n"
-                                                          f"Image height:  {l:>5}\n"
-                                                          f"Image width:   {m:>5}\n"
-                                                          f"Kernel height: {n:>5}\n"
-                                                          f"Kernel width:  {o:>5}\n"
-                                                          f"Pad top:       {p:>5}\n"
-                                                          f"Pad bottom:    {q:>5}\n"
-                                                          f"Pad left:      {r:>5}\n"
-                                                          f"Pad right:     {s:>5}\n"
-                                                          f"Stride d1:     {t:>5}\n"
-                                                          f"Stride d2:     {u:>5}\n"
-                                                          f"Remaining time:{time_rem['hours']:>2}h:{time_rem['minutes']:>2}m:{time_rem['seconds']:.2f}s\n"
-                                                      )
-
-                                                      iteration += 1
-                                                      progress_bar.update(1)
-                                                      
-                                                      stdscr.addstr(1, 0, message)
-                                                      stdscr.refresh()
+                                                  iteration += 1
+                                                  progress_bar.update(1)
+                                                  
+                                                  stdscr.addstr(1, 0, message)
+                                                  stdscr.refresh()
 
       if (not cpu_done):
           im2col_cpu_array.append(im2col_cpu)
