@@ -65,7 +65,6 @@ module dma #(
   logic dma_padding_fsm_on;
   logic padding_fsm_done;
 
-  logic [31:0] read_ptr_valid_reg;
   logic dma_start;
   logic dma_done;
   logic dma_window_event;
@@ -279,8 +278,7 @@ module dma #(
       .data_in_we_o(data_in_we),
       .data_in_be_o(data_in_be),
       .data_in_addr_o(data_in_addr),
-      .read_fifo_flush_o(fifo_flush),
-      .read_ptr_valid_reg_o(read_ptr_valid_reg)
+      .read_fifo_flush_o(fifo_flush)
   );
 
   /* Read address FSM */
@@ -311,7 +309,6 @@ module dma #(
       .write_fifo_full_i(write_fifo_full),
       .write_fifo_alm_full_i(write_fifo_alm_full),
       .data_read_i(read_fifo_output),
-      .read_ptr_valid_reg_i(read_ptr_valid_reg),
       .padding_fsm_done_o(padding_fsm_done),
       .write_fifo_push_o(write_fifo_push),
       .read_fifo_pop_o(read_fifo_pop),

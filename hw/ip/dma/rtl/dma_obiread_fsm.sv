@@ -31,8 +31,7 @@ module dma_obiread_fsm
     output logic data_in_we_o,
     output logic [3:0] data_in_be_o,
     output logic [31:0] data_in_addr_o,
-    output logic read_fifo_flush_o,
-    output logic [31:0] read_ptr_valid_reg_o
+    output logic read_fifo_flush_o
 );
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -301,7 +300,6 @@ module dma_obiread_fsm
   assign data_in_addr_o = data_in_addr;
   assign data_in_req_o = data_in_req;
   assign data_in_we_o = data_in_we;
-  assign read_ptr_valid_reg_o = read_ptr_valid_reg;
   assign read_fifo_flush_o = fifo_flush;
   assign wait_for_rx = wait_for_rx_i;
   assign data_in_rvalid = data_in_rvalid_i;

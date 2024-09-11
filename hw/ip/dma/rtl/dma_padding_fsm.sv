@@ -22,7 +22,6 @@ module dma_padding_fsm
     input logic write_fifo_full_i,
     input logic write_fifo_alm_full_i,
     input logic [31:0] data_read_i,
-    input logic [31:0] read_ptr_valid_reg_i,
 
     output logic padding_fsm_done_o,
     output logic write_fifo_push_o,
@@ -51,10 +50,8 @@ module dma_padding_fsm
   logic write_fifo_full;
   logic write_fifo_alm_full;
   logic dma_start;
-  logic [31:0] read_ptr_valid_reg;
   logic [16:0] dma_cnt_d1;
   logic [16:0] dma_cnt_d2;
-  logic [31:0] data_read_processed;
   logic dma_conf_1d;
   logic dma_conf_2d;
 
@@ -195,26 +192,6 @@ module dma_padding_fsm
     endcase
   end
 
-  /* Input data shift: shift the input data to be on the LSB of the fifo */
-  always_comb begin : proc_input_data
-    data_read_processed[7:0]   = data_read_i[7:0];
-    data_read_processed[15:8]  = data_read_i[15:8];
-    data_read_processed[23:16] = data_read_i[23:16];
-    data_read_processed[31:24] = data_read_i[31:24];
-
-    case (read_ptr_valid_reg[1:0])
-      2'b00: ;
-      2'b01: data_read_processed[7:0] = data_read_i[15:8];
-
-      2'b10: begin
-        data_read_processed[7:0]  = data_read_i[23:16];
-        data_read_processed[15:8] = data_read_i[31:24];
-      end
-
-      2'b11: data_read_processed[7:0] = data_read_i[31:24];
-    endcase
-  end
-
   /* Data transfer */
   always_comb begin : proc_data_transfer
     data_write_o = '0;
@@ -230,7 +207,7 @@ module dma_padding_fsm
       if (pad_on == 1'b1 & write_fifo_en == 1'b1) begin
         write_fifo_push_o = 1'b1;
       end else if (read_fifo_en == 1'b1 & write_fifo_en == 1'b1) begin
-        data_write_o = data_read_processed;
+        data_write_o = data_read_i;
         write_fifo_push_o = 1'b1;
         read_fifo_pop_o = 1'b1;
       end
@@ -280,7 +257,6 @@ module dma_padding_fsm
   assign write_fifo_alm_full = write_fifo_alm_full_i;
   assign dma_start = dma_start_i;
   assign reg2hw = reg2hw_i;
-  assign read_ptr_valid_reg = read_ptr_valid_reg_i;
   assign dma_conf_1d = reg2hw.dim_config.q == 0;
   assign dma_conf_2d = reg2hw.dim_config.q == 1;
 
