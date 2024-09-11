@@ -420,10 +420,8 @@ class VerifHeep:
             # Write the golden result to a file
             license = "/*\n\tCopyright EPFL contributors.\n\tLicensed under the Apache License, Version 2.0, see LICENSE for details.\n\tSPDX-License-Identifier: Apache-2.0\n*/\n\n"
             f.write(license)
-            f.write(f'#include "{os.path.basename(golden_dir)}"\n')
+            f.write(f'#include "{os.path.basename(golden_dir)}"\n\n')
             
-            f.write("\n")
-
             # Vector declaration
             f.write(f"const {output_datatype} {golden_name}[{golden_size}] = " + "{\n")
 
@@ -451,8 +449,6 @@ class VerifHeep:
             if output_parameters:
               for key, value in output_parameters.items():
                   f.write(f"#define {key} {value}\n")
-            
-            f.write("\n")
 
             # Vector declaration
             f.write(f"extern const {output_datatype} {golden_name}[{golden_size}];\n\n")
