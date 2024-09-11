@@ -53,7 +53,7 @@ int main()
     }
     
     /* Print the end word for verification */
-    printf("&\n\r");
+    PRINTF("&\n\r");
 
     return EXIT_SUCCESS;
 }

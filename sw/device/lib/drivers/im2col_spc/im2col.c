@@ -26,14 +26,13 @@ int get_channel_number(uint32_t mask) {
     while (mask > 0) {
         channel++;
         if (mask & 1) {  // If the least significant bit is set
-            printf("%d\n", channel);
-            return channel;
+            return channel - 1;
         }
         mask >>= 1;  // Right shift the mask to check the next bit
     }
     
-    // If no bit is set, return 0 indicating no valid channel
-    return 0;
+    // If no bit is set, return -1 indicating no valid channel
+    return -1;
 }
 
 int run_im2col(im2col_trans_t trans){

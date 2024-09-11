@@ -44,7 +44,6 @@
 #define HW_CONFIG_SPC
 
 /* Defines which DMA channels are available to the SPC, depending on HW specifications */
-//@ToDo: see what include in the open source version
 #define SPC_CH_MASK 0b0001 
 
 /* Base address of the im2col SPC */
@@ -105,7 +104,7 @@
 #define OW_NHWC (FW * FH * CH * BATCH)
 #define OH_NHWC (N_PATCHES_W) * (N_PATCHES_H)
 
-#define START_ID 2
+#define START_ID 0
 
 #define TEST_EN 1
 
