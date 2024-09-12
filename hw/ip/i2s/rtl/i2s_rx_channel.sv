@@ -153,7 +153,7 @@ module i2s_rx_channel #(
   // worst case drop even number of samples
   always_ff @(posedge sck_i, negedge rst_ni) begin
     if (~rst_ni) begin
-      last_data_ws <= ~start_channel_i;
+      last_data_ws <= 1'b0;
     end else begin
       if (~en) begin
         last_data_ws <= ~start_channel_i;

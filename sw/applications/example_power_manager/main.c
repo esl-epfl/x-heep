@@ -41,7 +41,7 @@ static rv_timer_t timer_2_3;
 static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
 static power_manager_t power_manager;
 
-#ifndef TARGET_PYNQ_Z2
+#ifndef TARGET_IS_FPGA
     #define GPIO_TB_OUT 30
     #define GPIO_TB_IN  31
     #define GPIO_INTR  GPIO_INTR_31
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
     uint32_t reset_off, reset_on, switch_off, switch_on, iso_off, iso_on;
 
     // Setup pads
-#ifndef TARGET_PYNQ_Z2
+#ifndef TARGET_IS_FPGA
     pad_control_t pad_control;
     pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SCL_REG_OFFSET), 1);
@@ -196,12 +196,16 @@ int main(int argc, char *argv[])
     tgt_src.size_du = TEST_DATA_SIZE;
     tgt_src.trig = DMA_TRIG_MEMORY;
     tgt_src.type = DMA_DATA_TYPE_WORD;
+    tgt_src.env = NULL;
+    tgt_src.inc_d2_du = 0;
 
     tgt_dst.ptr = (uint8_t *)copied_data_4B;
     tgt_dst.inc_du = 1;
     tgt_dst.size_du = TEST_DATA_SIZE;
     tgt_dst.trig = DMA_TRIG_MEMORY;
     tgt_dst.type = DMA_DATA_TYPE_WORD;
+    tgt_dst.env = NULL;
+    tgt_dst.inc_d2_du = 0;
 
     trans.src = &tgt_src;
     trans.dst = &tgt_dst;
@@ -212,17 +216,25 @@ int main(int argc, char *argv[])
     trans.win_du = 0;
     trans.sign_ext = 0;
     trans.end = DMA_TRANS_END_INTR;
+    trans.dim = DMA_DIM_CONF_1D;
+    trans.dim_inv = 0;
+    trans.channel = 0;
 
-    trans.flags = 0x0;                                                                        
+    trans.pad_top_du = 0;
+    trans.pad_bottom_du = 0;
+    trans.pad_left_du = 0;
+    trans.pad_right_du = 0;
+
+    trans.flags = 0x0;
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
     res = dma_load_transaction(&trans);
     res = dma_launch(&trans);
 
-    while (!dma_is_ready())                   
-    {                                         
+    while (!dma_is_ready(0))
+    {
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if (dma_is_ready() == 0)
-        {             
+        if (dma_is_ready(0) == 0)
+        {
                 if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
                 {
                     PRINTF("Error: power manager fail.\n\r");
@@ -239,11 +251,11 @@ int main(int argc, char *argv[])
         }
     }
 
-#ifndef TARGET_PYNQ_Z2
+#ifndef TARGET_IS_FPGA
     // Power-gate and wake-up due to plic GPIO
 
     gpio_assign_irq_handler( GPIO_INTR_31, &gpio_handler_in );
-	
+
     bool state = false;
     plic_irq_set_priority(GPIO_INTR_31, 1);
     plic_irq_set_enabled(GPIO_INTR_31, kPlicToggleEnabled);

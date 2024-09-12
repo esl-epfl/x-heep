@@ -10,10 +10,14 @@ remove_design -all
 
 source ${SET_LIBS}
 
+define_design_lib WORK -path ./work
+
 source ${READ_SOURCES}.tcl
 
 elaborate ${TOP_MODULE}
 link
+
+load_upf ../../../core-v-mini-mcu.dc.upf
 
 write -f ddc -hierarchy -output ${REPORT_DIR}/precompiled.ddc
 

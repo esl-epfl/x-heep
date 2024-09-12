@@ -299,6 +299,8 @@ module core_v_mini_mcu
     output obi_req_t  ext_dma_addr_ch0_req_o,
     input  obi_resp_t ext_dma_addr_ch0_resp_i,
 
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
+
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
@@ -313,8 +315,6 @@ module core_v_mini_mcu
     input logic cpu_subsystem_powergate_switch_ack_ni,
     output logic peripheral_subsystem_powergate_switch_no,
     input logic peripheral_subsystem_powergate_switch_ack_ni,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_no,
-    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_ni,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_no,
     input logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_ni,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_no,
@@ -325,8 +325,8 @@ module core_v_mini_mcu
 
     output logic [31:0] exit_value_o,
 
-    input logic ext_dma_slot_tx_i,
-    input logic ext_dma_slot_rx_i
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -419,6 +419,8 @@ module core_v_mini_mcu
   logic peripheral_subsystem_powergate_iso_n;
   logic peripheral_subsystem_clkgate_en_n;
 
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_clkgate_en_n;
@@ -438,16 +440,14 @@ module core_v_mini_mcu
   assign peripheral_subsystem_rst_n = peripheral_subsystem_pwr_ctrl_out.rst_n;
   assign peripheral_subsystem_clkgate_en_n = peripheral_subsystem_pwr_ctrl_out.clkgate_en_n;
 
-  //pwrgate exposed both outside and inside to deal with memories with embedded SLEEP mode or external PWR cells
-  assign memory_subsystem_banks_powergate_switch_no[0] = memory_subsystem_pwr_ctrl_out[0].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[0].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_ni[0];
+  assign memory_subsystem_banks_powergate_switch_n[0] = memory_subsystem_pwr_ctrl_out[0].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[0].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[0];
   //isogate exposed outside for UPF sim flow and switch cells
   assign memory_subsystem_banks_powergate_iso_n[0] = memory_subsystem_pwr_ctrl_out[0].isogate_en_n;
   assign memory_subsystem_banks_set_retentive_n[0] = memory_subsystem_pwr_ctrl_out[0].retentive_en_n;
   assign memory_subsystem_clkgate_en_n[0] = memory_subsystem_pwr_ctrl_out[0].clkgate_en_n;
-  //pwrgate exposed both outside and inside to deal with memories with embedded SLEEP mode or external PWR cells
-  assign memory_subsystem_banks_powergate_switch_no[1] = memory_subsystem_pwr_ctrl_out[1].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[1].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_ni[1];
+  assign memory_subsystem_banks_powergate_switch_n[1] = memory_subsystem_pwr_ctrl_out[1].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[1].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[1];
   //isogate exposed outside for UPF sim flow and switch cells
   assign memory_subsystem_banks_powergate_iso_n[1] = memory_subsystem_pwr_ctrl_out[1].isogate_en_n;
   assign memory_subsystem_banks_set_retentive_n[1] = memory_subsystem_pwr_ctrl_out[1].retentive_en_n;
@@ -608,11 +608,8 @@ module core_v_mini_mcu
       .clk_gate_en_ni(memory_subsystem_clkgate_en_n),
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp),
-      /*
-        the memory_subsystem_banks_powergate_switch_no gets wired both internally
-        and externally to support both macros that have and do not have SLEEP capabilities integrated in the macros
-      */
-      .pwrgate_ni(memory_subsystem_banks_powergate_switch_no),
+      .pwrgate_ni(memory_subsystem_banks_powergate_switch_n),
+      .pwrgate_ack_no(memory_subsystem_banks_powergate_switch_ack_n),
       .set_retentive_ni(memory_subsystem_banks_set_retentive_n)
   );
 
@@ -682,7 +679,8 @@ module core_v_mini_mcu
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i,
       .ext_dma_slot_tx_i,
-      .ext_dma_slot_rx_i
+      .ext_dma_slot_rx_i,
+      .ext_dma_stop_i
   );
 
   peripheral_subsystem peripheral_subsystem_i (
