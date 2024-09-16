@@ -198,7 +198,6 @@ module dma_obiread_fsm
         // Wait for start signal
         if (dma_start == 1'b1) begin
           dma_read_fsm_n_state = DMA_READ_FSM_ON;
-          fifo_flush = 1'b1;
         end else begin
           dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
         end

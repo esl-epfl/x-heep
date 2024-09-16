@@ -407,6 +407,8 @@ module im2col_spc
     dma_if_loaded = 1'b0;
     dma_regintfc_start = 1'b0;
     fifo_pop = 1'b0;
+    dma_wdata = '0;
+    dma_addr = '0;
 
     unique case (dma_if_cu_load_d)
       IDLE_IF_LOAD: begin
@@ -528,9 +530,15 @@ module im2col_spc
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_control_unit
     if (!rst_ni) begin
       dma_ch_free <= 1'b1;
+      dma_ch_first_write <= 1'b0;
     end else begin
       /* Set the dma_ch_free when im2col starts or when a transaction is finished */
-      if ((im2col_start == 1'b1) | (|(dma_ch_en_mask[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] & dma_done_i)) == 1'b1) begin
+      if (im2col_start == 1'b1) begin
+        dma_ch_first_write <= 1'b0;
+        dma_ch_free <= 1'b1;
+      end
+
+      if (|(dma_ch_en_mask[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] & dma_done_i) == 1'b1) begin
         dma_ch_free <= 1'b1;
       end
 

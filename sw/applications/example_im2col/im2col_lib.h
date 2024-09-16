@@ -104,9 +104,9 @@
 #define OW_NHWC (FW * FH * CH * BATCH)
 #define OH_NHWC (N_PATCHES_W) * (N_PATCHES_H)
 
-#define START_ID 0
+#define START_ID 1
 
-#define TEST_EN 1
+#define TEST_EN 0
 
 // Computations for 2D DMA
 #define SRC_INC_D2 (STRIDE_D2 * IW - (FW - 1 + (STRIDE_D1 - 1) * (FW - 1)))

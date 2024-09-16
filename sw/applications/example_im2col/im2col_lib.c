@@ -160,18 +160,18 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
         dma_config_flags_t res;
 
-        dma_target_t tgt_src = {
+        static dma_target_t tgt_src = {
                                     .ptr        = input_image_nchw,
                                     .inc_d1_du     = STRIDE_D1,
                                     .type       = DMA_DATA_TYPE_WORD
                             };
-        dma_target_t tgt_dst = {
-                                    .ptr        = output_data_ptr,
+
+        static dma_target_t tgt_dst = {
                                     .inc_d1_du     = 1,
                                     .inc_d2_du  = 1
                                     };
 
-        dma_trans_t trans = {
+        static dma_trans_t trans = {
                                     .src        = &tgt_src,
                                     .dst        = &tgt_dst,
                                     .mode       = DMA_TRANS_MODE_SINGLE,
@@ -390,6 +390,8 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     {
         uint32_t* input_image_ptr = &input_image_nchw[0];
         uint32_t* output_data_ptr = &output_data[0];
+
+        dma_init(0);
 
         #if TIMING
         CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);

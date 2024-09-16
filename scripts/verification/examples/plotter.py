@@ -75,23 +75,14 @@ im2col_cpu_array, im2col_dma_2d_C_array, im2col_spc_array = read_data(file_path)
 parsed_1ch_CPU = parse_data(ast.literal_eval("'"+im2col_cpu_array[0]+"'"))
 parsed_1ch_DMA = parse_data(ast.literal_eval("'"+im2col_dma_2d_C_array[0]+"'"))
 parsed_1ch_spc = parse_data(ast.literal_eval("'"+im2col_spc_array[0]+"'"))
-parsed_2ch_spc = parse_data(ast.literal_eval("'"+im2col_spc_array[1]+"'"))
-parsed_3ch_spc = parse_data(ast.literal_eval("'"+im2col_spc_array[2]+"'"))
-parsed_4ch_spc = parse_data(ast.literal_eval("'"+im2col_spc_array[3]+"'"))
 
 add_loop_size(parsed_1ch_CPU)
 add_loop_size(parsed_1ch_DMA)
 add_loop_size(parsed_1ch_spc)
-add_loop_size(parsed_2ch_spc)
-add_loop_size(parsed_3ch_spc)
-add_loop_size(parsed_4ch_spc)
 
 df_1ch_CPU = pd.DataFrame(parsed_1ch_CPU)
 df_1ch_DMA = pd.DataFrame(parsed_1ch_DMA)
 df_1ch_spc = pd.DataFrame(parsed_1ch_spc)
-df_2ch_spc = pd.DataFrame(parsed_2ch_spc)
-df_3ch_spc = pd.DataFrame(parsed_3ch_spc)
-df_4ch_spc = pd.DataFrame(parsed_4ch_spc)
 
 # Plot the data
 plt.figure(0, figsize=(12, 8))
@@ -100,9 +91,6 @@ plt.figure(0, figsize=(12, 8))
 plt.scatter(df_1ch_CPU['loop_size'], df_1ch_CPU['cycles'], color='blue', label='1ch CPU', alpha=1)
 plt.scatter(df_1ch_DMA['loop_size'], df_1ch_DMA['cycles'], color='red', label='1ch DMA', alpha=1)
 plt.scatter(df_1ch_spc['loop_size'], df_1ch_spc['cycles'], color='green', label='1ch SPC', alpha=1)
-plt.scatter(df_2ch_spc['loop_size'], df_2ch_spc['cycles'], color='orange', label='2ch SPC', alpha=1)
-plt.scatter(df_3ch_spc['loop_size'], df_3ch_spc['cycles'], color='purple', label='3ch SPC', alpha=1)
-plt.scatter(df_4ch_spc['loop_size'], df_4ch_spc['cycles'], color='cyan', label='4ch SPC', alpha=1)
 
 # Trendline plots
 p_cpu = np.polyfit(df_1ch_CPU['loop_size'],df_1ch_CPU['cycles'],  1)
@@ -114,21 +102,9 @@ trendline_dma = np.polyval(p_dma, df_1ch_DMA['loop_size'])
 p_spc = np.polyfit(df_1ch_spc['loop_size'], df_1ch_spc['cycles'], 1)
 trendline_spc = np.polyval(p_spc, df_1ch_spc['loop_size'])
 
-p_2ch_spc = np.polyfit(df_2ch_spc['loop_size'], df_2ch_spc['cycles'], 1)
-trendline_spc_2ch = np.polyval(p_2ch_spc, df_2ch_spc['loop_size'])
-
-p_3ch_spc = np.polyfit(df_3ch_spc['loop_size'], df_3ch_spc['cycles'], 1)
-trendline_spc_3ch = np.polyval(p_3ch_spc, df_3ch_spc['loop_size'])
-
-p_4ch_spc = np.polyfit(df_4ch_spc['loop_size'], df_4ch_spc['cycles'], 1)
-trendline_spc_4ch = np.polyval(p_4ch_spc, df_4ch_spc['loop_size'])
-
 plt.plot(df_1ch_CPU['loop_size'], trendline_cpu, color='blue', linestyle='-', alpha=0.6)
 plt.plot(df_1ch_DMA['loop_size'], trendline_dma, color='red', linestyle='-', alpha=0.6)
 plt.plot(df_1ch_spc['loop_size'], trendline_spc, color='green', linestyle='-', alpha=0.6)
-plt.plot(df_2ch_spc['loop_size'], trendline_spc_2ch, color='orange', linestyle='-', alpha=0.6)
-plt.plot(df_3ch_spc['loop_size'], trendline_spc_3ch, color='purple', linestyle='-', alpha=0.6)
-plt.plot(df_4ch_spc['loop_size'], trendline_spc_4ch, color='cyan', linestyle='-', alpha=0.6)
 
 
 # Title and labels

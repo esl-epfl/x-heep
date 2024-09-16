@@ -81,7 +81,7 @@ module im2col_spc_regintfc_controller
         aopb_req_o.wstrb <= 4'b1111;
         aopb_req_o.addr  <= addr_i;
         aopb_req_o.wdata <= wdata_i;
-      end else begin
+      end else if (im2col_status_q == DONE) begin
         aopb_req_o.valid <= 1'b0;
       end
     end
