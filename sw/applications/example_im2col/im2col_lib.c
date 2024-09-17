@@ -16,19 +16,17 @@
 
 #include "im2col_lib.h"
 
-#if INPUT_DATATYPE == DMA_DATA_TYPE_BYTE
-    uint8_t output_data[OH_NCHW*OW_NCHW];
-    uint8_t* input_image_ptr = &input_image_nchw[0];
-    uint8_t* output_data_ptr = &output_data[0];
-#elif INPUT_DATATYPE == DMA_DATA_TYPE_HALF_WORD
-    uint16_t output_data[OH_NCHW*OW_NCHW];
-    uint16_t* input_image_ptr = &input_image_nchw[0];
-    uint16_t* output_data_ptr = &output_data[0];
-#elif INPUT_DATATYPE == DMA_DATA_TYPE_WORD
-    uint32_t output_data[OH_NCHW*OW_NCHW];
-    uint32_t* input_image_ptr = &input_image_nchw[0];
-    uint32_t* output_data_ptr = &output_data[0];
+#if INPUT_DATATYPE == 2
+    typedef uint8_t data_t;
+#elif INPUT_DATATYPE == 1
+    typedef uint16_t data_t;
+#elif INPUT_DATATYPE == 0
+    typedef uint32_t data_t;
 #endif
+
+data_t output_data[OH_NCHW*OW_NCHW];
+data_t* input_image_ptr = &input_image_nchw[0];
+data_t* output_data_ptr = &output_data[0];
 
 char im2col_done = 0;
 int ifr_status;

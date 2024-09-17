@@ -520,8 +520,8 @@ module im2col_spc_param_fsm
   assign index = index_comp4 + ({24'h0, n_zeros_left} << {24'h0, reg2hw.log_strides_d1.q});
 
   assign source_inc_d2 = (({16'h0, reg2hw.iw.q} << {24'h0, reg2hw.log_strides_d2.q}) - (({16'h0, size_transfer_1d} - 1) << {24'h0, reg2hw.log_strides_d1.q}));
-  assign input_data_ptr = reg2hw.src_ptr.q + (index << 2);
-  assign out_data_ptr_inc = ({16'h0, reg2hw.n_patches_h.q} * {16'h0, reg2hw.n_patches_w.q}) << 2;
+  assign input_data_ptr = reg2hw.src_ptr.q + (index << (2 - reg2hw.data_type.q));
+  assign out_data_ptr_inc = ({16'h0, reg2hw.n_patches_h.q} * {16'h0, reg2hw.n_patches_w.q}) << (2 - reg2hw.data_type.q);
 
   assign left_zero_cond = |((n_zeros_left_comp1) & ((1 << {reg2hw.log_strides_d1.q}) - 1));
   assign top_zero_cond = |((n_zeros_top_comp1) & ((1 << {reg2hw.log_strides_d2.q}) - 1));
