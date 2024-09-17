@@ -93,7 +93,7 @@ int run_im2col(im2col_trans_t trans){
                   IM2COL_SPC_BASE_ADDR );
 
   /* Write the datatype */
-  write_register( DMA_DATA_TYPE_WORD,
+  write_register( trans.datatype,
                   IM2COL_SPC_DATA_TYPE_REG_OFFSET,
                   IM2COL_SPC_DATA_TYPE_DATA_TYPE_MASK,
                   IM2COL_SPC_DATA_TYPE_DATA_TYPE_OFFSET,

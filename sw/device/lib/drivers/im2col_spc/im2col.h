@@ -51,6 +51,7 @@ typedef struct
     uint32_t bottom_pad;          /*!< Padding on the bottom. */
     uint32_t adpt_pad_right;      /*!< Adaptive padding on the right. */
     uint32_t adpt_pad_bottom;     /*!< Adaptive padding on the bottom. */
+    uint32_t datatype;            /*!< Data type of the input. */
 } im2col_trans_t;
 
 /* Base address of the im2col SPC */

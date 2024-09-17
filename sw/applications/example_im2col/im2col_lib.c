@@ -16,7 +16,20 @@
 
 #include "im2col_lib.h"
 
-int output_data[OH_NCHW*OW_NCHW];
+#if INPUT_DATATYPE == DMA_DATA_TYPE_BYTE
+    uint8_t output_data[OH_NCHW*OW_NCHW];
+    uint8_t* input_image_ptr = &input_image_nchw[0];
+    uint8_t* output_data_ptr = &output_data[0];
+#elif INPUT_DATATYPE == DMA_DATA_TYPE_HALF_WORD
+    uint16_t output_data[OH_NCHW*OW_NCHW];
+    uint16_t* input_image_ptr = &input_image_nchw[0];
+    uint16_t* output_data_ptr = &output_data[0];
+#elif INPUT_DATATYPE == DMA_DATA_TYPE_WORD
+    uint32_t output_data[OH_NCHW*OW_NCHW];
+    uint32_t* input_image_ptr = &input_image_nchw[0];
+    uint32_t* output_data_ptr = &output_data[0];
+#endif
+
 char im2col_done = 0;
 int ifr_status;
 
@@ -155,20 +168,19 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     else if (test_id == 1)
     {
         /* Iterate over each row of the output matrix. */
-        uint32_t* input_image_ptr = &input_image_nchw[0];
-        uint32_t* output_data_ptr = &output_data[0];
 
         dma_config_flags_t res;
 
         static dma_target_t tgt_src = {
                                     .ptr        = input_image_nchw,
                                     .inc_d1_du     = STRIDE_D1,
-                                    .type       = DMA_DATA_TYPE_WORD
+                                    .type       = INPUT_DATATYPE
                             };
 
         static dma_target_t tgt_dst = {
                                     .inc_d1_du     = 1,
-                                    .inc_d2_du  = 1
+                                    .inc_d2_du  = 1,
+                                    .type       = INPUT_DATATYPE
                                     };
 
         static dma_trans_t trans = {
@@ -305,6 +317,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 
                 input_image_ptr = &input_image_nchw[0] + index;
                 PRINTF_DEB("\n\rsrc_ptr: %x dst_ptr: %x\n\r", input_image_ptr, output_data_ptr);
+
                 tgt_src.ptr = input_image_ptr;
                 tgt_src.inc_d2_du = src_inc_d2;
 
@@ -321,7 +334,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 
                 dma_run(&trans);
 
-                output_data_ptr += N_PATCHES_H * N_PATCHES_W;
+                output_data_ptr += OW_NCHW;
 
                 PRINTF_DEB("\n\r");
 
@@ -388,8 +401,8 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     /* Implementation of im2col algorithm using the dedicated Smart Peripheral Controller */
     else if (test_id == 2)
     {
-        uint32_t* input_image_ptr = &input_image_nchw[0];
-        uint32_t* output_data_ptr = &output_data[0];
+        input_image_ptr = &input_image_nchw[0];
+        output_data_ptr = &output_data[0];
 
         dma_init(0);
 
@@ -420,7 +433,8 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
           .top_pad = TOP_PAD,
           .bottom_pad = BOTTOM_PAD,
           .adpt_pad_right = ADPT_PAD_RIGHT,
-          .adpt_pad_bottom = ADPT_PAD_BOTTOM
+          .adpt_pad_bottom = ADPT_PAD_BOTTOM,
+          .datatype = INPUT_DATATYPE
         };
 
         im2col_spc_trans.src = input_image_ptr;
@@ -470,7 +484,7 @@ int verify()
           {    
               if (golden_im2col_nchw[i*OW_NCHW + j] != output_data[i*OW_NCHW + j])
               {
-                  PRINTF("ERROR: Golden: %d, Output: %d, at %d %d\n\r", golden_im2col_nchw[i*OW_NCHW + j], output_data[i*OW_NCHW + j], i, j);
+                  PRINTF("ERROR: Golden: %d, Output: %d, at %d %d %x\n\r", golden_im2col_nchw[i*OW_NCHW + j], output_data[i*OW_NCHW + j], i, j, &output_data[i*OW_NCHW + j]);
                   errors ++;
               }
           }
