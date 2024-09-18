@@ -25,15 +25,16 @@ extern "C" {
 // Addess data pointer (word aligned)
 #define DMA_ADDR_PTR_REG_OFFSET 0x8
 
-// Number of bytes to copy from, defined with respect to the first dimension
-// - Once a value is written, the copy starts
+// Number of elements to copy from, defined with respect to the first
+// dimension - Once a value is written, the copy starts
 #define DMA_SIZE_D1_REG_OFFSET 0xc
 #define DMA_SIZE_D1_SIZE_MASK 0xffff
 #define DMA_SIZE_D1_SIZE_OFFSET 0
 #define DMA_SIZE_D1_SIZE_FIELD \
   ((bitfield_field32_t) { .mask = DMA_SIZE_D1_SIZE_MASK, .index = DMA_SIZE_D1_SIZE_OFFSET })
 
-// Number of bytes to copy from, defined with respect to the second dimension
+// Number of elements to copy from, defined with respect to the second
+// dimension
 #define DMA_SIZE_D2_REG_OFFSET 0x10
 #define DMA_SIZE_D2_SIZE_MASK 0xffff
 #define DMA_SIZE_D2_SIZE_OFFSET 0
@@ -183,17 +184,6 @@ extern "C" {
 // Interrupt Flag Register for windows
 #define DMA_WINDOW_IFR_REG_OFFSET 0x64
 #define DMA_WINDOW_IFR_FLAG_BIT 0
-
-// The DMA will wait for the signal
-#define DMA_SPC_SLOT_REG_OFFSET 0x68
-#define DMA_SPC_SLOT_RX_TRIGGER_SLOT_MASK 0xf
-#define DMA_SPC_SLOT_RX_TRIGGER_SLOT_OFFSET 0
-#define DMA_SPC_SLOT_RX_TRIGGER_SLOT_FIELD \
-  ((bitfield_field32_t) { .mask = DMA_SPC_SLOT_RX_TRIGGER_SLOT_MASK, .index = DMA_SPC_SLOT_RX_TRIGGER_SLOT_OFFSET })
-#define DMA_SPC_SLOT_TX_TRIGGER_SLOT_MASK 0xf
-#define DMA_SPC_SLOT_TX_TRIGGER_SLOT_OFFSET 4
-#define DMA_SPC_SLOT_TX_TRIGGER_SLOT_FIELD \
-  ((bitfield_field32_t) { .mask = DMA_SPC_SLOT_TX_TRIGGER_SLOT_MASK, .index = DMA_SPC_SLOT_TX_TRIGGER_SLOT_OFFSET })
 
 #ifdef __cplusplus
 }  // extern "C"
