@@ -165,18 +165,21 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     /* Implementation of the nchw im2col algorithm using the DMA 2D feature */
     else if (test_id == 1)
     {
+      
+        data_t* input_image_ptr = &input_image_nchw[0];
+        data_t* output_data_ptr = &output_data[0];
         /* Iterate over each row of the output matrix. */
 
         dma_config_flags_t res;
 
         static dma_target_t tgt_src = {
                                     .ptr        = input_image_nchw,
-                                    .inc_d1_du     = STRIDE_D1,
+                                    .inc_d1_du  = STRIDE_D1,
                                     .type       = INPUT_DATATYPE
                             };
 
         static dma_target_t tgt_dst = {
-                                    .inc_d1_du     = 1,
+                                    .inc_d1_du  = 1,
                                     .inc_d2_du  = 1,
                                     .type       = INPUT_DATATYPE
                                     };
@@ -189,8 +192,6 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                                     .end        = DMA_TRANS_END_INTR,
                                     .channel    = 0
                                     };
-
-        uint32_t* ptr;
 
         #if TIMING
         CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
@@ -500,7 +501,17 @@ void dma_run(dma_trans_t * trans)
     res = dma_launch(trans);
     PRINTF_DEB("DMA launch result: %d\n\r", res);
 
-    while( ! dma_is_ready(0))
+    while( ! dma_is_ready(0)) {
+        /* Disable_interrupts */
+        /* This does not prevent waking up the core as this is controlled by the MIP register */
+        
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if ( dma_is_ready(0) == 0 ) {
+            asm volatile("wfi");
+            /* From here the core wakes up even if we did not jump to the ISR */
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    }
 
     return;
 }

@@ -33,6 +33,9 @@ USBport = 2
 
 # Define the parameters for the test
 
+datatype = "uint8_t"
+range_max = 255
+
 num_masters = 4 # Number of DMA CH
 num_slaves = 2 # Number of BUS master ports
 max_masters_per_slave = 2 # Maximum number of DMA CH per BUS master port
@@ -159,7 +162,7 @@ def main(stdscr):
   cpu_done = 0
   iteration = 1
   started = False
-  counter = 100
+  counter = 10
 
   # Set CH0 to be the SPC channel
   mask = "0001"
@@ -199,10 +202,12 @@ def main(stdscr):
                                                   if started and counter == 0:
                                                     im2colVer.stopDeb()
                                                     im2colVer.setUpDeb()
-                                                    counter = 100
-                                                  else:
+                                                    counter = 10
+                                                  elif not started:
                                                     im2colVer.setUpDeb()
                                                     started = True
+                                                    counter =- 1
+                                                  else:                                                      
                                                     counter =- 1
                                                   
                                                   im2colVer.chronoStart()
@@ -230,12 +235,14 @@ def main(stdscr):
                                                       'STRIDE_D2': u
                                                   }
                                                   
-                                                  im2colVer.genInputDataset(input_size, row_size=m, range_max=65500, dataset_dir_c="../../../sw/applications/example_im2col/im2col_input.c", 
-                                                                            dataset_dir="../../../sw/applications/example_im2col/im2col_input.h", parameters=parameters, dataset_name="input_image_nchw")
+                                                  im2colVer.genInputDataset(input_size, row_size=m, range_max=range_max, dataset_dir_c="../../../sw/applications/example_im2col/im2col_input.c", 
+                                                                            dataset_dir="../../../sw/applications/example_im2col/im2col_input.h", parameters=parameters, dataset_name="input_image_nchw",
+                                                                            datatype=datatype)
                                                   
                                                   im2colVer.genGoldenResult(im2col_function, golden_size, parameters, row_size=OW, golden_dir="../../../sw/applications/example_im2col/im2col_golden.h", 
                                                                             golden_dir_c="../../../sw/applications/example_im2col/im2col_golden.c", input_dataset_dir="../../../sw/applications/example_im2col/im2col_input.c",
-                                                                            golden_name="golden_im2col_nchw")
+                                                                            golden_name="golden_im2col_nchw",
+                                                                            output_datatype=datatype)
                                                   
                                                   # Optimize the test: since the CPU and DMA 2D C tests are the same for different SPC channels configurations,
                                                   # we can run them only once and then skip them for the rest of the tests

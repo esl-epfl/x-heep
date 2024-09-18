@@ -104,6 +104,9 @@
 #define OH_NCHW (CH * FH * FW * BATCH)
 #define OW_NCHW (N_PATCHES_H) * (N_PATCHES_W)
 
+#define OW_NHWC (FW * FH * CH * BATCH)
+#define OH_NHWC (N_PATCHES_W) * (N_PATCHES_H)
+
 #define START_ID 0
 
 #define TEST_EN 1
@@ -113,7 +116,7 @@
 
 int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles);
 
-__attribute__((weak, optimize("00"))) void handler_irq_im2col_spc(void);
+__attribute__((weak, optimize("O0"))) void handler_irq_im2col_spc(void);
 
 int get_index(int dim1, int dim2, int dim3, int index0, int index1, int index2, int index3);
                 
