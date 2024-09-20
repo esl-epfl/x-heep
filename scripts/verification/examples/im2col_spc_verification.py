@@ -159,7 +159,6 @@ def main(stdscr):
   progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter",
                    bar_format='{desc}: {percentage:.2f}%|{bar}| {n_fmt}/{total_fmt}')
 
-  cpu_done = 0
   iteration = 1
   started = False
   counter = 10
@@ -206,9 +205,9 @@ def main(stdscr):
                                                   elif not started:
                                                     im2colVer.setUpDeb()
                                                     started = True
-                                                    counter =- 1
+                                                    counter -= 1
                                                   else:                                                      
-                                                    counter =- 1
+                                                    counter -= 1
                                                   
                                                   im2colVer.chronoStart()
 
@@ -244,12 +243,7 @@ def main(stdscr):
                                                                             golden_name="golden_im2col_nchw",
                                                                             output_datatype=datatype)
                                                   
-                                                  # Optimize the test: since the CPU and DMA 2D C tests are the same for different SPC channels configurations,
-                                                  # we can run them only once and then skip them for the rest of the tests
-                                                  if cpu_done == 1:
-                                                      im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", start_id_pattern, f'#define START_ID 2')
-                                                  else:
-                                                      im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", start_id_pattern, f'#define START_ID 0')
+                                                  im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", start_id_pattern, f'#define START_ID 0')
                                                   
                                                   # Launch the test
                                                   im2colVer.launchTest("example_im2col", input_size=j*k*l*m)
@@ -293,11 +287,9 @@ def main(stdscr):
                                                   stdscr.addstr(1, 0, message)
                                                   stdscr.refresh()
 
-      if (not cpu_done):
-          im2col_cpu_array.append(im2col_cpu)
-          im2col_dma_2d_C_array.append(im2col_dma_2d_C)
+      im2col_cpu_array.append(im2col_cpu)
+      im2col_dma_2d_C_array.append(im2col_dma_2d_C)
       im2col_spc_array.append(im2col_spc)
-      cpu_done = 1
 
   # Stop the debug interface and close the progress bar
   im2colVer.stopDeb()

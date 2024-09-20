@@ -30,6 +30,7 @@
 #include "handler.h"
 #include "hart.h"
 #include "fast_intr_ctrl.h"
+#include "timer_sdk.h"
 
 /* 
     Choose between several HW configurations:

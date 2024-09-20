@@ -45,7 +45,7 @@ __attribute__ ((optimize("00"))) void waiting_for_spc_irq( void )
 {
   while (im2col_done == 0)
   {
-    asm volatile ("nop");
+    asm volatile ("wfi");
   }
 }
 
@@ -99,22 +99,14 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     }
 
     #if TIMING
-        CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-        CSR_WRITE(CSR_REG_MCYCLE, 0);
-        CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+        timer_cycles_init();
     #endif
 
     /* Implementation of im2col algorithm using the CPU */
     if (test_id == 0)
     {
         #if TIMING
-            CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-            CSR_WRITE(CSR_REG_MCYCLE, 0);
-            CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-        #endif
-
-        #if TIMING  
-        CSR_READ(CSR_REG_MCYCLE, &cycles_A);
+        timer_start();
         #endif
 
         for (int c = 0; c < CH_COL; ++c) {
@@ -157,8 +149,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         }
 
         #if TIMING  
-        CSR_READ(CSR_REG_MCYCLE, &cycles_B);
-        *cycles = (cycles_B - cycles_A);
+        *cycles = timer_stop();
         #endif
     }
 
@@ -194,13 +185,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                                     };
 
         #if TIMING
-        CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-        CSR_WRITE(CSR_REG_MCYCLE, 0);
-        CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-        #endif
-
-        #if TIMING  
-        CSR_READ(CSR_REG_MCYCLE, &cycles_A);
+        timer_start();
         #endif
 
         /* The DMA is initialized (i.e. Any current transaction is cleaned.) */
@@ -392,8 +377,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         }
 
         #if TIMING  
-        CSR_READ(CSR_REG_MCYCLE, &cycles_B);
-        *cycles = (cycles_B - cycles_A);
+        *cycles = timer_stop();
         #endif
     }
 
@@ -406,12 +390,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         dma_init(0);
 
         #if TIMING
-        CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-        CSR_WRITE(CSR_REG_MCYCLE, 0);
-        CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-        #endif
-        #if TIMING  
-        CSR_READ(CSR_REG_MCYCLE, &cycles_A);
+        timer_start();
         #endif
 
         static im2col_trans_t im2col_spc_trans = {
@@ -444,8 +423,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         waiting_for_spc_irq();
 
         #if TIMING  
-        CSR_READ(CSR_REG_MCYCLE, &cycles_B);
-        *cycles = (cycles_B - cycles_A);
+        *cycles = timer_stop();
         #endif
     }
     /* Finished! */
