@@ -179,15 +179,15 @@ int main(int argc, char *argv[])
     }
 
     dma_init(NULL);
-    dma_config_flags_t res;
-    dma_target_t tgt_src;
-    dma_target_t tgt_dst;
-    dma_target_t tgt_addr = {
+    static dma_config_flags_t res;
+    static dma_target_t tgt_src;
+    static dma_target_t tgt_dst;
+    static dma_target_t tgt_addr = {
         .ptr = NULL,
         .inc_d1_du = 1,
         .trig = DMA_TRIG_MEMORY,
     };
-    dma_trans_t trans;
+    static dma_trans_t trans;
 
     // Initialize the DMA for the next tests
     tgt_src.ptr = (uint8_t *)test_data_4B;
