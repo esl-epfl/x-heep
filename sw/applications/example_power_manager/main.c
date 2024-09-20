@@ -49,7 +49,7 @@ static power_manager_t power_manager;
 
 #define TEST_WORD
 //this data has to be big to allow the CPU to power gate
-#define TEST_DATA_SIZE 500
+#define TEST_DATA_SIZE 450
 
 // Source and destination addresses have to be aligned on a 4 bytes address
 uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
