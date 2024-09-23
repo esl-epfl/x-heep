@@ -182,11 +182,6 @@ int main(int argc, char *argv[])
     static dma_config_flags_t res;
     static dma_target_t tgt_src;
     static dma_target_t tgt_dst;
-    static dma_target_t tgt_addr = {
-        .ptr = NULL,
-        .inc_d1_du = 1,
-        .trig = DMA_TRIG_MEMORY,
-    };
     static dma_trans_t trans;
 
     // Initialize the DMA for the next tests
@@ -207,7 +202,6 @@ int main(int argc, char *argv[])
     trans.size_d1_du = TEST_DATA_SIZE;
     trans.src = &tgt_src;
     trans.dst = &tgt_dst;
-    trans.src_addr = &tgt_addr;
     trans.src_type = DMA_DATA_TYPE_WORD;
     trans.dst_type = DMA_DATA_TYPE_WORD;
     trans.mode = DMA_TRANS_MODE_SINGLE;
