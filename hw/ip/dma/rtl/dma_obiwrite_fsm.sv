@@ -79,8 +79,8 @@ module dma_obiwrite_fsm
   logic [31:0] write_ptr_reg;
   logic [3:0] byte_enable_out;
 
-  logic [5:0] dma_dst_d1_inc;
-  logic [22:0] dma_dst_d2_inc;
+  logic [31:0] dma_dst_d1_inc;
+  logic [31:0] dma_dst_d2_inc;
   logic [16:0] dma_dst_cnt_d1;
 
   logic wait_for_tx;
@@ -96,6 +96,12 @@ module dma_obiwrite_fsm
   /*_________________________________________________________________________________________________________________________________ */
 
   /* FSMs instantiation */
+
+  /* Sign extension of the increments */
+  always_comb begin
+    dma_dst_d1_inc = {{26{reg2hw.dst_ptr_inc_d1.q[5]}}, reg2hw.dst_ptr_inc_d1.q};
+    dma_dst_d2_inc = {{9{reg2hw.dst_ptr_inc_d2.q[22]}}, reg2hw.dst_ptr_inc_d2.q};
+  end
 
   /* Counters for the reading fsm */
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_dst_cnt_reg
@@ -159,13 +165,13 @@ module dma_obiwrite_fsm
         write_ptr_reg <= reg2hw.dst_ptr.q;
       end else if (data_out_gnt == 1'b1) begin
         if (dma_conf_1d == 1'b1) begin
-          write_ptr_reg <= write_ptr_reg + {26'h0, dma_dst_d1_inc};
+          write_ptr_reg <= write_ptr_reg + dma_dst_d1_inc;
         end else if (dma_conf_2d == 1'b1) begin
           if (dma_dst_cnt_d1 == 1) begin
             // In this case, the d1 is finished, so we need to increment the pointer by sizeof(d1)*data_unit*strides
-            write_ptr_reg <= write_ptr_reg + {9'h0, dma_dst_d2_inc};
+            write_ptr_reg <= write_ptr_reg + dma_dst_d2_inc;
           end else begin
-            write_ptr_reg <= write_ptr_reg + {26'h0, dma_dst_d1_inc}; // Increment just of one du, since we need to increase the 1d
+            write_ptr_reg <= write_ptr_reg + dma_dst_d1_inc; // Increment just of one du, since we need to increase the 1d
           end
         end
       end
@@ -332,8 +338,6 @@ module dma_obiwrite_fsm
   assign data_out_wdata_o = data_out_wdata;
   assign write_fifo_empty = write_fifo_empty_i;
   assign fifo_output = fifo_output_i;
-  assign dma_dst_d1_inc = reg2hw.dst_ptr_inc_d1.q;
-  assign dma_dst_d2_inc = reg2hw.dst_ptr_inc_d2.q;
   assign wait_for_tx = wait_for_tx_i;
   assign data_out_be_o = data_out_be;
   assign data_out_addr_o = data_out_addr;

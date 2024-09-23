@@ -79,8 +79,8 @@ module dma_obiread_fsm
   logic [31:0] data_in_rdata;
 
   logic [31:0] read_ptr_valid_reg;
-  logic [5:0] dma_src_d1_inc;
-  logic [22:0] dma_src_d2_inc;
+  logic [31:0] dma_src_d1_inc;
+  logic [31:0] dma_src_d2_inc;
 
   /* FIFO signals */
   logic [31:0] fifo_input;
@@ -88,6 +88,12 @@ module dma_obiread_fsm
   /*_________________________________________________________________________________________________________________________________ */
 
   /* FSMs instantiation */
+
+  /* Sign extension of the increments */
+  always_comb begin
+    dma_src_d1_inc = {{26{reg2hw.src_ptr_inc_d1.q[5]}}, reg2hw.src_ptr_inc_d1.q};
+    dma_src_d2_inc = {{9{reg2hw.src_ptr_inc_d2.q[22]}}, reg2hw.src_ptr_inc_d2.q};
+  end
 
   /* Counters for the reading fsm */
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_src_cnt_reg
@@ -130,10 +136,10 @@ module dma_obiread_fsm
       trsp_src_ptr_reg <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        trsp_src_ptr_reg <= reg2hw.src_ptr.q + {26'h0, dma_src_d1_inc};
+        trsp_src_ptr_reg <= reg2hw.src_ptr.q + dma_src_d1_inc;
       end else if (data_in_gnt == 1'b1 && dma_conf_2d == 1'b1 && read_ptr_update_sel == 1'b1 &&
                     (dma_src_cnt_d1 == 1 && |dma_src_cnt_d2 == 1'b1)) begin
-        trsp_src_ptr_reg <= trsp_src_ptr_reg + {26'h0, dma_src_d1_inc};
+        trsp_src_ptr_reg <= trsp_src_ptr_reg + dma_src_d1_inc;
       end
     end
   end
@@ -148,14 +154,14 @@ module dma_obiread_fsm
       end else if (data_in_gnt == 1'b1) begin
         if (dma_conf_1d == 1'b1) begin
           /* Increase the pointer by the amount written in ptr_inc */
-          read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc};
+          read_ptr_reg <= read_ptr_reg + dma_src_d1_inc;
         end else if (dma_conf_2d == 1'b1) begin
           if (read_ptr_update_sel == 1'b0) begin
             if (dma_src_cnt_d1 == 1 && |dma_src_cnt_d2 == 1'b1) begin
               /* In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d1)*data_unit */
-              read_ptr_reg <= read_ptr_reg + {9'h0, dma_src_d2_inc};
+              read_ptr_reg <= read_ptr_reg + dma_src_d2_inc;
             end else begin
-              read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc}; /* Increment of the d1 increment (stride) */
+              read_ptr_reg <= read_ptr_reg + dma_src_d1_inc; /* Increment of the d1 increment (stride) */
             end
           end else begin
             /* In this case, perform the transposition */
@@ -163,7 +169,7 @@ module dma_obiread_fsm
               /* In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d1)*data_unit */
               read_ptr_reg <= trsp_src_ptr_reg;
             end else begin
-              read_ptr_reg <= read_ptr_reg + {9'h0, dma_src_d2_inc}; /* Increment of the d2 increment (stride) */
+              read_ptr_reg <= read_ptr_reg + dma_src_d2_inc; /* Increment of the d2 increment (stride) */
             end
           end
         end
@@ -293,8 +299,6 @@ module dma_obiread_fsm
   assign read_ptr_update_sel = reg2hw.dim_inv.q;
   assign dma_conf_1d = reg2hw.dim_config.q == 0;
   assign dma_conf_2d = reg2hw.dim_config.q == 1;
-  assign dma_src_d1_inc = reg2hw.src_ptr_inc_d1.q;
-  assign dma_src_d2_inc = reg2hw.src_ptr_inc_d2.q;
   assign data_in_be_o = data_in_be;
   assign data_in_addr_o = data_in_addr;
   assign data_in_req_o = data_in_req;
