@@ -98,7 +98,7 @@ environment.yml: python-requirements.txt
 ## @section Installation
 
 ## Generates mcu files core-v-mini-mcu files and build the design with fusesoc
-## @param CPU=[cv32e20(default),cv32e40p,cv32e40x]
+## @param CPU=[cv32e20(default),cv32e40p,cv32e40x,cv32e40px]
 ## @param BUS=[onetoM(default),NtoM]
 ## @param MEMORY_BANKS=[2(default) to (16 - MEMORY_BANKS_IL)]
 ## @param MEMORY_BANKS_IL=[0(default),2,4,8]
@@ -193,7 +193,7 @@ questasim-sim-opt-upf: questasim-sim
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt-upf
 
 ## VCS simulation
-## @param CPU=cv32e20(default),cv32e40p,cv32e40x
+## @param CPU=cv32e20(default),cv32e40p,cv32e40x,cv32e40px
 ## @param BUS=onetoM(default),NtoM
 vcs-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=vcs $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
