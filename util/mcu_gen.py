@@ -209,7 +209,7 @@ class Pad:
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'oe_i(' + oe_internal_signals + '),'
         self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'io,'
 
-  def __init__(self, name, cell_name, pad_type, pad_mapping, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, has_attribute, attribute_bits):
+  def __init__(self, name, cell_name, pad_type, pad_mapping, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, has_attribute, attribute_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip):
 
     self.name = name
     self.cell_name = cell_name
@@ -239,6 +239,12 @@ class Pad:
 
     self.is_driven_manually = pad_driven_manually
     self.do_skip_declaration = pad_skip_declaration
+
+    self.layout_index = pad_layout_index
+    self.layout_orient = pad_layout_orient
+    self.layout_cell = pad_layout_cell
+    self.layout_offset = pad_layout_offset
+    self.layout_skip = pad_layout_skip
 
     if(len(pad_mux_list) == 0):
         self.signal_name_drive.append(self.signal_name)
@@ -625,6 +631,31 @@ def main():
         except KeyError:
             pad_keep_internal = False
 
+        try:
+            pad_layout_orient = pads[key]['layout_attributes']['orient']
+        except KeyError:
+            pad_layout_orient = None
+        
+        try:
+            pad_layout_cell = pads[key]['layout_attributes']['cell']
+        except KeyError:
+            pad_layout_cell = None
+        
+        try:
+            pad_layout_offset = pads[key]['layout_attributes']['offset']
+        except KeyError:
+            pad_layout_offset = None
+
+        try:
+            pad_layout_skip = pads[key]['layout_attributes']['skip']
+        except KeyError:
+            pad_layout_skip = None
+
+        try:
+            pad_layout_index = pads[key]['layout_attributes']['index']
+        except KeyError:
+            pad_layout_index = None
+
         pad_mux_list = []
 
         for pad_mux in pad_mux_list_hjson:
@@ -650,13 +681,13 @@ def main():
             except KeyError:
                 pad_skip_declaration_mux = False
 
-            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits)
+            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
             pad_mux_list.append(p)
 
         if pad_num > 1:
             for p in range(pad_num):
                 pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
+                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
                 if not pad_keep_internal:
                     pad_obj.create_pad_ring()
                 pad_obj.create_core_v_mini_mcu_ctrl()
@@ -675,7 +706,7 @@ def main():
 
         else:
             pad_cell_name = "pad_" + key + "_i"
-            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
+            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
             if not pad_keep_internal:
                 pad_obj.create_pad_ring()
             pad_obj.create_core_v_mini_mcu_ctrl()
@@ -736,6 +767,31 @@ def main():
             except KeyError:
                 pad_skip_declaration = False
 
+            try:
+                pad_layout_orient = external_pads[key]['layout_attributes']['orient']
+            except KeyError:
+                pad_layout_orient = None
+            
+            try:
+                pad_layout_cell = external_pads[key]['layout_attributes']['cell']
+            except KeyError:
+                pad_layout_cell = None
+            
+            try:
+                pad_layout_offset = external_pads[key]['layout_attributes']['offset']
+            except KeyError:
+                pad_layout_offset = None
+
+            try:
+                pad_layout_skip = external_pads[key]['layout_attributes']['skip']
+            except KeyError:
+                pad_layout_skip = None
+            
+            try:
+                pad_layout_index = external_pads[key]['layout_attributes']['index']
+            except KeyError:
+                pad_layout_index = None
+            
             pad_mux_list = []
 
             for pad_mux in pad_mux_list_hjson:
@@ -761,13 +817,13 @@ def main():
                 except KeyError:
                     pad_skip_declaration_mux = False
 
-                p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits)
+                p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
                 pad_mux_list.append(p)
 
             if pad_num > 1:
                 for p in range(pad_num):
                     pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
+                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
                     pad_obj.create_pad_ring()
                     pad_obj.create_pad_ring_bonding()
                     pad_obj.create_internal_signals()
@@ -783,7 +839,7 @@ def main():
 
             else:
                 pad_cell_name = "pad_" + key + "_i"
-                pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
+                pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
                 pad_obj.create_pad_ring()
                 pad_obj.create_pad_ring_bonding()
                 pad_obj.create_internal_signals()
