@@ -73,6 +73,12 @@
 /* Transposition example def */
 #define TRANSPOSITION_EN 1
 
+/* Enables test format */
+#define TEST_EN 1
+
+/* Define the input datatype */
+typedef uint32_t dma_input_data_type;
+
 /* Pointer increments computation */
 #define SRC_INC_D1 STRIDE_IN_D1
 #define DST_INC_D1 STRIDE_OUT_D1
@@ -132,8 +138,8 @@ int main()
     #if EN_PERF
 
     /* Reset the counter to evaluate the performance of the DMA */
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-    CSR_WRITE(CSR_REG_MCYCLE, 0);
+    timer_cycles_init();
+
     #endif
 
     tgt_src.ptr = (uint8_t *) test_data;
@@ -160,8 +166,10 @@ int main()
     trans.size_d2_du     = SIZE_EXTR_D2;
     trans.win_du         = 0,
     trans.end            = DMA_TRANS_END_INTR;
-    
+
     dma_init(NULL);
+    
+    timer_start();
     
     #if EN_PERF
 
@@ -180,7 +188,6 @@ int main()
     #endif
 
     while( ! dma_is_ready(0)) {
-        #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
@@ -190,18 +197,16 @@ int main()
             /* From here the core wakes up even if we did not jump to the ISR */
         }
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-        #endif
     }
 
     #if EN_PERF    
 
     /* Read the cycles count after the DMA run */
-    CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
+    cycles_dma = timer_stop();
 
     /* Reset the performance counter to evaluate the CPU performance */
-    CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-    CSR_WRITE(CSR_REG_MCYCLE, 0);
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    timer_cycles_init();    
+    timer_start();
     #endif
 
     #if EN_VERIF
@@ -265,10 +270,12 @@ int main()
     #if EN_PERF
 
     /* Read the cycles count after the CPU run */
-    CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
-    PRINTF("DMA cycles: %d\n\r", cycles_dma);
-    PRINTF("CPU cycles: %d \n\r", cycles_cpu);
-    PRINTF("\n\r");
+    cycles_cpu = timer_stop();
+    
+    #if TEST_EN == 0
+    PRINTF("Total number of cycles CPU: [%d]\n\r", cycles_cpu);
+    PRINTF("Total number of cycles DMA: [%d]\n\r", cycles_dma);
+    #endif
 
     #endif
 
@@ -284,12 +291,22 @@ int main()
     }
 
     if (passed) {
-        PRINTF("Success test 0\n\n\r");
+        #if TEST_EN == 0
+        PRINTF("TEST 0 PASSED!\n\r\n\r");
+        #else
+        PRINTF("0a:%d:0\n\r", cycles_cpu);   
+        PRINTF("0b:%d:0\n\r", cycles_dma);               
+        #endif
     } 
     else 
     {
-        PRINTF("Fail test 0\n\r");
+        #if TEST_EN == 0
+        PRINTF("TEST 0 FAILED: %d errors\n\r", errors);
         return EXIT_FAILURE;
+        #else
+        PRINTF("0a:%d:1\n\r", cycles_cpu); 
+        PRINTF("0b:%d:1\n\r", cycles_dma); 
+        #endif
     }
     #endif
 
@@ -316,8 +333,7 @@ int main()
     #if EN_PERF
 
     /* Reset the counter to evaluate the performance of the DMA */
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-    CSR_WRITE(CSR_REG_MCYCLE, 0);
+    timer_cycles_init();
     #endif
 
     tgt_src.ptr            = (uint8_t *) test_data;
@@ -347,6 +363,8 @@ int main()
     
     dma_init(NULL);
     
+    timer_start();
+    
     #if EN_PERF
 
     res_valid = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
@@ -364,7 +382,6 @@ int main()
     #endif
 
     while( ! dma_is_ready(0)) {
-        #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
@@ -374,18 +391,16 @@ int main()
             /* From here the core wakes up even if we did not jump to the ISR */
         }
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-        #endif
     }
 
     #if EN_PERF    
 
     /* Read the cycles count after the DMA run */
-    CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
+    cycles_dma = timer_stop();
 
     /* Reset the performance counter to evaluate the CPU performance */
-    CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-    CSR_WRITE(CSR_REG_MCYCLE, 0);
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    timer_cycles_init();
+    timer_start();
     #endif
 
     #if EN_VERIF
@@ -449,10 +464,11 @@ int main()
     #if EN_PERF
 
     /* Read the cycles count after the CPU run */
-    CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
-    PRINTF("DMA cycles: %d\n\r", cycles_dma);
-    PRINTF("CPU cycles: %d \n\r", cycles_cpu);
-    PRINTF("\n\r");
+    cycles_cpu = timer_stop();
+    #if TEST_EN == 0
+    PRINTF("Total number of cycles CPU: [%d]\n\r", cycles_cpu);
+    PRINTF("Total number of cycles DMA: [%d]\n\r", cycles_dma);
+    #endif
 
     #endif
 
@@ -468,12 +484,22 @@ int main()
     }
 
     if (passed) {
-        PRINTF("Success test 1\n\n\r");
+        #if TEST_EN == 0
+        PRINTF("TEST 1 PASSED!\n\r\n\r");
+        #else
+        PRINTF("1a:%d:0\n\r", cycles_cpu);  
+        PRINTF("1b:%d:0\n\r", cycles_dma);                
+        #endif
     } 
     else 
     {
-        PRINTF("Fail test 1\n\r");
+        #if TEST_EN == 0
+        PRINTF("TEST 1 FAILED: %d errors\n\r", errors);
         return EXIT_FAILURE;
+        #else
+        PRINTF("1a:%d:1\n\r", cycles_cpu);
+        PRINTF("1b:%d:1\n\r", cycles_dma);  
+        #endif
     }
     #endif
 
@@ -495,8 +521,7 @@ int main()
     #if EN_PERF
 
     /* Reset the counter to evaluate the performance of the DMA */
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-    CSR_WRITE(CSR_REG_MCYCLE, 0);
+    timer_cycles_init();
     #endif
 
     tgt_src.ptr            = (uint8_t *) test_data;
@@ -525,6 +550,8 @@ int main()
     trans.end            = DMA_TRANS_END_INTR;
 
     dma_init(NULL);
+
+    timer_start();
     
     #if EN_PERF
 
@@ -543,7 +570,6 @@ int main()
     #endif
 
     while( ! dma_is_ready(0)) {
-        #if !EN_PERF
         /* Disable_interrupts */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
@@ -551,18 +577,16 @@ int main()
             wait_for_interrupt();
         }
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-        #endif
     }
 
     #if EN_PERF
 
     /* Read the cycles count after the DMA run */
-    CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
+    cycles_dma = timer_stop();
 
     /* Reset the performance counter to evaluate the CPU performance */
-    CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-    CSR_WRITE(CSR_REG_MCYCLE, 0);
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    timer_cycles_init();
+    timer_start();
     #endif
 
     #if EN_VERIF
@@ -604,11 +628,12 @@ int main()
     #if EN_PERF
 
     /* Read the cycles count after the CPU run */
-    CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
+    cycles_cpu = timer_stop();
+    #if TEST_EN == 0
+    PRINTF("Total number of cycles CPU: [%d]\n\r", cycles_cpu);
+    PRINTF("Total number of cycles DMA: [%d]\n\r", cycles_dma);
+    #endif
 
-    PRINTF("DMA cycles: %d\n\r", cycles_dma);
-    PRINTF("CPU cycles: %d \n\r", cycles_cpu);
-    PRINTF("\n\r");
     #endif
 
     #if EN_VERIF
@@ -621,12 +646,22 @@ int main()
     }
 
     if (passed) {
-        PRINTF("Success test 2\n\n\r");
+        #if TEST_EN == 0
+        PRINTF("TEST 2 PASSED!\n\r\n\r");
+        #else
+        PRINTF("2a:%d:0\n\r", cycles_cpu);  
+        PRINTF("2b:%d:0\n\r", cycles_dma);                
+        #endif
     } 
     else 
     {
-        PRINTF("Fail test 2\n\r");
+        #if TEST_EN == 0
+        PRINTF("TEST 2 FAILED: %d errors\n\r", errors);
         return EXIT_FAILURE;
+        #else
+        PRINTF("2a:%d:1\n\r", cycles_cpu);
+        PRINTF("2b:%d:1\n\r", cycles_dma);  
+        #endif
     }
     #endif
 
@@ -654,12 +689,13 @@ int main()
     #if EN_PERF
 
     /* Reset the counter to evaluate the performance of the DMA */
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-    CSR_WRITE(CSR_REG_MCYCLE, 0);
+    timer_cycles_init();
     #endif
 
     /* The DMA is initialized (i.e. Any current transaction is cleaned.) */
     dma_init(NULL);
+
+    timer_start();
 
     /* Enable the DMA interrupt logic */
     write_register( 0x1,
@@ -769,7 +805,6 @@ int main()
                     peri );
 
     while( ! dma_is_ready(0)) {
-        #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
@@ -779,18 +814,16 @@ int main()
             /* From here the core wakes up even if we did not jump to the ISR */
         }
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-        #endif
     }
 
     #if EN_PERF
 
     /* Read the cycles count after the DMA run */
-    CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
+    cycles_dma = timer_stop();
 
     /* Reset the performance counter to evaluate the CPU performance */
-    CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-    CSR_WRITE(CSR_REG_MCYCLE, 0);
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    timer_cycles_init();
+    timer_start();
     #endif
 
     #if EN_VERIF
@@ -855,34 +888,41 @@ int main()
     #if EN_PERF
 
     /* Read the cycles count after the CPU run */
-    CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
+    cycles_cpu = timer_stop();
+    #if TEST_EN == 0
+    PRINTF("Total number of cycles CPU: [%d]\n\r", cycles_cpu);
+    PRINTF("Total number of cycles DMA: [%d]\n\r", cycles_dma);
+    #endif
 
-    PRINTF("DMA cycles: %d\n\r", cycles_dma);
-    PRINTF("CPU cycles: %d \n\r", cycles_cpu);
-    PRINTF("\n\r");
     #endif
 
     #if EN_VERIF
     
     /* Verify that the DMA and the CPU outputs are the same */
-    for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
-        for (int j = 0; j < OUT_D1_PAD_STRIDE; j++) {
-            if (copied_data_2D_DMA[i * OUT_D1_PAD_STRIDE + j] != copied_data_2D_CPU[i * OUT_D1_PAD_STRIDE + j]) {
-                passed = 0;
-            }
-        }
-    }
-
     if (passed) {
-        PRINTF("Success test 3\n\n\r");
+        #if TEST_EN == 0
+        PRINTF("TEST 3 PASSED!\n\r\n\r");
+        #else
+        PRINTF("3a:%d:0\n\r", cycles_cpu);  
+        PRINTF("3b:%d:0\n\r", cycles_dma);                
+        #endif
     } 
     else 
     {
-        PRINTF("Fail test 3\n\r");
+        #if TEST_EN == 0
+        PRINTF("TEST 3 FAILED: %d errors\n\r", errors);
         return EXIT_FAILURE;
+        #else
+        PRINTF("3a:%d:1\n\r", cycles_cpu);
+        PRINTF("3b:%d:1\n\r", cycles_dma);  
+        #endif
     }
     #endif
 
+    #endif
+
+    #if TEST_EN
+    PRINTF("&\n\r");
     #endif
 
     return EXIT_SUCCESS;

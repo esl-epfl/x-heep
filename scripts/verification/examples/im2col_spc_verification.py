@@ -242,7 +242,7 @@ def main(stdscr):
                                                                             golden_dir_c="../../../sw/applications/example_im2col/im2col_golden.c", input_dataset_dir="../../../sw/applications/example_im2col/im2col_input.c",
                                                                             golden_name="golden_im2col_nchw",
                                                                             output_datatype=datatype)
-                                                  
+                                                                                                  
                                                   im2colVer.modifyFile("../../../sw/applications/example_im2col/im2col_lib.h", start_id_pattern, f'#define START_ID 0')
                                                   
                                                   # Launch the test
