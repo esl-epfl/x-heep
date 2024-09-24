@@ -421,7 +421,7 @@ __attribute__((optimize("O0"))) void fic_irq_dma(void);
  */
 /* @ToDo: Consider changing the "mask" parameter for a bitfield definition
 (see dma_regs.h) */
-inline void write_register( uint32_t  p_val,
+static inline void write_register( uint32_t  p_val,
                                   uint32_t  p_offset,
                                   uint32_t  p_mask,
                                   uint8_t   p_sel,
