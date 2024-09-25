@@ -18,6 +18,7 @@ run_verif_rtl_log.txt
 # ignore the following hw automatically generated files
 environment.yml
 core-v-mini-mcu.upf
+core-v-mini-mcu.dc.upf
 tb/tb_util.svh
 hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
 hw/core-v-mini-mcu/system_bus.sv
@@ -40,6 +41,7 @@ hw/fpga/scripts/generate_sram.tcl
 # same for the C header file and linker scripts and assembly files
 sw/device/lib/crt/crt0.S
 sw/device/lib/runtime/core_v_mini_mcu.h
+sw/device/lib/runtime/core_v_mini_mcu_memory.h
 sw/linker/link.ld
 sw/linker/link_flash_exec.ld
 sw/linker/link_flash_load.ld

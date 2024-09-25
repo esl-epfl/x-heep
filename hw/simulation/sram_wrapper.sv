@@ -24,6 +24,7 @@ module sram_wrapper #(
     input logic [3:0] be_i,
     // power manager signals that goes to the ASIC macros
     input logic pwrgate_ni,
+    output logic pwrgate_ack_no,
     input logic set_retentive_ni,
     // output ports
     output logic [31:0] rdata_o

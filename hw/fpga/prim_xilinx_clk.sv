@@ -9,15 +9,12 @@ module xilinx_clk_gating (
     output logic clk_o
 );
 
-  logic clk_en;
-
-  // Use a latch based clock gate instead of BUFGCE. Otherwise we quickly run out of BUFGCTRL cells on the FPGAs.
-  always_latch begin
-    if (clk_i == 1'b0) clk_en <= en_i | test_en_i;
-  end
-
-  assign clk_o = clk_i & clk_en;
-
+  // In Zynq7000, just bypass the clock gating because there are not enough BUFGs that can be 
+  // cascaded with the BUFG of the MMCM.
+  // In the Zynq UltraScale+, it can be implemented as BUFGCE without trouble, since there
+  // are > 500 BUFGCEs and the rules for cascading are more relaxed.
+  // NOTE: This **cannot** be substituted by a latch+and
+  assign clk_o = clk_i;
 
 endmodule
 
