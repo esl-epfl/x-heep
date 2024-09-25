@@ -52,19 +52,19 @@ int main(void)
 
     if(!is_power_of(FFT_LEN, 2)){
         PRINTF("FFT_LEN must be a power of 2, FFT radix 2 cannot be performed.\n");
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
 
     PRINTF("Starting radix 2 FFT\n");
 
-    timer_cycles_init();
-    timer_start();
-
-    // precompute twiddle factors for radix-2 FFT
+        // precompute twiddle factors for radix-2 FFT
     compute_twiddle_factors_radix2(twiddle_factors_radix2, FFT_LEN, DECIMAL_BITS);
 
     // precompute bit reversed sequence
     get_bit_reversed_seq(bit_reversed_seq_radix2, FFT_LEN, log_floor(FFT_LEN, 2), 2);
+
+    timer_cycles_init();
+    timer_start();
 
     iterative_FFT_radix2(A, R_radix_2, FFT_LEN, twiddle_factors_radix2, DECIMAL_BITS, w_real_fixed, w_imag_fixed, xrev, bit_reversed_seq_radix2);
 
@@ -81,19 +81,19 @@ int main(void)
 
     if(!is_power_of(FFT_LEN, 4)){
         PRINTF("FFT_LEN must be a power of 4, FFT radix 4 cannot be performed.\n");
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
 
     PRINTF("Starting radix 4 FFT\n");
-
-    timer_cycles_init();
-    timer_start();
 
     // precompute twiddle factors for radix-4 FFT
     compute_twiddle_factors_radix4(twiddle_factors_radix4, FFT_LEN, DECIMAL_BITS);
 
     // precompute bit reversed sequence
     get_bit_reversed_seq(bit_reversed_seq_radix4, FFT_LEN, log_floor(FFT_LEN, 4), 4);
+
+    timer_cycles_init();
+    timer_start();
 
     iterative_FFT_radix4(A, R_radix_4, FFT_LEN, twiddle_factors_radix4, w_real_fixed, w_imag_fixed, xrev, DECIMAL_BITS, bit_reversed_seq_radix4);
     
