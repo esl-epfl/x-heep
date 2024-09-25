@@ -436,6 +436,8 @@ module cv32e40px_id_stage
   // X-Interface
   logic illegal_insn;
   logic x_illegal_insn;
+  logic x_branch_or_async_taken;
+  logic x_control_illegal_reset;
   logic [4:0] waddr_id;
   logic [4:0] waddr_ex;
   logic [4:0] waddr_wb;
@@ -1124,7 +1126,7 @@ module cv32e40px_id_stage
           .mem_instr_waddr_ex_i(regfile_waddr_ex_o[4:0]),
           .mem_instr_we_ex_i   (regfile_we_ex_o),
           .regs_used_i         (regs_used),
-          .branch_or_jump_i    (pc_set_o),
+          .branch_or_jump_i    (x_branch_or_async_taken),
           .instr_valid_i       (instr_valid_i),
           .x_rs_addr_i         (x_rs_addr),
           .x_ex_fwd_o          (x_ex_fwd),
@@ -1136,14 +1138,15 @@ module cv32e40px_id_stage
           .wb_ready_i      (wb_ready_i),
 
           // additional status signals
-          .x_stall_o           (x_stall),
-          .x_illegal_insn_o    (x_illegal_insn),
-          .x_illegal_insn_dec_i(illegal_insn_dec),
-          .id_ready_i          (id_ready_o),
-          .ex_valid_i          (ex_valid_i),
-          .ex_ready_i          (ex_ready_i),
-          .current_priv_lvl_i  (current_priv_lvl_i),
-          .data_req_dec_i      (data_req_id)
+          .x_stall_o                (x_stall),
+          .x_illegal_insn_o         (x_illegal_insn),
+          .x_illegal_insn_dec_i     (illegal_insn_dec),
+          .x_control_illegal_reset_i(x_control_illegal_reset),
+          .id_ready_i               (id_ready_o),
+          .ex_valid_i               (ex_valid_i),
+          .ex_ready_i               (ex_ready_i),
+          .current_priv_lvl_i       (current_priv_lvl_i),
+          .data_req_dec_i           (data_req_id)
       );
 
 
@@ -1445,6 +1448,8 @@ module cv32e40px_id_stage
       .apu_write_dep_i        (apu_write_dep_i),
 
       .apu_stall_o(apu_stall),
+      .x_branch_or_async_taken_o(x_branch_or_async_taken),
+      .x_control_illegal_reset_o(x_control_illegal_reset),
 
       // jump/branch control
       .branch_taken_ex_i          (branch_taken_ex),

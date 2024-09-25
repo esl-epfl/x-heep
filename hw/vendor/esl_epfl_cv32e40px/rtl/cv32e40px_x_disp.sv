@@ -90,6 +90,7 @@ module cv32e40px_x_disp
     output logic x_stall_o,
     output logic x_illegal_insn_o,
     input logic x_illegal_insn_dec_i,
+    input logic x_control_illegal_reset_i,
     input logic id_ready_i,
     input logic ex_valid_i,
     input logic ex_ready_i,
@@ -108,6 +109,7 @@ module cv32e40px_x_disp
   logic x_if_memory_instr;
   logic illegal_forwarding_prevention;
   logic x_issue_illegal;
+  logic x_illegal_insn_q, x_illegal_insn_n;
 
   // issue interface
   assign x_issue_valid_o = x_illegal_insn_dec_i & ~branch_or_jump_i & ~instr_offloaded_q & instr_valid_i & ~illegal_forwarding_prevention;
@@ -182,7 +184,7 @@ module cv32e40px_x_disp
       assign x_wb_fwd_o[3] = (x_rs_addr_i[0] | 5'b00001) == waddr_wb_i & we_wb_i & ex_valid_i & x_issue_resp_dualread_i[0];
       assign x_wb_fwd_o[4] = (x_rs_addr_i[1] | 5'b00001) == waddr_wb_i & we_wb_i & ex_valid_i & x_issue_resp_dualread_i[1];
       assign x_wb_fwd_o[5] = (x_rs_addr_i[2] | 5'b00001) == waddr_wb_i & we_wb_i & ex_valid_i & x_issue_resp_dualread_i[2];
-      assign dep = ~x_illegal_insn_o & ((regs_used_i[0] & scoreboard_q[x_rs_addr_i[0]] & (x_result_rd_i != x_rs_addr_i[0]))
+      assign dep = ~x_illegal_insn_n & ((regs_used_i[0] & scoreboard_q[x_rs_addr_i[0]] & (x_result_rd_i != x_rs_addr_i[0]))
                                   |     (regs_used_i[1] & scoreboard_q[x_rs_addr_i[1]] & (x_result_rd_i != x_rs_addr_i[1]))
                                   |     (regs_used_i[2] & scoreboard_q[x_rs_addr_i[2]] & (x_result_rd_i != x_rs_addr_i[2]))
                                   |     (((regs_used_i[0] & x_issue_resp_dualread_i[0]) & scoreboard_q[x_rs_addr_i[0] | 5'b00001] & (x_result_rd_i != (x_rs_addr_i[0] | 5'b00001))) & x_issue_resp_dualread_i[0])
@@ -195,7 +197,7 @@ module cv32e40px_x_disp
       assign x_wb_fwd_o[0] = x_rs_addr_i[0] == waddr_wb_i & we_wb_i & ex_valid_i;
       assign x_wb_fwd_o[1] = x_rs_addr_i[1] == waddr_wb_i & we_wb_i & ex_valid_i;
       assign x_wb_fwd_o[2] = x_rs_addr_i[2] == waddr_wb_i & we_wb_i & ex_valid_i;
-      assign dep = ~x_illegal_insn_o & ((regs_used_i[0] & scoreboard_q[x_rs_addr_i[0]] & (x_result_rd_i != x_rs_addr_i[0]))
+      assign dep = ~x_illegal_insn_n & ((regs_used_i[0] & scoreboard_q[x_rs_addr_i[0]] & (x_result_rd_i != x_rs_addr_i[0]))
                                   |     (regs_used_i[1] & scoreboard_q[x_rs_addr_i[1]] & (x_result_rd_i != x_rs_addr_i[1]))
                                   |     (regs_used_i[2] & scoreboard_q[x_rs_addr_i[2]] & (x_result_rd_i != x_rs_addr_i[2])));
     end
@@ -247,11 +249,12 @@ module cv32e40px_x_disp
   // illegal instruction assignment
   assign x_issue_illegal = x_illegal_insn_dec_i & ~instr_offloaded_q & instr_valid_i;
   always_comb begin
-    x_illegal_insn_o = 1'b0;
+    x_illegal_insn_n = 1'b0;
     if (x_issue_illegal & x_issue_ready_i & ~x_issue_resp_accept_i) begin
-      x_illegal_insn_o = 1'b1;
+      x_illegal_insn_n = 1'b1;
     end
   end
+  assign x_illegal_insn_o = x_illegal_insn_q;
 
   // scoreboard and status signal register
   always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -260,11 +263,17 @@ module cv32e40px_x_disp
       instr_offloaded_q <= 1'b0;
       id_q              <= '0;
       mem_counter_q     <= '0;
+      x_illegal_insn_q  <= 1'b0;
     end else begin
       scoreboard_q      <= scoreboard_d;
       instr_offloaded_q <= instr_offloaded_d;
       id_q              <= id_d;
       mem_counter_q     <= mem_counter_d;
+      if (x_control_illegal_reset_i) begin
+        x_illegal_insn_q <= 1'b0;
+      end else begin
+        x_illegal_insn_q <= x_illegal_insn_n;
+      end
     end
   end
 
