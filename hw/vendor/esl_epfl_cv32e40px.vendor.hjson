@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/esl-epfl/cv32e40px.git",
-    rev: "8855cbb5587e01f79972b03f6e09f8e3b65cb7a4",
+    rev: "10b08065c50d44b5355c1535cb8f740e68e4f106",
   },
 
   exclude_from_upstream: [

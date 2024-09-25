@@ -112,6 +112,7 @@ module cv32e40px_controller import cv32e40px_pkg::*;
 
   // X-IF signals
   output logic        x_branch_or_async_taken_o,
+  output logic        x_control_illegal_reset_o,
 
   // jump/branch signals
   input  logic        branch_taken_ex_i,          // branch taken signal from EX ALU
@@ -331,6 +332,7 @@ module cv32e40px_controller import cv32e40px_pkg::*;
     hwlp_targ_addr_o        = ((hwlp_start1_leq_pc && hwlp_end1_geq_pc) && !(hwlp_start0_leq_pc && hwlp_end0_geq_pc)) ? hwlp_start_addr_i[1] : hwlp_start_addr_i[0];
 
     x_branch_or_async_taken_o = 1'b0;
+    x_control_illegal_reset_o = 1'b0;
 
     unique case (ctrl_fsm_cs)
       // We were just reset, wait for fetch_enable
@@ -543,6 +545,7 @@ module cv32e40px_controller import cv32e40px_pkg::*;
                   halt_id_o         = 1'b0;
                   ctrl_fsm_ns       = id_ready_i ? FLUSH_EX : DECODE;
                   illegal_insn_n    = 1'b1;
+                  x_control_illegal_reset_o = 1'b1;
 
                 end else begin
 
@@ -688,6 +691,7 @@ module cv32e40px_controller import cv32e40px_pkg::*;
                         illegal_insn_i | ecall_insn_i:
                         begin
                             ctrl_fsm_ns = FLUSH_EX;
+                            x_control_illegal_reset_o = illegal_insn_i;
                         end
 
                         (~ebrk_force_debug_mode & ebrk_insn_i):
@@ -779,6 +783,7 @@ module cv32e40px_controller import cv32e40px_pkg::*;
                   halt_id_o         = 1'b1;
                   ctrl_fsm_ns       = FLUSH_EX;
                   illegal_insn_n    = 1'b1;
+                  x_control_illegal_reset_o = 1'b1;
 
                 end else begin
 
@@ -876,6 +881,7 @@ module cv32e40px_controller import cv32e40px_pkg::*;
                         illegal_insn_i | ecall_insn_i:
                         begin
                             ctrl_fsm_ns = FLUSH_EX;
+                            x_control_illegal_reset_o = illegal_insn_i;
                         end
 
                         (~ebrk_force_debug_mode & ebrk_insn_i):
