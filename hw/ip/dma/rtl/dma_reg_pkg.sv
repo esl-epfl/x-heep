@@ -21,12 +21,12 @@ package dma_reg_pkg;
 
   typedef struct packed {
     logic [15:0] q;
-    logic        qe;
+    logic qe;
   } dma_reg2hw_size_d1_reg_t;
 
   typedef struct packed {
     logic [15:0] q;
-    logic        qe;
+    logic qe;
   } dma_reg2hw_size_d2_reg_t;
 
   typedef struct packed {
@@ -67,22 +67,22 @@ package dma_reg_pkg;
 
   typedef struct packed {
     logic [5:0] q;
-    logic       qe;
+    logic qe;
   } dma_reg2hw_pad_top_reg_t;
 
   typedef struct packed {
     logic [5:0] q;
-    logic       qe;
+    logic qe;
   } dma_reg2hw_pad_bottom_reg_t;
 
   typedef struct packed {
     logic [5:0] q;
-    logic       qe;
+    logic qe;
   } dma_reg2hw_pad_right_reg_t;
 
   typedef struct packed {
     logic [5:0] q;
-    logic       qe;
+    logic qe;
   } dma_reg2hw_pad_left_reg_t;
 
   typedef struct packed {logic [12:0] q;} dma_reg2hw_window_size_reg_t;
@@ -111,7 +111,7 @@ package dma_reg_pkg;
 
   typedef struct packed {
     logic [7:0] d;
-    logic       de;
+    logic de;
   } dma_hw2reg_window_count_reg_t;
 
   typedef struct packed {logic d;} dma_hw2reg_transaction_ifr_reg_t;

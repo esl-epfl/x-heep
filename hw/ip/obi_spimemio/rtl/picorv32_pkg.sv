@@ -7,14 +7,14 @@
 package picorv32_pkg;
 
   typedef struct packed {
-    logic        valid;
-    logic [3:0]  wstrb;
+    logic valid;
+    logic [3:0] wstrb;
     logic [31:0] addr;
     logic [31:0] wdata;
   } picorv32_req_t;
 
   typedef struct packed {
-    logic        ready;
+    logic ready;
     logic [31:0] rdata;
   } picorv32_resp_t;
 

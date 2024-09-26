@@ -1,0 +1,20 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+{
+  name: "pulp_platform_per2axi",
+  target_dir: "pulp_platform_per2axi",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/per2axi.git",
+    rev: "892fcad60b6374fe558cbde76f4a529d473ba5ca",
+  },
+
+  exclude_from_upstream: [
+    ".gitignore",
+    "Bender.yml",
+    "CHANGELOG.md",
+    "LICENSE",
+    "src_files.yml",
+  ]
+}

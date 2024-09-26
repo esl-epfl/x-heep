@@ -20,9 +20,13 @@ MEMORY
   /* Our testbench is a bit weird in that we initialize the RAM (thus
      allowing initialized sections to be placed there). Infact we dump all
      sections to ram. */
-  % for i, section in enumerate(xheep.iter_linker_sections()):
+% for i, section in enumerate(xheep.iter_linker_sections()):
     ram${i} (rwxai) : ORIGIN = ${f"{section.start:#08x}"}, LENGTH = ${f"{section.size:#08x}"}
 % endfor
+% if hyperram_is_included in ("yes"):
+    HYPERRAM (rwx) : ORIGIN = ${f"{int(hyperram_mem_start_address,16):#08x}"}, LENGTH = ${f"{int(hyperram_mem_size_address,16):#08x}"}
+% endif
+
 }
 
 /*
@@ -302,6 +306,16 @@ SECTIONS
   } >ram${i}
 % endif
 % endfor
+
+
+% if hyperram_is_included in ("yes"):
+    .hyperram : ALIGN(4)
+    {
+        . = ALIGN(4);
+        *(.xheep_data_hyperram)
+        . = ALIGN(4);
+    } >HYPERRAM
+% endif
 
   /* Stabs debugging sections.  */
   .stab          0 : { *(.stab) }

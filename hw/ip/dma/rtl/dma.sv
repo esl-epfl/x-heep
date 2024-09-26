@@ -42,125 +42,125 @@ module dma #(
   localparam int unsigned LastFifoUsage = FIFO_DEPTH - 1;
   localparam int unsigned Addr_Fifo_Depth = (FIFO_DEPTH > 1) ? $clog2(FIFO_DEPTH) : 1;
 
-  dma_reg2hw_t                       reg2hw;
-  dma_hw2reg_t                       hw2reg;
+  dma_reg2hw_t reg2hw;
+  dma_hw2reg_t hw2reg;
 
-  logic        [               31:0] src_ptr_reg;
-  logic        [               31:0] read_ptr_reg;
-  logic        [               31:0] addr_ptr_reg;
-  logic        [               31:0] read_ptr_valid_reg;
-  logic        [               31:0] write_ptr_reg;
-  logic        [               31:0] write_address;
-  logic        [               31:0] dma_addr_cnt;
-  logic        [                2:0] dma_src_cnt_du;
-  logic        [                2:0] dma_dst_cnt_du;
-  logic                              dma_start;
-  logic                              dma_done;
-  logic                              dma_window_event;
+  logic [31:0] src_ptr_reg;
+  logic [31:0] read_ptr_reg;
+  logic [31:0] addr_ptr_reg;
+  logic [31:0] read_ptr_valid_reg;
+  logic [31:0] write_ptr_reg;
+  logic [31:0] write_address;
+  logic [31:0] dma_addr_cnt;
+  logic [2:0] dma_src_cnt_du;
+  logic [2:0] dma_dst_cnt_du;
+  logic dma_start;
+  logic dma_done;
+  logic dma_window_event;
 
-  logic                              window_done_q;
+  logic window_done_q;
 
-  logic        [Addr_Fifo_Depth-1:0] fifo_usage;
-  logic                              fifo_alm_full;
+  logic [Addr_Fifo_Depth-1:0] fifo_usage;
+  logic fifo_alm_full;
 
-  logic        [Addr_Fifo_Depth-1:0] fifo_addr_usage;
-  logic                              fifo_addr_alm_full;
+  logic [Addr_Fifo_Depth-1:0] fifo_addr_usage;
+  logic fifo_addr_alm_full;
 
-  logic                              data_in_req;
-  logic                              data_in_we;
-  logic        [                3:0] data_in_be;
-  logic        [               31:0] data_in_addr;
-  logic                              data_in_gnt;
-  logic                              data_in_rvalid;
-  logic        [               31:0] data_in_rdata;
+  logic data_in_req;
+  logic data_in_we;
+  logic [3:0] data_in_be;
+  logic [31:0] data_in_addr;
+  logic data_in_gnt;
+  logic data_in_rvalid;
+  logic [31:0] data_in_rdata;
 
-  logic                              data_addr_in_req;
-  logic                              data_addr_in_we;
-  logic        [                3:0] data_addr_in_be;
-  logic        [               31:0] data_addr_in_addr;
-  logic                              data_addr_in_gnt;
-  logic                              data_addr_in_rvalid;
-  logic        [               31:0] data_addr_in_rdata;
+  logic data_addr_in_req;
+  logic data_addr_in_we;
+  logic [3:0] data_addr_in_be;
+  logic [31:0] data_addr_in_addr;
+  logic data_addr_in_gnt;
+  logic data_addr_in_rvalid;
+  logic [31:0] data_addr_in_rdata;
 
-  logic                              data_out_req;
-  logic                              data_out_we;
-  logic        [                3:0] data_out_be;
-  logic        [               31:0] data_out_addr;
-  logic        [               31:0] data_out_wdata;
-  logic                              data_out_gnt;
-  logic                              data_out_rvalid;
-  logic        [               31:0] data_out_rdata;
+  logic data_out_req;
+  logic data_out_we;
+  logic [3:0] data_out_be;
+  logic [31:0] data_out_addr;
+  logic [31:0] data_out_wdata;
+  logic data_out_gnt;
+  logic data_out_rvalid;
+  logic [31:0] data_out_rdata;
 
   /* Sign extension signals */
-  logic                              sign_extend;
+  logic sign_extend;
 
   /* 2D signals */
 
   /* Dimensionality configuration */
-  logic                              dma_conf_1d;  // Dimensionality configuration: 0-> 1D, 1-> 2D
-  logic                              dma_conf_2d;  // Dimensionality configuration: 0-> 1D, 1-> 2D
+  logic dma_conf_1d;  // Dimensionality configuration: 0-> 1D, 1-> 2D
+  logic dma_conf_2d;  // Dimensionality configuration: 0-> 1D, 1-> 2D
 
   /* Counters */
-  logic        [               16:0] dma_src_cnt_d1;  // d1 src counter
-  logic        [               16:0] dma_src_cnt_d2;  // d2 src counter
-  logic        [               16:0] dma_dst_cnt_d1;  // d2 dst counter
+  logic [16:0] dma_src_cnt_d1;  // d1 src counter
+  logic [16:0] dma_src_cnt_d2;  // d2 src counter
+  logic [16:0] dma_dst_cnt_d1;  // d2 dst counter
 
   /* Increments */
-  logic        [                5:0] dma_src_d1_inc;  // d1 source increment
-  logic        [               22:0] dma_src_d2_inc;  // d2 source increment
-  logic        [                5:0] dma_dst_d1_inc;  // d1 destination increment
-  logic        [               22:0] dma_dst_d2_inc;  // d2 destination increment
+  logic [5:0] dma_src_d1_inc;  // d1 source increment
+  logic [22:0] dma_src_d2_inc;  // d2 source increment
+  logic [5:0] dma_dst_d1_inc;  // d1 destination increment
+  logic [22:0] dma_dst_d2_inc;  // d2 destination increment
 
   /* Flags */
-  logic                              pad_fifo_on;  // Padding flag for FIFO
-  logic                              pad_cnt_on;  // Padding flag for counters
-  logic                              read_ptr_update_sel;  // Select the read pointer update source
+  logic pad_fifo_on;  // Padding flag for FIFO
+  logic pad_cnt_on;  // Padding flag for counters
+  logic read_ptr_update_sel;  // Select the read pointer update source
 
   /* Padding FSM conditions */
-  logic                              idle_to_left_ex;
-  logic                              idle_to_top_ex;
-  logic                              idle_to_right_ex;
-  logic                              idle_to_bottom_ex;
-  logic                              top_ex_to_top_dn;
-  logic                              top_ex_to_left_ex;
-  logic                              top_dn_to_right_ex;
-  logic                              top_dn_to_bottom_ex;
-  logic                              top_dn_to_idle;
-  logic                              left_ex_to_left_dn;
-  logic                              left_dn_to_left_ex;
-  logic                              left_dn_to_right_ex;
-  logic                              left_dn_to_bottom_ex;
-  logic                              left_dn_to_idle;
-  logic                              right_ex_to_right_dn;
-  logic                              right_ex_to_left_ex;
-  logic                              right_dn_to_right_ex;
-  logic                              right_dn_to_idle;
-  logic                              right_ex_to_bottom_ex;
-  logic                              bottom_ex_to_idle;
+  logic idle_to_left_ex;
+  logic idle_to_top_ex;
+  logic idle_to_right_ex;
+  logic idle_to_bottom_ex;
+  logic top_ex_to_top_dn;
+  logic top_ex_to_left_ex;
+  logic top_dn_to_right_ex;
+  logic top_dn_to_bottom_ex;
+  logic top_dn_to_idle;
+  logic left_ex_to_left_dn;
+  logic left_dn_to_left_ex;
+  logic left_dn_to_right_ex;
+  logic left_dn_to_bottom_ex;
+  logic left_dn_to_idle;
+  logic right_ex_to_right_dn;
+  logic right_ex_to_left_ex;
+  logic right_dn_to_right_ex;
+  logic right_dn_to_idle;
+  logic right_ex_to_bottom_ex;
+  logic bottom_ex_to_idle;
 
   /* Padding synchronization signals */
-  logic                              data_in_rvalid_virt;
-  logic                              data_in_rvalid_virt_n;
-  logic                              data_in_rvalid_virt_n_n;
-  logic                              data_in_gnt_virt;
-  logic                              data_in_gnt_virt_n;
-  logic                              data_in_gnt_virt_n_n;
+  logic data_in_rvalid_virt;
+  logic data_in_rvalid_virt_n;
+  logic data_in_rvalid_virt_n_n;
+  logic data_in_gnt_virt;
+  logic data_in_gnt_virt_n;
+  logic data_in_gnt_virt_n_n;
 
   /* Interrupt Flag Register signals */
-  logic                              transaction_ifr;
-  logic                              dma_done_intr_n;
-  logic                              dma_done_intr;
-  logic                              window_ifr;
-  logic                              dma_window_intr;
-  logic                              dma_window_intr_n;
+  logic transaction_ifr;
+  logic dma_done_intr_n;
+  logic dma_done_intr;
+  logic window_ifr;
+  logic dma_window_intr;
+  logic dma_window_intr_n;
 
   /* FIFO signals */
-  logic                              fifo_flush;
-  logic                              fifo_full;
-  logic                              fifo_empty;
+  logic fifo_flush;
+  logic fifo_full;
+  logic fifo_empty;
 
-  logic                              fifo_addr_flush;
-  logic                              fifo_addr_full;
+  logic fifo_addr_flush;
+  logic fifo_addr_full;
   logic fifo_addr_empty, fifo_addr_empty_check;
 
   logic wait_for_rx;
@@ -298,53 +298,133 @@ module dma #(
   };
   assign idle_to_right_ex = {
     |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 
-                      && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_dst_cnt_du})
+                      && dma_src_cnt_d1 == ({
+      11'h0, reg2hw.pad_right.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    })
   };
   assign idle_to_bottom_ex = {
     |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 
-                      && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_dst_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_dst_cnt_du})
+                      && dma_src_cnt_d2 == ({
+      11'h0, reg2hw.pad_bottom.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    }) && dma_src_cnt_d1 == ({
+      14'h0, dma_dst_cnt_du
+    })
   };
   assign top_ex_to_top_dn = {
-    dma_src_cnt_d2 == ({1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_dst_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_dst_cnt_du}) && |reg2hw.pad_left.q == 1'b0
+    dma_src_cnt_d2 == ({
+      1'h0, reg2hw.size_d2.q
+    } + {
+      11'h0, reg2hw.pad_bottom.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    }) && dma_src_cnt_d1 == ({
+      14'h0, dma_dst_cnt_du
+    }) && |reg2hw.pad_left.q == 1'b0
   };
   assign top_ex_to_left_ex = {
-    dma_src_cnt_d2 == ({1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_dst_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_dst_cnt_du}) && |reg2hw.pad_left.q == 1'b1
+    dma_src_cnt_d2 == ({
+      1'h0, reg2hw.size_d2.q
+    } + {
+      11'h0, reg2hw.pad_bottom.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    }) && dma_src_cnt_d1 == ({
+      14'h0, dma_dst_cnt_du
+    }) && |reg2hw.pad_left.q == 1'b1
   };
   assign top_dn_to_right_ex = {
-    |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_dst_cnt_du})
+    |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 && dma_src_cnt_d1 == ({
+      11'h0, reg2hw.pad_right.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    })
   };
   assign top_dn_to_bottom_ex = {
-    |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_dst_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_dst_cnt_du})
+    |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 && dma_src_cnt_d2 == ({
+      11'h0, reg2hw.pad_bottom.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    }) && dma_src_cnt_d1 == ({
+      14'h0, dma_dst_cnt_du
+    })
   };
   assign top_dn_to_idle = {
     |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b0 && |dma_src_cnt_d2 == 1'b0
   };
   assign left_ex_to_left_dn = {
-    dma_src_cnt_d1 == ({1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_right.q} + {14'h0, dma_dst_cnt_du})
+    dma_src_cnt_d1 == ({
+      1'h0, reg2hw.size_d1.q
+    } + {
+      11'h0, reg2hw.pad_right.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    })
   };
   assign left_dn_to_left_ex = {
-    dma_src_cnt_d1 == ({14'h0, dma_dst_cnt_du}) && dma_src_cnt_d2 != ({14'h0, dma_dst_cnt_du} + {11'h0, reg2hw.pad_bottom.q}) && |reg2hw.pad_right.q == 1'b0
+    dma_src_cnt_d1 == ({
+      14'h0, dma_dst_cnt_du
+    }) && dma_src_cnt_d2 != ({
+      14'h0, dma_dst_cnt_du
+    } + {
+      11'h0, reg2hw.pad_bottom.q
+    }) && |reg2hw.pad_right.q == 1'b0
   };
   assign left_dn_to_right_ex = {
-    |reg2hw.pad_right.q == 1'b1 && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_dst_cnt_du})
+    |reg2hw.pad_right.q == 1'b1 && dma_src_cnt_d1 == ({
+      11'h0, reg2hw.pad_right.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    })
   };
   assign left_dn_to_bottom_ex = {
-    |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_dst_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_dst_cnt_du})
+    |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 && dma_src_cnt_d2 == ({
+      11'h0, reg2hw.pad_bottom.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    }) && dma_src_cnt_d1 == ({
+      14'h0, dma_dst_cnt_du
+    })
   };
   assign left_dn_to_idle = {
     |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b0 && |dma_src_cnt_d2 == 1'b0
   };
   assign right_ex_to_right_dn = {
-    dma_src_cnt_d1 == ({14'h0, dma_dst_cnt_du}) && dma_src_cnt_d2 != ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_dst_cnt_du}) && |reg2hw.pad_left.q == 1'b0
+    dma_src_cnt_d1 == ({
+      14'h0, dma_dst_cnt_du
+    }) && dma_src_cnt_d2 != ({
+      11'h0, reg2hw.pad_bottom.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    }) && |reg2hw.pad_left.q == 1'b0
   };
   assign right_ex_to_left_ex = {
-    dma_src_cnt_d1 == ({14'h0, dma_dst_cnt_du}) && dma_src_cnt_d2 != ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_dst_cnt_du}) && |reg2hw.pad_left.q == 1'b1
+    dma_src_cnt_d1 == ({
+      14'h0, dma_dst_cnt_du
+    }) && dma_src_cnt_d2 != ({
+      11'h0, reg2hw.pad_bottom.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    }) && |reg2hw.pad_left.q == 1'b1
   };
   assign right_ex_to_bottom_ex = {
-    |reg2hw.pad_bottom.q == 1'b1 && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_dst_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_dst_cnt_du})
+    |reg2hw.pad_bottom.q == 1'b1 && dma_src_cnt_d2 == ({
+      11'h0, reg2hw.pad_bottom.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    }) && dma_src_cnt_d1 == ({
+      14'h0, dma_dst_cnt_du
+    })
   };
   assign right_dn_to_right_ex = {
-    dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_dst_cnt_du}) && |reg2hw.pad_left.q == 1'b0
+    dma_src_cnt_d1 == ({
+      11'h0, reg2hw.pad_right.q
+    } + {
+      14'h0, dma_dst_cnt_du
+    }) && |reg2hw.pad_left.q == 1'b0
   };
   assign right_dn_to_idle = {|reg2hw.pad_bottom.q == 1'b0 && |dma_src_cnt_d2 == 1'b0};
   assign bottom_ex_to_idle = {
@@ -431,14 +511,18 @@ module dma #(
               /* In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d1)*data_unit */
               read_ptr_reg <= read_ptr_reg + {9'h0, dma_src_d2_inc};
             end else begin
-              read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc}; /* Increment of the d1 increment (stride) */
+              read_ptr_reg <= read_ptr_reg + {
+                26'h0, dma_src_d1_inc
+              };  /* Increment of the d1 increment (stride) */
             end
           end else begin
             if (dma_src_cnt_d1 == {14'h0, dma_src_cnt_du} && |dma_src_cnt_d2 == 1'b1) begin
               /* In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d2)*data_unit */
               read_ptr_reg <= src_ptr_reg;
             end else begin
-              read_ptr_reg <= read_ptr_reg + {9'h0, dma_src_d2_inc}; /* Increment of the d1 increment (stride) */
+              read_ptr_reg <= read_ptr_reg + {
+                9'h0, dma_src_d2_inc
+              };  /* Increment of the d1 increment (stride) */
             end
           end
         end
@@ -458,7 +542,9 @@ module dma #(
       if (dma_start == 1'b1) begin
         src_ptr_reg <= reg2hw.src_ptr.q + {26'h0, dma_src_d1_inc};
       end else if (data_in_gnt == 1'b1 && dma_conf_2d == 1'b1 && pad_cnt_on == 1'b0 && read_ptr_update_sel == 1'b1 &&
-                    (dma_src_cnt_d1 == {14'h0, dma_src_cnt_du} && |dma_src_cnt_d2 == 1'b1)) begin
+                    (dma_src_cnt_d1 == {
+            14'h0, dma_src_cnt_du
+          } && |dma_src_cnt_d2 == 1'b1)) begin
         src_ptr_reg <= src_ptr_reg + {26'h0, dma_src_d1_inc};
       end
     end
@@ -507,7 +593,9 @@ module dma #(
             // In this case, the d1 is finished, so we need to increment the pointer by sizeof(d1)*data_unit*strides
             write_ptr_reg <= write_ptr_reg + {9'h0, dma_dst_d2_inc};
           end else begin
-            write_ptr_reg <= write_ptr_reg + {26'h0, dma_dst_d1_inc}; // Increment just of one du, since we need to increase the 1d
+            write_ptr_reg <= write_ptr_reg + {
+              26'h0, dma_dst_d1_inc
+            };  // Increment just of one du, since we need to increase the 1d
           end
         end
       end
@@ -522,8 +610,20 @@ module dma #(
       dma_src_cnt_d2 <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q};
-        dma_src_cnt_d2 <= {1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_top.q} + {11'h0, reg2hw.pad_bottom.q};
+        dma_src_cnt_d1 <= {
+          1'h0, reg2hw.size_d1.q
+        } + {
+          11'h0, reg2hw.pad_left.q
+        } + {
+          11'h0, reg2hw.pad_right.q
+        };
+        dma_src_cnt_d2 <= {
+          1'h0, reg2hw.size_d2.q
+        } + {
+          11'h0, reg2hw.pad_top.q
+        } + {
+          11'h0, reg2hw.pad_bottom.q
+        };
       end else if (data_in_gnt == 1'b1) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
@@ -533,7 +633,13 @@ module dma #(
           if (dma_src_cnt_d1 == {14'h0, dma_src_cnt_du}) begin
             // In this case, the d1 is finished, so we need to decrement the d2 size and reset the d2 size
             dma_src_cnt_d2 <= dma_src_cnt_d2 - {14'h0, dma_src_cnt_du};
-            dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q};
+            dma_src_cnt_d1 <= {
+              1'h0, reg2hw.size_d1.q
+            } + {
+              11'h0, reg2hw.pad_left.q
+            } + {
+              11'h0, reg2hw.pad_right.q
+            };
           end else begin
             // In this case, the d1 isn't finished, so we need to decrement the d1 size
             dma_src_cnt_d1 <= dma_src_cnt_d1 - {14'h0, dma_src_cnt_du};
@@ -553,7 +659,13 @@ module dma #(
       dma_dst_cnt_d1 <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        dma_dst_cnt_d1 <= {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q};
+        dma_dst_cnt_d1 <= {
+          1'h0, reg2hw.size_d1.q
+        } + {
+          11'h0, reg2hw.pad_left.q
+        } + {
+          11'h0, reg2hw.pad_right.q
+        };
       end else if (data_out_gnt == 1'b1) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
@@ -562,7 +674,13 @@ module dma #(
           // 2D case
           if (dma_dst_cnt_d1 == {14'h0, dma_dst_cnt_du}) begin
             // In this case, the d1 is finished, so we need to reset the d2 size
-            dma_dst_cnt_d1 <= {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q};
+            dma_dst_cnt_d1 <= {
+              1'h0, reg2hw.size_d1.q
+            } + {
+              11'h0, reg2hw.pad_left.q
+            } + {
+              11'h0, reg2hw.pad_right.q
+            };
           end else begin
             // In this case, the d1 isn't finished, so we need to decrement the d1 size
             dma_dst_cnt_d1 <= dma_dst_cnt_d1 - {14'h0, dma_dst_cnt_du};
@@ -1057,7 +1175,13 @@ module dma #(
             end
           end else if (dma_conf_2d == 1'b1) begin
             // 2D DMA case: exit only if both 1d and 2d counters are at 0
-            if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q} && |dma_src_cnt_d2 == 1'b0) begin
+            if (dma_src_cnt_d1 == {
+                  1'h0, reg2hw.size_d1.q
+                } + {
+                  11'h0, reg2hw.pad_left.q
+                } + {
+                  11'h0, reg2hw.pad_right.q
+                } && |dma_src_cnt_d2 == 1'b0) begin
               dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
             end else begin
               // The read operation is the same in both cases
@@ -1216,7 +1340,9 @@ module dma #(
 
   // WINDOW EVENT
   // Count gnt write transaction and generate event pulse if WINDOW_SIZE is reached
-  assign dma_window_event = |reg2hw.window_size.q &  data_out_gnt & (window_counter + 'h1 >= {19'h0, reg2hw.window_size.q});
+  assign dma_window_event = |reg2hw.window_size.q & data_out_gnt & (window_counter + 'h1 >= {
+    19'h0, reg2hw.window_size.q
+  });
 
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_dma_window_cnt
     if (~rst_ni) begin

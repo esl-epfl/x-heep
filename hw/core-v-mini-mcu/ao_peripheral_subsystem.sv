@@ -75,6 +75,10 @@ module ao_peripheral_subsystem
     output reg_req_t pad_req_o,
     input  reg_rsp_t pad_resp_i,
 
+    //HyperBus Regs
+    output reg_req_t hyperbus_req_o,
+    input  reg_rsp_t hyperbus_rsp_i,
+
     // FAST INTR CTRL
     input  logic [14:0] fast_intr_i,
     output logic [14:0] fast_intr_o,
@@ -360,6 +364,9 @@ module ao_peripheral_subsystem
 
   assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_CONTROL_IDX] = pad_resp_i;
+
+  assign hyperbus_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::HYPERBUS_IDX];
+  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::HYPERBUS_IDX] = hyperbus_rsp_i;
 
   fast_intr_ctrl #(
       .reg_req_t(reg_pkg::reg_req_t),

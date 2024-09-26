@@ -19,14 +19,14 @@ module obi_to_picorv32
 
 );
   typedef enum logic [3:0] {
-    READ_MEM = 4'b0000,
-    WRITE_WORD = 4'b1111,
+    READ_MEM         = 4'b0000,
+    WRITE_WORD       = 4'b1111,
     WRITE_HALFWORD_1 = 4'b1100,
     WRITE_HALFWORD_0 = 4'b0011,
-    WRITE_BYTE_3 = 4'b1000,
-    WRITE_BYTE_2 = 4'b0100,
-    WRITE_BYTE_1 = 4'b0010,
-    WRITE_BYTE_0 = 4'b0001
+    WRITE_BYTE_3     = 4'b1000,
+    WRITE_BYTE_2     = 4'b0100,
+    WRITE_BYTE_1     = 4'b0010,
+    WRITE_BYTE_0     = 4'b0001
   } picorv_request_e;
 
   enum logic [1:0] {

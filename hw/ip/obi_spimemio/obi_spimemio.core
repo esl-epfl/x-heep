@@ -7,6 +7,7 @@ filesets:
   rtl:
     depend:
       - yosyshq:picorv32_spimemio:0-r1
+      - x-heep::packages
     files: 
       - rtl/obi_spimemio_reg_pkg.sv
       - rtl/obi_spimemio_reg_top.sv

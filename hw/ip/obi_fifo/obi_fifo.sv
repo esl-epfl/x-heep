@@ -33,8 +33,8 @@ module obi_fifo
   producer_obi_req_fsm_e producer_state_n, producer_state_q;
 
   typedef struct packed {
-    logic        we;
-    logic [3:0]  be;
+    logic we;
+    logic [3:0] be;
     logic [31:0] addr;
     logic [31:0] wdata;
   } obi_data_req_t;

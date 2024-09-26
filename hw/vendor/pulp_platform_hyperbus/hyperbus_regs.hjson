@@ -1,0 +1,92 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+// HyperBus Register Description
+
+{ name: "hyperbus",
+  clock_primary: "clk_i",
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ],
+  regwidth: "32",
+  registers: [
+
+    { name:     "T_LATENCY_ACCESS"
+      desc:     "T_LATENCY_ACCESS register"
+      swaccess: "rw"
+      fields: [
+        { bits: "3:0", name: "T_LATENCY_ACCESS", desc: "T_LATENCY_ACCESS register" }
+      ]
+    }
+    { name:     "EN_LATENCY_ADDITIONAL"
+      desc:     "EN_LATENCY_ADDITIONAL register"
+      swaccess: "rw"
+      fields: [
+        { bits: "0", name: "EN_LATENCY_ADDITIONAL", desc: "EN_LATENCY_ADDITIONAL register" }
+      ]
+    }
+    { name:     "T_BURST_MAX"
+      desc:     "T_BURST_MAX register"
+      swaccess: "rw"
+      fields: [
+        { bits: "15:0", name: "T_BURST_MAX", desc: "T_BURST_MAX register" }
+      ]
+    }
+    { name:     "T_READ_WRITE_RECOVERY"
+      desc:     "T_READ_WRITE_RECOVERY register"
+      swaccess: "rw"
+      fields: [
+        { bits: "3:0", name: "T_READ_WRITE_RECOVERY", desc: "T_READ_WRITE_RECOVERY register" }
+      ]
+    }
+    { name:     "T_RX_CLK_DELAY"
+      desc:     "T_RX_CLK_DELAY register"
+      swaccess: "rw"
+      fields: [
+        { bits: "3:0", name: "T_RX_CLK_DELAY", desc: "T_RX_CLK_DELAY register" }
+      ]
+    }
+    { name:     "T_TX_CLK_DELAY"
+      desc:     "T_TX_CLK_DELAY register"
+      swaccess: "rw"
+      fields: [
+        { bits: "3:0", name: "T_TX_CLK_DELAY", desc: "T_TX_CLK_DELAY register" }
+      ]
+    }
+    { name:     "ADDRESS_MASK_MSB"
+      desc:     "ADDRESS_MASK_MSB register"
+      swaccess: "rw"
+      fields: [
+        { bits: "4:0", name: "ADDRESS_MASK_MSB", desc: "ADDRESS_MASK_MSB register" }
+      ]
+    }
+    { name:     "ADDRESS_SPACE"
+      desc:     "ADDRESS_SPACE register"
+      swaccess: "rw"
+      fields: [
+        { bits: "0", name: "ADDRESS_SPACE", desc: "ADDRESS_SPACE register" }
+      ]
+    }
+    { name:     "PHYS_IN_USE"
+      desc:     "PHYS_IN_USE register"
+      swaccess: "rw"
+      fields: [
+        { bits: "0", name: "PHYS_IN_USE", desc: "PHYS_IN_USE register" }
+      ]
+    }
+    { name:     "WHICH_PHY"
+      desc:     "WHICH_PHY register"
+      swaccess: "rw"
+      fields: [
+        { bits: "0", name: "WHICH_PHY", desc: "WHICH_PHY register" }
+      ]
+    }
+    { name:     "T_CSH_CYCLE"
+      desc:     "T_CSH_CYCLE register"
+      swaccess: "rw"
+      fields: [
+        { bits: "3:0", name: "T_CSH_CYCLE", desc: "T_CSH_CYCLE register" }
+      ]
+    }
+  ]
+}

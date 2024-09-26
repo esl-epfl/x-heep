@@ -85,7 +85,7 @@
             type: output
         },
         gpio: {
-            num: 18,
+            num: 14,
             num_offset: 0, #first gpio is gpio0
             type: inout
         },
@@ -114,30 +114,206 @@
             type: inout
         },
 
-        pdm2pcm_pdm: {
+        hyper_cs: {
             num: 1,
             type: inout
+            active: low,
             mux: {
-                pdm2pcm_pdm: {
-                    type: inout
+                hyper_cs: {
+                    type: output
+                    active: low,
                 },
-                gpio_18: {
+                gpio_14: {
                     type: inout
                 }
             }
-        },
-        pdm2pcm_clk: {
+        }
+
+        hyper_ck: {
             num: 1,
             type: inout
             mux: {
-                pdm2pcm_clk: {
+                hyper_ck: {
+                    type: output
+                },
+                gpio_15: {
+                    type: inout
+                }
+            }
+        }
+
+        hyper_ckn: {
+            num: 1,
+            type: inout
+            mux: {
+                hyper_ckn: {
+                    type: output
+                },
+                gpio_16: {
+                    type: inout
+                }
+            }
+        }
+
+        hyper_rwds: {
+            num: 1,
+            type: inout
+            mux: {
+                hyper_rwds: {
+                    type: inout
+                },
+                gpio_17: {
+                    type: inout
+                }
+            }
+        } 
+        
+        hyper_reset: {
+            num: 1,
+            type: inout
+            active: low,
+            mux: {
+                hyper_reset: {
+                    type: output
+                    active: low,
+                },
+                gpio_18: {
+                    type: inout
+                },
+                spi2_cs_0: {
+                    type: inout
+                },
+            }
+        } 
+
+        hyper_dq_0: {
+            num: 1,
+            type: inout
+            mux: {
+                hyper_dq_0: {
                     type: inout
                 },
                 gpio_19: {
                     type: inout
-                }
+                },
+                spi2_sd_0: {
+                    type: inout
+                },
             }
-        },
+        } 
+        hyper_dq_1: {
+            num: 1,
+            type: inout
+            mux: {
+                hyper_dq_1: {
+                    type: inout
+                },
+                gpio_20: {
+                    type: inout
+                },
+                spi2_sd_1: {
+                    type: inout
+                },
+            }
+        } 
+
+        hyper_dq_2: {
+            num: 1,
+            type: inout
+            mux: {
+                hyper_dq_2: {
+                    type: inout
+                },
+                gpio_21: {
+                    type: inout
+                },
+                spi2_sd_2: {
+                    type: inout
+                },
+
+            }
+        } 
+
+        hyper_dq_3: {
+            num: 1,
+            type: inout
+            mux: {
+                hyper_dq_3: {
+                    type: inout
+                },
+                gpio_22: {
+                    type: inout
+                },
+                spi2_sd_3: {
+                    type: inout
+                },
+            }
+        } 
+
+        hyper_dq_4: {
+            num: 1,
+            type: inout
+            mux: {
+                hyper_dq_4: {
+                    type: inout
+                },
+                gpio_23: {
+                    type: inout
+                },
+                spi2_sck: {
+                    type: inout
+                },
+            }
+        } 
+
+        hyper_dq_5: {
+            num: 1,
+            type: inout
+            mux: {
+                hyper_dq_5: {
+                    type: inout
+                },
+                gpio_24: {
+                    type: inout
+                }
+                pdm2pcm_pdm: {
+                    type: inout
+                },
+            }
+        } 
+
+        hyper_dq_6: {
+            num: 1,
+            type: inout
+            mux: {
+                hyper_dq_6: {
+                    type: inout
+                },
+                gpio_25: {
+                    type: inout
+                }
+                pdm2pcm_clk: {
+                    type: inout
+                },
+            }
+        } 
+
+        hyper_dq_7: {
+            num: 1,
+            type: inout
+            mux: {
+                hyper_dq_7: {
+                    type: inout
+                },
+                gpio_26: {
+                    type: inout
+                },
+                spi2_cs_1: {
+                    type: inout
+                },
+            }
+        } 
+
         i2s_sck: {
             num: 1,
             type: inout
@@ -145,7 +321,7 @@
                 i2s_sck: {
                     type: inout
                 },
-                gpio_20: {
+                gpio_27: {
                     type: inout
                 }
             }
@@ -157,7 +333,7 @@
                 i2s_ws: {
                     type: inout
                 },
-                gpio_21: {
+                gpio_28: {
                     type: inout
                 }
             }
@@ -169,95 +345,12 @@
                 i2s_sd: {
                     type: inout
                 },
-                gpio_22: {
+                gpio_29: {
                     type: inout
                 }
            }
         },
-        spi2_cs_0: {
-            num: 1,
-            type: inout
-            mux: {
-                spi2_cs_0: {
-                    type: inout
-                },
-                gpio_23: {
-                    type: inout
-                },
-            }
-        },
-        spi2_cs_1: {
-            num: 1,
-            type: inout
-            mux: {
-                spi2_cs_1: {
-                    type: inout
-                },
-                gpio_24: {
-                    type: inout
-                },
-            },
-        },
-        spi2_sck: {
-            num: 1,
-            type: inout
-            mux: {
-                spi2_sck: {
-                    type: inout
-                },
-                gpio_25: {
-                    type: inout
-                },
-            }
-        },
-        spi2_sd_0: {
-            num: 1,
-            type: inout
-            mux: {
-                spi2_sd_0: {
-                    type: inout
-                },
-                gpio_26: {
-                    type: inout
-                },
-            }
-        },
-        spi2_sd_1: {
-            num: 1,
-            type: inout
-            mux: {
-                spi2_sd_1: {
-                    type: inout
-                },
-                gpio_27: {
-                    type: inout
-                },
-            }
-        },
-        spi2_sd_2: {
-            num: 1,
-            type: inout
-            mux: {
-                spi2_sd_2: {
-                    type: inout
-                },
-                gpio_28: {
-                    type: inout
-                },
-            }
-        },
-        spi2_sd_3: {
-            num: 1,
-            type: inout
-            mux: {
-                spi2_sd_3: {
-                    type: inout
-                },
-                gpio_29: {
-                    type: inout
-                },
-            }
-        },
+
         i2c_scl: {
             num: 1,
             type: inout
@@ -265,7 +358,7 @@
                 i2c_scl: {
                     type: inout
                 },
-                gpio_31: {
+                gpio_30: {
                     type: inout
                 },
             }
@@ -277,7 +370,7 @@
                 i2c_sda: {
                     type: inout
                 },
-                gpio_30: {
+                gpio_31: {
                     type: inout
                 },
             }
