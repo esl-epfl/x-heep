@@ -170,7 +170,7 @@ module hyperbus_trx #(
 
     // If testing, replace gated RWDS clock with primary (PHY) clock;
     // PHY clock itself may be flattened with system clock _outside_ hyperbus!
-`ifdef TARGET_FPGA
+`ifdef FPGA_SYNTHESIS
    assign rx_rwds_clk = rx_rwds_clk_orig;
 `else
     tc_clk_mux2 i_rx_rwds_clk_mux (

@@ -49,10 +49,11 @@ module hyperbus_cfg_regs #(
 
     assign reg_rsp_o.ready  = ~trans_active_i;  // Config writeable unless currently in transfer
     assign reg_rsp_o.error  = ~sel_reg_mapped;
-                         
+
     // Read from register
+    reg_data_t [NumRegs-1:0] rfield;
     always_comb begin : proc_comb_read
-        reg_data_t [NumRegs-1:0] rfield = '0;
+        rfield = '0;
         reg_rsp_o.rdata = '0;
         if (sel_reg_mapped) begin
             rfield = {

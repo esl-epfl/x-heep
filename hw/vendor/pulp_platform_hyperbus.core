@@ -29,7 +29,7 @@ filesets:
 
   rtl_sim:
     files:
-    - pulp_platform_hyperbus/models/configurable_delay.behav.sv
+    - pulp_platform_hyperbus/models/configurable_delay.behav.dummy.sv
     file_type: systemVerilogSource
 
   rtl_sim_verilator:
@@ -48,6 +48,6 @@ targets:
     - files_rtl
     - "target_sim? (!tool_verilator ? (rtl_sim))"
     - "target_sim? (tool_verilator ? (rtl_sim_verilator))"
-    - target_nexys-a7-100t? (rtl_fpga)   
-    - target_pynq-z2? (rtl_fpga)   
-    - target_zcu104? (rtl_fpga)   
+    - target_nexys-a7-100t? (rtl_fpga)
+    - target_pynq-z2? (rtl_fpga)
+    - target_zcu104? (rtl_fpga)

@@ -91,7 +91,7 @@ module hyperbus_subsystem
       .MemAddrWidth(32),
       .AxiAddrWidth(32),
       .DataWidth(32),
-      .MaxRequests(0),
+      .MaxRequests(1),
       .axi_req_t(core_v_mini_mcu_pkg::axi_req_t),
       .axi_rsp_t(core_v_mini_mcu_pkg::axi_resp_t)
   ) axi_from_mem_i (
@@ -111,5 +111,29 @@ module hyperbus_subsystem
       .axi_req_o(axi_req),
       .axi_rsp_i(axi_resp)
   );
+
+`ifndef SYNTHESIS
+
+  /*
+    this version of axi from mem uses axi_lite_from_mem
+    as axi lite does not support any transaction size but the buswidth (32b for X-HEEP)
+    you cannot access the HyperRam with data bidwidth < 32b (e.g. 8 and 16)
+
+    Future fixes will come by bypassing the axi_lite bridge and using the OBI BE (byte enable) to infer the size.
+    For now, this limitation must be taken into account in SW - so if 8b or 16b data needs to be used, we recocomend threat them packet
+
+    further constraints have been added by checking that the OBI BE must be always 4'b1111 in Simulation (but not FPGA or ASIC - thus be careful)
+
+  */
+
+  always_ff @(posedge clk_i, negedge rst_ni) begin : check_out_of_bound
+    if (rst_ni) begin
+      if (obi_req_i.req && ((obi_req_i.addr[1:0] != 2'b00) || obi_req_i.be != 4'b1111)) begin
+        $display("%t wrong HyperRam access 0x%08x (be: %x)", $time, obi_req_i.addr, obi_req_i.be);
+        $stop;
+      end
+    end
+  end
+`endif
 
 endmodule : hyperbus_subsystem

@@ -58,17 +58,6 @@ module hyperbus #(
     output logic [NumPhys-1:0]               hyper_reset_no
 );
 
-   typedef struct packed {
-        logic [(16*NumPhys)-1:0]    data;
-        logic                       last;
-        logic [(2*NumPhys)-1:0]     strb;   // mask data
-    } hyper_tx_t;
-
-    typedef struct packed {
-        logic [(16*NumPhys)-1:0]    data;
-        logic                       last;
-        logic                       error;
-    } hyper_rx_t;
 
     // Combined transfer type for CDC
     typedef struct packed {
@@ -85,10 +74,10 @@ module hyperbus #(
     logic                       trans_active;
 
     // AXI slave
-    hyper_rx_t                  axi_rx;
+    hyperbus_pkg::hyper_rx_t                  axi_rx;
     logic                       axi_rx_valid;
     logic                       axi_rx_ready;
-    hyper_tx_t                  axi_tx;
+    hyperbus_pkg::hyper_tx_t                  axi_tx;
     logic                       axi_tx_valid;
     logic                       axi_tx_ready;
     logic                       axi_b_error;
@@ -99,10 +88,10 @@ module hyperbus #(
     logic                       axi_trans_ready;
 
     // PHY
-    hyper_rx_t                  phy_rx;
+    hyperbus_pkg::hyper_rx_t                  phy_rx;
     logic                       phy_rx_valid;
     logic                       phy_rx_ready;
-    hyper_tx_t                  phy_tx;
+    hyperbus_pkg::hyper_tx_t                  phy_tx;
     logic                       phy_tx_valid;
     logic                       phy_tx_ready;
     logic                       phy_b_error;
@@ -143,8 +132,8 @@ module hyperbus #(
         .axi_rsp_t      ( axi_rsp_t         ),
         .NumChips       ( NumChips          ),
         .NumPhys        ( NumPhys           ),
-        .hyper_rx_t     ( hyper_rx_t        ),
-        .hyper_tx_t     ( hyper_tx_t        ),
+        .hyper_rx_t     ( hyperbus_pkg::hyper_rx_t        ),
+        .hyper_tx_t     ( hyperbus_pkg::hyper_tx_t        ),
         .rule_t         ( axi_rule_t        )
     ) i_axi_slave (
         .clk_i           ( clk_sys_i            ),
@@ -179,8 +168,8 @@ module hyperbus #(
         .NumChips       ( NumChips          ),
         .StartupCycles  ( PhyStartupCycles  ),
         .NumPhys        ( NumPhys           ),
-        .hyper_rx_t     ( hyper_rx_t        ),
-        .hyper_tx_t     ( hyper_tx_t        ),
+        .hyper_rx_t     ( hyperbus_pkg::hyper_rx_t        ),
+        .hyper_tx_t     ( hyperbus_pkg::hyper_tx_t        ),
         .SyncStages     ( SyncStages        )
     ) i_phy (
         .clk_i          ( clk_phy_i_0       ),
@@ -250,7 +239,7 @@ module hyperbus #(
 
     // Write data, TX CDC FIFO
     cdc_fifo_gray  #(
-        .T          ( hyper_tx_t     ),
+        .T          ( hyperbus_pkg::hyper_tx_t     ),
         .LOG_DEPTH  ( TxFifoLogDepth )
     ) i_cdc_fifo_tx (
         .src_rst_ni     ( rst_sys_ni    ),
@@ -268,7 +257,7 @@ module hyperbus #(
 
     // Read data, RX CDC FIFO
     cdc_fifo_gray  #(
-        .T          ( hyper_rx_t     ),
+        .T          ( hyperbus_pkg::hyper_rx_t     ),
         .LOG_DEPTH  ( RxFifoLogDepth )
     ) i_cdc_fifo_rx (
         .src_rst_ni     ( rst_phy       ),
@@ -285,26 +274,28 @@ module hyperbus #(
     );
 
     // Shift clock by 90 degrees
-   generate
-    if(IsClockODelayed==0) begin : clock_generator
-     hyperbus_clk_gen ddr_clk (
-         .clk_i    ( clk_phy_i                       ),
-         .rst_ni   ( rst_phy_ni                      ),
-         .clk0_o   ( clk_phy_i_0                     ),
-         .clk90_o  ( clk_phy_i_90                    ),
-         .clk180_o (                                 ),
-         .clk270_o (                                 ),
-         .rst_no   ( rst_phy                         )
-     );
-     end else if (IsClockODelayed==1) begin
-     assign clk_phy_i_0 = clk_phy_i;
-     assign rst_phy = rst_phy_ni;
-     hyperbus_delay i_delay_tx_clk_90 (
-         .in_i       ( clk_phy_i_0        ),
-         .delay_i    ( cfg.t_tx_clk_delay ),
-         .out_o      ( clk_phy_i_90       )
-         );
-       end
-    endgenerate
+    generate
+     if(IsClockODelayed==0) begin : clock_generator
+      hyperbus_clk_gen ddr_clk (
+          .clk_i    ( clk_phy_i                       ),
+          .rst_ni   ( rst_phy_ni                      ),
+          .clk0_o   ( clk_phy_i_0                     ),
+          .clk90_o  ( clk_phy_i_90                    ),
+          .clk180_o (                                 ),
+          .clk270_o (                                 ),
+          .rst_no   ( rst_phy                         )
+      );
+      end else if (IsClockODelayed==1) begin
+      assign clk_phy_i_0 = clk_phy_i;
+      assign rst_phy = rst_phy_ni;
+      hyperbus_delay i_delay_tx_clk_90 (
+          .in_i       ( clk_phy_i_0        ),
+          .delay_i    ( cfg.t_tx_clk_delay ),
+          .out_o      ( clk_phy_i_90       )
+          );
+        end
+     endgenerate
+
+
 
 endmodule : hyperbus

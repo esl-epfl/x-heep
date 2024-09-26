@@ -14,7 +14,7 @@ module hyperbus_clock_diff_out
     output logic out_no
 );
 
-   `ifdef FPGA_EMUL
+   `ifdef FPGA_SYNTHESIS
 
        logic en_sync;
 
@@ -41,6 +41,6 @@ module hyperbus_clock_diff_out
         .clk_o ( out_no )
     );
 
-   `endif // !`ifdef FPGA_EMUL
+   `endif // !`ifdef FPGA_SYNTHESIS
 
 endmodule
