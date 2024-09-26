@@ -2,14 +2,14 @@
 
 `X-HEEP` is meant to be extended with your own custom IPs. `X-HEEP` itself posseses a hardware-software framework capable of working standalone. If you want to extend it, you will need to merge your hardware and software with `X-HEEP`'s.
 
-For this purpose we support the [CORE-V-XIF](https://docs.openhwgroup.org/projects/openhw-group-core-v-xif/en/latest/intro.html) interface with the [cv32e40x](https://github.com/openhwgroup/cv32e40x) RISCV-CPU, and we expose master and slave ports to/from the bus.
+For this purpose we support the [CV-X-IF](https://docs.openhwgroup.org/projects/openhw-group-core-v-xif/en/latest/intro.html) interface with the [cv32e40x](https://github.com/openhwgroup/cv32e40x) or [cv32e40px](https://github.com/esl-epfl/cv32e40px) RISCV-CPU, and we expose master and slave ports to/from the bus.
 
-> `X-HEEP` currently uses the revision [`0.9.0`](https://github.com/openhwgroup/cv32e40x/commit/f17028f2369373d9443e4636f2826218e8d54e0f) of OpenHW Groups's `cv32e40x` core to implement the `CORE-V-XIF`. It is recommended to use the same revision in peripheral IPs to prevent conflicts during RTL compilation.
+> We recommend using the `cv32e40px` for pairing with your CV-X-IF compliant coprocessor. If you choose to use the `cv32e40x`, `X-HEEP` currently uses the revision [`0.9.0`](https://github.com/openhwgroup/cv32e40x/commit/f17028f2369373d9443e4636f2826218e8d54e0f). It is recommended to use the same revision in peripheral IPs to prevent conflicts during RTL compilation.
 
 Here you can find a list of `X-HEEP` based open-source examples. If you want to include your project in this list, please open an issue with a link to your repository.
 
 * [CGRA-X-HEEP](https://github.com/esl-epfl/cgra_x_heep): A CGRA loosely coupled with X-HEEP.
-* [F-HEEP](https://github.com/davidmallasen/F-HEEP): System integrating [fpu_ss](https://github.com/pulp-platform/fpu_ss) into X-HEEP via the eXtension interface and cv32e40x.
+* [F-HEEP](https://github.com/davidmallasen/F-HEEP): System integrating [fpu_ss](https://github.com/pulp-platform/fpu_ss) into X-HEEP via the eXtension interface and cv32e40px.
 * [KALIPSO](https://github.com/vlsi-lab/ntt_intt_kyber) and [KRONOS](https://github.com/vlsi-lab/keccak_integration/tree/keccak_xheep): Loosely-coupled, post-quantum cryptography accelerators for NTT/INTT and Keccak hash function integrated into X-HEEP.
 
 
@@ -98,7 +98,7 @@ To achieve this:
 
 * Create a new top-level repository (`BASE`) and vendorize (or add as git submodules) both your `CORE-V-XIF/OBI` compliant coprocessor/accelerator and `X-HEEP`.
 * Copy the `x-heep/hw/system/x_heep_system.sv` as your new top-level module. Then modify it as needed to include your co-processor and connect it to the `core_v_mini_mcu` with the `XIF`. The `XIF` SystemVerilog interface must be instantiated in the top-level module, where `X-HEEP` and your co-processor are connected. See the `X-HEEP` [testbench](./../../../tb/testharness.sv) as an example.
-* Before building software remember to run `make mcu-gen CPU=cv32e40x`.
+* Before building software remember to run `make mcu-gen CPU=cv32e40px`.
 
 To add this new top-level module to the simulation/synthesis flow you can extend the [FuseSoC](https://fusesoc.readthedocs.io/en/stable/user/index.html) support of `X-HEEP`.
 
@@ -328,7 +328,7 @@ include $(XHEEP_MAKE)
 * The `verilator-sim` rule will override the `X-HEEP` Makefile's one.
 * Any other target will be passed straight to `X-HEEP`'s Makefile. For example
 ```sh
-make mcu-gen CPU=cv32e40x
+make mcu-gen CPU=cv32e40px
 ```
 </details>
 
@@ -401,3 +401,10 @@ If you plan to store source files in a different location that the one proposed,
 make app PROJECT=your_app SOURCE=<path_to_your_sw_relative_to_x_heep_sw>
 ```
 Consider that inside this `sw` folder the same structure than the one proposed is required.
+
+
+## Inter-process communication using Verilator's DPI
+
+The following [repository](https://github.com/specs-feup/x-heep) uses X-HEEP and the Verilator simulator to model a CPU-CGRA hybrid system. This architecture simulates the CPU integrated into the X-HEEP system, and an external Java process simulates the accelerator. Both components require a communication channel to exchange instructions and data. Using the existing infrastructure to to interact with an external OS process is not feasible at first sight, given that the X-HEEP ecosystem's pipeline encapsulates most of the simulation build and execution, with all modules supplied directly to Verilator. 
+
+To circumvent this issue, this project uses [Direct Programming Interface (DPI)](https://verilator.org/guide/latest/connecting.html) calls (defined in `hw/ip_examples/cgraitf/cgraitfdpi.c`) to establish a connection and communicate with an external process through a Unix Domain Socket. This behavior mirrors the UART module (used as the skeleton code) that connects and outputs _printf_ information to the pseudo-terminal. These calls are embedded in a mock CGRA peripheral/interface, located in `hw/ip_examples/cgraitf/cgraitf.sv`. The module overrides reads and writes to the specified peripheral address, with the proper socket-based mechanism (_send_ or _recv_). The _simple_accelerator_ module could also be similarly customized to perform the same operations, using X-HEEP's  interfaces and memory access protocols. A given user program executed in the CPU (such as `sw/applications/cgra_itf/main.c`) must then select assignments to or from the address to trigger the appropriate action.

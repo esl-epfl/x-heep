@@ -175,7 +175,7 @@ if( app_found EQUAL 0 )
       if(NOT ${file_path} MATCHES ".*/crt/.*")
         SET(add 1)
       endif()
-    elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}/applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) AND ( NOT  ${file_path} MATCHES "exclude" ) )
+    elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) AND ( NOT  ${file_path} MATCHES "exclude" ) )
       SET(add 1)
     endif()
 

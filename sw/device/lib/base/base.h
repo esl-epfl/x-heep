@@ -106,7 +106,7 @@ typedef enum dif_toggle {
 // * @param val A potential dif_toggle_t value.
 // * @return Bool indicating validity of toggle value.
 // */
-// inline bool dif_is_valid_toggle(dif_toggle_t val) {
+// static inline bool dif_is_valid_toggle(dif_toggle_t val) {
 //  switch (val) {
 //    case kDifToggleEnabled:
 //      return true;
@@ -123,7 +123,7 @@ typedef enum dif_toggle {
 // * @param val A dif_toggle_t value.
 // * @return Corresponding bool value.
 // */
-// inline bool dif_toggle_to_bool(dif_toggle_t val) {
+// static inline bool dif_toggle_to_bool(dif_toggle_t val) {
 //  switch (val) {
 //    case kDifToggleEnabled:
 //      return true;
@@ -140,7 +140,7 @@ typedef enum dif_toggle {
 // * @param val A bool value.
 // * @return Corresponding dif_toggle_t value.
 // */
-// inline dif_toggle_t dif_bool_to_toggle(bool val) {
+// static inline dif_toggle_t dif_bool_to_toggle(bool val) {
 //  return val ? kDifToggleEnabled : kDifToggleDisabled;
 // }
 
@@ -150,7 +150,7 @@ typedef enum dif_toggle {
 // * @param val A multi-bit bool value.
 // * @return Corresponding dif_toggle_t value.
 // */
-// inline dif_toggle_t dif_multi_bit_bool_to_toggle(multi_bit_bool_t val) {
+// static inline dif_toggle_t dif_multi_bit_bool_to_toggle(multi_bit_bool_t val) {
 //  switch (val) {
 //    case kMultiBitBool4True:
 //    case kMultiBitBool8True:
@@ -169,7 +169,7 @@ typedef enum dif_toggle {
 // * @return Corresponding `multi_bit_bool_t` value. Invalid values resolve to
 // * "false".
 // */
-// inline multi_bit_bool_t dif_toggle_to_multi_bit_bool4(dif_toggle_t val) {
+// static inline multi_bit_bool_t dif_toggle_to_multi_bit_bool4(dif_toggle_t val) {
 //  if (val == kDifToggleEnabled) {
 //    return kMultiBitBool4True;
 //  } else {
@@ -184,7 +184,7 @@ typedef enum dif_toggle {
 // * @return Corresponding `multi_bit_bool_t` value. Invalid values resolve to
 // * "false".
 // */
-// inline multi_bit_bool_t dif_toggle_to_multi_bit_bool8(dif_toggle_t val) {
+// static inline multi_bit_bool_t dif_toggle_to_multi_bit_bool8(dif_toggle_t val) {
 //  if (val == kDifToggleEnabled) {
 //    return kMultiBitBool8True;
 //  } else {
@@ -199,7 +199,7 @@ typedef enum dif_toggle {
 // * @return Corresponding `multi_bit_bool_t` value. Invalid values resolve to
 // * "false".
 // */
-// inline multi_bit_bool_t dif_toggle_to_multi_bit_bool12(dif_toggle_t val) {
+// static inline multi_bit_bool_t dif_toggle_to_multi_bit_bool12(dif_toggle_t val) {
 //  if (val == kDifToggleEnabled) {
 //    return kMultiBitBool12True;
 //  } else {
@@ -214,7 +214,7 @@ typedef enum dif_toggle {
 // * @return Corresponding `multi_bit_bool_t` value. Invalid values resolve to
 // * "false".
 // */
-// inline multi_bit_bool_t dif_toggle_to_multi_bit_bool16(dif_toggle_t val) {
+// static inline multi_bit_bool_t dif_toggle_to_multi_bit_bool16(dif_toggle_t val) {
 //  if (val == kDifToggleEnabled) {
 //    return kMultiBitBool16True;
 //  } else {

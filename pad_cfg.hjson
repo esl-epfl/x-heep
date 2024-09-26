@@ -8,7 +8,7 @@
 // The pads contains the list of all the pads available in the design.
 // Each pad is defined by its name and can have the following attributes:
 //    num: <number> (mandatory) - the number of pads of this type
-//    type: <input|output|inout> (mandatory) - the type of the pad
+//    type: <input|output|inout|supply> (mandatory) - the type of the pad
 //    num_offset: <number> (optional) - the offset to the first pad of this type (default 0)
 //    mapping: <top|right|bottom|left> (optional) - the mapping of the pad in the design. Useful for ASICs (default top)
 //    active: <low|high> (optional) - the active level of the pad (default high)
@@ -16,6 +16,12 @@
 //    mux: <dict> (optional) - the muxing options for the pad
 //    skip_declaration: <True|False> (optional) - skip the declaration of the pad in the top level (default False)
 //    keep_internal: <True|False> (optional) - keep the pad internal to the design (default False)
+//    layout_attributes: (optional) - collection of attributes related to the physical (ASIC) layout of the pads
+//        index: (mandatory) index of the pad on its side of the I/O ring
+//        orient: (optional) <R0|R90|R180|R270|MX|MX90|MY|MY90> - orientation of the pad
+//        cell: (mandatory for type "supply") <valid name of cell in the desired tech. library> - specific cell to use if not a default pad cell (ex. for VDD/VSS pads)
+//        offset: (optional) <float> - offset from edge (in um)
+//        skip: (optional) <float> - distance from neighboring pad (in um)
 // 
 // Add this field at the same level of pads (not inside) if you want to define PADs attributes
 //    attributes: {
