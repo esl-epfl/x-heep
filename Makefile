@@ -159,6 +159,7 @@ app: clean-app
 	echo "\033[0;31mI would start by checking b) if I were you!\033[0m"; \
 	exit 1; \
 	}
+	python post_proc_hex.py sw/build/main.hex sw/build/main.hex
 
 ## Just list the different application names available
 app-list:
