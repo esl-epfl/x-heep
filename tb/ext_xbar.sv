@@ -135,8 +135,8 @@ module ext_xbar #(
 
       // 1-to-N crossbar
       xbar_varlat_one_to_n #(
-          .XBAR_NSLAVE   (XBAR_NSLAVE),
-          .AGGREGATE_GNT (32'd0) // the neck request is aggregating all the input masters
+          .XBAR_NSLAVE(XBAR_NSLAVE),
+          .AGGREGATE_GNT(32'd0)  // the neck request is aggregating all the input masters
       ) i_xbar_slave (
           .clk_i        (clk_i),
           .rst_ni       (rst_ni),

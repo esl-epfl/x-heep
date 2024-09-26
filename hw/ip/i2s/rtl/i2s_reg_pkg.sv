@@ -35,7 +35,7 @@ package i2s_reg_pkg;
 
   typedef struct packed {
     logic [31:0] q;
-    logic        re;
+    logic re;
   } i2s_reg2hw_rxdata_reg_t;
 
   typedef struct packed {logic [15:0] q;} i2s_reg2hw_watermark_reg_t;

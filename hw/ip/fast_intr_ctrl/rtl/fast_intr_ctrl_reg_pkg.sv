@@ -21,12 +21,12 @@ package fast_intr_ctrl_reg_pkg;
 
   typedef struct packed {
     logic [14:0] d;
-    logic        de;
+    logic de;
   } fast_intr_ctrl_hw2reg_fast_intr_pending_reg_t;
 
   typedef struct packed {
     logic [14:0] d;
-    logic        de;
+    logic de;
   } fast_intr_ctrl_hw2reg_fast_intr_clear_reg_t;
 
   // Register -> HW type

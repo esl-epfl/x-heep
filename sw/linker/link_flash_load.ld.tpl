@@ -14,6 +14,9 @@ MEMORY
 <%flash_end = section.end%>
 % endfor
     FLASH_left (rx) : ORIGIN = ${f"{flash_end + int(flash_mem_start_address,16):#08x}"}, LENGTH = ${f"{int(flash_mem_size_address,16) - flash_end:#08x}"}
+% if hyperram_is_included in ("yes"):
+    HYPERRAM (rwx) : ORIGIN = ${f"{int(hyperram_mem_start_address,16):#08x}"}, LENGTH = ${f"{int(hyperram_mem_size_address,16):#08x}"}
+% endif
 }
 
 
@@ -182,5 +185,15 @@ SECTIONS {
         *(.xheep_data_flash_only)
         . = ALIGN(4);
     } >FLASH_left
+
+
+% if hyperram_is_included in ("yes"):
+    .hyperram : ALIGN(4)
+    {
+        . = ALIGN(4);
+        *(.xheep_data_hyperram)
+        . = ALIGN(4);
+    } >HYPERRAM
+% endif
 
 }

@@ -15,12 +15,12 @@ package iffifo_reg_pkg;
 
   typedef struct packed {
     logic [31:0] q;
-    logic        re;
+    logic re;
   } iffifo_reg2hw_fifo_out_reg_t;
 
   typedef struct packed {
     logic [31:0] q;
-    logic        qe;
+    logic qe;
   } iffifo_reg2hw_fifo_in_reg_t;
 
   typedef struct packed {logic [31:0] q;} iffifo_reg2hw_watermark_reg_t;
@@ -53,7 +53,7 @@ package iffifo_reg_pkg;
 
   typedef struct packed {
     logic [31:0] d;
-    logic        de;
+    logic de;
   } iffifo_hw2reg_occupancy_reg_t;
 
   // Register -> HW type

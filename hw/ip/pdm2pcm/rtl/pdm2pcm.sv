@@ -59,7 +59,11 @@ module pdm2pcm #(
 
   assign rx_data = ({{{32 - FIFO_WIDTH} {1'b0}}, rx_fifo});
 
-  assign hw2reg.status.reach.d  = ({{{32-FIFO_ADDR_WIDTH}{1'b0}},fifo_usage}) > {{26{1'b0}},reg2hw.reachcount.q};
+  assign hw2reg.status.reach.d = ({
+    {{32 - FIFO_ADDR_WIDTH} {1'b0}}, fifo_usage
+  }) > {
+    {26{1'b0}}, reg2hw.reachcount.q
+  };
   assign hw2reg.status.reach.de = 1;
   assign hw2reg.status.fulll.de = 1;
   assign hw2reg.status.empty.de = 1;
