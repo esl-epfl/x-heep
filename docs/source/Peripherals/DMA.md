@@ -706,7 +706,7 @@ _Return Values_:
 #### <i> fic_irq_dma() </i>
 
 _Purpose_:
-The *fic_irq_dma* function is called whenever one of the DMA channels raises the fast interrupt line, signaling the FIC (Fast Interrupt Controller) that a transaction has completed. As thoroughly explained in Example 6 of the next section, this function identifies the channel that triggered the interrupt and calls a handler function, *dma_intr_handler_trans_done()*, passing the channel ID. 
+The *fic_irq_dma* function is called whenever one of the DMA channels raises the fast interrupt line, signaling the FIC (Fast Interrupt Controller) that a transaction has completed. As thoroughly explained in Example 7 of the next section, this function identifies the channel that triggered the interrupt and calls a handler function, *dma_intr_handler_trans_done()*, passing the channel ID. 
 
 This function can be redefined by the user to perform specific actions, provided that the computational load of these tasks is kept to a minimum.
 
