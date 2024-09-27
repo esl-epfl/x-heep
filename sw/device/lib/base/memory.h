@@ -55,7 +55,7 @@ extern "C" {
  * @param ptr a word-aligned pointer pointed to at least four bytes of memory.
  * @return the word `ptr` points to.
  */
-inline uint32_t read_32(const void *ptr) {
+static inline uint32_t read_32(const void *ptr) {
   // Both GCC and Clang optimize the code below into a single word-load on most
   // platforms. It is necessary and sufficient to indicate to the compiler that
   // the pointer points to four bytes of four-byte-aligned memory.
@@ -86,7 +86,7 @@ inline uint32_t read_32(const void *ptr) {
  * @param value the value to store.
  * @param ptr a word-aligned pointer pointed to at least four bytes of memory.
  */
-inline void write_32(uint32_t value, void *ptr) {
+static inline void write_32(uint32_t value, void *ptr) {
   // Both GCC and Clang optimize the code below into a single word-store on most
   // platforms. See the comment in `read_32()` for more implementation-private
   // information.
