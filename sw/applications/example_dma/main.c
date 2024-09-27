@@ -253,9 +253,9 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_SINGLE_MODE
 
-    //PRINTF("\n\n\r===================================\n\n\r");
-    //PRINTF("    TESTING SINGLE MODE   ");
-    //PRINTF("\n\n\r===================================\n\n\r");
+    PRINTF("\n\n\r===================================\n\n\r");
+    PRINTF("    TESTING SINGLE MODE   ");
+    PRINTF("\n\n\r===================================\n\n\r");
 
     TEST_SINGLE
 
@@ -285,9 +285,9 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_ADDRESS_MODE
 
-    //PRINTF("\n\n\r===================================\n\n\r");
-    //PRINTF("    TESTING ADDRESS MODE   ");
-    //PRINTF("\n\n\r===================================\n\n\r");
+    PRINTF("\n\n\r===================================\n\n\r");
+    PRINTF("    TESTING ADDRESS MODE   ");
+    PRINTF("\n\n\r===================================\n\n\r");
 
     // Prepare the data
     for (int i = 0; i < TEST_DATA_SIZE; i++)

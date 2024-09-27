@@ -246,9 +246,6 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
                 /* Computing the number of zeros on the right */
 
-                /* This computes the last position of the current element of the filter */
-                //last_position =  STRIDE_D1 * (N_PATCHES_W - 1) + w_offset;
-
                 /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                 /* by removing the elements of the row uncovered by the sliding filter */
                 
@@ -266,9 +263,6 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 }
 
                 /* Computing the number of zeros on the bottom */
-
-                /* This computes the last position of the current element of the filter */
-                //last_position = STRIDE_D1 * (N_PATCHES_H - 1) + h_offset;
 
                 /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                 /* by removing the elements of the row uncovered by the sliding filter */
