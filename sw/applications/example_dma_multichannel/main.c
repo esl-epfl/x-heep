@@ -33,7 +33,7 @@
  * 
  *  DISCLAIMER:
  *  When using the default memory configuration (64kB), pay attention to the dimensions of the output matrices.
- *  When executing TEST_ID_4 on QuestaSim, make sure to enable the SPI FLASH.
+ *  When executing TEST_ID_3 on QuestaSim, make sure to enable the SPI FLASH.
  * 
  *  Enable one or more of the following tests by defining the correct TEST_ID_* macro:
  *  

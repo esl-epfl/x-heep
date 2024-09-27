@@ -74,7 +74,7 @@
 #define TRANSPOSITION_EN 1
 
 /* Enables test format */
-#define TEST_EN 1
+#define TEST_EN 0
 
 /* Define the input datatype */
 typedef uint32_t dma_input_data_type;
@@ -301,12 +301,12 @@ int main()
     else 
     {
         #if TEST_EN == 0
-        PRINTF("TEST 0 FAILED: %d errors\n\r", errors);
-        return EXIT_FAILURE;
+        PRINTF("TEST 0 FAILED\n\r");
         #else
         PRINTF("0a:%d:1\n\r", cycles_cpu); 
         PRINTF("0b:%d:1\n\r", cycles_dma); 
         #endif
+        return EXIT_FAILURE;
     }
     #endif
 
@@ -494,12 +494,12 @@ int main()
     else 
     {
         #if TEST_EN == 0
-        PRINTF("TEST 1 FAILED: %d errors\n\r", errors);
-        return EXIT_FAILURE;
+        PRINTF("TEST 1 FAILED\n\r");
         #else
         PRINTF("1a:%d:1\n\r", cycles_cpu);
         PRINTF("1b:%d:1\n\r", cycles_dma);  
         #endif
+        return EXIT_FAILURE;
     }
     #endif
 
@@ -656,12 +656,12 @@ int main()
     else 
     {
         #if TEST_EN == 0
-        PRINTF("TEST 2 FAILED: %d errors\n\r", errors);
-        return EXIT_FAILURE;
+        PRINTF("TEST 2 FAILED\n\r");
         #else
         PRINTF("2a:%d:1\n\r", cycles_cpu);
         PRINTF("2b:%d:1\n\r", cycles_dma);  
         #endif
+        return EXIT_FAILURE;
     }
     #endif
 
@@ -910,12 +910,12 @@ int main()
     else 
     {
         #if TEST_EN == 0
-        PRINTF("TEST 3 FAILED: %d errors\n\r", errors);
-        return EXIT_FAILURE;
+        PRINTF("TEST 3 FAILED\n\r");
         #else
         PRINTF("3a:%d:1\n\r", cycles_cpu);
         PRINTF("3b:%d:1\n\r", cycles_dma);  
         #endif
+        return EXIT_FAILURE;
     }
     #endif
 
