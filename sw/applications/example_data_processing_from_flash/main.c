@@ -43,6 +43,10 @@ int32_t buffer_data[MATRIX_SIZE*TILING_ROWS] = {0};
 int32_t output_matrix[MATRIX_SIZE*MATRIX_SIZE] = {0};
 
 int main(int argc, char *argv[]) {
+#ifndef FLASH_LOAD
+    PRINTF("This application is meant to run with the FLASH_LOAD linker script\n");
+    return EXIT_SUCCESS;
+#else
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
@@ -84,4 +88,6 @@ int main(int argc, char *argv[]) {
     }
     PRINTF("All tests passed!\n");
     return EXIT_SUCCESS;
+
+#endif
 }
