@@ -364,7 +364,6 @@ module ao_peripheral_subsystem
       .dma_subsystem_pwr_ctrl_o(dma_subsystem_pwr_ctrl)
   );
 
-  /* ??? */
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
