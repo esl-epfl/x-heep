@@ -30,8 +30,8 @@ module dma_NtoM_xbar #(
     output obi_pkg::obi_resp_t [XBAR_NMASTER-1:0] master_resp_o,
 
     // slave ports
-    output obi_pkg::obi_req_t  slave_req_o [XBAR_MSLAVE-1:0],
-    input  obi_pkg::obi_resp_t slave_resp_i[XBAR_MSLAVE-1:0]
+    output obi_pkg::obi_req_t  [XBAR_MSLAVE-1:0] slave_req_o,
+    input  obi_pkg::obi_resp_t [XBAR_MSLAVE-1:0] slave_resp_i
 );
   import obi_pkg::*;
   import core_v_mini_mcu_pkg::*;

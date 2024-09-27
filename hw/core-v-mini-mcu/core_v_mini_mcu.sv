@@ -362,12 +362,12 @@ module core_v_mini_mcu
   obi_resp_t core_data_resp;
   obi_req_t debug_master_req;
   obi_resp_t debug_master_resp;
-  obi_req_t dma_read_req[0:0];
-  obi_resp_t dma_read_resp[0:0];
-  obi_req_t dma_write_req[0:0];
-  obi_resp_t dma_write_resp[0:0];
-  obi_req_t dma_addr_req[0:0];
-  obi_resp_t dma_addr_resp[0:0];
+  obi_req_t [0:0] dma_read_req;
+  obi_resp_t [0:0] dma_read_resp;
+  obi_req_t [0:0] dma_write_req;
+  obi_resp_t [0:0] dma_write_resp;
+  obi_req_t [0:0] dma_addr_req;
+  obi_resp_t [0:0] dma_addr_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;

@@ -116,12 +116,12 @@ ${pad.core_v_mini_mcu_interface}
   obi_resp_t core_data_resp;
   obi_req_t debug_master_req;
   obi_resp_t debug_master_resp;
-  obi_req_t dma_read_req[${int(num_dma_master_ports)-1}:0];
-  obi_resp_t dma_read_resp[${int(num_dma_master_ports)-1}:0];
-  obi_req_t dma_write_req[${int(num_dma_master_ports)-1}:0];
-  obi_resp_t dma_write_resp[${int(num_dma_master_ports)-1}:0];
-  obi_req_t dma_addr_req[${int(num_dma_master_ports)-1}:0];
-  obi_resp_t dma_addr_resp[${int(num_dma_master_ports)-1}:0];
+  obi_req_t [${int(num_dma_master_ports)-1}:0]dma_read_req;
+  obi_resp_t [${int(num_dma_master_ports)-1}:0]dma_read_resp;
+  obi_req_t [${int(num_dma_master_ports)-1}:0]dma_write_req;
+  obi_resp_t [${int(num_dma_master_ports)-1}:0]dma_write_resp;
+  obi_req_t [${int(num_dma_master_ports)-1}:0]dma_addr_req;
+  obi_resp_t [${int(num_dma_master_ports)-1}:0]dma_addr_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;

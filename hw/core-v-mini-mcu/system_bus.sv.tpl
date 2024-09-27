@@ -37,14 +37,14 @@ module system_bus
     input  obi_req_t  debug_master_req_i,
     output obi_resp_t debug_master_resp_o,
 
-    input  obi_req_t  dma_read_req_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
-    output obi_resp_t dma_read_resp_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_req_i,
+    output obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_resp_o,
 
-    input  obi_req_t  dma_write_req_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
-    output obi_resp_t dma_write_resp_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_req_i,
+    output obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_resp_o,
 
-    input  obi_req_t  dma_addr_req_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
-    output obi_resp_t dma_addr_resp_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_i,
+    output obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_o,
 
     // External master ports
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
