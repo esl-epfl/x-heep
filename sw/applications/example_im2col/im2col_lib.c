@@ -41,7 +41,7 @@ void handler_irq_im2col_spc( void )
 }
 
 /* Used to wait for the SPC interrupt handler to end */
-__attribute__ ((optimize("00"))) void waiting_for_spc_irq( void )
+__attribute__ ((optimize("O0"))) void waiting_for_spc_irq( void )
 {
   while (im2col_done == 0)
   {
