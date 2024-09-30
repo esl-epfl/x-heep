@@ -24,7 +24,6 @@
 #include "csr.h"
 #include <math.h>
 #include "mmio.h"
-#include "handler.h"
 #include "hart.h"
 #include "fast_intr_ctrl.h"
 
