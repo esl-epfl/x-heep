@@ -51,20 +51,19 @@ int main(int argc, char *argv[])
 
     static dma_target_t tgt_src = {
                                 .ptr        = test_data,
-                                .inc_du     = 1,
-                                .size_du    = TEST_DATA_SIZE,
+                                .inc_d1_du     = 1,
                                 .trig       = DMA_TRIG_MEMORY,
                                 .type       = DMA_DATA_TYPE_WORD,
                                 };
     static dma_target_t tgt_dst = {
                                 .ptr        = copied_data,
-                                .inc_du     = 1,
-                                .size_du    = TEST_DATA_SIZE,
+                                .inc_d1_du     = 1,
                                 .trig       = DMA_TRIG_MEMORY,
                                 };
     static dma_trans_t trans = {
                                 .src        = &tgt_src,
                                 .dst        = &tgt_dst,
+                                .size_d1_du    = TEST_DATA_SIZE,
                                 .mode       = DMA_TRANS_MODE_SINGLE,
                                 .win_du      = 0,
                                 .end        = DMA_TRANS_END_INTR,
@@ -94,7 +93,7 @@ int main(int argc, char *argv[])
     }
     PRINTF(">> Finished transaction. \n\r");
 
-    for(uint32_t i = 0; i < trans.size_b; i++ ) {
+    for(uint32_t i = 0; i < trans.size_d1_du; i++ ) {
         if ( ((uint8_t*)copied_data)[i] != ((uint8_t*)test_data)[i] ) {
             PRINTF("ERROR [%d]: %04x != %04x\n\r", i, ((uint8_t*)copied_data)[i], ((uint8_t*)test_data)[i]);
             errors++;
@@ -105,7 +104,7 @@ int main(int argc, char *argv[])
         PRINTF("External DMA success\n\r");
         return EXIT_SUCCESS;
     } else {
-        PRINTF("External DMA failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        PRINTF("External DMA failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du );
         return EXIT_FAILURE;
     }
 

@@ -14,6 +14,7 @@ filesets:
     - pulp_platform_register_interface/src/reg_intf.sv
     - pulp_platform_register_interface/src/periph_to_reg.sv
     - pulp_platform_register_interface/src/reg_demux.sv
+    - pulp_platform_register_interface/src/reg_mux.sv
     - pulp_platform_register_interface/src/reg_to_tlul.sv
     file_type: systemVerilogSource
 

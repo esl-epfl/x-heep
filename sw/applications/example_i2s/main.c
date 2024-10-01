@@ -128,18 +128,18 @@ void setup()
      // -- DMA CONFIGURATION --
 
     tgt_src.ptr        = I2S_RX_DATA_ADDRESS;
-    tgt_src.inc_du     = 0;
+    tgt_src.inc_d1_du     = 0;
     tgt_src.trig       = DMA_TRIG_SLOT_I2S;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
-    tgt_src.size_du    = AUDIO_DATA_NUM;
 
     tgt_dst.ptr        = audio_data_0;
-    tgt_dst.inc_du     = 1;
+    tgt_dst.inc_d1_du     = 1;
     tgt_dst.trig       = DMA_TRIG_MEMORY;
     tgt_dst.type       = DMA_DATA_TYPE_WORD;
 
     trans.src        = &tgt_src;
     trans.dst        = &tgt_dst;
+    trans.size_d1_du    = AUDIO_DATA_NUM;
     trans.end        = DMA_TRANS_END_INTR;
 
     dma_config_flags_t res;

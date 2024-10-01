@@ -14,6 +14,10 @@ filesets:
     files:
     - rtl/dma_reg_pkg.sv
     - rtl/dma_reg_top.sv
+    - rtl/dma_padding_fsm.sv
+    - rtl/dma_obiread_fsm.sv
+    - rtl/dma_obiread_addr_fsm.sv
+    - rtl/dma_obiwrite_fsm.sv
     - rtl/dma.sv
     file_type: systemVerilogSource
 

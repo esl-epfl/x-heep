@@ -223,6 +223,17 @@
       ]
     }
 
+% for channel in range(int(dma_ch_count)):
+    { name:     "DMA_CH${channel}_CLK_GATE",
+      desc:     "Clock-gates the DMA CH${channel}",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "DMA_CH${channel}_CLK_GATE", desc: "Clock-gates the DMA CH${channel}" }
+      ]
+    }
+% endfor
 
 % for bank in xheep.iter_ram_banks():
     { name:     "RAM_${bank.name()}_CLK_GATE",

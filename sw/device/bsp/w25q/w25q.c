@@ -441,7 +441,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
 }
 
 
-w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_wait_dma, uint8_t no_sanity_checks) {
+w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_wait_init_dma, uint8_t no_sanity_checks) {
 
     // Sanity checks
     if (!no_sanity_checks)  if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
@@ -453,7 +453,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     uint32_t *fifo_ptr_rx = (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
 
     // Init DMA, the integrated DMA is used (peri == NULL)
-    if(!no_wait_dma)    dma_init(NULL);
+    if(!no_wait_init_dma)    dma_init(NULL);
 
     // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
     #ifndef USE_SPI_FLASH
@@ -464,11 +464,9 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
 
     // Set up DMA source target
     static dma_target_t tgt_src = {
-        .inc_du = 0, // Target is peripheral, no increment
+        .inc_d1_du = 0, // Target is peripheral, no increment
         .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
-    // Size is in data units (words in this case)
-    tgt_src.size_du = length>>2;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
     // Trigger to control the data flow
@@ -476,7 +474,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
 
     // Set up DMA destination target
     static dma_target_t tgt_dst = {
-        .inc_du = 1, // Increment by 1 data unit (word)
+        .inc_d1_du = 1, // Increment by 1 data unit (word)
         .type = DMA_DATA_TYPE_WORD, // Data type is byte
         .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
     };
@@ -488,6 +486,8 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
         .dst = &tgt_dst,
         .end = DMA_TRANS_END_POLLING,
     };
+    // Size is in data units (words in this case)
+    trans.size_d1_du = length>>2;
 
     // Validate, load and launch DMA transaction
 
@@ -524,7 +524,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     spi_wait_for_ready(spi);
 
     // Wait for DMA to finish transaction
-    if(!no_wait_dma) while(!dma_is_ready(0));
+    if(!no_wait_init_dma) while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
@@ -569,11 +569,9 @@ w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, 
 
     // Set up DMA source target
     static dma_target_t tgt_src = {
-        .inc_du = 0, // Target is peripheral, no increment
+        .inc_d1_du = 0, // Target is peripheral, no increment
         .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
-    // Size is in data units (words in this case)
-    tgt_src.size_du = length>>2;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
     // Trigger to control the data flow
@@ -581,7 +579,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, 
 
     // Set up DMA destination target
     static dma_target_t tgt_dst = {
-        .inc_du = 1, // Increment by 1 data unit (word)
+        .inc_d1_du = 1, // Increment by 1 data unit (word)
         .type = DMA_DATA_TYPE_WORD, // Data type is byte
         .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
     };
@@ -593,6 +591,8 @@ w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, 
         .dst = &tgt_dst,
         .end = DMA_TRANS_END_INTR, //so that you can wait for interrupt
     };
+    // Size is in data units (words in this case)
+    trans.size_d1_du = length>>2;
     // Validate, load and launch DMA transaction
     dma_config_flags_t res;
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
@@ -903,11 +903,9 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
 
     // Set up DMA source target
     static dma_target_t tgt_src = {
-        .inc_du = 0, // Target is peripheral, no increment
+        .inc_d1_du = 0, // Target is peripheral, no increment
         .type = DMA_DATA_TYPE_WORD, // Data type is byte
     };
-    // Size is in data units (words in this case)
-    tgt_src.size_du = length>>2;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
     // Trigger to control the data flow
@@ -915,7 +913,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
 
     // Set up DMA destination target
     static dma_target_t tgt_dst = {
-        .inc_du = 1, // Increment by 1 data unit (word)
+        .inc_d1_du = 1, // Increment by 1 data unit (word)
         .type = DMA_DATA_TYPE_WORD, // Data type is byte
         .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
     };
@@ -927,6 +925,8 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
         .dst = &tgt_dst,
         .end = DMA_TRANS_END_POLLING,
     };
+    // Size is in data units (words in this case)
+    trans.size_d1_du = length>>2;
 
     // Validate, load and launch DMA transaction
     dma_config_flags_t res;
@@ -1476,11 +1476,9 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
 
     // Set up DMA source target
     static dma_target_t tgt_src = {
-        .inc_du = 1, // Increment by 1 data unit (word)
+        .inc_d1_du = 1, // Increment by 1 data unit (word)
         .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
-    // Size is in data units (words in this case)
-    tgt_src.size_du = length>>2;
     // Target is data buffer
     tgt_src.ptr = data;
     // Reads from memory
@@ -1488,7 +1486,7 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
 
     // Set up DMA destination target
     static dma_target_t tgt_dst = {
-        .inc_du = 0, // It's a peripheral, no increment
+        .inc_d1_du = 0, // It's a peripheral, no increment
         .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
     tgt_dst.trig = slot;
@@ -1502,6 +1500,8 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
         .win_du = 0,
         .end = DMA_TRANS_END_POLLING,
     };
+    // Size is in data units (words in this case)
+    trans.size_d1_du = length>>2;
 
     // Validate, load and launch DMA transaction
     dma_config_flags_t res;

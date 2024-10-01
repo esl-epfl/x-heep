@@ -25,15 +25,16 @@ extern "C" {
 // Addess data pointer (word aligned)
 #define DMA_ADDR_PTR_REG_OFFSET 0x8
 
-// Number of bytes to copy from, defined with respect to the first dimension
-// - Once a value is written, the copy starts
+// Number of elements to copy from, defined with respect to the first
+// dimension - Once a value is written, the copy starts
 #define DMA_SIZE_D1_REG_OFFSET 0xc
 #define DMA_SIZE_D1_SIZE_MASK 0xffff
 #define DMA_SIZE_D1_SIZE_OFFSET 0
 #define DMA_SIZE_D1_SIZE_FIELD \
   ((bitfield_field32_t) { .mask = DMA_SIZE_D1_SIZE_MASK, .index = DMA_SIZE_D1_SIZE_OFFSET })
 
-// Number of bytes to copy from, defined with respect to the second dimension
+// Number of elements to copy from, defined with respect to the second
+// dimension
 #define DMA_SIZE_D2_REG_OFFSET 0x10
 #define DMA_SIZE_D2_SIZE_MASK 0xffff
 #define DMA_SIZE_D2_SIZE_OFFSET 0
