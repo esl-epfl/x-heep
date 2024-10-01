@@ -26,7 +26,7 @@ void im2col_spc_init(uint32_t im2col_spc_base_addr_i)
   {
     im2col_spc_base_addr = EXT_PERIPHERAL_START_ADDRESS + 0x4000;
   } else {
-    im2col_spc_base_addr = im2col_spc_base_addr;
+    im2col_spc_base_addr = im2col_spc_base_addr_i;
   }
 }
 
