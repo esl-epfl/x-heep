@@ -40,7 +40,6 @@
     - 3: Exploit Smart Peripheral Controller (SPC)
 */ 
 #define HW_CONFIG_CPU
-#define HW_CONFIG_DMA_1D
 #define HW_CONFIG_DMA_2D
 #define HW_CONFIG_SPC
 
@@ -50,8 +49,8 @@
 /* Defines the datatype of the input */
 #define INPUT_DATATYPE 0
 
-/* Base address of the im2col SPC */
-#define IM2COL_SPC_BASE_ADDR EXT_PERIPHERAL_START_ADDRESS + 0x4000
+/* Defines the offset of the im2col SPC in the system (0x4000 in testharness.sv) */
+#define IM2COL_PER_OFFSET 0x4000
 
 /* By default, printfs are activated for FPGA and for simulation. */
 #define PRINTF_IN_FPGA  1
@@ -74,7 +73,7 @@
     #else
         #define PRINTF_TIM(...)
     #endif  
-#elif PRINTF_IN_FPGA
+#elif PRINTF_IN_FPGA && !TARGET_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
     #if DEBUG
         #define PRINTF_DEB(fmt, ...)    printf(fmt, ## __VA_ARGS__)

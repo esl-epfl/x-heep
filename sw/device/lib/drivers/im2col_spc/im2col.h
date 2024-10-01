@@ -53,10 +53,8 @@ typedef struct
     uint32_t datatype;            /*!< Data type of the input. */
 } im2col_trans_t;
 
-/* Base address of the im2col SPC */
-#define IM2COL_SPC_BASE_ADDR EXT_PERIPHERAL_START_ADDRESS + 0x4000
-
-int run_im2col(im2col_trans_t trans);
+int im2col_spc_run(im2col_trans_t trans);
+void im2col_spc_init(uint32_t im2col_spc_base_addr_i);
 __attribute__((weak, optimize("00"))) void handler_irq_im2col_spc(void);
 
 #endif

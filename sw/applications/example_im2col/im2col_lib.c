@@ -36,7 +36,7 @@ void handler_irq_im2col_spc( void )
   im2col_done = 1;
 
   /* Read the IFR to lower the interrupt flag */
-  ifr_status = * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET);
+  ifr_status = * (volatile uint32_t * )(EXT_PERIPHERAL_START_ADDRESS + IM2COL_PER_OFFSET + IM2COL_SPC_SPC_IFR_REG_OFFSET);
   return;
 }
 
@@ -381,11 +381,11 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         input_image_ptr = &input_image_nchw[0];
         output_data_ptr = &output_data[0];
 
-        dma_init(0);
-
         #if TIMING
         timer_start();
         #endif
+
+        im2col_spc_init(NULL);
 
         static im2col_trans_t im2col_spc_trans = {
           .ch_mask = SPC_CH_MASK,
@@ -412,7 +412,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         im2col_spc_trans.src = input_image_ptr;
         im2col_spc_trans.dst = output_data_ptr;
 
-        run_im2col(im2col_spc_trans);
+        im2col_spc_run(im2col_spc_trans);
 
         waiting_for_spc_irq();
 
