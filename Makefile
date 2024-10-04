@@ -150,13 +150,13 @@ verible:
 ## @param COMPILER_PREFIX=riscv32-unknown-(default)
 ## @param ARCH=rv32imc(default), <any RISC-V ISA string supported by the CPU>
 app: clean-app
-	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH) SOURCE=$(SOURCE) \
+	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH) SOURCE=$(SOURCE) \
 	|| { \
-	echo "\033[0;31mHmmm... seems like the compilation failed...\033[0m"; \
-	echo "\033[0;31mIf you do not understand why, it is likely that you either:\033[0m"; \
-	echo "\033[0;31m  a) offended the Leprechaun of Electronics\033[0m"; \
-	echo "\033[0;31m  b) forgot to run make mcu-gen\033[0m"; \
-	echo "\033[0;31mI would start by checking b) if I were you!\033[0m"; \
+	@echo "\033[0;31mHmmm... seems like the compilation failed...\033[0m"; \
+	@echo "\033[0;31mIf you do not understand why, it is likely that you either:\033[0m"; \
+	@echo "\033[0;31m  a) offended the Leprechaun of Electronics\033[0m"; \
+	@echo "\033[0;31m  b) forgot to run make mcu-gen\033[0m"; \
+	@echo "\033[0;31mI would start by checking b) if I were you!\033[0m"; \
 	exit 1; \
 	}
 
