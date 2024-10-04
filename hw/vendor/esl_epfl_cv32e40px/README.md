@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.com/pulp-platform/riscv.svg?branch=master)](https://travis-ci.com/pulp-platform/riscv)
 
-# OpenHW Group CORE-V CV32E40P RISC-V IP
+# OpenHW Group CORE-V CV32E40PX RISC-V IP
 
-CV32E40P is a small and efficient, 32-bit, in-order RISC-V core with a 4-stage pipeline that implements
+CV32E40PX is a small and efficient, 32-bit, in-order RISC-V core with a 4-stage pipeline that implements
 the RV32IM\[F|Zfinx\]C instruction set architecture, and the PULP custom extensions for achieving
 higher code density, performance, and energy efficiency \[[1](https://doi.org/10.1109/TVLSI.2017.2654506)\], \[[2](https://doi.org/10.1109/PATMOS.2017.8106976)\].
 It started its life as a fork of the OR10N CPU core that is based on the OpenRISC ISA.
@@ -14,12 +14,12 @@ when it has been contributed to [OpenHW Group](https://www.openhwgroup.org/).
 
 ## Documentation
 
-The CV32E40P user manual can be found in the _docs_ folder and it is
+The CV32E40PX user manual can be found in the _docs_ folder and it is
 captured in reStructuredText, rendered to html using [Sphinx](https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html).
 These documents are viewable using readthedocs and can be viewed [here](https://docs.openhwgroup.org/projects/cv32e40p-user-manual/).
 
 ## Verification
-The verification environment for the CV32E40P is _not_ in this Repository.  There is a small, simple testbench here which is
+The verification environment for the CV32E40PX is _not_ in this Repository.  There is a small, simple testbench here which is
 useful for experimentation only and should not be used to validate any changes to the RTL prior to pushing to the master
 branch of this repo.
 
@@ -31,7 +31,7 @@ The Makefiles supported in the **core-v-verif** project automatically clone the 
 ## Changelog
 
 A changelog is generated automatically in the documentation from the individual pull requests.
-In order to enable automatic changelog generation within the CV32E40P documentation, the committer is required to label each pull request
+In order to enable automatic changelog generation within the CV32E40PX documentation, the committer is required to label each pull request
 that touches any file in 'rtl' (or any of its subdirectories) with *Component:RTL* and label each pull request that touches any file in
 'docs' (or any of its subdirectories) with *Component:Doc*. Pull requests that are not labeled or labeled with *ignore-for-release* are
 ignored for the changelog generation.
@@ -40,7 +40,7 @@ Only the person who actually performs the merge can add these labels (you need c
 1 label is applied and therefore pull requests that touches both RTL and documentation files in the same pull request are not allowed.
 
 ## Constraints
-Example synthesis constraints for the CV32E40P are provided.
+Example synthesis constraints for the CV32E40PX are provided.
 
 ## Contributing
 
@@ -71,7 +71,7 @@ Run `./util/format-verible` to format all the files.
 
 ## Issues and Troubleshooting
 
-If you find any problems or issues with CV32E40P or the documentation, please check out the [issue
+If you find any problems or issues with CV32E40PX or the documentation, please check out the [issue
  tracker](https://github.com/openhwgroup/cv32e40p/issues) and create a new issue if your problem is
 not yet tracked.
 

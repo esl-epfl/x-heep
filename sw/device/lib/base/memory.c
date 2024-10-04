@@ -8,9 +8,6 @@ extern "C" {
 
 #include "memory.h"
 
-extern uint32_t read_32(const void *);
-extern void write_32(uint32_t, void *);
-
 // Some symbols below are only defined for device builds. For host builds, we
 // their implementations will be provided by the host's libc implementation.
 //

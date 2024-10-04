@@ -11,8 +11,10 @@ module core_v_mini_mcu
     parameter ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0,
     parameter X_EXT = 0,  // eXtension interface in cv32e40x
+    parameter AO_SPC_NUM = 0,
     parameter EXT_HARTS = 0,
     //do not touch these parameters
+    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 1 : AO_SPC_NUM,
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT,
@@ -285,19 +287,22 @@ module core_v_mini_mcu
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
+    input  reg_req_t [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_slave_req_i,
+    output reg_rsp_t [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_slave_resp_o,
+
     // External slave ports
-    output obi_req_t  ext_core_instr_req_o,
-    input  obi_resp_t ext_core_instr_resp_i,
-    output obi_req_t  ext_core_data_req_o,
-    input  obi_resp_t ext_core_data_resp_i,
-    output obi_req_t  ext_debug_master_req_o,
-    input  obi_resp_t ext_debug_master_resp_i,
-    output obi_req_t  ext_dma_read_ch0_req_o,
-    input  obi_resp_t ext_dma_read_ch0_resp_i,
-    output obi_req_t  ext_dma_write_ch0_req_o,
-    input  obi_resp_t ext_dma_write_ch0_resp_i,
-    output obi_req_t  ext_dma_addr_ch0_req_o,
-    input  obi_resp_t ext_dma_addr_ch0_resp_i,
+    output obi_req_t ext_core_instr_req_o,
+    input obi_resp_t ext_core_instr_resp_i,
+    output obi_req_t ext_core_data_req_o,
+    input obi_resp_t ext_core_data_resp_i,
+    output obi_req_t ext_debug_master_req_o,
+    input obi_resp_t ext_debug_master_resp_i,
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_req_o,
+    input obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_resp_i,
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_req_o,
+    input obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_resp_i,
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
+    input obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i,
 
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
 
@@ -325,8 +330,10 @@ module core_v_mini_mcu
 
     output logic [31:0] exit_value_o,
 
-    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
-    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i
+    // External SPC interface
+    input  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
+    input  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -355,12 +362,12 @@ module core_v_mini_mcu
   obi_resp_t core_data_resp;
   obi_req_t debug_master_req;
   obi_resp_t debug_master_resp;
-  obi_req_t dma_read_ch0_req;
-  obi_resp_t dma_read_ch0_resp;
-  obi_req_t dma_write_ch0_req;
-  obi_resp_t dma_write_ch0_resp;
-  obi_req_t dma_addr_ch0_req;
-  obi_resp_t dma_addr_ch0_resp;
+  obi_req_t [0:0] dma_read_req;
+  obi_resp_t [0:0] dma_read_resp;
+  obi_req_t [0:0] dma_write_req;
+  obi_resp_t [0:0] dma_write_resp;
+  obi_req_t [0:0] dma_addr_req;
+  obi_resp_t [0:0] dma_addr_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -568,12 +575,12 @@ module core_v_mini_mcu
       .core_data_resp_o(core_data_resp),
       .debug_master_req_i(debug_master_req),
       .debug_master_resp_o(debug_master_resp),
-      .dma_read_ch0_req_i(dma_read_ch0_req),
-      .dma_read_ch0_resp_o(dma_read_ch0_resp),
-      .dma_write_ch0_req_i(dma_write_ch0_req),
-      .dma_write_ch0_resp_o(dma_write_ch0_resp),
-      .dma_addr_ch0_req_i(dma_addr_ch0_req),
-      .dma_addr_ch0_resp_o(dma_addr_ch0_resp),
+      .dma_read_req_i(dma_read_req),
+      .dma_read_resp_o(dma_read_resp),
+      .dma_write_req_i(dma_write_req),
+      .dma_write_resp_o(dma_write_resp),
+      .dma_addr_req_i(dma_addr_req),
+      .dma_addr_resp_o(dma_addr_resp),
       .ext_xbar_master_req_i(ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
       .ram_req_o(ram_slave_req),
@@ -592,12 +599,12 @@ module core_v_mini_mcu
       .ext_core_data_resp_i(ext_core_data_resp_i),
       .ext_debug_master_req_o(ext_debug_master_req_o),
       .ext_debug_master_resp_i(ext_debug_master_resp_i),
-      .ext_dma_read_ch0_req_o(ext_dma_read_ch0_req_o),
-      .ext_dma_read_ch0_resp_i(ext_dma_read_ch0_resp_i),
-      .ext_dma_write_ch0_req_o(ext_dma_write_ch0_req_o),
-      .ext_dma_write_ch0_resp_i(ext_dma_write_ch0_resp_i),
-      .ext_dma_addr_ch0_req_o(ext_dma_addr_ch0_req_o),
-      .ext_dma_addr_ch0_resp_i(ext_dma_addr_ch0_resp_i)
+      .ext_dma_read_req_o(ext_dma_read_req_o),
+      .ext_dma_read_resp_i(ext_dma_read_resp_i),
+      .ext_dma_write_req_o(ext_dma_write_req_o),
+      .ext_dma_write_resp_i(ext_dma_write_resp_i),
+      .ext_dma_addr_req_o(ext_dma_addr_req_o),
+      .ext_dma_addr_resp_i(ext_dma_addr_resp_i)
   );
 
   memory_subsystem #(
@@ -613,11 +620,15 @@ module core_v_mini_mcu
       .set_retentive_ni(memory_subsystem_banks_set_retentive_n)
   );
 
-  ao_peripheral_subsystem ao_peripheral_subsystem_i (
+  ao_peripheral_subsystem #(
+      .AO_SPC_NUM(AO_SPC_NUM)
+  ) ao_peripheral_subsystem_i (
       .clk_i,
       .rst_ni(rst_ni && debug_reset_n),
       .slave_req_i(ao_peripheral_slave_req),
       .slave_resp_o(ao_peripheral_slave_resp),
+      .spc2ao_req_i(ext_ao_peripheral_slave_req_i),
+      .ao2spc_resp_o(ext_ao_peripheral_slave_resp_o),
       .boot_select_i,
       .execute_from_flash_i,
       .exit_valid_o,
@@ -646,12 +657,12 @@ module core_v_mini_mcu
       .external_subsystem_pwr_ctrl_i(external_subsystem_pwr_ctrl_in),
       .rv_timer_0_intr_o(rv_timer_intr[0]),
       .rv_timer_1_intr_o(rv_timer_intr[1]),
-      .dma_read_ch0_req_o(dma_read_ch0_req),
-      .dma_read_ch0_resp_i(dma_read_ch0_resp),
-      .dma_write_ch0_req_o(dma_write_ch0_req),
-      .dma_write_ch0_resp_i(dma_write_ch0_resp),
-      .dma_addr_ch0_req_o(dma_addr_ch0_req),
-      .dma_addr_ch0_resp_i(dma_addr_ch0_resp),
+      .dma_read_req_o(dma_read_req),
+      .dma_read_resp_i(dma_read_resp),
+      .dma_write_req_o(dma_write_req),
+      .dma_write_resp_i(dma_write_resp),
+      .dma_addr_req_o(dma_addr_req),
+      .dma_addr_resp_i(dma_addr_resp),
       .dma_done_intr_o(dma_done_intr),
       .dma_window_intr_o(dma_window_intr),
       .spi_flash_intr_event_o(spi_flash_intr),
@@ -680,7 +691,8 @@ module core_v_mini_mcu
       .ext_peripheral_slave_resp_i,
       .ext_dma_slot_tx_i,
       .ext_dma_slot_rx_i,
-      .ext_dma_stop_i
+      .ext_dma_stop_i,
+      .dma_done_o
   );
 
   peripheral_subsystem peripheral_subsystem_i (

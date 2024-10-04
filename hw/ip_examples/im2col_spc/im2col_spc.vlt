@@ -1,0 +1,16 @@
+// Copyright 2022 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/im2col_spc_reg_top.sv"
+
+lint_off -rule WIDTH -file "*/rtl/im2col_spc_reg_top.sv" -match "Operator ASSIGNW expects *"
+ 
+lint_off -rule UNUSED -file "*/rtl/im2col_spc.sv" -match "Signal is not used: 'data_out_rvalid'"
+lint_off -rule UNUSED -file "*/rtl/im2col_spc.sv" -match "Signal is not used: 'data_out_rdata'"
+
+lint_off -rule UNUSED -file "*/rtl/im2col_spc.sv" -match "Bits of signal are not used: *"
+lint_off -rule UNUSED -file "*/rtl/im2col_spc_param_fsm.sv" -match "Bits of signal are not used: *"
+lint_off -rule UNUSED -file "*/rtl/im2col_spc_regintfc_controller.sv" -match "Bits of signal are not used: *"

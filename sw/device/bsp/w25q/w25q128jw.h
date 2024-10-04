@@ -267,7 +267,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
  * @param length number of bytes to read.
  * @return FLASH_OK if the read is successful, @ref error_codes otherwise.
 */
-w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_wait_dma, uint8_t no_sanity_checks);
+w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_wait_init_dma, uint8_t no_sanity_checks);
 
 /**
  * @brief Read from flash at standard speed using DMA but wait for DMA in the application

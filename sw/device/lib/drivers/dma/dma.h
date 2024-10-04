@@ -324,15 +324,11 @@ typedef struct
     if the target is a peripheral. */
     uint8_t*                ptr;     /*!< Pointer to the start address from/to
     where data will be copied/pasted. */
-    uint8_t                inc_du;  /*!< How much the pointer will increase
+    uint8_t                inc_d1_du;  /*!< How much the pointer will increase
     every time a read/write operation is done. It is a multiple of the data units.
     Can be left blank if the target is a peripheral. */
     uint32_t                inc_d2_du; /*!< How much the D2 pointer will increase
     every time the DMA finishes to read a #D1 of data units. */
-    uint16_t                size_du; /*!< The size (in data units) of the data to
-    be copied. Can be left blank if the target will only be used as destination.*/
-    uint16_t                size_d2_du; /*!< The size (in data units) of the data
-    to be copied along D2.*/
     dma_data_type_t         type;    /*!< The type of data to be transferred.
     Can be left blank if the target will only be used as destination. */
     dma_trigger_slot_mask_t trig;    /*!< If the target is a peripheral, a
@@ -356,10 +352,8 @@ typedef struct
     copied. - only valid in address mode */
     uint16_t            inc_b;  /*!< A common increment in case both targets
     need to use one same increment. */
-    uint32_t            size_b; /*!< The size of the transfer along D1, in bytes (in
-    contrast, the size stored in the targets is in data units). */
-    uint32_t            size_d2_b; /*!< The size of the transfer along D2, in bytes (in
-    contrast, the size stored in the targets is in data units). */
+    uint32_t            size_d1_du; /*!< The size of the transfer along D1, in data units */
+    uint32_t            size_d2_du; /*!< The size of the transfer along D2, in data units */
     dma_dim_t           dim; /*!< Sets the dimensionality of the
     DMA, either 1D or 2D. */
     uint8_t             pad_top_du; /*!< Padding at the top of the 2D transfer. */
@@ -421,7 +415,7 @@ __attribute__((optimize("O0"))) void fic_irq_dma(void);
  */
 /* @ToDo: Consider changing the "mask" parameter for a bitfield definition
 (see dma_regs.h) */
-inline void write_register( uint32_t  p_val,
+static inline void write_register( uint32_t  p_val,
                                   uint32_t  p_offset,
                                   uint32_t  p_mask,
                                   uint8_t   p_sel,

@@ -24,7 +24,7 @@ class BColors:
 
 # Define parameters for the test_apps.py script
 SIMULATOR = "verilator"
-SIM_TIMEOUT_S = 120
+SIM_TIMEOUT_S = 600
 LINKER = "on_chip"
 COMPILER = "gcc"
 
