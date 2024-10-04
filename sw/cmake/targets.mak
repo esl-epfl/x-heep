@@ -13,17 +13,17 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# Author: Juan Sapriza (juan.sapriza@epfl.ch)
+# Author: Jose Miranda, Juan Sapriza (jose.mirandacalero / juan.sapriza @epfl.ch)
 
 build : build/Makefile
 	@echo Build 
-	${MAKE} -C build
+	${MAKE} -s -C build
 
 setup : build/Makefile
 
 build/Makefile : CMakeLists.txt ${CMAKE_DIR}/riscv.cmake
-	if [ ! -d build ] ; then mkdir build ; fi
-	cd build;  \
+	@if [ ! -d build ] ; then mkdir build ; fi
+	@cd build;  \
 		${CMAKE} \
 		    -G "Unix Makefiles" \
 			-DCMAKE_TOOLCHAIN_FILE=../${CMAKE_DIR}/riscv.cmake \
@@ -32,11 +32,11 @@ build/Makefile : CMakeLists.txt ${CMAKE_DIR}/riscv.cmake
 			-DTARGET=${TARGET} \
 			-DPROJECT:STRING=${PROJECT} \
 			-DRISCV:STRING=${RISCV} \
-			-DINC_FOLDERS:STRING=${INC_FOLDERS} \
 			-DLINK_FOLDER:STRING=${LINK_FOLDER} \
 			-DLINKER:STRING=${LINKER} \
 			-DCOMPILER:STRING=${COMPILER} \
 			-DCOMPILER_PREFIX:STRING=${COMPILER_PREFIX} \
+			-DVERBOSE:STRING=${VERBOSE} \
 		    ../ 
 
 clean:
