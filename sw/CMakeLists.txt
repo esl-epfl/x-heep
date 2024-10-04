@@ -13,7 +13,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# Author: Juan Sapriza (juan.sapriza@epfl.ch)
+# Author: Jose Miranda, Juan Sapriza (jose.mirandacalero / juan.sapriza @epfl.ch)
 
 cmake_minimum_required(VERSION 3.15)
 
@@ -154,7 +154,9 @@ ENDFOREACH()
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # If the app was not found, look into the root project
+# Before re-setting SOURCE_PATH, save it so we can look later for external defined files
 
+SET(ORIGIN_SRCPATH ${SOURCE_PATH})
 if( app_found EQUAL 0 )
   SET(SOURCE_PATH ${ROOT_PROJECT})
 
@@ -185,9 +187,9 @@ if( app_found EQUAL 0 )
       string(REPLACE ";" "" c_dir_list ${c_dir_list})
     endif()
 
-    ENDFOREACH()
-  endif()
-  
+  ENDFOREACH()
+endif()
+
 LIST(REMOVE_DUPLICATES c_dir_list)
 
 
@@ -205,6 +207,11 @@ else()
 endif()
 
 #######################################################################
+#      ADD CUSTOM DEFINITIONS
+#######################################################################
+add_compile_definitions($ENV{CDEFS})
+
+#######################################################################
 #      FIND CRT FILES TO BE INCLUDED
 #######################################################################
 
@@ -219,15 +226,27 @@ SET(LIB_VCTR_P  "${ROOT_PROJECT}device/lib/crt/vectors.S")
 
 SET(CRTO "INTERNAL_CRTO")
 SET( LIB_CRT_EXT_P  "" )
-if( internal_app EQUAL 0 )
- FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS "${SOURCE_PATH}/external/lib/crt/*.S")
+FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS "${SOURCE_PATH}/external/lib/crt/*.S")
+FOREACH(file_path IN LISTS new_list)
+  if(${file_path} MATCHES "external_crt0.S")
+    SET( CRTO "EXTERNAL_CRTO" )
+    SET( LIB_CRT_EXT_P  "${file_path}" )
+    GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+    SET(INCLUDE_FOLDERS "${INCLUDE_FOLDERS} -I ${dir_path}")
+    SET(h_dir_list_ ${h_dir_list_} "${dir_path}")
+  endif()
+ENDFOREACH()
+
+#In case the application is internal, but there is still an external CRT
+if(NOT ${ORIGIN_SRCPATH} MATCHES ${SOURCE_PATH})
+ FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS "${ORIGIN_SRCPATH}external/lib/crt/*.S")
  FOREACH(file_path IN LISTS new_list)
    if(${file_path} MATCHES "external_crt0.S")
-      SET( CRTO "EXTERNAL_CRTO" )
-      SET( LIB_CRT_EXT_P  "${file_path}" )
-      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
-      SET(INCLUDE_FOLDERS "${INCLUDE_FOLDERS} -I ${dir_path}")
-      SET(h_dir_list_ ${h_dir_list_} "${dir_path}")
+     SET( CRTO "EXTERNAL_CRTO" )
+     SET( LIB_CRT_EXT_P  "${file_path}" )
+     GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+     SET(INCLUDE_FOLDERS "${INCLUDE_FOLDERS} -I ${dir_path}")
+     SET(h_dir_list_ ${h_dir_list_} "${dir_path}")
    endif()
  ENDFOREACH()
 endif()
@@ -262,6 +281,7 @@ else()
   message( FATAL_ERROR "Linker specification is not correct" )
 endif()
 
+if (${VERBOSE} MATCHES "true")
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Debug messages to check the paths
 
@@ -271,9 +291,9 @@ message( "${Magenta}Root project: ${ROOT_PROJECT}${ColourReset}")
 message( "${Magenta}Source path: ${SOURCE_PATH}${ColourReset}")
 message( "${Magenta}LIB_CRT PATH for Cmake: ${LIB_CRT_P}${ColourReset}")
 message( "${Magenta}LINKER File for Cmake: ${LINK_FILE}${ColourReset}")
-message( "${Magenta}LIB_DRIVERS PATH for Cmake: ${LIB_DRIVERS}${ColourReset}")
-message( "${Magenta}Targetting folder: ${INC_FOLDERS}${ColourReset}")
 message( "${Magenta}Target: ${TARGET}${ColourReset}")
+
+endif()
 
 
 #######################################################################
@@ -289,7 +309,9 @@ SET(LINKED_FILES    "${LIB_CRT_P} \
                      ${LIB_CRT_EXT_P} \
                      ${c_dir_list}") 
 
-message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
+if (${VERBOSE} MATCHES "true")
+ message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
+endif()
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Free-RTOS configurations
@@ -413,7 +435,11 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                             -ffunction-sections -fdata-sections -specs=nano.specs")
 message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/${COMPILER_PREFIX}elf/lib${ColourReset}")
 
-SET(CMAKE_VERBOSE_MAKEFILE on)
+if (${VERBOSE} MATCHES "true")
+ SET(CMAKE_VERBOSE_MAKEFILE ON)
+else()
+ SET(CMAKE_VERBOSE_MAKEFILE OFF)
+endif()
 
 # To make sure that .obj files are created and fetched from the same path.
 # When setting an inner path to add_executable, .obj files are stored in ${MAINFILE}.elf.dir/<relative path>
@@ -434,7 +460,7 @@ if (${COMPILER} MATCHES "clang")
 								_deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \ _deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \
 								")
 	else()
-  set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
+    set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
                                 ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${MAINFILE}.c.obj \
                                 -o ${MAINFILE}.elf")
     endif()
