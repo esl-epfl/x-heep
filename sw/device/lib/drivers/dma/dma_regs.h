@@ -114,13 +114,14 @@ extern "C" {
 
 // Set the operational mode of the DMA
 #define DMA_MODE_REG_OFFSET 0x38
-#define DMA_MODE_MODE_MASK 0x3
+#define DMA_MODE_MODE_MASK 0x7
 #define DMA_MODE_MODE_OFFSET 0
 #define DMA_MODE_MODE_FIELD \
   ((bitfield_field32_t) { .mask = DMA_MODE_MODE_MASK, .index = DMA_MODE_MODE_OFFSET })
 #define DMA_MODE_MODE_VALUE_LINEAR_MODE 0x0
 #define DMA_MODE_MODE_VALUE_CIRCULAR_MODE 0x1
 #define DMA_MODE_MODE_VALUE_ADDRESS_MODE 0x2
+#define DMA_MODE_MODE_VALUE_SUBADDRESS_MODE 0x3
 
 // Set the dimensionality of the DMA
 #define DMA_DIM_CONFIG_REG_OFFSET 0x3c
