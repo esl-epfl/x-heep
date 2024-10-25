@@ -114,7 +114,6 @@ module dma #(
   logic [3:0] read_fifo_empty;
   logic read_fifo_alm_full;
   logic read_fifo_pop_pad;
-  //logic read_fifo_pop_pad_d;
   logic [3:0] read_fifo_pop;
   logic [3:0] read_fifo_pop_act;
   logic [31:0] read_fifo_input;
@@ -133,7 +132,6 @@ module dma #(
   logic write_fifo_pop;
   logic [31:0] write_fifo_input;
   logic [31:0] write_fifo_output;
-  //logic [31:0] write_fifo_input_d;
   logic [31:0] write_fifo_input_act;
 
   /* Trigger signals */
@@ -399,7 +397,6 @@ module dma #(
       .dma_padding_fsm_on_i(dma_padding_fsm_on),
       .dma_start_i(dma_start),
       .read_fifo_empty_i(&(read_fifo_empty)),
-      .subaddressing_mode_i(subaddressing_mode),
       .write_fifo_full_i(write_fifo_full),
       .write_fifo_alm_full_i(write_fifo_alm_full),
       .data_read_i(read_fifo_output),
@@ -593,47 +590,41 @@ module dma #(
 
   always_ff @(posedge clk_cg, negedge rst_ni) begin
     if (~rst_ni) begin
-      read_fifo_pop = 4'b0000;
+      read_fifo_pop <= 4'b0000;
     end else begin
       if (subaddressing_mode == 1'b1) begin
         case (src_data_type)
           DMA_DATA_TYPE_HALF_WORD: begin
 
-            read_fifo_pop = 4'b0011;
-
-            if (read_fifo_pop_pad == 1'b1) begin
+            if (dma_start == 1'b1) begin
+              read_fifo_pop <= 4'b0011;
+            end else if (read_fifo_pop_pad == 1'b1) begin
               if (read_fifo_pop == 4'b1100) begin
-                read_fifo_pop = 4'b0011;
+                read_fifo_pop <= 4'b0011;
               end else begin
-                read_fifo_pop = read_fifo_pop << 2;
+                read_fifo_pop <= read_fifo_pop << 2;
               end
-            end else begin
-              read_fifo_pop = read_fifo_pop;
             end
-
           end
 
           DMA_DATA_TYPE_BYTE: begin
 
-            read_fifo_pop = 4'b0001;
-            
-            if (read_fifo_pop_pad == 1'b1) begin
+            if (dma_start == 1'b1) begin
+              read_fifo_pop <= 4'b0001;
+            end else if (read_fifo_pop_pad == 1'b1) begin
               if (read_fifo_pop == 4'b1000) begin
-                read_fifo_pop = 4'b0001;
+                read_fifo_pop <= 4'b0001;
               end else begin
-                read_fifo_pop = read_fifo_pop << 1;
-              end              
-            end else begin
-              read_fifo_pop = read_fifo_pop;
+                read_fifo_pop <= read_fifo_pop << 1;
+              end
             end
-
           end
 
-          default: read_fifo_pop = 4'b1111;
+          default: read_fifo_pop <= {4{read_fifo_pop_pad}};
 
         endcase
       end else begin
-        read_fifo_pop = 4'b1111;
+        read_fifo_pop <= {4{read_fifo_pop_pad}};
       end
     end
   end
@@ -642,119 +633,82 @@ module dma #(
     if (subaddressing_mode == 1'b1) begin
       if (read_fifo_pop_pad == 1'b1) begin
         case (src_data_type)
-          DMA_DATA_TYPE_HALF_WORD:
+          DMA_DATA_TYPE_HALF_WORD: begin
 
-          if (read_fifo_pop == 4'b0000) begin
-            write_fifo_input_act = '0;
-            write_fifo_push_act = 1'b0;
-          end else if (read_fifo_pop == 4'b1100) begin
-            write_fifo_input_act = {{16{1'b0}}, write_fifo_input[31:16]};
-            write_fifo_push_act = 1'b1;
-          end else if (read_fifo_pop == 4'b0011) begin
-            write_fifo_input_act = {{16{1'b0}}, write_fifo_input[15:0]};
-            write_fifo_push_act = 1'b1;
-          end else begin
-            write_fifo_input_act = write_fifo_input;
-            write_fifo_push_act = write_fifo_push;
+            read_fifo_pop_act = read_fifo_pop;
+
+            if (read_fifo_pop == 4'b0000) begin
+              write_fifo_input_act = '0;
+              write_fifo_push_act  = 1'b0;
+            end else if (read_fifo_pop == 4'b1100) begin
+              write_fifo_input_act = {{16{1'b0}}, write_fifo_input[31:16]};
+              write_fifo_push_act  = 1'b1;
+            end else if (read_fifo_pop == 4'b0011) begin
+              write_fifo_input_act = {{16{1'b0}}, write_fifo_input[15:0]};
+              write_fifo_push_act  = 1'b1;
+            end else begin
+              write_fifo_input_act = write_fifo_input;
+              write_fifo_push_act  = write_fifo_push;
+            end
+
           end
 
-          DMA_DATA_TYPE_BYTE:
+          DMA_DATA_TYPE_BYTE: begin
 
-          if (read_fifo_pop == 4'b0000) begin
-            write_fifo_input_act = '0;
-            write_fifo_push_act = 1'b0;
-          end else if (read_fifo_pop == 4'b1000) begin
-            write_fifo_input_act = {{24{1'b0}}, write_fifo_input[31:24]};
-            write_fifo_push_act = 1'b1;
-          end else if (read_fifo_pop == 4'b0100) begin
-            write_fifo_input_act = {{24{1'b0}}, write_fifo_input[23:16]};
-            write_fifo_push_act = 1'b1;
-          end else if (read_fifo_pop == 4'b0010) begin
-            write_fifo_input_act = {{24{1'b0}}, write_fifo_input[15:8]};
-            write_fifo_push_act = 1'b1;
-          end else if (read_fifo_pop == 4'b0001) begin
-            write_fifo_input_act = {{24{1'b0}}, write_fifo_input[7:0]};
-            write_fifo_push_act = 1'b1;
-          end else begin
-            write_fifo_input_act = write_fifo_input;
-            write_fifo_push_act = write_fifo_push;
+            read_fifo_pop_act = read_fifo_pop;
+
+            if (read_fifo_pop == 4'b0000) begin
+              write_fifo_input_act = '0;
+              write_fifo_push_act  = 1'b0;
+            end else if (read_fifo_pop == 4'b1000) begin
+              write_fifo_input_act = {{24{1'b0}}, write_fifo_input[31:24]};
+              write_fifo_push_act  = 1'b1;
+            end else if (read_fifo_pop == 4'b0100) begin
+              write_fifo_input_act = {{24{1'b0}}, write_fifo_input[23:16]};
+              write_fifo_push_act  = 1'b1;
+            end else if (read_fifo_pop == 4'b0010) begin
+              write_fifo_input_act = {{24{1'b0}}, write_fifo_input[15:8]};
+              write_fifo_push_act  = 1'b1;
+            end else if (read_fifo_pop == 4'b0001) begin
+              write_fifo_input_act = {{24{1'b0}}, write_fifo_input[7:0]};
+              write_fifo_push_act  = 1'b1;
+            end else begin
+              write_fifo_input_act = write_fifo_input;
+              write_fifo_push_act  = write_fifo_push;
+            end
+
           end
 
           default: begin
             write_fifo_input_act = write_fifo_input;
             write_fifo_push_act = write_fifo_push;
+            read_fifo_pop_act = {4{read_fifo_pop_pad}};
           end
 
         endcase
       end else begin
         write_fifo_input_act = '0;
         write_fifo_push_act = 1'b0;
+        read_fifo_pop_act = {4{read_fifo_pop_pad}};
       end
     end else begin
       write_fifo_input_act = write_fifo_input;
       write_fifo_push_act = write_fifo_push;
+      read_fifo_pop_act = {4{read_fifo_pop_pad}};
     end
   end
 
-  always_comb begin
-    if (read_fifo_pop_pad == 1'b1) begin
-      read_fifo_pop_act = read_fifo_pop;
-    end else begin
-      read_fifo_pop_act = 4'b0000;
-    end
-  end
-
-
-  /* always_ff @(posedge clk_cg, negedge rst_ni) begin
-    if (~rst_ni) begin
-      read_fifo_pop = 4'b0000;
-    end else begin
-      if(subaddressing_mode == 1'b1) begin
-        case(src_data_type)
-          DMA_DATA_TYPE_HALF_WORD:
-            
-            if(read_fifo_pop_pad == 1'b1) begin
-              if(read_fifo_pop == 4'b1111) begin
-                read_fifo_pop = 4'b0011;
-              end else if (read_fifo_pop == 4'b1100) begin
-                read_fifo_pop = 4'b0011;
-              end else if (read_fifo_pop == 4'b1100) begin
-                read_fifo_pop = 4'b0011;
-              end else begin
-                read_fifo_pop = 4'b1111;
-              end
-            end else begin
-              read_fifo_pop = 4'b1111;
-            end
-
-          DMA_DATA_TYPE_BYTE:
-
-            if(read_fifo_pop_pad == 1'b1) begin
-              if(read_fifo_pop == 4'b1111) begin
-                read_fifo_pop = 4'b0001;
-              end else if (read_fifo_pop == 4'b0001) begin
-                read_fifo_pop = 4'b0010;
-              end else if (read_fifo_pop == 4'b0010) begin
-                read_fifo_pop = 4'b0100;
-              end else if (read_fifo_pop == 4'b0100) begin
-                read_fifo_pop = 4'b1000;
-              end else if (read_fifo_pop == 4'b0001) begin
-                read_fifo_pop = 4'b0001;
-              end else begin
-                read_fifo_pop = 4'1111;
-              end
-            end else begin
-              read_fifo_pop = 4'b1111;
-            end
-
-          default: 
-            read_fifo_pop <= 4'b1111;
-        endcase
+  /*always_comb begin
+    if(subaddressing_mode == 1'b1) begin
+      if (read_fifo_pop_pad == 1'b1) begin
+        read_fifo_pop_act = read_fifo_pop;
       end else begin
-        read_fifo_pop <= 4'b1111;
+        read_fifo_pop_act = 4'b0000;
       end
+    end else begin
+
     end
-  end */
+  end*/
 
   /*_________________________________________________________________________________________________________________________________ */
 
