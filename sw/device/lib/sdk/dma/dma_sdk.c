@@ -64,6 +64,15 @@ extern "C"
         return;
     }
 
+    void dma_copy_to_addr(uint32_t addr_ptr, uint32_t src_ptr, uint32_t size, uint8_t channel)
+    {
+        volatile dma *the_dma = dma_peri(channel);
+        DMA_COPY_ADDR(addr_ptr, src_ptr, size, the_dma);
+        dma_start(the_dma, size, DMA_DATA_TYPE_WORD);
+        DMA_WAIT(channel);
+        return;
+    }
+
     void dma_fill(uint32_t dst_ptr, uint32_t value_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data)
     {
         volatile dma *the_dma = dma_peri(channel);
