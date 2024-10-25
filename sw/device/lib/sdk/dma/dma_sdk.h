@@ -45,6 +45,15 @@ extern "C"
     DMA_PERI->DST_DATA_TYPE = (uint32_t)(DST_TYPE & DMA_DST_DATA_TYPE_DATA_TYPE_MASK);        \
     DMA_PERI->SIGN_EXT = (uint32_t)SIGNED;
 
+#define DMA_COPY_ADDR(ADDR, SRC, SIZE, DMA_PERI)                                                        \
+    DMA_PERI->INTERRUPT_EN = (uint32_t)0x1;                                                             \
+    DMA_PERI->SRC_PTR  = (uint32_t)SRC;                                                                 \
+    DMA_PERI->SRC_PTR_INC_D1 = (uint32_t)(INCREMENT(DMA_DATA_TYPE_WORD) & DMA_SRC_PTR_INC_D1_INC_MASK); \
+    DMA_PERI->ADDR_PTR = (uint32_t)ADDR;                                                                \
+    DMA_PERI->MODE = (uint32_t)(DMA_TRANS_MODE_ADDRESS & DMA_MODE_MODE_MASK);                           \
+    DMA_PERI->SRC_DATA_TYPE = (uint32_t)(DMA_DATA_TYPE_WORD & DMA_SRC_DATA_TYPE_DATA_TYPE_MASK);
+
+
 #define DMA_WAIT(CH)                          \
     while (!dma_is_ready(CH))                 \
     {                                         \
@@ -94,6 +103,16 @@ extern "C"
      * @param signed_data  Indicates whether the data is signed or unsigned.
      */
     void __attribute__((noinline)) dma_fill(uint32_t dst_ptr, uint32_t value_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data);
+
+    /**
+     * @brief Copies 32-bit data from source to *addr_ptr using DMA.
+     *
+     * @param addr_ptr  Pointer to the memory location that contains destinations.
+     * @param src_ptr   Pointer to the source memory location.
+     * @param size      Size of the data to be copied in bytes.
+     * @param channel   DMA channel to be used for the transfer.
+     */
+    void dma_copy_to_addr(uint32_t addr_ptr, uint32_t src_ptr, uint32_t size, uint8_t channel);
 
     void __attribute__((noinline)) dma_copy_async(uint32_t dst_ptr, uint32_t src_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data);
 
