@@ -1,0 +1,29 @@
+CAPI=2:
+
+name: "x-heep:ip:obi_spi_slave"
+description: "core-v-mini-mcu SPI2OBI peripheral"
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+    files:
+    - obi_spi_slave.sv
+    - spi_slave_axi_plug.sv
+    - spi_slave_cmd_parser.sv
+    - spi_slave_controller.sv
+    - spi_slave_dc_fifo.sv
+    - spi_slave_regs.sv
+    - spi_slave_rx.sv
+    - spi_slave_syncro
+    - spi_slave_tx.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl
