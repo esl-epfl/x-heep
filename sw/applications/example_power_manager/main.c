@@ -26,7 +26,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -193,17 +193,7 @@ int main(int argc, char *argv[])
     tgt_src.inc_d2_du = 0;
 
     tgt_dst.ptr = (uint8_t *)copied_data_4B;
-    tgt_dst.inc_d1_du = 1;
-    tgt_dst.trig = DMA_TRIG_MEMORY;
-    tgt_dst.type = DMA_DATA_TYPE_WORD;
-    tgt_dst.env = NULL;
-    tgt_dst.inc_d2_du = 0;
-
-    trans.size_d1_du = TEST_DATA_SIZE;
-    trans.src = &tgt_src;
-    trans.dst = &tgt_dst;
-    trans.src_type = DMA_DATA_TYPE_WORD;
-    trans.dst_type = DMA_DATA_TYPE_WORD;
+    tgt_dst.inc_d1_du = 1;EXTERNAL_DOMAINS
     trans.mode = DMA_TRANS_MODE_SINGLE;
     trans.win_du = 0;
     trans.sign_ext = 0;
