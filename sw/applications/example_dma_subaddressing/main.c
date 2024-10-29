@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 
     // Test simple read with DMA
     PRINTF("Testing read with DMA in SUBADDRESS mode...\n");
-/* 
+
     dma_data_type = TYPE_WORD;
     errors += test_read_dma(TEST_BUFFER_WORDS, LENGTH, dma_data_type, 0);
     dma_data_type = TYPE_HALF_WORD;
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
     errors += test_read_dma(TEST_BUFFER_SE_HALF_WORDS, LENGTH, dma_data_type, 1);
     dma_data_type = TYPE_BYTE;
     errors += test_read_dma(TEST_BUFFER_BYTES, LENGTH, dma_data_type, 0);
-    errors += test_read_dma(TEST_BUFFER_SE_BYTES, LENGTH, dma_data_type, 1); */
+    errors += test_read_dma(TEST_BUFFER_SE_BYTES, LENGTH, dma_data_type, 1);
 
     // Test quad read with DMA
     dma_data_type = TYPE_WORD;

@@ -188,29 +188,6 @@ module dma #(
   assign clk_cg = clk_i & clk_gate_en_ni;
 `endif
 
-
-
-  /* Read FIFOs */
-  // fifo_v3 #(
-  //     .DEPTH(FIFO_DEPTH),
-  //     .FALL_THROUGH(1'b1)
-  // ) dma_read_fifo_i (
-  //     .clk_i(clk_cg),
-  //     .rst_ni,
-  //     .flush_i(fifo_flush),
-  //     .testmode_i(1'b0),
-  //     // status flags
-  //     .full_o(read_fifo_full),
-  //     .empty_o(read_fifo_empty),
-  //     .usage_o(read_fifo_usage),
-  //     // as long as the queue is not full we can push new data
-  //     .data_i(read_fifo_input),
-  //     .push_i(data_in_rvalid),
-  //     // as long as the queue is not empty we can pop new elements
-  //     .data_o(read_fifo_output),
-  //     .pop_i(read_fifo_pop)
-  // );
-
   fifo_v3 #(
       .DEPTH(FIFO_DEPTH),
       .FALL_THROUGH(1'b0),
@@ -697,18 +674,6 @@ module dma #(
       read_fifo_pop_act = {4{read_fifo_pop_pad}};
     end
   end
-
-  /*always_comb begin
-    if(subaddressing_mode == 1'b1) begin
-      if (read_fifo_pop_pad == 1'b1) begin
-        read_fifo_pop_act = read_fifo_pop;
-      end else begin
-        read_fifo_pop_act = 4'b0000;
-      end
-    end else begin
-
-    end
-  end*/
 
   /*_________________________________________________________________________________________________________________________________ */
 
