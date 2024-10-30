@@ -38,6 +38,7 @@ module obi_spi_slave #(
     output logic [OBI_ADDR_WIDTH-1:0] obi_master_addr,
     output logic                      obi_master_we,
     output logic [OBI_DATA_WIDTH-1:0] obi_master_w_data,
+    output logic [3:0]                obi_master_be,
 
     // RESPONSE CHANNEL
     input logic obi_master_r_valid,
@@ -186,6 +187,7 @@ module obi_spi_slave #(
       .obi_master_addr   (obi_master_addr),
       .obi_master_we     (obi_master_we),
       .obi_master_w_data (obi_master_w_data),
+      .obi_master_be     (obi_master_be),
       .obi_master_r_valid(obi_master_r_valid),
       .obi_master_r_data (obi_master_r_data),
       .rxtx_addr         (addr_sync),

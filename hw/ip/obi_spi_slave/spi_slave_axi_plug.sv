@@ -23,13 +23,14 @@ module spi_slave_axi_plug #(
     output logic [OBI_ADDR_WIDTH-1:0] obi_master_addr,
     output logic                      obi_master_we,
     output logic [OBI_DATA_WIDTH-1:0] obi_master_w_data,
+    output logic [3:0]                obi_master_be,
 
     // RESPONSE CHANNEL
     input logic obi_master_r_valid,
     input logic [OBI_DATA_WIDTH-1:0] obi_master_r_data,
 
-    //SPI
-    input  logic [OBI_ADDR_WIDTH-1:0]   rxtx_addr,  //I'm pretty sure rx_ready, tx_ready etc are for the SPI part and thus not altererd.
+    //SPI/BUFFER
+    input  logic [OBI_ADDR_WIDTH-1:0]   rxtx_addr,
     input logic rxtx_addr_valid,
     input logic start_tx,
     input logic cs,
@@ -39,18 +40,6 @@ module spi_slave_axi_plug #(
     input logic [31:0] rx_data,
     input logic rx_valid,
     output logic rx_ready
-
-    //NOT IMPLEMENTED OBI
-    //byte enable(be) I'm unsure how it fits into the code and how it would connect to the spi part
-
-
-    //OMITTED OBI(not RI5CY and CV32E40 compatible)
-    //auser[]
-    //wuser[]
-    //aid[]
-    //err
-    //ruser[]
-    //rid[]
 );
 
   logic [OBI_ADDR_WIDTH-1:0] curr_addr;
@@ -58,16 +47,19 @@ module spi_slave_axi_plug #(
   logic [OBI_DATA_WIDTH-1:0] curr_data_tx;
   logic                      sample_fifo;
   logic                      sample_obidata;
+  logic                      sample_rxtx_state;
+  logic                      rxtx_state;
+  logic [0:0]                curr_rxtx_state; //low for reading, high for writing
 
 
 
   enum logic [1:0] {
     IDLE,
     OBIADDR,
-    OBIRESP
+    OBIRESP,
+    SEND_TX_DATA
   }
-      OBI_CS, OBI_NS;  //Do I have to add a 4th state which defaults to the idle state to 
-  //complete the FSM states?
+      OBI_CS, OBI_NS; 
 
   always_ff @(posedge obi_aclk or negedge obi_aresetn) begin
     if (obi_aresetn == 0) begin
@@ -77,11 +69,10 @@ module spi_slave_axi_plug #(
       curr_addr    <= 'h0;
     end else begin
       OBI_CS <= OBI_NS;
-      if (sample_fifo) begin
-        curr_data_rx <= rx_data;
-      end
+      if (sample_fifo) curr_data_rx <= rx_data;
       if (sample_obidata) curr_data_tx <= obi_master_r_data;
       if (rxtx_addr_valid) curr_addr <= rxtx_addr;
+      if (sample_rxtx_state) curr_rxtx_state <= rxtx_state; 
     end
   end
 
@@ -93,36 +84,46 @@ module spi_slave_axi_plug #(
     obi_master_req = 1'b0;
     obi_master_we  = 1'b0;
     sample_obidata = 1'b0;
+    sample_rxtx_state = 1'b0;
+    rxtx_state = 1'b0;
     case (OBI_CS)
       IDLE: begin
         if (rx_valid) begin
           sample_fifo   = 1'b1;
           rx_ready      = 1'b1;
-          obi_master_we = 1'b1;
+          rxtx_state = 1'b1;
+          sample_rxtx_state = 1'b1;
           OBI_NS        = OBIADDR;
         end else if (start_tx && !cs) begin
-          tx_valid = 1'b1;                  //Unsure if this is the right place for tx_valid. It is changed one clock cycle earlier than before
-          obi_master_we = 1'b0;
+          rxtx_state = 1'b0;
+          sample_rxtx_state = 1'b1;
           OBI_NS = OBIADDR;
         end else begin
           OBI_NS = IDLE;
-          //obi_master_req = 0'b0;            //returning signals to 0. The AXI code didn't include returning values to their original value so I'm unsure 
-          //obi_master_r_ready = 0'b0;        //whether I'm missing something or not.
         end
       end
       OBIADDR: begin
-        if (cs && !obi_master_we) begin
-          OBI_NS = IDLE;
+        if(curr_rxtx_state)begin 
+          obi_master_we = 1'b1;               
         end
+        
         obi_master_req = 1'b1;
-        if (obi_master_gnt && (tx_ready && !obi_master_we || obi_master_we)) OBI_NS = OBIRESP;
+
+        if (obi_master_gnt && ((tx_ready && !curr_rxtx_state) || curr_rxtx_state)) OBI_NS = OBIRESP;
         else OBI_NS = OBIADDR;
       end
       OBIRESP: begin
         if (obi_master_r_valid) begin
           OBI_NS = IDLE;
-          if (obi_master_we) sample_obidata = 1'b1;
+          if (!curr_rxtx_state) begin
+            sample_obidata = 1'b1;
+            OBI_NS = SEND_TX_DATA;
+          end
         end else OBI_NS = OBIRESP;
+      end
+      SEND_TX_DATA: begin
+        tx_valid = 1'b1;
+        OBI_NS = IDLE;
       end
     endcase
   end
@@ -130,5 +131,6 @@ module spi_slave_axi_plug #(
   assign tx_data = curr_data_tx;
   assign obi_master_addr   =  curr_addr;
   assign obi_master_w_data    = curr_data_rx;
+  assign obi_master_be = 4'b1111;
 
 endmodule
