@@ -176,10 +176,10 @@ module obi_spi_slave #(
       .ready_b(ctrl_data_tx_ready)
   );
 
-  spi_slave_axi_plug #(
+  spi_slave_obi_plug #(
       .OBI_ADDR_WIDTH(OBI_ADDR_WIDTH),
       .OBI_DATA_WIDTH(OBI_DATA_WIDTH)
-  ) u_axiplug (
+  ) u_obiplug (
       .obi_aclk          (obi_aclk),
       .obi_aresetn       (obi_aresetn),
       .obi_master_req    (obi_master_req),
