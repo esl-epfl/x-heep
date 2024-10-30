@@ -67,6 +67,7 @@ module spi_slave_obi_plug #(
       curr_data_rx <= 'h0;
       curr_data_tx <= 'h0;
       curr_addr    <= 'h0;
+      curr_rxtx_state <= 'h0;
     end else begin
       OBI_CS <= OBI_NS;
       if (sample_fifo) curr_data_rx <= rx_data;
