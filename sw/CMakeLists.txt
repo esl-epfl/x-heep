@@ -82,7 +82,7 @@ FOREACH(file_path ${new_list})
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Prune list
 
-  if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
+  if( add EQUAL 1 ) # If the file path matched one of the criterion, add it to the list
     # Get the path of the obtained directory
     GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
 
@@ -478,17 +478,20 @@ add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
 # Post processing command to create a hex file
 if((${LINKER} STREQUAL "flash_load") OR (${LINKER} STREQUAL "flash_exec"))
     add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
-            COMMAND ${CMAKE_OBJCOPY} -O verilog --adjust-vma=-0x40000000 ${MAINFILE}.elf  ${MAINFILE}.hex
+            COMMAND ${CMAKE_OBJCOPY} -O verilog --adjust-vma=-0x40000000 ${MAINFILE}.elf ${MAINFILE}.hex
             COMMENT "Invoking: Hexdump")
 else()
     add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
-            COMMAND ${CMAKE_OBJCOPY} -O verilog  ${MAINFILE}.elf  ${MAINFILE}.hex
+            COMMAND ${CMAKE_OBJCOPY} -O verilog  ${MAINFILE}.elf ${MAINFILE}.hex
             COMMENT "Invoking: Hexdump")
+    add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
+            COMMAND ${CMAKE_OBJCOPY} --srec-forceS3 --srec-len 1 -O srec ${MAINFILE}.elf ${MAINFILE}.hex.srec
+            COMMENT "Invoking: SREC Hexdump")
 endif()
 
 add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -O binary  ${MAINFILE}.elf  ${MAINFILE}.bin
-        COMMENT "Invoking: Hexdump")
+        COMMENT "Invoking: Binary dump")
 
 # Pre-processing command to create disassembly for each source file
 if ((${COMPILER} MATCHES "gcc") OR (${COMPILER} MATCHES "clang"))
