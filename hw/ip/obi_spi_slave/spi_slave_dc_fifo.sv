@@ -10,7 +10,9 @@
 
 module spi_slave_dc_fifo #(
     parameter DATA_WIDTH   = 32,
+    /* verilator lint_off UNUSED */
     parameter BUFFER_DEPTH = 8
+    /* verilator lint_on UNUSED */
 ) (
     input logic clk_a,
     input logic rstn_a,

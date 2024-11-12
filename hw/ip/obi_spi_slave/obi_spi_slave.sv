@@ -14,18 +14,11 @@ module obi_spi_slave #(
     parameter OBI_DATA_WIDTH = 32,
     parameter DUMMY_CYCLES   = 32
 ) (
-    input  logic       test_mode,
-    input  logic       spi_sclk,
-    input  logic       spi_cs,
-    output logic [1:0] spi_mode,
-    input  logic       spi_sdi0,
-    input  logic       spi_sdi1,
-    input  logic       spi_sdi2,
-    input  logic       spi_sdi3,
-    output logic       spi_sdo0,
-    output logic       spi_sdo1,
-    output logic       spi_sdo2,
-    output logic       spi_sdo3,
+    //input  logic       test_mode,
+    input  logic spi_sclk,
+    input  logic spi_cs,
+    input  logic spi_mosi,
+    output logic spi_miso,
 
     // OBI MASTER
     //***************************************
@@ -38,15 +31,13 @@ module obi_spi_slave #(
     output logic [OBI_ADDR_WIDTH-1:0] obi_master_addr,
     output logic                      obi_master_we,
     output logic [OBI_DATA_WIDTH-1:0] obi_master_w_data,
-    output logic [3:0]                obi_master_be,
+    output logic [               3:0] obi_master_be,
 
     // RESPONSE CHANNEL
     input logic obi_master_r_valid,
     input logic [OBI_DATA_WIDTH-1:0] obi_master_r_data
 );
 
-
-  logic                      en_quad;
   logic [               7:0] rx_counter;
   logic                      rx_counter_upd;
   logic [              31:0] rx_data;
@@ -64,9 +55,13 @@ module obi_spi_slave #(
 
   logic [              31:0] ctrl_data_rx;
   logic                      ctrl_data_rx_valid;
+  /* verilator lint_off UNUSED */
   logic                      ctrl_data_rx_ready;
+  /* verilator lint_on UNUSED */
   logic [              31:0] ctrl_data_tx;
+  /* verilator lint_off UNUSED */
   logic                      ctrl_data_tx_valid;
+  /* verilator lint_on UNUSED */
   logic                      ctrl_data_tx_ready;
 
   logic [              31:0] fifo_data_rx;
@@ -88,11 +83,7 @@ module obi_spi_slave #(
   spi_slave_rx u_rxreg (
       .sclk          (spi_sclk),
       .cs            (spi_cs),
-      .sdi0          (spi_sdi0),
-      .sdi1          (spi_sdi1),
-      .sdi2          (spi_sdi2),
-      .sdi3          (spi_sdi3),
-      .en_quad_in    (en_quad),
+      .mosi          (spi_mosi),
       .counter_in    (rx_counter),
       .counter_in_upd(rx_counter_upd),
       .data          (rx_data),
@@ -100,14 +91,10 @@ module obi_spi_slave #(
   );
 
   spi_slave_tx u_txreg (
-      .test_mode     (test_mode),
+      //.test_mode     (test_mode),
       .sclk          (spi_sclk),
       .cs            (spi_cs),
-      .sdo0          (spi_sdo0),
-      .sdo1          (spi_sdo1),
-      .sdo2          (spi_sdo2),
-      .sdo3          (spi_sdo3),
-      .en_quad_in    (en_quad),
+      .miso          (spi_miso),
       .counter_in    (tx_counter),
       .counter_in_upd(tx_counter_upd),
       .data          (tx_data),
@@ -121,8 +108,6 @@ module obi_spi_slave #(
       .sclk              (spi_sclk),
       .sys_rstn          (obi_aresetn),
       .cs                (spi_cs),
-      .en_quad           (en_quad),
-      .pad_mode          (spi_mode),
       .rx_counter        (rx_counter),
       .rx_counter_upd    (rx_counter_upd),
       .rx_data           (rx_data),
@@ -137,9 +122,7 @@ module obi_spi_slave #(
       .ctrl_addr_valid   (ctrl_addr_valid),
       .ctrl_data_rx      (ctrl_data_rx),
       .ctrl_data_rx_valid(ctrl_data_rx_valid),
-      .ctrl_data_rx_ready(ctrl_data_rx_ready),
       .ctrl_data_tx      (ctrl_data_tx),
-      .ctrl_data_tx_valid(ctrl_data_tx_valid),
       .ctrl_data_tx_ready(ctrl_data_tx_ready),
       .wrap_length       (wrap_length)
   );
@@ -199,7 +182,8 @@ module obi_spi_slave #(
       .tx_ready          (fifo_data_tx_ready),
       .rx_data           (fifo_data_rx),
       .rx_valid          (fifo_data_rx_valid),
-      .rx_ready          (fifo_data_rx_ready)
+      .rx_ready          (fifo_data_rx_ready),
+      .wrap_length       (wrap_length)
   );
 
   spi_slave_syncro #(

@@ -19,16 +19,14 @@ module spi_slave_regs #(
     output logic [REG_SIZE-1:0] rd_data,
     input  logic [         1:0] rd_addr,
     output logic [         7:0] dummy_cycles,
-    output logic                en_qpi,
     output logic [        15:0] wrap_length
 );
 
-  logic [REG_SIZE-1:0] reg0;  // bit 0 enables qpi
+  logic [REG_SIZE-1:0] reg0;  // quad_spi
   logic [REG_SIZE-1:0] reg1;  // number of dummy cycles
   logic [REG_SIZE-1:0] reg2;  // wrap length, low
   logic [REG_SIZE-1:0] reg3;  // wrap length, high
 
-  assign en_qpi       = reg0[0];
   assign dummy_cycles = reg1;
   assign wrap_length  = {reg3, reg2};
 

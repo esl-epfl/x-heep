@@ -27,32 +27,32 @@ module pdm2pcm #(
 
   import pdm2pcm_reg_pkg::*;
 
-  logic              [               15:0]     par_clkdiv_idx;
-  logic              [                3:0]     par_decim_idx_combs;
-  logic              [                4:0]     par_decim_idx_hfbd2;
-  logic              [                5:0]     par_decim_idx_fir;
-  logic              [               17:0]     coeffs_hb1          [ 0:3];
-  logic              [               17:0]     coeffs_hb2          [ 0:6];
-  logic              [               17:0]     coeffs_fir          [0:13];
+  logic            [               15:0] par_clkdiv_idx;
+  logic            [                3:0] par_decim_idx_combs;
+  logic            [                4:0] par_decim_idx_hfbd2;
+  logic            [                5:0] par_decim_idx_fir;
+  logic            [               17:0] coeffs_hb1          [ 0:3];
+  logic            [               17:0] coeffs_hb2          [ 0:6];
+  logic            [               17:0] coeffs_fir          [0:13];
 
-  logic              [FIFO_ADDR_WIDTH-1:0]     fifo_usage;
+  logic            [FIFO_ADDR_WIDTH-1:0] fifo_usage;
 
-  logic                                        pcm_data_valid;
+  logic                                  pcm_data_valid;
 
-  logic                                        rx_ready;
+  logic                                  rx_ready;
 
-  logic              [               17:0]     pcm;
+  logic            [               17:0] pcm;
 
   // FIFO/window related signals
-  logic              [               31:0]     rx_data;
-  logic              [     FIFO_WIDTH-1:0]     rx_fifo;
+  logic            [               31:0] rx_data;
+  logic            [     FIFO_WIDTH-1:0] rx_fifo;
 
   // Interface signals
-  pdm2pcm_reg2hw_t                             reg2hw;
-  pdm2pcm_hw2reg_t                             hw2reg;
+  pdm2pcm_reg2hw_t                       reg2hw;
+  pdm2pcm_hw2reg_t                       hw2reg;
 
-  reg_req_t        [                      0:0] fifo_win_h2d;
-  reg_rsp_t        [                      0:0] fifo_win_d2h;
+  reg_req_t        [                0:0] fifo_win_h2d;
+  reg_rsp_t        [                0:0] fifo_win_d2h;
 
   logic push, pop;
   logic empty, full;

@@ -11,11 +11,7 @@
 module spi_slave_rx (
     input  logic        sclk,
     input  logic        cs,
-    input  logic        sdi0,
-    input  logic        sdi1,
-    input  logic        sdi2,
-    input  logic        sdi3,
-    input  logic        en_quad_in,
+    input  logic        mosi,
     input  logic [ 7:0] counter_in,
     input  logic        counter_in_upd,
     output logic [31:0] data,
@@ -36,7 +32,7 @@ module spi_slave_rx (
 
   always_comb begin
     if (counter_in_upd) counter_trgt_next = counter_in;
-    else if ((counter_trgt == 8'h1) && !en_quad_in) counter_trgt_next = 8'h7;
+    else if (counter_trgt == 8'h1) counter_trgt_next = 8'h7;
     else counter_trgt_next = counter_trgt;
 
     if (counter_in_upd) running_next = 1'b1;
@@ -51,8 +47,7 @@ module spi_slave_rx (
         counter_next = counter + 1;
         data_ready   = 1'b0;
       end
-      if (en_quad_in) data_int_next = {data_int[27:0], sdi3, sdi2, sdi1, sdi0};
-      else data_int_next = {data_int[30:0], sdi0};
+      data_int_next = {data_int[30:0], mosi};
     end else begin
       counter_next  = counter;
       data_ready    = 1'b0;

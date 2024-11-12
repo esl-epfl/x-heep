@@ -102,22 +102,6 @@ module core_v_mini_mcu
     input  logic gpio_13_i,
     output logic gpio_13_oe_o,
 
-    output logic gpio_14_o,
-    input  logic gpio_14_i,
-    output logic gpio_14_oe_o,
-
-    output logic gpio_15_o,
-    input  logic gpio_15_i,
-    output logic gpio_15_oe_o,
-
-    output logic gpio_16_o,
-    input  logic gpio_16_i,
-    output logic gpio_16_oe_o,
-
-    output logic gpio_17_o,
-    input  logic gpio_17_i,
-    output logic gpio_17_oe_o,
-
     output logic spi_flash_sck_o,
     input  logic spi_flash_sck_i,
     output logic spi_flash_sck_oe_o,
@@ -173,6 +157,34 @@ module core_v_mini_mcu
     output logic spi_sd_3_o,
     input  logic spi_sd_3_i,
     output logic spi_sd_3_oe_o,
+
+    output logic spi_slave_sck_o,
+    input  logic spi_slave_sck_i,
+    output logic spi_slave_sck_oe_o,
+    output logic gpio_14_o,
+    input  logic gpio_14_i,
+    output logic gpio_14_oe_o,
+
+    output logic spi_slave_cs_o,
+    input  logic spi_slave_cs_i,
+    output logic spi_slave_cs_oe_o,
+    output logic gpio_15_o,
+    input  logic gpio_15_i,
+    output logic gpio_15_oe_o,
+
+    output logic spi_slave_miso_o,
+    input  logic spi_slave_miso_i,
+    output logic spi_slave_miso_oe_o,
+    output logic gpio_16_o,
+    input  logic gpio_16_i,
+    output logic gpio_16_oe_o,
+
+    output logic spi_slave_mosi_o,
+    input  logic spi_slave_mosi_i,
+    output logic spi_slave_mosi_oe_o,
+    output logic gpio_17_o,
+    input  logic gpio_17_i,
+    output logic gpio_17_oe_o,
 
     output logic pdm2pcm_pdm_o,
     input  logic pdm2pcm_pdm_i,
@@ -692,7 +704,21 @@ module core_v_mini_mcu
       .ext_dma_slot_tx_i,
       .ext_dma_slot_rx_i,
       .ext_dma_stop_i,
-      .dma_done_o
+      .dma_done_o,
+      .spi_slave_sck_o(spi_slave_sck_o),
+      .spi_slave_sck_i(spi_slave_sck_i),
+      .spi_slave_sck_oe_o(spi_slave_sck_oe_o),
+      .spi_slave_cs_o(spi_slave_cs_o),
+      .spi_slave_cs_i(spi_slave_cs_i),
+      .spi_slave_cs_oe_o(spi_slave_cs_oe_o),
+      .spi_slave_miso_o(spi_slave_miso_o),
+      .spi_slave_miso_i(spi_slave_miso_i),
+      .spi_slave_miso_oe_o(spi_slave_miso_oe_o),
+      .spi_slave_mosi_o(spi_slave_mosi_o),
+      .spi_slave_mosi_i(spi_slave_mosi_i),
+      .spi_slave_mosi_oe_o(spi_slave_mosi_oe_o),
+      .core_instr_req_o(core_instr_req),
+      .core_instr_resp_i(core_instr_resp)
   );
 
   peripheral_subsystem peripheral_subsystem_i (

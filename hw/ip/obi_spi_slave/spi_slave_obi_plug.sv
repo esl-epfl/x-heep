@@ -23,14 +23,14 @@ module spi_slave_obi_plug #(
     output logic [OBI_ADDR_WIDTH-1:0] obi_master_addr,
     output logic                      obi_master_we,
     output logic [OBI_DATA_WIDTH-1:0] obi_master_w_data,
-    output logic [3:0]                obi_master_be,
+    output logic [               3:0] obi_master_be,
 
     // RESPONSE CHANNEL
     input logic obi_master_r_valid,
     input logic [OBI_DATA_WIDTH-1:0] obi_master_r_data,
 
     //SPI/BUFFER
-    input  logic [OBI_ADDR_WIDTH-1:0]   rxtx_addr,
+    input logic [OBI_ADDR_WIDTH-1:0] rxtx_addr,
     input logic rxtx_addr_valid,
     input logic start_tx,
     input logic cs,
@@ -39,62 +39,96 @@ module spi_slave_obi_plug #(
     input logic tx_ready,
     input logic [31:0] rx_data,
     input logic rx_valid,
-    output logic rx_ready
+    output logic rx_ready,
+
+    input logic [15:0] wrap_length
 );
 
   logic [OBI_ADDR_WIDTH-1:0] curr_addr;
+  logic [OBI_ADDR_WIDTH-1:0] next_addr;
   logic [              31:0] curr_data_rx;
   logic [OBI_DATA_WIDTH-1:0] curr_data_tx;
   logic                      sample_fifo;
   logic                      sample_obidata;
   logic                      sample_rxtx_state;
   logic                      rxtx_state;
-  logic [0:0]                curr_rxtx_state; //low for reading, high for writing
+  logic [               0:0] curr_rxtx_state;  //low for reading, high for writing
+  logic                      incr_addr_w;
+  logic                      incr_addr_r;
 
+
+  // up to 64 kwords (256kB)
+  logic [              15:0] tx_counter;
+
+  logic [              15:0] wrap_length_t;
 
 
   enum logic [1:0] {
     IDLE,
     OBIADDR,
     OBIRESP,
-    SEND_TX_DATA
+    DATA
   }
-      OBI_CS, OBI_NS; 
+      OBI_CS, OBI_NS;
+
+  // Check if the wrap lenght is equal to '0'
+  assign wrap_length_t = (wrap_length == 0) ? 16'h1 : wrap_length;
+
 
   always_ff @(posedge obi_aclk or negedge obi_aresetn) begin
     if (obi_aresetn == 0) begin
-      OBI_CS       <= IDLE;
-      curr_data_rx <= 'h0;
-      curr_data_tx <= 'h0;
-      curr_addr    <= 'h0;
+      OBI_CS          <= IDLE;
+      curr_data_rx    <= 'h0;
+      curr_data_tx    <= 'h0;
+      curr_addr       <= 'h0;
       curr_rxtx_state <= 'h0;
     end else begin
       OBI_CS <= OBI_NS;
       if (sample_fifo) curr_data_rx <= rx_data;
       if (sample_obidata) curr_data_tx <= obi_master_r_data;
+      if (sample_rxtx_state) curr_rxtx_state <= rxtx_state;
       if (rxtx_addr_valid) curr_addr <= rxtx_addr;
-      if (sample_rxtx_state) curr_rxtx_state <= rxtx_state; 
+      else if (incr_addr_w | incr_addr_r) curr_addr <= next_addr;
+    end
+  end
+
+  always_ff @(posedge obi_aclk or negedge obi_aresetn) begin
+    if (obi_aresetn == 1'b0) tx_counter <= 16'h0;
+    else if (start_tx) tx_counter <= 16'h0;
+    else if (incr_addr_w | incr_addr_r) begin
+      if (tx_counter == wrap_length_t - 1) tx_counter <= 16'h0;
+      else tx_counter <= tx_counter + 16'h1;
     end
   end
 
   always_comb begin
-    OBI_NS         = IDLE;
-    sample_fifo    = 1'b0;
-    rx_ready       = 1'b0;
-    tx_valid       = 1'b0;
-    obi_master_req = 1'b0;
-    obi_master_we  = 1'b0;
-    sample_obidata = 1'b0;
+    next_addr = 32'b0;
+    if (rxtx_addr_valid) next_addr = rxtx_addr;
+    else if (tx_counter == wrap_length_t - 1) next_addr = rxtx_addr;
+    else next_addr = curr_addr + 32'h4;
+  end
+
+
+  always_comb begin
+    OBI_NS            = IDLE;
+    sample_fifo       = 1'b0;
+    rx_ready          = 1'b0;
+    tx_valid          = 1'b0;
+    obi_master_req    = 1'b0;
+    obi_master_we     = 1'b0;
+    sample_obidata    = 1'b0;
     sample_rxtx_state = 1'b0;
-    rxtx_state = 1'b0;
+    rxtx_state        = 1'b0;
+    incr_addr_w       = 1'b0;
+    incr_addr_r       = 1'b0;
     case (OBI_CS)
       IDLE: begin
         if (rx_valid) begin
-          sample_fifo   = 1'b1;
-          rx_ready      = 1'b1;
-          rxtx_state = 1'b1;
+          sample_fifo       = 1'b1;
+          rx_ready          = 1'b1;
+          rxtx_state        = 1'b1;
           sample_rxtx_state = 1'b1;
-          OBI_NS        = OBIADDR;
+          OBI_NS            = OBIADDR;
         end else if (start_tx && !cs) begin
           rxtx_state = 1'b0;
           sample_rxtx_state = 1'b1;
@@ -104,10 +138,10 @@ module spi_slave_obi_plug #(
         end
       end
       OBIADDR: begin
-        if(curr_rxtx_state)begin 
-          obi_master_we = 1'b1;               
+        if (curr_rxtx_state) begin
+          obi_master_we = 1'b1;
         end
-        
+
         obi_master_req = 1'b1;
 
         if (obi_master_gnt && ((tx_ready && !curr_rxtx_state) || curr_rxtx_state)) OBI_NS = OBIRESP;
@@ -118,13 +152,27 @@ module spi_slave_obi_plug #(
           OBI_NS = IDLE;
           if (!curr_rxtx_state) begin
             sample_obidata = 1'b1;
-            OBI_NS = SEND_TX_DATA;
-          end
+            OBI_NS = DATA;
+          end else incr_addr_w = 1'b1;
         end else OBI_NS = OBIRESP;
       end
-      SEND_TX_DATA: begin
+      DATA: begin
         tx_valid = 1'b1;
-        OBI_NS = IDLE;
+        if (cs) begin
+          OBI_NS = IDLE;
+        end else begin
+          if (tx_ready)
+            if (tx_counter == wrap_length_t - 1) begin
+              OBI_NS = IDLE;
+            end else begin
+              incr_addr_r = 1'b1;
+              OBI_NS      = OBIADDR;
+            end
+          else begin
+            OBI_NS = DATA;
+          end
+        end
+
       end
     endcase
   end

@@ -1,0 +1,7 @@
+// waiver file for obi_spi_slave
+
+`verilator_config
+
+lint_off -rule UNUSED -file "*/ip/obi_spi_slave/obi_spi_slave.sv" -match "Signal is not used: 'ctrl_data_rx_ready'[58:30]"
+lint_off -rule UNUSED -file "*/ip/obi_spi_slave/obi_spi_slave.sv" -match "Signal is not used: 'ctrl_data_tx_valid'[60:30]"
+lint_off -rule UNUSED -file "*/ip/obi_spi_slave/spi_slave_dc_fifo.sv" -match "Parameter is not used: 'BUFFER_DEPTH'[13:15]"
