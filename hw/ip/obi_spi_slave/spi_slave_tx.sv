@@ -9,7 +9,7 @@
 // specific language governing permissions and limitations under the License.
 
 module spi_slave_tx (
-    //input  logic        test_mode, Not deleted due to mux uncertainty
+    input  logic        test_mode,
     input  logic        sclk,
     input  logic        cs,
     output logic        miso,
@@ -28,8 +28,6 @@ module spi_slave_tx (
   reg [7:0] counter_trgt_next;
   logic running;
   logic running_next;
-  logic test_mode;  //TO BE DELETED (either set as input or completely deleted after discussion)
-  assign test_mode = 1'b0;
   logic sclk_inv;
   logic sclk_test;
 

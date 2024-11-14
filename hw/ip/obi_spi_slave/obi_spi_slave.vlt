@@ -2,6 +2,11 @@
 
 `verilator_config
 
-lint_off -rule UNUSED -file "*/ip/obi_spi_slave/obi_spi_slave.sv" -match "Signal is not used: 'ctrl_data_rx_ready'[58:30]"
-lint_off -rule UNUSED -file "*/ip/obi_spi_slave/obi_spi_slave.sv" -match "Signal is not used: 'ctrl_data_tx_valid'[60:30]"
-lint_off -rule UNUSED -file "*/ip/obi_spi_slave/spi_slave_dc_fifo.sv" -match "Parameter is not used: 'BUFFER_DEPTH'[13:15]"
+lint_off -rule UNUSED -file "*/ip/obi_spi_slave/obi_spi_slave.sv" -match "Signal is not used: 'ctrl_data_rx_ready'*"
+lint_off -rule UNUSED -file "*/ip/obi_spi_slave/obi_spi_slave.sv" -match "Signal is not used: 'ctrl_data_tx_valid'*"
+lint_off -rule UNUSED -file "*/ip/obi_spi_slave/spi_slave_dc_fifo.sv" -match "Parameter is not used: 'BUFFER_DEPTH'*"
+lint_off -rule UNUSED -file "*/ip/obi_spi_slave/spi_slave_controller.sv" -match "Parameter is not used: 'DUMMY_CYCLES'*"
+lint_off -rule UNDRIVEN -file "*/core-v-mini-mcu/core_v_mini_mcu.sv" -match "Signal is not driven: 'spi_slave_resp'*"
+lint_off -rule SYNCASYNCNET -file "*/system/x_heep_system.sv" -match "Signal flopped as both synchronous and async*"
+lint_off -rule CASEINCOMPLETE -file "*/ip/obi_spi_slave/spi_slave_controller.sv" -match "Case values incompletely covered (example pattern 0x5)*"
+

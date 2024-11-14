@@ -40,11 +40,9 @@ module spi_slave_controller #(
   enum logic [2:0] {
     CMD,
     ADDR,
-    MODE,
     DATA_TX,
     DATA_RX,
-    DUMMY,
-    ERROR
+    DUMMY
   }
       state, state_next;
 
@@ -161,27 +159,6 @@ module spi_slave_controller #(
           state_next = ADDR;
         end
       end
-      MODE: begin
-        if (rx_data_valid) begin
-          if (wait_dummy) begin
-            state_next     = DUMMY;
-            rx_counter     = DUMMY_CYCLES;
-            rx_counter_upd = 1;
-          end else if (get_data) begin
-            state_next     = DATA_RX;
-            rx_counter     = 8'h1F;
-            rx_counter_upd = 1;
-          end else if (send_data) begin
-            state_next          = DATA_TX;
-            tx_counter_next     = 8'h1F;
-            tx_counter_upd_next = 1;
-            tx_data_valid_next  = 1'b1;
-            if (~enable_regs) ctrl_data_tx_ready_next = 1'b1;
-          end
-        end else begin
-          state_next = MODE;
-        end
-      end
       DUMMY: begin
         if (rx_data_valid) begin
           if (get_data) begin
@@ -233,9 +210,6 @@ module spi_slave_controller #(
           state_next = DATA_TX;
         end
       end
-      ERROR: begin
-        state_next = ERROR;
-      end
     endcase
   end
 
@@ -268,7 +242,7 @@ module spi_slave_controller #(
       tx_data_valid      <= tx_data_valid_next;
       tx_done_reg        <= tx_done;
       ctrl_data_tx_ready <= ctrl_data_tx_ready_next;
-      tx_data            <= (enable_regs) ? {{24{1'b0}}, reg_data} : ctrl_data_tx;
+      tx_data            <= (enable_regs) ? {24'b0, reg_data} : ctrl_data_tx;
     end
   end
 

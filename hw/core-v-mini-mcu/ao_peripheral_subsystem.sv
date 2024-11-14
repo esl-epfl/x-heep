@@ -67,8 +67,8 @@ module ao_peripheral_subsystem
     //OBI master cpu subsystem:
 
     // Instruction memory interface
-    output obi_req_t  core_instr_req_o,
-    input  obi_resp_t core_instr_resp_i,
+    output obi_req_t  spi_slave_req_o,
+    input  obi_resp_t spi_slave_resp_i,
 
     // POWER MANAGER
     input logic [31:0] intr_i,
@@ -513,14 +513,14 @@ module ao_peripheral_subsystem
       .spi_mosi(spi_slave_mosi_i),
       .obi_aclk(clk_i),
       .obi_aresetn(rst_ni),
-      .obi_master_req(core_instr_req_o.req),
-      .obi_master_gnt(core_instr_resp_i.gnt),
-      .obi_master_addr(core_instr_req_o.addr),
-      .obi_master_we(core_instr_req_o.we),
-      .obi_master_w_data(core_instr_req_o.wdata),
-      .obi_master_be(core_instr_req_o.be),  //Not sure
-      .obi_master_r_valid(core_instr_resp_i.rvalid),
-      .obi_master_r_data(core_instr_resp_i.rdata)
+      .obi_master_req(spi_slave_req_o.req),
+      .obi_master_gnt(spi_slave_resp_i.gnt),
+      .obi_master_addr(spi_slave_req_o.addr),
+      .obi_master_we(spi_slave_req_o.we),
+      .obi_master_w_data(spi_slave_req_o.wdata),
+      .obi_master_be(spi_slave_req_o.be),
+      .obi_master_r_valid(spi_slave_resp_i.rvalid),
+      .obi_master_r_data(spi_slave_resp_i.rdata)
   );
 
 

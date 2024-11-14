@@ -14,7 +14,7 @@ module obi_spi_slave #(
     parameter OBI_DATA_WIDTH = 32,
     parameter DUMMY_CYCLES   = 32
 ) (
-    //input  logic       test_mode,
+    //input  logic test_mode,
     input  logic spi_sclk,
     input  logic spi_cs,
     input  logic spi_mosi,
@@ -55,13 +55,9 @@ module obi_spi_slave #(
 
   logic [              31:0] ctrl_data_rx;
   logic                      ctrl_data_rx_valid;
-  /* verilator lint_off UNUSED */
   logic                      ctrl_data_rx_ready;
-  /* verilator lint_on UNUSED */
   logic [              31:0] ctrl_data_tx;
-  /* verilator lint_off UNUSED */
   logic                      ctrl_data_tx_valid;
-  /* verilator lint_on UNUSED */
   logic                      ctrl_data_tx_ready;
 
   logic [              31:0] fifo_data_rx;
@@ -79,6 +75,7 @@ module obi_spi_slave #(
   logic                      rd_wr_sync;
 
   logic [              15:0] wrap_length;
+  logic                      test_mode;
 
   spi_slave_rx u_rxreg (
       .sclk          (spi_sclk),
@@ -91,7 +88,7 @@ module obi_spi_slave #(
   );
 
   spi_slave_tx u_txreg (
-      //.test_mode     (test_mode),
+      .test_mode     (test_mode),
       .sclk          (spi_sclk),
       .cs            (spi_cs),
       .miso          (spi_miso),
@@ -201,4 +198,5 @@ module obi_spi_slave #(
       .rd_wr_sync        (rd_wr_sync)
   );
 
+  assign test_mode = 1'b0;
 endmodule

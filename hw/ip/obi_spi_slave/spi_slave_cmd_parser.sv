@@ -129,6 +129,15 @@ module spi_slave_cmd_parser (
         wait_dummy  = 1'b0;
         reg_sel     = 2'b11;
       end
+      default: begin
+        get_addr    = 0;
+        get_data    = 1'b0;
+        send_data   = 0;
+        enable_cont = 0;
+        enable_regs = 1'b0;
+        wait_dummy  = 0;
+        reg_sel     = 2'b00;
+      end
     endcase
   end
 

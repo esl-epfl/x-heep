@@ -395,6 +395,10 @@ module core_v_mini_mcu
   obi_req_t peripheral_slave_req;
   obi_resp_t peripheral_slave_resp;
 
+  //OBI SPI slave
+  obi_req_t spi_slave_req;
+  obi_resp_t spi_slave_resp;
+
   // signals to debug unit
   logic debug_core_req;
   logic debug_reset_n;
@@ -717,8 +721,8 @@ module core_v_mini_mcu
       .spi_slave_mosi_o(spi_slave_mosi_o),
       .spi_slave_mosi_i(spi_slave_mosi_i),
       .spi_slave_mosi_oe_o(spi_slave_mosi_oe_o),
-      .core_instr_req_o(core_instr_req),
-      .core_instr_resp_i(core_instr_resp)
+      .spi_slave_req_o(spi_slave_req),
+      .spi_slave_resp_i(spi_slave_resp)
   );
 
   peripheral_subsystem peripheral_subsystem_i (
