@@ -56,9 +56,7 @@ module ao_peripheral_subsystem
     input  logic spi_slave_cs_i,
     output logic spi_slave_cs_oe_o,
     output logic spi_slave_miso_o,
-    /* verilator lint_off UNUSED */
     input  logic spi_slave_miso_i,
-    /* verilator lint_on UNUSED */
     output logic spi_slave_miso_oe_o,
     output logic spi_slave_mosi_o,
     input  logic spi_slave_mosi_i,
