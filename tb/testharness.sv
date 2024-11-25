@@ -612,29 +612,7 @@ module testharness #(
           .i2s_sd_o(gpio[22])
       );
 
-`ifndef VERILATOR
-      // Flash used for booting (execute from flash or copy from flash)
-      spiflash flash_boot_i (
-          .csb(spi_flash_csb[0]),
-          .clk(spi_flash_sck),
-          .io0(spi_flash_sd_io[0]),  // MOSI
-          .io1(spi_flash_sd_io[1]),  // MISO
-          .io2(spi_flash_sd_io[2]),
-          .io3(spi_flash_sd_io[3])
-      );
-`endif
 
-`ifndef VERILATOR
-      // Flash used as an example device with an SPI interface
-      spiflash flash_device_i (
-          .csb(spi_csb[0]),
-          .clk(spi_sck),
-          .io0(spi_sd_io[0]),  // MOSI
-          .io1(spi_sd_io[1]),  // MISO
-          .io2(spi_sd_io[2]),
-          .io3(spi_sd_io[3])
-      );
-`endif
 
       if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px) && X_EXT != 0) begin: gen_fpu_ss_wrapper
         fpu_ss_wrapper #(
