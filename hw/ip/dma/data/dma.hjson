@@ -186,12 +186,13 @@
       hwaccess: "hro",
       resval:        0,
       fields: [
-        { bits: "1:0", name: "MODE",
+        { bits: "2:0", name: "MODE",
           desc: "DMA operation mode",
           enum: [
             { value: "0", name: "LINEAR_MODE", desc: "Transfers data linearly"},
             { value: "1", name: "CIRCULAR_MODE", desc: "Transfers data in circular mode"},
             { value: "2", name: "ADDRESS_MODE" , desc: "Transfers data using as destination address the data from ADD_PTR"},
+            { value: "3", name: "SUBADDRESS_MODE" , desc: "Implements transferrin of data when SRC_PTR is fixed and related to a peripheral"},
           ]
         }
       ]

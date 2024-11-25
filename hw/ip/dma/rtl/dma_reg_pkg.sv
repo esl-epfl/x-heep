@@ -56,7 +56,7 @@ package dma_reg_pkg;
 
   typedef struct packed {logic q;} dma_reg2hw_sign_ext_reg_t;
 
-  typedef struct packed {logic [1:0] q;} dma_reg2hw_mode_reg_t;
+  typedef struct packed {logic [2:0] q;} dma_reg2hw_mode_reg_t;
 
   typedef struct packed {logic q;} dma_reg2hw_dim_config_reg_t;
 
@@ -105,21 +105,21 @@ package dma_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_src_ptr_reg_t src_ptr;  // [282:251]
-    dma_reg2hw_dst_ptr_reg_t dst_ptr;  // [250:219]
-    dma_reg2hw_addr_ptr_reg_t addr_ptr;  // [218:187]
-    dma_reg2hw_size_d1_reg_t size_d1;  // [186:170]
-    dma_reg2hw_size_d2_reg_t size_d2;  // [169:154]
-    dma_reg2hw_status_reg_t status;  // [153:150]
-    dma_reg2hw_src_ptr_inc_d1_reg_t src_ptr_inc_d1;  // [149:144]
-    dma_reg2hw_src_ptr_inc_d2_reg_t src_ptr_inc_d2;  // [143:121]
-    dma_reg2hw_dst_ptr_inc_d1_reg_t dst_ptr_inc_d1;  // [120:115]
-    dma_reg2hw_dst_ptr_inc_d2_reg_t dst_ptr_inc_d2;  // [114:92]
-    dma_reg2hw_slot_reg_t slot;  // [91:60]
-    dma_reg2hw_src_data_type_reg_t src_data_type;  // [59:58]
-    dma_reg2hw_dst_data_type_reg_t dst_data_type;  // [57:56]
-    dma_reg2hw_sign_ext_reg_t sign_ext;  // [55:55]
-    dma_reg2hw_mode_reg_t mode;  // [54:53]
+    dma_reg2hw_src_ptr_reg_t src_ptr;  // [283:252]
+    dma_reg2hw_dst_ptr_reg_t dst_ptr;  // [251:220]
+    dma_reg2hw_addr_ptr_reg_t addr_ptr;  // [219:188]
+    dma_reg2hw_size_d1_reg_t size_d1;  // [187:171]
+    dma_reg2hw_size_d2_reg_t size_d2;  // [170:155]
+    dma_reg2hw_status_reg_t status;  // [154:151]
+    dma_reg2hw_src_ptr_inc_d1_reg_t src_ptr_inc_d1;  // [150:145]
+    dma_reg2hw_src_ptr_inc_d2_reg_t src_ptr_inc_d2;  // [144:122]
+    dma_reg2hw_dst_ptr_inc_d1_reg_t dst_ptr_inc_d1;  // [121:116]
+    dma_reg2hw_dst_ptr_inc_d2_reg_t dst_ptr_inc_d2;  // [115:93]
+    dma_reg2hw_slot_reg_t slot;  // [92:61]
+    dma_reg2hw_src_data_type_reg_t src_data_type;  // [60:59]
+    dma_reg2hw_dst_data_type_reg_t dst_data_type;  // [58:57]
+    dma_reg2hw_sign_ext_reg_t sign_ext;  // [56:56]
+    dma_reg2hw_mode_reg_t mode;  // [55:53]
     dma_reg2hw_dim_config_reg_t dim_config;  // [52:52]
     dma_reg2hw_dim_inv_reg_t dim_inv;  // [51:51]
     dma_reg2hw_pad_top_reg_t pad_top;  // [50:45]

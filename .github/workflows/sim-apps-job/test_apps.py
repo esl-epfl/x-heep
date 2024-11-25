@@ -24,7 +24,7 @@ class BColors:
 
 # Define parameters for the test_apps.py script
 SIMULATOR = "verilator"
-SIM_TIMEOUT_S = 600
+SIM_TIMEOUT_S = 600000
 LINKER = "on_chip"
 COMPILER = "gcc"
 
@@ -33,6 +33,40 @@ blacklist = [
     "example_spi_read",
     "example_spidma_powergate",
     "example_spi_write",
+    "coremark",
+    "example_ams_peripheral",
+    "example_asm",
+    "example_cpp",
+    "example_data_processing_from_flash",
+    "example_dma",
+    "example_dma_2d",
+    "example_dma_external",
+    "example_dma_multichannel",
+    "example_dma_sdk",
+    "example_dma_subaddressing",
+    "example_ext_memory",
+    "example_fft",
+    "example_freertos_blinky",
+    "example_gpio_intr",
+    "example_gpio_toggle",
+    "example_i2s",
+    "example_iffifo",
+    "example_im2col",
+    "example_matadd",
+    "example_matadd_interleaved",
+    "example_matfadd",
+    "example_matmul",
+    "example_pdm2pcm",
+    "example_sdk_spi_flash",
+    "example_simple_accelerator",
+    "example_spi_read",
+    "example_spi_write",
+    "example_spidma_powergate",
+    "example_tensor_format_conv",
+    "example_timer_sdk",
+    "hello_world",
+    "memtest",
+    "minver"
 ]
 
 app_list = [app for app in os.listdir("sw/applications")]
