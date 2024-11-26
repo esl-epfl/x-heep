@@ -19,9 +19,9 @@ module ams #(
 
   assign hw2reg.get.de = 1;
 
-  ams_adc_1b ams_adc_1b_i (
-      .sel(reg2hw.sel.q),
-      .out(hw2reg.get.d)
+  myinverter myinverter_i (
+      .a(reg2hw.sel.q),
+      .z(hw2reg.get.d)
   );
 
   ams_reg_top #(
