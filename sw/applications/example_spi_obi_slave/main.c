@@ -19,12 +19,16 @@
 #define DIV_ROUND_UP(numerator, denominator) ((numerator + denominator - 1) / denominator)
 #define LOWER_BYTE_16_BITS(bytes)(bytes & 0xFF)
 #define UPPER_BYTE_16_BITS(bytes)((bytes & 0xFF00) >> 8)
+#define LOWER_BYTES_32_BITS(bytes)(bytes & 0xFFFF)
+#define UPPER_BYTES_32_BITS(bytes)((bytes & 0xFFFF0000) >> 16)
+#define WRITE_SPI_SLAVE_REG_1 0x11
 #define WRITE_SPI_SLAVE_REG_2 0x20
 #define WRITE_SPI_SLAVE_REG_3 0x30
 #define READ_SPI_SLAVE_CMD 0xB
 #define WRITE_SPI_SLAVE_CMD 0x2
 #define WORD_SIZE_IN_BYTES 4
 #define MAX_DATA_SIZE 0x10000
+#define DUMMY_CYCLES 0x0
 
 
 typedef enum {
@@ -62,11 +66,12 @@ uint32_t compare_data[DATA_LENGTH]; //!!! I have to check whether the process re
 
 spi_slave_flags_e spi_slave_init(spi_host_t* spi_host);
 static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t length);
-spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length);
+spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uint8_t dummy_cycles);
 bool check_address_validity(uint32_t addr, void* data, uint16_t length);
-void write_addr_to_slave(uint32_t addr);
 void print_array(const char *label, uint32_t *array, uint16_t size);
 static void configure_spi();
+void write_word_little_endian(uint32_t word);
+void write_dummy_cycles(uint8_t cycles);
 
 int main(int argc, char *argv[])
 {   
@@ -84,7 +89,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    flags = spi_slave_read(TARGET_ADDRESS, *compare_data, DATA_LENGTH);
+    flags = spi_slave_read(TARGET_ADDRESS, *compare_data, DATA_LENGTH, DUMMY_CYCLES);
     if (flags != SPI_SLAVE_FLAG_OK){
         printf("Failure to read\n Error code: %d", flags);
         return EXIT_FAILURE;
@@ -99,15 +104,16 @@ int main(int argc, char *argv[])
 }
 
 
-spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length){
+spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uint8_t dummy_cycles){
     // ??? Is this necessary? What happens when address is invalid or data exceeds memory? What is the size of the memory?
     if (check_address_validity(addr, data, length) != true) return SPI_SLAVE_FLAG_ADDRESS_INVALID;
 
+    write_dummy_cycles(dummy_cycles);
 
     uint8_t wrap_length_cmds[4] =   {WRITE_SPI_SLAVE_REG_2              //Write register 2 
-                                    ,LOWER_BYTE_16_BITS(length)         //Wraplength low 
+                                    ,LOWER_BYTE_16_BITS(length>>2)         //Wraplength low 
                                     ,WRITE_SPI_SLAVE_REG_3              //Write register 3
-                                    ,UPPER_BYTE_16_BITS(length)};       //Wraplength high
+                                    ,UPPER_BYTE_16_BITS(length>>2)};       //Wraplength high
 
  
     // Set up segment parameters -> send commands
@@ -135,8 +141,7 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length){
     spi_wait_for_ready(spi_hst);
 
     //write address
-    write_addr_to_slave(addr);
-
+    write_word_little_endian(addr);
     // Set up segment parameters -> read length bytes
     const uint32_t cmd_read = spi_create_command((spi_command_t){ //!!!!! I'm assuming this configurates the SPI host IP hence using the Host RX FIFO capacities
         .len        = length-1,             // len bytes
@@ -188,7 +193,7 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length){
     }
 
     return SPI_SLAVE_FLAG_OK; // Success
-};
+}
 
 
 spi_slave_flags_e spi_slave_init(spi_host_t* spi_host) {
@@ -224,7 +229,7 @@ spi_slave_flags_e spi_slave_init(spi_host_t* spi_host) {
 bool check_address_validity(uint32_t addr, void* data, uint16_t length){
     //TODO 
     return true;
-};
+}
 
 
 static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t length) {
@@ -243,8 +248,8 @@ static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t 
     spi_set_command(spi_hst, cmd_write);
     spi_wait_for_ready(spi_hst);
 
-
-    write_addr_to_slave(addr);
+    //Write address
+    write_word_little_endian(addr);
 
     /*
      * Place data in TX FIFO
@@ -278,22 +283,10 @@ static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t 
     spi_wait_for_ready(spi_hst);
 
     return SPI_SLAVE_FLAG_OK; // Success
-};
+}
 
 
-void write_addr_to_slave(uint32_t addr){
-    spi_write_word(spi_hst, addr);
-    spi_wait_for_ready(spi_hst);
 
-    const uint32_t send_cmd_word = spi_create_command((spi_command_t){
-      .len        = 3,                     // 4 Bytes 
-      .csaat      = true,                  // Command not finished e.g. CS remains low after transaction
-      .speed      = SPI_SPEED_STANDARD,    // Single speed
-      .direction  = SPI_DIR_TX_ONLY        // Write only
-    });
-    spi_set_command(spi_hst, send_cmd_word);
-    spi_wait_for_ready(spi_hst);
-};
 
 
 static void configure_spi() {
@@ -314,9 +307,68 @@ static void configure_spi() {
     spi_set_configopts(spi_hst, 0, chip_cfg);
 }
 
+
+void write_word_little_endian(uint32_t word){
+
+    uint8_t word_in_bytes[4] = {LOWER_BYTE_16_BITS(LOWER_BYTES_32_BITS(word)),
+                                UPPER_BYTE_16_BITS(LOWER_BYTES_32_BITS(word)),
+                                LOWER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word)),
+                                UPPER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word))
+    };
+        const uint32_t send_cmd_byte = spi_create_command((spi_command_t){
+        .len        = 0,                    // 1 Byte (The SPI SLAVE IP can only take one CMD byte at a time)
+        .csaat      = true,                 // Command not finished e.g. CS remains low after transaction
+        .speed      = SPI_SPEED_STANDARD,   // Single speed
+        .direction  = SPI_DIR_TX_ONLY       // Write only
+    });
+
+    for(int i = 0; i < 4; i++){ 
+        // Load command to TX FIFO
+        spi_write_byte(spi_hst, word_in_bytes[i]);
+        spi_wait_for_ready(spi_hst);
+
+        // Load segment parameters to COMMAND register
+        spi_set_command(spi_hst, send_cmd_byte);
+        spi_wait_for_ready(spi_hst);
+    }
+}
+
+void write_dummy_cycles(uint8_t cycles){
+
+    
+
+    const uint32_t send_cmd_byte = spi_create_command((spi_command_t){
+        .len        = 0,                    // 1 Byte (The SPI SLAVE IP can only take one CMD byte at a time)
+        .csaat      = true,                 // Command not finished e.g. CS remains low after transaction
+        .speed      = SPI_SPEED_STANDARD,   // Single speed
+        .direction  = SPI_DIR_TX_ONLY       // Write only
+    });
+
+     // Load command to TX FIFO
+    spi_write_byte(spi_hst, WRITE_SPI_SLAVE_REG_1);
+    spi_wait_for_ready(spi_hst);
+
+     // Load segment parameters to COMMAND register
+    spi_set_command(spi_hst, send_cmd_byte);
+    spi_wait_for_ready(spi_hst);
+
+      // Load command to TX FIFO
+    spi_write_byte(spi_hst, cycles);
+    spi_wait_for_ready(spi_hst);
+
+     // Load segment parameters to COMMAND register
+    spi_set_command(spi_hst, send_cmd_byte);
+    spi_wait_for_ready(spi_hst);
+
+    
+
+}
+
+
+
 void print_array(const char *label, uint32_t *array, uint16_t size) {
     printf("%s: [", label);
-    for (uint16_t i = 0; i < size; i++) {
+    for (uint16_t i = 0; i < size>>2; i++) {
         printf("%d", array[i]);
         if (i < size - 1) {
             printf(", ");
