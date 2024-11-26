@@ -358,7 +358,9 @@ ${pad.core_v_mini_mcu_interface}
       .ext_dma_write_req_o(ext_dma_write_req_o),
       .ext_dma_write_resp_i(ext_dma_write_resp_i),
       .ext_dma_addr_req_o(ext_dma_addr_req_o),
-      .ext_dma_addr_resp_i(ext_dma_addr_resp_i)
+      .ext_dma_addr_resp_i(ext_dma_addr_resp_i),
+      .spi_slave_req_i(spi_slave_req),
+      .spi_slave_resp_o(spi_slave_resp)
   );
 
   memory_subsystem #(

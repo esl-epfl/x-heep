@@ -527,7 +527,6 @@ module ao_peripheral_subsystem
   assign spi_slave_sck_oe_o = 1'b0;
   assign spi_slave_cs_o = 1'b0;
   assign spi_slave_cs_oe_o = 1'b0;
-  //assign spi_slave_miso_i = 1'b0;
   assign spi_slave_miso_oe_o = 1'b0;
   assign spi_slave_mosi_o = 1'b0;
   assign spi_slave_mosi_oe_o = 1'b0;
