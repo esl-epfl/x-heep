@@ -75,6 +75,8 @@ void write_dummy_cycles(uint8_t cycles);
 void spi_host_wait(uint8_t cycles);
 uint32_t make_word_compatible_for_spi_host(uint32_t word);
 void make_compare_data_compatible(uint32_t *compare_data, uint16_t length);
+void write_wrap_length(uint16_t length);
+
 
 int main(int argc, char *argv[])
 {   
@@ -114,12 +116,7 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
 
     write_dummy_cycles(dummy_cycles);
 
-
-    uint8_t wrap_length_cmds[4] =   {WRITE_SPI_SLAVE_REG_2              //Write register 2 
-                                    ,LOWER_BYTE_16_BITS(length>>2)         //Wraplength low 
-                                    ,WRITE_SPI_SLAVE_REG_3              //Write register 3
-                                    ,UPPER_BYTE_16_BITS(length>>2)};       //Wraplength high
-
+    write_wrap_length(length);
  
     // Set up segment parameters -> send commands
     const uint32_t send_cmd_byte = spi_create_command((spi_command_t){
@@ -129,15 +126,6 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
         .direction  = SPI_DIR_TX_ONLY       // Write only
     });
 
-    for(int i = 0; i < 4; i++){ 
-        // Load command to TX FIFO
-        spi_write_byte(spi_hst, wrap_length_cmds[i]);
-        spi_wait_for_ready(spi_hst);
-
-        // Load segment parameters to COMMAND register
-        spi_set_command(spi_hst, send_cmd_byte);
-        spi_wait_for_ready(spi_hst);
-    }
 
 
 
@@ -246,7 +234,9 @@ static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t 
     if(DIV_ROUND_UP(length, WORD_SIZE_IN_BYTES) > MAX_DATA_SIZE){
         return SPI_SLAVE_FLAG_SIZE_OF_DATA_EXCEEDED;
     }
-   
+
+    write_wrap_length(length);
+
     const uint8_t write_byte_cmd = WRITE_SPI_SLAVE_CMD;
     spi_write_word(spi_hst, write_byte_cmd);
     const uint32_t cmd_write = spi_create_command((spi_command_t){
@@ -385,6 +375,33 @@ void write_dummy_cycles(uint8_t cycles){
     spi_wait_for_ready(spi_hst);
 
     
+
+}
+
+void write_wrap_length(uint16_t length){
+
+    uint8_t wrap_length_cmds[4] =   {WRITE_SPI_SLAVE_REG_2              //Write register 2 
+                                  ,LOWER_BYTE_16_BITS(length>>2)         //Wraplength low 
+                                  ,WRITE_SPI_SLAVE_REG_3              //Write register 3
+                                  ,UPPER_BYTE_16_BITS(length>>2)};       //Wraplength high
+ 
+    // Set up segment parameters -> send commands
+    const uint32_t send_cmd_byte = spi_create_command((spi_command_t){
+        .len        = 0,                    // 1 Byte (The SPI SLAVE IP can only take one CMD byte at a time)
+        .csaat      = true,                 // Command not finished e.g. CS remains low after transaction
+        .speed      = SPI_SPEED_STANDARD,   // Single speed
+        .direction  = SPI_DIR_TX_ONLY       // Write only
+    });
+
+    for(int i = 0; i < 4; i++){ 
+        // Load command to TX FIFO
+        spi_write_byte(spi_hst, wrap_length_cmds[i]);
+        spi_wait_for_ready(spi_hst);
+
+        // Load segment parameters to COMMAND register
+        spi_set_command(spi_hst, send_cmd_byte);
+        spi_wait_for_ready(spi_hst);
+    }
 
 }
 
