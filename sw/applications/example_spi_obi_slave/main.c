@@ -44,9 +44,6 @@ typedef enum {
     SPI_SLAVE_FLAG_CSID_INVALID             = 0x0004,
     //The amount of data it too much for the SPI SLAVE IP to handle
     SPI_SLAVE_FLAG_SIZE_OF_DATA_EXCEEDED    = 0x0005,
-    //The amount of dummy cycles should be divisable by 8. The peripheral doesn't mind but the software of the host forces that 
-    //since the dummy cycles as a functionality haven't been integrated into the spi host.
-    SPI_SLAVE_FLAG_INVALID_DUMMY_CYCLES     = 0x0006,
     // The CMD FIFO is currently full so couldn't write command
     SPI_SLAVE_FLAG_COMMAND_FULL             = 0x0008,
     // The specified speed is not valid so couldn't write command
@@ -73,9 +70,10 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
 bool check_address_validity(uint32_t addr, void* data, uint16_t length);
 void print_array(const char *label, uint32_t *array, uint16_t size);
 static void configure_spi();
-void write_word_little_endian(uint32_t word);
+void write_word_big_endian(uint32_t word);
 void write_dummy_cycles(uint8_t cycles);
 void spi_host_wait(uint8_t cycles);
+uint32_t make_word_compatible_for_spi_host(uint32_t word);
 
 int main(int argc, char *argv[])
 {   
@@ -112,10 +110,8 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
     // ??? Is this necessary? What happens when address is invalid or data exceeds memory? What is the size of the memory?
     if (check_address_validity(addr, data, length) != true) return SPI_SLAVE_FLAG_ADDRESS_INVALID;
 
-    write_dummy_cycles(dummy_cycles);
-    if(dummy_cycles % 8 != 0){
-        return SPI_SLAVE_FLAG_INVALID_DUMMY_CYCLES;
-    }
+    //write_dummy_cycles(dummy_cycles);
+
 
     uint8_t wrap_length_cmds[4] =   {WRITE_SPI_SLAVE_REG_2              //Write register 2 
                                     ,LOWER_BYTE_16_BITS(length>>2)         //Wraplength low 
@@ -150,7 +146,7 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
     spi_wait_for_ready(spi_hst);
 
     //write address
-    write_word_little_endian(addr);
+    write_word_big_endian(addr);
 
     spi_host_wait(dummy_cycles);
 
@@ -261,7 +257,7 @@ static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t 
     spi_wait_for_ready(spi_hst);
 
     //Write address
-    write_word_little_endian(addr);
+    write_word_big_endian(addr);
 
     /*
      * Place data in TX FIFO
@@ -272,13 +268,13 @@ static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t 
     uint32_t *data_32bit = (uint32_t *)data;
     for (int i = 0; i < length>>2; i++) {
         spi_wait_for_tx_not_full(spi_hst);
-        spi_write_word(spi_hst, data_32bit[i]);
+        spi_write_word(spi_hst, make_word_compatible_for_spi_host(data_32bit[i]));
     }
     if (length % 4 != 0) {
         uint32_t last_word = 0;
         memcpy(&last_word, &data[length - length % 4], length % 4);
         spi_wait_for_tx_not_full(spi_hst);
-        spi_write_word(spi_hst, last_word);
+        spi_write_word(spi_hst, make_word_compatible_for_spi_host(last_word));
     }
 
 
@@ -320,9 +316,9 @@ static void configure_spi() {
 }
 
 
-void write_word_little_endian(uint32_t word){
+void write_word_big_endian(uint32_t word){
 
-    uint8_t word_in_bytes[4] = {LOWER_BYTE_16_BITS(LOWER_BYTES_32_BITS(word)),
+/*    uint8_t word_in_bytes[4] = {LOWER_BYTE_16_BITS(LOWER_BYTES_32_BITS(word)),
                                 UPPER_BYTE_16_BITS(LOWER_BYTES_32_BITS(word)),
                                 LOWER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word)),
                                 UPPER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word))
@@ -342,7 +338,21 @@ void write_word_little_endian(uint32_t word){
         // Load segment parameters to COMMAND register
         spi_set_command(spi_hst, send_cmd_byte);
         spi_wait_for_ready(spi_hst);
-    }
+    }*/
+
+    uint32_t sorted_word = make_word_compatible_for_spi_host(word);
+    spi_write_word(spi_hst, sorted_word);
+    spi_wait_for_ready(spi_hst);        // Set up segment parameters -> send command and address
+    const uint32_t cmd_read_1 = spi_create_command((spi_command_t){
+        .len        = 3,                 // 4 Bytes
+        .csaat      = true,              // Command not finished
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
+    });
+    // Load segment parameters to COMMAND register
+    spi_set_command(spi_hst, cmd_read_1);
+    spi_wait_for_ready(spi_hst);
+
 }
 
 void write_dummy_cycles(uint8_t cycles){
@@ -377,23 +387,22 @@ void write_dummy_cycles(uint8_t cycles){
 }
 
 void spi_host_wait(uint8_t cycles){
+    if(cycles == 0){
+        return;
+    }
     uint8_t placeholder = 0;
     const uint32_t send_cmd_byte = spi_create_command((spi_command_t){
-        .len        = 0,                    // 1 Byte (The SPI SLAVE IP can only take one CMD byte at a time)
+        .len        = cycles,             // Number of dummy cycles
         .csaat      = true,                 // Command not finished e.g. CS remains low after transaction
         .speed      = SPI_SPEED_STANDARD,   // Single speed
-        .direction  = SPI_DIR_TX_ONLY       // Write only
+        .direction  = SPI_DIR_DUMMY         // Dummy
     });
 
-    for(int i = 0; i < cycles >> 3; i++){ 
-        // Load command to TX FIFO
-        spi_write_byte(spi_hst, placeholder);
-        spi_wait_for_ready(spi_hst);
 
-        // Load segment parameters to COMMAND register
-        spi_set_command(spi_hst, send_cmd_byte);
-        spi_wait_for_ready(spi_hst);
-    }
+    // Load segment parameters to COMMAND register
+    spi_set_command(spi_hst, send_cmd_byte);
+    spi_wait_for_ready(spi_hst);
+
 }
 
 void print_array(const char *label, uint32_t *array, uint16_t size) {
@@ -405,4 +414,11 @@ void print_array(const char *label, uint32_t *array, uint16_t size) {
         }
     }
     printf("]\n");
+}
+
+uint32_t make_word_compatible_for_spi_host(uint32_t word){
+    return (LOWER_BYTE_16_BITS(LOWER_BYTES_32_BITS(word)) << 24) 
+        | (UPPER_BYTE_16_BITS(LOWER_BYTES_32_BITS(word)) << 16) 
+        | (LOWER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word)) << 8) 
+        | UPPER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word));
 }
