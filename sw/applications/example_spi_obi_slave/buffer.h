@@ -4,6 +4,6 @@
 #define TARGET_ADDRESS 0x04
 
 
-uint32_t test_data[1] = {
+uint32_t test_data[DATA_LENGTH/4] = {
     0xFF00AA
 };

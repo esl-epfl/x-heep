@@ -28,7 +28,7 @@
 #define WRITE_SPI_SLAVE_CMD 0x2
 #define WORD_SIZE_IN_BYTES 4
 #define MAX_DATA_SIZE 0x10000
-#define DUMMY_CYCLES 0x20
+#define DUMMY_CYCLES 0x20 //Dummy cycles are required otherwise the obi master and slave are too slow to process the data
 
 
 typedef enum {
@@ -61,7 +61,7 @@ typedef enum {
 } spi_slave_flags_e;
 
 spi_host_t* spi_hst; //Removed specific memory assignement
-uint32_t compare_data[DATA_LENGTH]; //!!! I have to check whether the process reads out more data than it sent in
+uint32_t compare_data[DATA_LENGTH/4]; //!!! I have to check whether the process reads out more data than it sent in
 
 
 spi_slave_flags_e spi_slave_init(spi_host_t* spi_host);
@@ -74,6 +74,7 @@ void write_word_big_endian(uint32_t word);
 void write_dummy_cycles(uint8_t cycles);
 void spi_host_wait(uint8_t cycles);
 uint32_t make_word_compatible_for_spi_host(uint32_t word);
+void make_compare_data_compatible(uint32_t *compare_data, uint16_t length);
 
 int main(int argc, char *argv[])
 {   
@@ -97,6 +98,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     print_array("Test Data", test_data, DATA_LENGTH);
+    make_compare_data_compatible(compare_data, DATA_LENGTH);
     print_array("Compare Data", compare_data, DATA_LENGTH);
     if (memcmp(test_data, compare_data, DATA_LENGTH) != 0) {
         printf("Failure to retrieve correct data\n");
@@ -110,7 +112,7 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
     // ??? Is this necessary? What happens when address is invalid or data exceeds memory? What is the size of the memory?
     if (check_address_validity(addr, data, length) != true) return SPI_SLAVE_FLAG_ADDRESS_INVALID;
 
-    //write_dummy_cycles(dummy_cycles);
+    write_dummy_cycles(dummy_cycles);
 
 
     uint8_t wrap_length_cmds[4] =   {WRITE_SPI_SLAVE_REG_2              //Write register 2 
@@ -421,4 +423,10 @@ uint32_t make_word_compatible_for_spi_host(uint32_t word){
         | (UPPER_BYTE_16_BITS(LOWER_BYTES_32_BITS(word)) << 16) 
         | (LOWER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word)) << 8) 
         | UPPER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word));
+}
+
+void make_compare_data_compatible(uint32_t *compare_data, uint16_t length){
+    for(uint16_t i = 0; i < length>>2; i++){
+        compare_data[i] = make_word_compatible_for_spi_host(compare_data[i]);
+    }    
 }
