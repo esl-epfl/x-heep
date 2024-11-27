@@ -76,7 +76,7 @@ module spi_slave_cmd_parser (
         send_data   = 1;
         enable_cont = 1'b1;
         enable_regs = 1'b0;
-        wait_dummy  = 1;  
+        wait_dummy  = 1;
         reg_sel     = 2'b00;
       end
       8'h11: //write reg1

@@ -49,8 +49,9 @@ module spi_slave_tx (
         counter_next = 0;
       end else counter_next = counter + 1;
 
-      if (data_valid) data_int_next = data;
-      else begin
+      if (data_valid) begin
+        data_int_next = data;
+      end else begin
         data_int_next = {data_int[30:0], 1'b0};
       end
     end else begin

@@ -28,7 +28,7 @@
 #define WRITE_SPI_SLAVE_CMD 0x2
 #define WORD_SIZE_IN_BYTES 4
 #define MAX_DATA_SIZE 0x10000
-#define DUMMY_CYCLES 0x0
+#define DUMMY_CYCLES 0x20
 
 
 typedef enum {
@@ -44,6 +44,9 @@ typedef enum {
     SPI_SLAVE_FLAG_CSID_INVALID             = 0x0004,
     //The amount of data it too much for the SPI SLAVE IP to handle
     SPI_SLAVE_FLAG_SIZE_OF_DATA_EXCEEDED    = 0x0005,
+    //The amount of dummy cycles should be divisable by 8. The peripheral doesn't mind but the software of the host forces that 
+    //since the dummy cycles as a functionality haven't been integrated into the spi host.
+    SPI_SLAVE_FLAG_INVALID_DUMMY_CYCLES     = 0x0006,
     // The CMD FIFO is currently full so couldn't write command
     SPI_SLAVE_FLAG_COMMAND_FULL             = 0x0008,
     // The specified speed is not valid so couldn't write command
@@ -72,6 +75,7 @@ void print_array(const char *label, uint32_t *array, uint16_t size);
 static void configure_spi();
 void write_word_little_endian(uint32_t word);
 void write_dummy_cycles(uint8_t cycles);
+void spi_host_wait(uint8_t cycles);
 
 int main(int argc, char *argv[])
 {   
@@ -83,20 +87,20 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     printf("Checkpoint");
-    flags = spi_host_write(TARGET_ADDRESS, *test_data, DATA_LENGTH);
+    flags = spi_host_write(TARGET_ADDRESS, test_data, DATA_LENGTH);
     if (flags != SPI_SLAVE_FLAG_OK){
         printf("Failure to write\n Error code: %d", flags);
         return EXIT_FAILURE;
     }
 
-    flags = spi_slave_read(TARGET_ADDRESS, *compare_data, DATA_LENGTH, DUMMY_CYCLES);
+    flags = spi_slave_read(TARGET_ADDRESS, compare_data, DATA_LENGTH, DUMMY_CYCLES);
     if (flags != SPI_SLAVE_FLAG_OK){
         printf("Failure to read\n Error code: %d", flags);
         return EXIT_FAILURE;
     }
     print_array("Test Data", test_data, DATA_LENGTH);
     print_array("Compare Data", compare_data, DATA_LENGTH);
-    if (test_data != compare_data){
+    if (memcmp(test_data, compare_data, DATA_LENGTH) != 0) {
         printf("Failure to retrieve correct data\n");
         return EXIT_FAILURE;
     }
@@ -109,6 +113,9 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
     if (check_address_validity(addr, data, length) != true) return SPI_SLAVE_FLAG_ADDRESS_INVALID;
 
     write_dummy_cycles(dummy_cycles);
+    if(dummy_cycles % 8 != 0){
+        return SPI_SLAVE_FLAG_INVALID_DUMMY_CYCLES;
+    }
 
     uint8_t wrap_length_cmds[4] =   {WRITE_SPI_SLAVE_REG_2              //Write register 2 
                                     ,LOWER_BYTE_16_BITS(length>>2)         //Wraplength low 
@@ -134,6 +141,8 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
         spi_wait_for_ready(spi_hst);
     }
 
+
+
     spi_write_byte(spi_hst, READ_SPI_SLAVE_CMD);
     spi_wait_for_ready(spi_hst);
 
@@ -142,6 +151,9 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
 
     //write address
     write_word_little_endian(addr);
+
+    spi_host_wait(dummy_cycles);
+
     // Set up segment parameters -> read length bytes
     const uint32_t cmd_read = spi_create_command((spi_command_t){ //!!!!! I'm assuming this configurates the SPI host IP hence using the Host RX FIFO capacities
         .len        = length-1,             // len bytes
@@ -315,7 +327,7 @@ void write_word_little_endian(uint32_t word){
                                 LOWER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word)),
                                 UPPER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word))
     };
-        const uint32_t send_cmd_byte = spi_create_command((spi_command_t){
+    const uint32_t send_cmd_byte = spi_create_command((spi_command_t){
         .len        = 0,                    // 1 Byte (The SPI SLAVE IP can only take one CMD byte at a time)
         .csaat      = true,                 // Command not finished e.g. CS remains low after transaction
         .speed      = SPI_SPEED_STANDARD,   // Single speed
@@ -364,7 +376,25 @@ void write_dummy_cycles(uint8_t cycles){
 
 }
 
+void spi_host_wait(uint8_t cycles){
+    uint8_t placeholder = 0;
+    const uint32_t send_cmd_byte = spi_create_command((spi_command_t){
+        .len        = 0,                    // 1 Byte (The SPI SLAVE IP can only take one CMD byte at a time)
+        .csaat      = true,                 // Command not finished e.g. CS remains low after transaction
+        .speed      = SPI_SPEED_STANDARD,   // Single speed
+        .direction  = SPI_DIR_TX_ONLY       // Write only
+    });
 
+    for(int i = 0; i < cycles >> 3; i++){ 
+        // Load command to TX FIFO
+        spi_write_byte(spi_hst, placeholder);
+        spi_wait_for_ready(spi_hst);
+
+        // Load segment parameters to COMMAND register
+        spi_set_command(spi_hst, send_cmd_byte);
+        spi_wait_for_ready(spi_hst);
+    }
+}
 
 void print_array(const char *label, uint32_t *array, uint16_t size) {
     printf("%s: [", label);

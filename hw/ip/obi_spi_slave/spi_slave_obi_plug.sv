@@ -57,6 +57,7 @@ module spi_slave_obi_plug #(
   logic                      incr_addr_r;
 
 
+
   // up to 64 kwords (256kB)
   logic [              15:0] tx_counter;
 
@@ -161,14 +162,14 @@ module spi_slave_obi_plug #(
         if (cs) begin
           OBI_NS = IDLE;
         end else begin
-          if (tx_ready)
+          if (tx_ready) begin
             if (tx_counter == wrap_length_t - 1) begin
               OBI_NS = IDLE;
             end else begin
               incr_addr_r = 1'b1;
               OBI_NS      = OBIADDR;
             end
-          else begin
+          end else begin
             OBI_NS = DATA;
           end
         end
@@ -181,5 +182,4 @@ module spi_slave_obi_plug #(
   assign obi_master_addr   =  curr_addr;
   assign obi_master_w_data    = curr_data_rx;
   assign obi_master_be = 4'b1111;
-
 endmodule
