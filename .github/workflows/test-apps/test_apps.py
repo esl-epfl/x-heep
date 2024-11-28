@@ -162,7 +162,6 @@ def run_app(an_app, simulator):
             + BColors.ENDC,
             flush=True,
         )
-        print(BColors.FAIL + str(run_output.stdout.decode("utf-8")) + BColors.ENDC)
         return SimResult.TIMED_OUT
     else:
         match = re.search(
