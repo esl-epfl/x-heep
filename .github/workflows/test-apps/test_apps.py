@@ -129,12 +129,12 @@ def compile_app(an_app, compiler, linker):
             compile_command, capture_output=True, check=True
         )
     except subprocess.CalledProcessError as exc:
-        print(BColors.FAIL + f"Error compiling {an_app.name}!" + BColors.ENDC)
+        print(BColors.FAIL + f"Error compiling {an_app.name}." + BColors.ENDC)
         print(exc.stderr.decode("utf-8"), flush=True)
         return False
     else:
         print(
-            BColors.OKGREEN + f"Compiled {an_app.name} successfully!" + BColors.ENDC,
+            BColors.OKGREEN + f"Compiled {an_app.name} successfully." + BColors.ENDC,
             flush=True,
         )
         return True
@@ -162,7 +162,7 @@ def run_app(an_app, simulator):
     except subprocess.TimeoutExpired:
         print(
             BColors.FAIL
-            + f"Simulation of {an_app.name} with {simulator} timed out!"
+            + f"Simulation of {an_app.name} with {simulator} timed out."
             + BColors.ENDC,
             flush=True,
         )
@@ -174,7 +174,7 @@ def run_app(an_app, simulator):
         if match and match.group(1) == "0":
             print(
                 BColors.OKGREEN
-                + f"Ran {an_app.name} with {simulator} successfully!"
+                + f"Ran {an_app.name} with {simulator} successfully."
                 + BColors.ENDC,
                 flush=True,
             )
@@ -182,7 +182,7 @@ def run_app(an_app, simulator):
         else:
             print(
                 BColors.FAIL
-                + f"Simulation of {an_app.name} with {simulator} failed!"
+                + f"Simulation of {an_app.name} with {simulator} failed."
                 + BColors.ENDC
             )
             print(BColors.FAIL + str(run_output.stdout.decode("utf-8")) + BColors.ENDC)
@@ -213,15 +213,13 @@ def build_simulator(simulator):
             ["make", f"{simulator}-sim"], capture_output=True, check=True
         )
     except subprocess.CalledProcessError as exc:
-        print(BColors.FAIL + "=====================================" + BColors.ENDC)
-        print(BColors.FAIL + f"Error building {simulator} model!" + BColors.ENDC)
-        print(BColors.FAIL + "=====================================" + BColors.ENDC)
+        print(BColors.FAIL + f"Error building {simulator} model." + BColors.ENDC)
         print(str(exc.stderr.decode("utf-8")), flush=True)
         exit(1)
     else:
         print(
             BColors.OKGREEN
-            + f"Generated {simulator} model successfully!"
+            + f"Generated {simulator} model successfully."
             + BColors.ENDC,
             flush=True,
         )
@@ -259,33 +257,51 @@ def filter_results(app_list):
     - ok_apps
     - compilation_failed_apps
     - simulation_failed_apps
+    - simulation_timed_out_apps
     """
 
     skipped_apps = []
     ok_apps = []
     compilation_failed_apps = []
     simulation_failed_apps = []
+    simulation_timed_out_apps = []
 
     for app in app_list:
+        # If the app is in the blacklist, no need to check the rest
         if in_blacklist(app.name):
             skipped_apps.append(app)
+        # If the app didn't compile, no need to check the simulations
         elif not app.compilation_success:
             compilation_failed_apps.append(app)
         else:
+            # Check if the app failed in any simulator
             all_sim_passed = True
             for sim, res in app.simulation_results.items():
-                if res != SimResult.PASSED and res != SimResult.SKIPPED:
+                if res == SimResult.FAILED:
+                    simulation_failed_apps.append(app)
+                    all_sim_passed = False
+                elif res == SimResult.TIMED_OUT:
+                    simulation_timed_out_apps.append(app)
                     all_sim_passed = False
             if all_sim_passed:
                 ok_apps.append(app)
-            else:
-                simulation_failed_apps.append(app)
 
-    return skipped_apps, ok_apps, compilation_failed_apps, simulation_failed_apps
+    return (
+        skipped_apps,
+        ok_apps,
+        compilation_failed_apps,
+        simulation_failed_apps,
+        simulation_timed_out_apps,
+    )
 
 
 def print_results(
-    app_list, skipped_apps, ok_apps, compilation_failed_apps, simulation_failed_apps
+    app_list,
+    skipped_apps,
+    ok_apps,
+    compilation_failed_apps,
+    simulation_failed_apps,
+    simulation_timed_out_apps,
 ):
     """
     Print the results of the tests.
@@ -296,13 +312,13 @@ def print_results(
 
     print(
         BColors.OKGREEN
-        + f"{len(ok_apps)} out of {len(app_list)} apps finished successfully!"
+        + f"{len(ok_apps)} out of {len(app_list)} apps finished successfully."
         + BColors.ENDC
     )
 
     if len(skipped_apps) > 0:
         print(
-            BColors.WARNING + f"{len(skipped_apps)} apps were skipped!" + BColors.ENDC
+            BColors.WARNING + f"{len(skipped_apps)} apps were skipped." + BColors.ENDC
         )
         for app in skipped_apps:
             print(BColors.WARNING + f"    - {app.name}" + BColors.ENDC)
@@ -310,7 +326,7 @@ def print_results(
     if len(compilation_failed_apps) > 0:
         print(
             BColors.FAIL
-            + f"{len(compilation_failed_apps)} apps failed to compile!"
+            + f"{len(compilation_failed_apps)} apps failed to compile."
             + BColors.ENDC
         )
         for app in compilation_failed_apps:
@@ -319,15 +335,30 @@ def print_results(
     if len(simulation_failed_apps) > 0:
         print(
             BColors.FAIL
-            + f"{len(simulation_failed_apps)} apps failed to run!"
+            + f"{len(simulation_failed_apps)} apps failed to run."
             + BColors.ENDC
         )
         for app in simulation_failed_apps:
             for sim, res in app.simulation_results.items():
-                if res != SimResult.PASSED:
+                if res == SimResult.FAILED:
                     print(
                         BColors.FAIL
-                        + f"    - {app.name} with {sim} {res}"
+                        + f"    - {app.name} with {sim} failed"
+                        + BColors.ENDC
+                    )
+
+    if len(simulation_timed_out_apps) > 0:
+        print(
+            BColors.FAIL
+            + f"{len(simulation_timed_out_apps)} apps timed out."
+            + BColors.ENDC
+        )
+        for app in simulation_timed_out_apps:
+            for sim, res in app.simulation_results.items():
+                if res == SimResult.TIMED_OUT:
+                    print(
+                        BColors.FAIL
+                        + f"    - {app.name} with {sim} timed out"
                         + BColors.ENDC
                     )
 
@@ -373,11 +404,21 @@ def main():
             )
 
     # Filter and print the results
-    skipped_apps, ok_apps, compilation_failed_apps, simulation_failed_apps = (
-        filter_results(app_list)
-    )
+    (
+        skipped_apps,
+        ok_apps,
+        compilation_failed_apps,
+        simulation_failed_apps,
+        simulation_timed_out_apps,
+    ) = filter_results(app_list)
+
     print_results(
-        app_list, skipped_apps, ok_apps, compilation_failed_apps, simulation_failed_apps
+        app_list,
+        skipped_apps,
+        ok_apps,
+        compilation_failed_apps,
+        simulation_failed_apps,
+        simulation_timed_out_apps,
     )
 
     # Exit with error if any app failed to compile or run
