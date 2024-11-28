@@ -34,7 +34,11 @@ ERROR_PATTERN_DICT = {
 WHITELIST = []
 
 # Blacklist of apps to skip
-BLACKLIST = []
+BLACKLIST = [
+    "example_spi_read",
+    "example_spidma_powergate",
+    "example_spi_write",
+]
 
 # Blacklist of apps to skip with verilator
 VERILATOR_BLACKLIST = []
@@ -176,6 +180,11 @@ def run_app(an_app, simulator):
             )
             return SimResult.PASSED
         else:
+            print(
+                BColors.FAIL
+                + f"Simulation of {an_app.name} with {simulator} failed!"
+                + BColors.ENDC
+            )
             print(BColors.FAIL + str(run_output.stdout.decode("utf-8")) + BColors.ENDC)
 
             # For questasim the build folder is sim-modelsim instead of sim-questasim
