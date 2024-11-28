@@ -14,7 +14,7 @@ import re
 
 
 # Timeout for the simulation in seconds
-SIM_TIMEOUT_S = 600
+SIM_TIMEOUT_S = 60
 
 # Available simulators
 SIMULATORS = ["verilator"]
