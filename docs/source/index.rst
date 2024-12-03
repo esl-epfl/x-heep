@@ -84,9 +84,9 @@ Index
    ./Peripherals/*
 
 .. toctree::
-   :maxdepth: 5
+   :maxdepth: 7
    :glob:
    :caption: Configuration
 
    ./Configuration/*
-   ./Configuration/generated/modules.rst
+   ./Configuration/generated/index.rst

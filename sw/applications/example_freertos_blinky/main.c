@@ -254,16 +254,16 @@ void system_init(void)
         .pin= GPIO_LD5_R, 
         .mode= GpioModeOutPushPull
     };
-    gpio_res = gpio_config(pin_cfg);
+    gpio_res = gpio_config(gpio_1_peri, pin_cfg);
     pin_cfg.pin = GPIO_LD5_B;
-    gpio_res |= gpio_config(pin_cfg);
+    gpio_res |= gpio_config(gpio_1_peri, pin_cfg);
     pin_cfg.pin = GPIO_LD5_G;
-	gpio_res |= gpio_config(pin_cfg);
+	gpio_res |= gpio_config(gpio_1_peri, pin_cfg);
     if (gpio_res != GpioOk) printf("Failed\n;");
     
-    gpio_write(GPIO_LD5_R, false);
-    gpio_write(GPIO_LD5_B, false);
-    gpio_write(GPIO_LD5_G, false);
+    gpio_write(gpio_1_peri, GPIO_LD5_R, false);
+    gpio_write(gpio_1_peri, GPIO_LD5_B, false);
+    gpio_write(gpio_1_peri, GPIO_LD5_G, false);
 
     // Setup rv_timer_0_1
     mmio_region_t timer_0_1_reg = mmio_region_from_addr(RV_TIMER_AO_START_ADDRESS);
@@ -438,30 +438,30 @@ void vToggleLED( void )
 {
   if (intr_blink == 0)
   { 
-	gpio_write(GPIO_LD5_R, true);
-	gpio_write(GPIO_LD5_B, false);
-	gpio_write(GPIO_LD5_G, false);
+	gpio_write(gpio_1_peri, GPIO_LD5_R, true);
+	gpio_write(gpio_1_peri, GPIO_LD5_B, false);
+	gpio_write(gpio_1_peri, GPIO_LD5_G, false);
 	intr_blink++;
   }
   else if (intr_blink == 1)
   { 
-	gpio_write(GPIO_LD5_R, false);
-	gpio_write(GPIO_LD5_B, true);
-	gpio_write(GPIO_LD5_G, false);
+	gpio_write(gpio_1_peri, GPIO_LD5_R, false);
+	gpio_write(gpio_1_peri, GPIO_LD5_B, true);
+	gpio_write(gpio_1_peri, GPIO_LD5_G, false);
 	intr_blink++;
   }
   else if (intr_blink == 2)
   { 
-	gpio_write(GPIO_LD5_R, false);
-	gpio_write(GPIO_LD5_B, false);
-	gpio_write(GPIO_LD5_G, true);
+	gpio_write(gpio_1_peri, GPIO_LD5_R, false);
+	gpio_write(gpio_1_peri, GPIO_LD5_B, false);
+	gpio_write(gpio_1_peri, GPIO_LD5_G, true);
 	intr_blink++;
   }
   else
   { 
-	gpio_write(GPIO_LD5_R, false);
-	gpio_write(GPIO_LD5_B, false);
-	gpio_write(GPIO_LD5_G, false);
+	gpio_write(gpio_1_peri, GPIO_LD5_R, false);
+	gpio_write(gpio_1_peri, GPIO_LD5_B, false);
+	gpio_write(gpio_1_peri, GPIO_LD5_G, false);
 	intr_blink = 0;
   }
 

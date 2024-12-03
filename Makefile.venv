@@ -227,6 +227,7 @@ endif
 $(VENV):
 	$(PY) -m venv $(VENVDIR)
 	$(VENV)/python -m pip install --upgrade pip setuptools wheel
+	sed 's,ROOT_PATH,$(shell pwd),g' x_heep_pythonpath.pth > `$(VENV)/python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])'`/x_heep_pythonpath.pth
 
 $(VENV)/$(MARKER): $(VENVDEPENDS) | $(VENV)
 ifneq ($(strip $(REQUIREMENTS_TXT)),)

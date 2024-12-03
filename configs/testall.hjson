@@ -20,4 +20,129 @@
             start: 0x00000E800
         }
     ]
+
+    peripheral_domains: {
+        ao_peripheral: {
+            type: "fixed"
+            address: 0x20000000
+            length: 0x00100000
+            peripherals: {
+                f0: {
+                    type: fixed
+                    name: "soc_ctrl"
+                    offset: 0x00000000
+                    length: 0x00010000
+                }
+                f1: {
+                    type: fixed
+                    name: "bootrom"
+                    offset: 0x00010000
+                    length: 0x00010000
+                }
+                f2: {
+                    type: fixed
+                    name: "spi_flash"
+                    offset: 0x00020000
+                    length: 0x00008000
+                }
+                f3: {
+                    type: fixed
+                    name: "spi_memio"
+                    offset: 0x00028000
+                    length: 0x00008000
+                }
+                f4: {
+                    type: fixed
+                    name: "dma"
+                    offset: 0x00030000
+                    length: 0x00010000
+                }
+                f5: {
+                    type: fixed
+                    name: "power_manager"
+                    offset: 0x00040000
+                    length: 0x00010000
+                }
+                f6: {
+                    type: fixed
+                    name: "rv_timer"
+                    suffix: "ao"
+                    offset: 0x00050000
+                    length: 0x00010000
+                }
+                f7: {
+                    type: fixed
+                    name: "fast_intr_ctrl"
+                    offset: 0x00060000
+                    length: 0x00010000
+                }
+                f8: {
+                    type: fixed
+                    name: "ext_peripheral"
+                    offset: 0x00070000
+                    length: 0x00010000
+                }
+                f9: {
+                    type: fixed
+                    name: "pad_control"
+                    offset: 0x00080000
+                    length: 0x00010000
+                }
+            }
+        }
+        peripheral: {
+            clock_domain: false # not used yet
+            address: 0x30000000
+            length: 0x00100000
+            peripherals: {
+                timer: {
+                    type: rv_timer
+                }
+                spi0: {
+                    type: spi_host
+                    event_is_fast_intr: true
+                    dma: true
+                }
+                spi1: {
+                    type: spi_host
+                    dma: false
+                }
+                i2c: {
+                    type: i2c
+                }
+                i2s: {
+                    type: i2s
+                    dma: true
+                }
+                rv_plic: {
+                    type: rv_plic
+                }
+                gpio0: {
+                    type: gpio
+                    gpios_used: range
+                    start: 0
+                    end: 7
+                    intr: fast
+                }
+                gpio1: {
+                    type: gpio
+                    gpios_used: range
+                    start: 8
+                    end: 31
+                    intr: plic
+                }
+                uart: {
+                    type: uart
+                }
+                pdm2pcm: {
+                    type: pdm2pcm
+                }
+
+            }
+        }
+    }
+
+    external_interrupts: 2
+
+    pad_file: "pad_cfg.hjson" # relative to project root
 }

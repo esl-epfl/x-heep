@@ -30,15 +30,15 @@ int main(int argc, char *argv[])
         .pin = GPIO_TOGGLE,
         .mode = GpioModeOutPushPull
     };
-    gpio_res = gpio_config (pin_cfg);
+    gpio_res = gpio_config(gpio_0_peri, pin_cfg);
     if (gpio_res != GpioOk)
         PRINTF("Gpio initialization failed!\n");
 
 
     for(int i=0;i<100;i++) {
-        gpio_write(GPIO_TOGGLE, true);
+        gpio_write(gpio_0_peri, GPIO_TOGGLE, true);
         for(int i=0;i<10;i++) asm volatile("nop");
-        gpio_write(GPIO_TOGGLE, false);
+        gpio_write(gpio_0_peri, GPIO_TOGGLE, false);
         for(int i=0;i<10;i++) asm volatile("nop");
     }
 

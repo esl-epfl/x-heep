@@ -36,6 +36,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "gpio_structs.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -132,42 +133,23 @@ typedef struct gpio_cfg
 /****************************************************************************/
 
 /**
- * @brief Adds a handler function for a gpio interrupt to the handlers list.
- * @param intr_id The interrupt ID of a gpio interrupt (from core_v_mini_mcu.h)
- * @param handler A pointer to a function that will be called upon interrupt.
- * @return The result of the operation
- */
-gpio_result_t gpio_assign_irq_handler( uint32_t intr_id,
-                                       void *handler() );
-
-/**
- * @brief Resets all handlers to the dummy handler.
- */
-void gpio_reset_handlers_list( );
-
-/**
- * @brief Attends the plic interrupt.
- */
-void handler_irq_gpio( uint32_t id );
-
-/**
  * @brief gpio configuration. It first reset the pin configuration.
  * @param gpio_struct_t contatining pin, mode, en_input_sampling, en_intr,
  * intr_type
  * @return GpioOk: no problem, GpioError: there is an error.
  */
-gpio_result_t gpio_config (gpio_cfg_t cfg);
+gpio_result_t gpio_config (volatile gpio *gpio_perif, gpio_cfg_t cfg);
 
 /**
  * @brief reset completely all the configurations set for the pin
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_reset (gpio_pin_number_t pin);
+gpio_result_t gpio_reset (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief reset completely all the configurations for all the pins
  */
-gpio_result_t gpio_reset_all (void);
+gpio_result_t gpio_reset_all (volatile gpio *gpio_perif);
 
 /**
  * @brief setting the a pins mode by writing in GPIO_MODE0 and GPIO_MODE1.
@@ -175,87 +157,87 @@ gpio_result_t gpio_reset_all (void);
  * @param gpio_mode_t specify pin mode: 0 as input, 1 push-pull as output,
  * 2 as open_drain0, and 3 as open_drain1.
  */
-gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode);
+gpio_result_t gpio_set_mode (volatile gpio *gpio_perif, gpio_pin_number_t pin, gpio_mode_t mode);
 
 /**
  * @brief enable sampling as input by writing one in GPIO_EN. If disables
  * (0) the corresponding GPIO will not sample the inputs (saves power) and
  * will not generate any interrupts.
  */
-gpio_result_t gpio_en_input_sampling (gpio_pin_number_t pin);
+gpio_result_t gpio_en_input_sampling (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief disable sampling as input by writing zero in GPIO_EN.
  */
-gpio_result_t gpio_dis_input_sampling (gpio_pin_number_t pin);
+gpio_result_t gpio_dis_input_sampling (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief reading from a gpio pin, which is done by reading from GPIO_IN reg
  * @param gpio_pin_number_t specify pin number
  * @return gpio value as GpioLow (false) or GpioHigh (true)
  */
-gpio_result_t gpio_read (gpio_pin_number_t pin, bool *val);
+gpio_result_t gpio_read (volatile gpio *gpio_perif, gpio_pin_number_t pin, bool *val);
 
 /**
  * @brief toggle a pin. Using masking through GPIO_TOGGLE, and then
  * writing to GPIO_OUT
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_toggle (gpio_pin_number_t pin);
+gpio_result_t gpio_toggle (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief write to a pin. using gpio_set and gpio_clear functions.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_write (gpio_pin_number_t pin, bool val);
+gpio_result_t gpio_write (volatile gpio *gpio_perif, gpio_pin_number_t pin, bool val);
 
 /**
  * @brief enable rising edge interrupt for the given pin.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_en_rise (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_en_rise (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief disable rising edge interrupt for the given pin.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_dis_rise (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_dis_rise (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief enable falling edge interrupt for the given pin.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_en_fall (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_en_fall (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief disable falling edge interrupt for the given pin.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_dis_fall (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_dis_fall (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief enable logic-high level-sensitive interrupt for the given pin.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_en_lvl_high (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_en_lvl_high (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief disable logic-high level-sensitive interrupt for the given pin.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_dis_lvl_high (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_dis_lvl_high (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief enable logic-low level-sensitive interrupt for the given pin.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_en_lvl_low (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_en_lvl_low (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief disable logic-low level-sensitive interrupt for the given pin.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_dis_lvl_low (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_dis_lvl_low (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief enable the interrupt for the given pin. Type of interrupt
@@ -263,83 +245,83 @@ gpio_result_t gpio_intr_dis_lvl_low (gpio_pin_number_t pin);
  * @param gpio_pin_number_t specify pin number
  * @param gpio_intr_type_t specify the type of the interrupt
  */
-gpio_result_t gpio_intr_en (gpio_pin_number_t pin, gpio_intr_type_t type);
+gpio_result_t gpio_intr_en (volatile gpio *gpio_perif, gpio_pin_number_t pin, gpio_intr_type_t type);
 
 /**
  * @brief disable all the types of interrupt on the given pin.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_dis_all (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_dis_all (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief Each bit indicates if there is a pending rising-edge interrupt
  * on the corresponding GPIO.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_check_stat_rise (gpio_pin_number_t pin, bool *is_pending);
+gpio_result_t gpio_intr_check_stat_rise (volatile gpio *gpio_perif, gpio_pin_number_t pin, bool *is_pending);
 
 /**
  * @brief Each bit indicates if there is a pending falling-edge interrupt
  * on the corresponding GPIO.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_check_stat_fall (gpio_pin_number_t pin, bool *is_pending);
+gpio_result_t gpio_intr_check_stat_fall (volatile gpio *gpio_perif, gpio_pin_number_t pin, bool *is_pending);
 
 /**
  * @brief Each bit indicates if there is a pending low level-sensitive
  * interrupt on the corresponding GPIO.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_check_stat_lvl_low (gpio_pin_number_t pin, bool *is_pending);
+gpio_result_t gpio_intr_check_stat_lvl_low (volatile gpio *gpio_perif, gpio_pin_number_t pin, bool *is_pending);
 
 /**
  * @brief Each bit indicates if there is a pending high level-sensitive
  * interrupt on the corresponding GPIO.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_check_stat_lvl_high (gpio_pin_number_t pin, bool *is_pending);
+gpio_result_t gpio_intr_check_stat_lvl_high (volatile gpio *gpio_perif, gpio_pin_number_t pin, bool *is_pending);
 
 /**
  * @brief Each bit indicates if there is a pending interrupt on the
  * corresponding GPIO in any form (rise, fall, low level, and high level)
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_check_stat (gpio_pin_number_t pin, bool *is_pending);
+gpio_result_t gpio_intr_check_stat (volatile gpio *gpio_perif, gpio_pin_number_t pin, bool *is_pending);
 
 /**
  * @brief Clearing interrupt rise status. Writing a 1 to a specific bit
  * clears the interrupt for the corresponding GPIO.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_clear_stat_rise (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_clear_stat_rise (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief Clearing interrupt fall status. Writing a 1 to a specific bit
  * clears the interrupt for the corresponding GPIO.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_clear_stat_fall (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_clear_stat_fall (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief Clearing interrupt low level-sensitive status. Writing a 1 to a
  * specific bit clears the interrupt for the corresponding GPIO.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_clear_stat_lvl_low (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_clear_stat_lvl_low (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief Clearing interrupt high level-sensitive status. Writing a 1 to a
  * specific bit clears the interrupt for the corresponding GPIO.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_clear_stat_lvl_high (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_clear_stat_lvl_high (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief Clearing interrupt status regardless of its type. Writing a 1 to
  * a specific bit clears the interrupt for the corresponding GPIO.
  * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_intr_clear_stat (gpio_pin_number_t pin);
+gpio_result_t gpio_intr_clear_stat (volatile gpio *gpio_perif, gpio_pin_number_t pin);
 
 /**
  * @brief Controls the interrupt mode of the gpios.
@@ -347,7 +329,7 @@ gpio_result_t gpio_intr_clear_stat (gpio_pin_number_t pin);
  * interrupts for all GPIOs are cleared. If false, generate one cycle wide
  * pulses for every new interrupt.
  */
-void gpio_intr_set_mode (gpio_pin_number_t pin, gpio_intr_general_mode_t mode);
+void gpio_intr_set_mode (volatile gpio *gpio_perif, gpio_pin_number_t pin, gpio_intr_general_mode_t mode);
 
 #endif  // _GPIO_H_
 /****************************************************************************/

@@ -54,15 +54,15 @@ def read_json(json_file):
     return j_data
 
 
-def write_template(tpl, structs, enums, struct_name):
+def write_template(tpl, structs, enums, struct_name, periph_names):
     """
     Opens a given template and substitutes the structs and enums fields.
     Returns a string with the content of the updated template
     """
 
-    lower_case_name = struct_name.lower()
-    upper_case_name = struct_name.upper()
-    start_addr_def = "{}_peri ((volatile {} *) {}_START_ADDRESS)".format(lower_case_name, struct_name, upper_case_name)
+    start_addr_def = ""
+    for name in periph_names:
+        start_addr_def += f"#define {name.lower()}_peri ((volatile {struct_name} *) {name.upper()}_START_ADDRESS)\n"
     
     today = date.today()
     today = today.strftime("%d/%m/%Y")
@@ -74,7 +74,7 @@ def write_template(tpl, structs, enums, struct_name):
     return template.substitute( structures_definitions=structs, 
                                 enums_definitions=enums, 
                                 peripheral_name=struct_name, 
-                                peripheral_name_upper=upper_case_name, 
+                                peripheral_name_upper=struct_name.upper(), 
                                 date=today,
                                 start_address_define=start_addr_def)
 
@@ -376,8 +376,9 @@ def main(arg_vect):
                                                  "structure provided by the template.")
     parser.add_argument("--template_filename",
                         help="filename of the template for the final file generation")
-    # parser.add_argument("--peripheral_name",
-    #                     help="name of the peripheral for which the structs are generated")
+    parser.add_argument("--peripheral_name",
+                        nargs="*",
+                        help="name of the peripheral for which the structs are generated")
     parser.add_argument("--json_filename",
                         help="filename of the input json basing on which the structs and enums will begenerated")
     parser.add_argument("--output_filename",
@@ -389,7 +390,7 @@ def main(arg_vect):
     input_template = args.template_filename
     input_hjson_file = args.json_filename
     output_filename = args.output_filename
-    # peripheral_name = args.peripheral_name
+    peripheral_names = args.peripheral_name
 
     data = read_json(input_hjson_file)
 
@@ -405,7 +406,7 @@ def main(arg_vect):
 
     structs_definitions += "}} {};".format(data["name"])
 
-    final_output = write_template(input_template, structs_definitions, enums_definitions, data["name"])
+    final_output = write_template(input_template, structs_definitions, enums_definitions, data["name"], peripheral_names)
     write_output(output_filename, final_output)
 
 

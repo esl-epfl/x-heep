@@ -9,6 +9,7 @@ build/
 *.do
 *.jou
 *.str
+*.pickle
 .venv/
 __pycache__/
 
@@ -24,6 +25,10 @@ hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
 hw/core-v-mini-mcu/system_bus.sv
 hw/core-v-mini-mcu/system_xbar.sv
 hw/core-v-mini-mcu/memory_subsystem.sv
+hw/core-v-mini-mcu/ao_peripheral_subsystem.sv
+hw/core-v-mini-mcu/core_v_mini_mcu.sv
+hw/core-v-mini-mcu/peripheral_subsystem.sv
+hw/core-v-mini-mcu/generated_if.sv
 hw/system/x_heep_system.sv
 hw/system/pad_ring.sv
 tb/tb_util.svh
@@ -49,6 +54,11 @@ sw/device/lib/drivers/power_manager/power_manager_regs.h
 sw/device/lib/drivers/power_manager/power_manager.h
 sw/device/lib/drivers/pad_control/pad_control_regs.h
 sw/device/lib/drivers/**/*_structs.h
+sw/device/lib/drivers/rv_plic/rv_plic_gen.c
+sw/device/lib/drivers/rv_plic/rv_plic_gen.h
+sw/device/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.c
+sw/device/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.h
+sw/device/lib/drivers/dma/dma.h
 
 # openroad
 flow/OpenROAD-flow-scripts

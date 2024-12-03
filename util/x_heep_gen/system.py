@@ -1,9 +1,17 @@
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Generator, Iterable, List, Optional, Set, Union
+from typing import Dict, Generator, Iterable, List, Optional, Set, Union
 from enum import Enum
+
+
+from .pads import IoInputEP, IoOutputEP, IoOutputEnEP, PadManager, Pad
 from .ram_bank import Bank, is_pow2, ILRamGroup
 from .linker_section import LinkerSection
+from .peripherals.peripheral_domain import PeripheralDomain
+from .peripherals.sv_helper import SvSignalArray
+from .signal_routing.endpoints import DmaTriggerEP, InterruptDirectEP, InterruptEP, InterruptPlicEP
+from .signal_routing.node import Node
+from .signal_routing.routing_helper import RoutingHelper
 
 class BusType(Enum):
     """Enumeration of all supported bus types"""
@@ -66,6 +74,16 @@ class XHeep():
 
         self._ignore_ram_continous: bool = False
         self._ignore_ram_interleaved: bool = False
+        
+        self._peripheral_domains: List[PeripheralDomain] = []
+        self._domain_names: Set[str] = set()
+
+        self._pad_manager: Optional[PadManager] = None
+
+        self._ext_intr_num: int = 0
+
+        self._init_fixed_nodes()
+
 
         if override is not None and override.numbanks is not None:
             self.add_ram_banks([32]*override.numbanks)
@@ -74,6 +92,59 @@ class XHeep():
             self._ignore_ram_interleaved = True
             self._override_numbanks_il = override.numbanks_il
 
+
+    def _init_fixed_nodes(self):
+        """
+        Internal methode to generate all nodes, source and tragets node set by other abstractions.
+        """
+        self._routing_helper: RoutingHelper = RoutingHelper()
+        
+        self._root_node = self._routing_helper.get_root_node()
+        self._routing_helper.add_source(self._root_node, "rst_n", IoInputEP(), Pad.name_to_target_name("rst", 0)+"_i")
+        self._routing_helper.add_source(self._root_node, "clk", IoInputEP(), Pad.name_to_target_name("clk", 0)+"_i")
+        
+        self._routing_helper.add_source(self._root_node, "dma_ext_rx", DmaTriggerEP())
+        self._routing_helper.add_source(self._root_node, "dma_ext_tx", DmaTriggerEP())
+
+        self._mcu_node = Node("core_v_mini_mcu", self._root_node.name)
+        self._routing_helper.register_node(self._mcu_node)
+        self._routing_helper.add_target(self._mcu_node, "fast_irq_target", InterruptEP())
+        self._routing_helper.add_target(self._mcu_node, "irq_software", InterruptDirectEP())
+        self._routing_helper.add_target(self._mcu_node, "irq_external", InterruptDirectEP())
+        self._routing_helper.add_target(self._mcu_node, "rv_timer_0_direct_irq", InterruptDirectEP())
+        
+        self._routing_helper.add_source(self._mcu_node, "jtag_tck", IoInputEP(), Pad.name_to_target_name("jtag_tck", 0)+"_i")
+        self._routing_helper.add_source(self._mcu_node, "jtag_tms", IoInputEP(), Pad.name_to_target_name("jtag_tms", 0)+"_i")
+        self._routing_helper.add_source(self._mcu_node, "jtag_trst_n", IoInputEP(), Pad.name_to_target_name("jtag_trst", 0)+"_i")
+        self._routing_helper.add_source(self._mcu_node, "jtag_tdi", IoInputEP(), Pad.name_to_target_name("jtag_tdi", 0)+"_i")
+        self._routing_helper.add_source(self._mcu_node, "jtag_tdo", IoOutputEP(), Pad.name_to_target_name("jtag_tdo", 0)+"_o")
+
+        self._ao_periph_node = Node("ao_periph", self._mcu_node.name)
+        self._routing_helper.register_node(self._ao_periph_node)
+        self._routing_helper.add_source(self._ao_periph_node, "boot_select", IoInputEP(), Pad.name_to_target_name("boot_select", 0)+"_i")
+        self._routing_helper.add_source(self._ao_periph_node, "execute_from_flash", IoInputEP(), Pad.name_to_target_name("execute_from_flash", 0)+"_i")
+        self._routing_helper.add_source(self._ao_periph_node, "exit_valid", IoOutputEP(), Pad.name_to_target_name("exit_valid", 0)+"_o")
+
+        self._routing_helper.add_source(self._ao_periph_node, "spi_flash_sck_o", IoOutputEP(), Pad.name_to_target_name("spi_flash_sck", 0)+"_o")
+        self._routing_helper.add_source(self._ao_periph_node, "spi_flash_sck_en_o", IoOutputEnEP(), Pad.name_to_target_name("spi_flash_sck", 0)+"_oe")
+        for i in range(2):
+            self._routing_helper.add_source(self._ao_periph_node, f"spi_flash_csb_{i}_o", IoOutputEP(), Pad.name_to_target_name("spi_flash_csb", i)+"_o")
+            self._routing_helper.add_source(self._ao_periph_node, f"spi_flash_csb_{i}_en_o", IoOutputEnEP(), Pad.name_to_target_name("spi_flash_csb", i)+"_oe")
+        for i in range(4):
+            self._routing_helper.add_source(self._ao_periph_node, f"spi_flash_sd_{i}_o", IoOutputEP(), Pad.name_to_target_name("spi_flash_sd", i)+"_o")
+            self._routing_helper.add_source(self._ao_periph_node, f"spi_flash_sd_{i}_en_o", IoOutputEnEP(), Pad.name_to_target_name("spi_flash_sd", i)+"_oe")
+            self._routing_helper.add_source(self._ao_periph_node, f"spi_flash_sd_{i}_i", IoInputEP(), Pad.name_to_target_name("spi_flash_sd", i)+"_i")
+    
+        self._routing_helper.add_target(self._ao_periph_node, "dma_default_target", DmaTriggerEP())
+        self._routing_helper.add_source(self._ao_periph_node, "spi_flash_dma_rx", DmaTriggerEP())
+        self._routing_helper.add_source(self._ao_periph_node, "spi_flash_dma_tx", DmaTriggerEP())
+        self._routing_helper.add_source(self._ao_periph_node, "spi_flash_intr", InterruptEP(handler="fic_irq_spi_flash"))
+
+        self._routing_helper.add_source(self._ao_periph_node, "rv_timer_0_intr", InterruptDirectEP(), "rv_timer_0_direct_irq")
+        self._routing_helper.add_source(self._ao_periph_node, "rv_timer_1_intr", InterruptEP(handler="fic_irq_rv_timer_1"))
+
+        self._routing_helper.add_source(self._ao_periph_node, "dma_done_intr", InterruptEP(handler="fic_irq_dma"))
+        self._routing_helper.add_source(self._ao_periph_node, "dma_window_intr", InterruptPlicEP(handler="handler_irq_dma"))
 
     def add_ram_banks(self, bank_sizes: "List[int]", section_name: str = ""):
         """
@@ -156,6 +227,10 @@ class XHeep():
         self._ram_banks_il_idx += indices
         self._ram_banks_il_groups.append(ILRamGroup(banks[0].start_address(), bank_size*num*1024, len(banks), banks[0].name()))
         self._il_banks_present = True
+
+
+        self._io_ifs: Dict[str, SvSignalArray] = {}
+
     
 
 
@@ -427,4 +502,156 @@ class XHeep():
             if len(self._ram_banks) == 0:
                 raise RuntimeError("There is no ram bank to infere the end of a section")
             old_sec.end = self._ram_banks[-1].end_address()
+    
+        self._periph_build()
+
+        for i in range(self._ext_intr_num):
+            self._routing_helper.add_source(self._root_node, f"ext_intr_{i}", InterruptPlicEP())
+
+        if self._pad_manager is not None:
+            self._pad_manager.pre_route(self._routing_helper)
+
+        self._routing_helper.route()
+
+        for pd in self._peripheral_domains:
+            pd.addr_setup()
+
+
+    def add_domain(self, pd: PeripheralDomain):
+        """
+        Adds a peripheral domain to the system.
+
+        The domain should have a unique name.
+
+        :param PeriperalDomain pd: The peripheral domain to be added.
+        :raise TypeError: if the argument is not an instance of PeripheralDomain
+        :raise RuntimeError: if the domain name is not unique.
+        """
+        if not isinstance(pd, PeripheralDomain):
+            raise TypeError("argument should be an instance of PeripheralDomain")
         
+        name = pd.get_name()
+        if name in self._domain_names:
+            raise RuntimeError("a domain with the same name was allready added")
+        
+        self._peripheral_domains.append(deepcopy(pd))
+
+    def iter_peripheral_domains(self) -> Iterable[PeripheralDomain]:
+        """
+        Iterates through all peripheral domains.
+        
+        :return: an iterable over peripheral domain
+        :rtype: Iterable[PeripheralDomain]
+        """
+        return iter(self._peripheral_domains)
+    
+    def num_peripheral_domains(self) -> int:
+        """
+        Gets the number of peripheral domains.
+
+        :return: the number of peripheral domains
+        :rtype: int
+        """
+        return len(self._peripheral_domains)
+    
+    def iter_peripheral_domains_normal(self) -> Iterable[PeripheralDomain]:
+        """
+        like `iter_peripheral_domains` but only on the normal type.
+        
+        :return: an iterable over peripheral domain
+        :rtype: Iterable[PeripheralDomain]
+        """
+        return filter(lambda d: d.get_type() == "normal", self._peripheral_domains)
+    
+    def iter_peripheral_domains_fixed(self) -> Iterable[PeripheralDomain]:
+        """
+        like `iter_peripheral_domains` but only on the fixed type.
+        
+        :return: an iterable over peripheral domain
+        :rtype: Iterable[PeripheralDomain]
+        """
+        return filter(lambda d: d.get_type() == "fixed", self._peripheral_domains)
+
+    def _periph_build(self):
+        """
+        Internal method to build things related to peripherals and peripheral domains.
+        """
+        used_names = {
+            "rv_timer": 2,
+        }
+        for pd in self._peripheral_domains:
+            pd.specialize_names(used_names)
+            pd.register_connections(self._routing_helper, self._mcu_node)
+
+        for pd in self._peripheral_domains:
+            pd.build()
+
+    def get_rh(self) -> RoutingHelper:
+        """
+        Gets the routing helper used for this system
+        
+        :return: a reference to the routing helper
+        :rtype: RoutingHelper
+        """
+        return self._routing_helper
+    
+    def get_mcu_node(self) -> Node:
+        """
+        Gets the node of the mcu, coresponds to `core_v_mini_mcu` in sv.
+
+        :return: a node
+        :rtype: Node
+        """
+        return self._mcu_node
+    
+    def get_ao_node(self) -> Node:
+        """
+        Gets the node of the ao peripheral domain. Could be removed if the ao domain is made more general.
+
+        :return: a node
+        :rtype: Node
+        """
+        return self._ao_periph_node
+    
+    def add_pad_manager(self, pad_manager: PadManager):
+        """
+        Adds a `PadManager` to the system. Should be called before `build()`.
+        Only one pad manager can be added to the system, latter it can be used with `get_pad_manager()`.
+
+        :param PadManager pad_manager: The padmanager to be added.
+        :raise TypeError: id the parameters are of the wrong type
+        :raise RuntimeError: if this function is used more than one."""
+        if not isinstance(pad_manager, PadManager):
+            raise TypeError("pad_manager should be an instance of PadManager")
+        if self._pad_manager is not None:
+            raise RuntimeError("The pad manager is already set")
+        
+        self._pad_manager = pad_manager
+
+    def get_pad_manager(self) -> PadManager:
+        """
+        Gets the pad manager added by `add_pad_manager()`.
+        
+        :return: a pad manager
+        :rtype: PadManager
+        """
+        return self._pad_manager
+    
+    def set_ext_intr(self, num: int):
+        """
+        Sets the number of external interuppts.
+        If called it should be before `build()`.
+        The default is 0.
+        This interrupts will be connected to the rv_plic.
+        
+        :param int num: the number of external interrupts."""
+        self._ext_intr_num = num
+
+    def get_ext_intr(self) -> int:
+        """
+        Get the number of external interrupts, if `set_ext_intr` was not called the default is 0.
+        
+        :return: the number of external interrupts
+        :rtype: int
+        """
+        return self._ext_intr_num

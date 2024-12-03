@@ -36,7 +36,7 @@ Notes:
 #endif
 
 
-#ifndef RV_PLIC_IS_INCLUDED
+#ifndef RV_PLIC_0_IS_INCLUDED
   #error ( "This app does NOT work as the RV_PLIC peripheral is not included" )
 #endif
 
@@ -44,14 +44,14 @@ Notes:
 #ifdef TARGET_IS_FPGA
     #define GPIO_TB_OUT 8
     #define GPIO_TB_IN  9
-    #define GPIO_INTR  GPIO_INTR_9
+    #define GPIO_INTR  GPIO_9_INTR
     #pragma message ( "Connect a cable between GPIOs IN and OUT" )
 
 #else
 
     #define GPIO_TB_OUT 30
     #define GPIO_TB_IN  31
-    #define GPIO_INTR  GPIO_INTR_31
+    #define GPIO_INTR  GPIO_31_INTR
 
 #endif
 
@@ -59,13 +59,13 @@ plic_result_t plic_res;
 
 uint8_t gpio_intr_flag = 0;
 
-void handler_1()
+void handler_1(uint32_t id)
 {
     PRINTF("handler 1\n");
     gpio_intr_flag = 1;
 }
 
-void handler_2()
+void handler_2(uint32_t id)
 {
     PRINTF("handler 2\n");
     gpio_intr_flag = 1;
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     pad_control_t pad_control;
     pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
     // rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
-    plic_res = plic_Init();
+    plic_res = plic_Init(&rv_plic_0_inf);
     if (plic_res != kPlicOk) {
         PRINTF("Init PLIC failed\n\r;");
         return -1;
@@ -85,20 +85,20 @@ int main(int argc, char *argv[])
 
     // In case GPIOs 30 and 31 are used:
 #if GPIO_TB_OUT == 31 || GPIO_TB_IN == 31
-    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SCL_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_PAD_I2C0_SCL_0_REG_OFFSET), 1);
 #endif
 
 #if GPIO_TB_OUT == 30|| GPIO_TB_IN == 30
-    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SDA_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_PAD_I2C0_SDA_0_REG_OFFSET), 1);
 #endif
 
-    plic_res = plic_irq_set_priority(GPIO_INTR, 1);
+    plic_res = plic_irq_set_priority(&rv_plic_0_inf, GPIO_INTR, 1);
     if (plic_res != kPlicOk) {
         PRINTF("Failed\n\r;");
         return -1;
     }
 
-    plic_res = plic_irq_set_enabled(GPIO_INTR, kPlicToggleEnabled);
+    plic_res = plic_irq_set_enabled(&rv_plic_0_inf, GPIO_INTR, kPlicToggleEnabled);
     if (plic_res != kPlicOk) {
         PRINTF("Failed\n\r;");
         return -1;
@@ -118,12 +118,12 @@ int main(int argc, char *argv[])
         .pin = GPIO_TB_OUT,
         .mode = GpioModeOutPushPull
     };
-    gpio_res = gpio_config(cfg_out);
+    gpio_res = gpio_config(gpio_1_peri, cfg_out);
     if (gpio_res != GpioOk) {
         PRINTF("Failed\n;");
         return -1;
     }
-    gpio_res = gpio_write(GPIO_TB_OUT, false);
+    gpio_res = gpio_write(gpio_1_peri, GPIO_TB_OUT, false);
 
     gpio_cfg_t cfg_in = {
         .pin = GPIO_TB_IN,
@@ -132,13 +132,13 @@ int main(int argc, char *argv[])
         .en_intr = true,
         .intr_type = GpioIntrEdgeRising
     };
-    gpio_res = gpio_config(cfg_in);
+    gpio_res = gpio_config(gpio_1_peri, cfg_in);
     if (gpio_res != GpioOk) {
         PRINTF("Failed\n;");
         return -1;
     }
 
-    gpio_assign_irq_handler( GPIO_INTR, &handler_1 );
+    plic_assign_irq_handler(&rv_plic_0_inf, GPIO_INTR, &handler_1);
     gpio_intr_flag = 0;
 
     PRINTF("Write 1 to GPIO 30 and wait for interrupt...\n\r");
@@ -146,13 +146,13 @@ int main(int argc, char *argv[])
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        gpio_write(GPIO_TB_OUT, true);
+        gpio_write(gpio_1_peri, GPIO_TB_OUT, true);
         // wait_for_interrupt();
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
-    gpio_res = gpio_write(GPIO_TB_OUT, false);
+    gpio_res = gpio_write(gpio_1_peri, GPIO_TB_OUT, false);
 
-    gpio_assign_irq_handler( GPIO_INTR, &handler_2 );
+    plic_assign_irq_handler(&rv_plic_0_inf, GPIO_INTR, &handler_2);
     gpio_intr_flag = 0;
 
     PRINTF("Write 1 to GPIO 30 and wait for interrupt...\n\r");
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        gpio_write(GPIO_TB_OUT, true);
+        gpio_write(gpio_1_peri, GPIO_TB_OUT, true);
         //wait_for_interrupt();
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }

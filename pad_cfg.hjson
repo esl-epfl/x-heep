@@ -12,7 +12,6 @@
 //    num_offset: <number> (optional) - the offset to the first pad of this type (default 0)
 //    mapping: <top|right|bottom|left> (optional) - the mapping of the pad in the design. Useful for ASICs (default top)
 //    active: <low|high> (optional) - the active level of the pad (default high)
-//    driven_manually: <True|False> (optional) - the pad is driven manually (default False)
 //    mux: <dict> (optional) - the muxing options for the pad
 //    skip_declaration: <True|False> (optional) - skip the declaration of the pad in the top level (default False)
 //    keep_internal: <True|False> (optional) - keep the pad internal to the design (default False)
@@ -23,65 +22,77 @@
 //        offset: (optional) <float> - offset from edge (in um)
 //        skip: (optional) <float> - distance from neighboring pad (in um)
 // 
-// Add this field at the same level of pads (not inside) if you want to define PADs attributes
+// Add this field at the same level of pads (not inside) if you want to define PADs attributes (n bits)
 //    attributes: {
-//        bits: 7:0
+//        bits: n
 //        resval: 0x3
 //    },
 
 {
-
+    attributes: {
+        bits: 4
+    }
     pads: {
 
         clk: {
             num: 1,
+            no_num: True
             type: input
         },
         rst: {
             num: 1,
-            active: low,
+            no_num: True
+            active: low
             driven_manually: True
             type: input
         },
         boot_select: {
             num: 1,
+            no_num: True
             type: input
         },
         execute_from_flash: {
             num: 1,
+            no_num: True
             type: input
         },
         jtag_tck: {
             num: 1,
+            no_num: True
             type: input
         },
         jtag_tms: {
             num: 1,
+            no_num: True
             type: input
         },
         jtag_trst: {
             num: 1,
-            active: low,
+            no_num: True
+            active: low
             type: input
         },
         jtag_tdi: {
             num: 1,
+            no_num: True
             type: input
         },
         jtag_tdo: {
             num: 1,
+            no_num: True
             type: output
         },
-        uart_rx: {
+        uart0_rx: {
             num: 1,
             type: input
         },
-        uart_tx: {
+        uart0_tx: {
             num: 1,
             type: output
         },
         exit_valid: {
             num: 1,
+            no_num: True
             type: output
         },
         gpio: {
@@ -93,7 +104,7 @@
             num: 1,
             type: inout
         },
-        spi_flash_cs: {
+        spi_flash_csb: {
             num: 2, #carefull, the x-heep uses the CS from the spi pkg, change it
             type: inout
         },
@@ -101,183 +112,154 @@
             num: 4,
             type: inout
         },
-        spi_sck: {
+        spi_host0_sck: {
             num: 1,
             type: inout
         },
-        spi_cs: {
+        spi_host0_csb: {
             num: 2,
             type: inout
         },
-        spi_sd: {
+        spi_host0_sd: {
             num: 4,
             type: inout
         },
 
-        pdm2pcm_pdm: {
+        pdm2pcm0_pdm: {
             num: 1,
             type: inout
             mux: {
-                pdm2pcm_pdm: {
-                    type: inout
+                pdm2pcm0_pdm: {
+                    type: input
                 },
-                gpio_18: {
+                gpio: {
+                    num_offset: 18
                     type: inout
                 }
             }
         },
-        pdm2pcm_clk: {
+        pdm2pcm0_pdm_clk: {
             num: 1,
             type: inout
             mux: {
-                pdm2pcm_clk: {
-                    type: inout
+                pdm2pcm0_pdm_clk: {
+                    type: output
                 },
-                gpio_19: {
+                gpio: {
+                    num_offset: 19
                     type: inout
                 }
             }
         },
-        i2s_sck: {
+        i2s0_sck: {
             num: 1,
             type: inout
             mux: {
-                i2s_sck: {
+                i2s0_sck: {
                     type: inout
                 },
-                gpio_20: {
+                gpio: {
+                    num_offset:20
                     type: inout
                 }
             }
         },
-        i2s_ws: {
+        i2s0_ws: {
             num: 1,
             type: inout
             mux: {
-                i2s_ws: {
+                i2s0_ws: {
                     type: inout
                 },
-                gpio_21: {
+                gpio: {
+                    num_offset: 21
                     type: inout
                 }
             }
         },
-        i2s_sd: {
+        i2s0_sd: {
             num: 1,
             type: inout
             mux: {
-                i2s_sd: {
+                i2s0_sd: {
                     type: inout
                 },
-                gpio_22: {
+                gpio: {
+                    num_offset: 22
                     type: inout
                 }
            }
         },
-        spi2_cs_0: {
-            num: 1,
+        spi_host1_csb: {
+            num: 2,
+            num_offset: 0,
             type: inout
             mux: {
-                spi2_cs_0: {
-                    type: inout
+                spi_host1_csb: {
+                    num: 2,
+                    num_offset: 0,
+                    type: output
                 },
-                gpio_23: {
+                gpio: {
+                    num: 2,
+                    num_offset: 23,
                     type: inout
                 },
             }
         },
-        spi2_cs_1: {
+        spi_host1_sck: {
             num: 1,
             type: inout
             mux: {
-                spi2_cs_1: {
-                    type: inout
+                spi_host1_sck: {
+                    type: output
                 },
-                gpio_24: {
-                    type: inout
-                },
-            },
-        },
-        spi2_sck: {
-            num: 1,
-            type: inout
-            mux: {
-                spi2_sck: {
-                    type: inout
-                },
-                gpio_25: {
+                gpio: {
+                    num_offset: 25,
                     type: inout
                 },
             }
         },
-        spi2_sd_0: {
-            num: 1,
+        spi_host1_sd: {
+            num: 4,
+            num_offset: 0,
             type: inout
             mux: {
-                spi2_sd_0: {
+                spi_host1_sd: {
+                    num: 4,
+                    num_offset: 0,
                     type: inout
                 },
-                gpio_26: {
+                gpio: {
+                    num: 4,
+                    num_offset: 26,
                     type: inout
                 },
             }
         },
-        spi2_sd_1: {
+
+        i2c0_scl: {
             num: 1,
             type: inout
             mux: {
-                spi2_sd_1: {
+                i2c0_scl: {
                     type: inout
                 },
-                gpio_27: {
+                gpio: {
+                    num_offset: 31
                     type: inout
                 },
             }
         },
-        spi2_sd_2: {
+        i2c0_sda: {
             num: 1,
             type: inout
             mux: {
-                spi2_sd_2: {
+                i2c0_sda: {
                     type: inout
                 },
-                gpio_28: {
-                    type: inout
-                },
-            }
-        },
-        spi2_sd_3: {
-            num: 1,
-            type: inout
-            mux: {
-                spi2_sd_3: {
-                    type: inout
-                },
-                gpio_29: {
-                    type: inout
-                },
-            }
-        },
-        i2c_scl: {
-            num: 1,
-            type: inout
-            mux: {
-                i2c_scl: {
-                    type: inout
-                },
-                gpio_31: {
-                    type: inout
-                },
-            }
-        },
-        i2c_sda: {
-            num: 1,
-            type: inout
-            mux: {
-                i2c_sda: {
-                    type: inout
-                },
-                gpio_30: {
+                gpio: {
+                    num_offset: 30
                     type: inout
                 },
             }

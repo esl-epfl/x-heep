@@ -115,11 +115,11 @@ int main(int argc, char *argv[]) {
     const uint32_t mask = 1 << 11;
     CSR_SET_BITS(CSR_REG_MIE, mask);
     
-    if(plic_Init()) {return EXIT_FAILURE;};
-    if(plic_irq_set_priority(EXT_INTR_1, 1)) {return EXIT_FAILURE;};
-    if(plic_irq_set_enabled(EXT_INTR_1, kPlicToggleEnabled)) {return EXIT_FAILURE;};
+    if(plic_Init(&rv_plic_0_inf)) {return EXIT_FAILURE;};
+    if(plic_irq_set_priority(&rv_plic_0_inf, EXT_INTR_1, 1)) {return EXIT_FAILURE;};
+    if(plic_irq_set_enabled(&rv_plic_0_inf, EXT_INTR_1, kPlicToggleEnabled)) {return EXIT_FAILURE;};
     
-    plic_assign_external_irq_handler(EXT_INTR_1, &handler_irq_iffifo);
+    plic_assign_irq_handler(&rv_plic_0_inf, EXT_INTR_1, &handler_irq_iffifo);
     
     mmio_region_write32(iffifo_base_addr, IFFIFO_WATERMARK_REG_OFFSET, 2);
     mmio_region_write32(iffifo_base_addr, IFFIFO_INTERRUPTS_REG_OFFSET, 0b1);
@@ -135,8 +135,8 @@ int main(int argc, char *argv[]) {
     tgt_src.type       = DMA_DATA_TYPE_WORD;
 
     tgt_dst.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_IN_REG_OFFSET;
-    tgt_dst.inc_d1_du     = 0;
-    tgt_dst.trig       = DMA_TRIG_SLOT_EXT_TX;
+    tgt_dst.inc_d1_du  = 0;
+    tgt_dst.trig       = DMA_TRIG_SLOT_DMA_EXT_TX;
     tgt_dst.type       = DMA_DATA_TYPE_WORD;
     
     trans.size_d1_du    = 6;
@@ -171,8 +171,8 @@ int main(int argc, char *argv[]) {
     
     dma_init(NULL);
     tgt_src.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_OUT_REG_OFFSET;
-    tgt_src.inc_d1_du     = 0;
-    tgt_src.trig       = DMA_TRIG_SLOT_EXT_RX;
+    tgt_src.inc_d1_du  = 0;
+    tgt_src.trig       = DMA_TRIG_SLOT_DMA_EXT_RX;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
 
     tgt_dst.ptr        = from_fifo;

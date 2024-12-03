@@ -127,9 +127,9 @@ void setup()
 
      // -- DMA CONFIGURATION --
 
-    tgt_src.ptr        = I2S_RX_DATA_ADDRESS;
-    tgt_src.inc_d1_du     = 0;
-    tgt_src.trig       = DMA_TRIG_SLOT_I2S;
+    tgt_src.ptr        = I2S_RX_DATA_ADDRESS(I2S_0_START_ADDRESS);
+    tgt_src.inc_du     = 0;
+    tgt_src.trig       = DMA_TRIG_SLOT_I2S_0_RX;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
 
     tgt_dst.ptr        = audio_data_0;
@@ -151,18 +151,18 @@ void setup()
 
 
     // PLIC
-    plic_Init();
-    plic_res = plic_irq_set_priority(I2S_INTR_EVENT, 1);
-    plic_res = plic_irq_set_enabled(I2S_INTR_EVENT, kPlicToggleEnabled);
+    plic_Init(&rv_plic_0_inf);
+    plic_res = plic_irq_set_priority(&rv_plic_0_inf, I2S_0_I2S_EVENT_INTR, 1);
+    plic_res = plic_irq_set_enabled(&rv_plic_0_inf, I2S_0_I2S_EVENT_INTR, kPlicToggleEnabled);
 
 
     // enable I2s interrupt
     i2s_interrupt_flag = 0;
-    i2s_res = i2s_init(I2S_CLK_DIV, I2S_32_BITS);
+    i2s_res = i2s_init(i2s_0_peri, I2S_CLK_DIV, I2S_32_BITS);
     if (i2s_res != kI2sOk) {
         PRINTF("I2S init failed with %d\n\r", i2s_res);
     }
-    i2s_rx_enable_watermark(AUDIO_DATA_NUM, I2S_USE_INTERRUPT);
+    i2s_rx_enable_watermark(i2s_0_peri, AUDIO_DATA_NUM, I2S_USE_INTERRUPT);
 
 }
 
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
             dma_launch( &trans );
         #endif // USE_DMA
 
-        i2s_res = i2s_rx_start(I2S_LEFT_CH);
+        i2s_res = i2s_rx_start(i2s_0_peri, I2S_LEFT_CH);
         if (i2s_res != kI2sOk) {
             PRINTF("I2S rx start failed with %d\n\r", i2s_res);
         }
@@ -213,17 +213,17 @@ int main(int argc, char *argv[]) {
         #else
         // READING DATA MANUALLY OVER BUS
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
-            if (i != i2s_rx_read_waterlevel()) PRINTF("Waterlevel wrong\r\n\r");
-            while (! i2s_rx_data_available()) { }
+            if (i != i2s_rx_read_waterlevel(i2s_0_peri)) PRINTF("Waterlevel wrong\r\n\r");
+            while (! i2s_rx_data_available(i2s_0_peri)) { }
             audio_data_0[i] = i2s_rx_read_data();
         }
         #endif
 
-        if (i2s_rx_overflow()) {
+        if (i2s_rx_overflow(i2s_0_peri)) {
             PRINTF("I2S rx FIFO overflowed\n\r");
         }
 
-        i2s_res = i2s_rx_stop();
+        i2s_res = i2s_rx_stop(i2s_0_peri);
         if (i2s_res != kI2sOk) {
             if (i2s_res == kI2sOverflow) {
                 PRINTF("I2S rx overflow occured and cleared\n\r");
@@ -259,7 +259,7 @@ int main(int argc, char *argv[]) {
         #ifdef USE_DMA
         dma_launch( &trans );
         #endif // USE_DMA
-        i2s_res = i2s_rx_start(I2S_BOTH_CH);
+        i2s_res = i2s_rx_start(i2s_0_peri, I2S_BOTH_CH);
         if (i2s_res != kI2sOk) {
             PRINTF("I2S rx start failed with %d\n\r", i2s_res);
         }
@@ -273,16 +273,16 @@ int main(int argc, char *argv[]) {
         #else
         // READING DATA MANUALLY OVER BUS
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
-            if (i != i2s_rx_read_waterlevel()) PRINTF("Waterlevel wrong\r\n\r");
-            while (!i2s_rx_data_available()) { }
+            if (i != i2s_rx_read_waterlevel(i2s_0_peri)) PRINTF("Waterlevel wrong\r\n\r");
+            while (!i2s_rx_data_available(i2s_0_peri)) { }
             audio_data_0[i] = i2s_rx_read_data();
         }
         #endif
-        if (i2s_rx_overflow()) {
+        if (i2s_rx_overflow(i2s_0_peri)) {
             PRINTF("I2S rx FIFO overflowed\n\r");
         }
 
-        i2s_res = i2s_rx_stop();
+        i2s_res = i2s_rx_stop(i2s_0_peri);
         if (i2s_res != kI2sOk) {
             if (i2s_res == kI2sOverflow) {
                 PRINTF("I2S rx overflow occured and cleared\n\r");
@@ -350,7 +350,7 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
-    i2s_terminate();
+    i2s_terminate(i2s_0_peri);
 
     if( success ){
         PRINTF("Success. \n\r");

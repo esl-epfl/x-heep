@@ -140,6 +140,7 @@
       <file file_name="../../sw/device/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.c" />
       <file file_name="../../sw/device/lib/drivers/gpio/gpio.c" />
       <file file_name="../../sw/device/lib/drivers/rv_plic/rv_plic.c" />
+      <file file_name="../../sw/device/lib/drivers/rv_plic/rv_plic_gen.c" />
       <file file_name="../../sw/device/lib/drivers/soc_ctrl/soc_ctrl.c" />
       <file file_name="../../sw/device/lib/drivers/uart/uart.c" />
     </folder>

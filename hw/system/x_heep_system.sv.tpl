@@ -68,9 +68,7 @@ module x_heep_system
     // External SPC interface
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
 
-% for pad in total_pad_list:
-${pad.x_heep_system_interface}
-% endfor
+    ${xheep.get_pad_manager().make_root_io_ports(internal=True).strip(",")}
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -81,10 +79,11 @@ ${pad.x_heep_system_interface}
   //do not touch these parameter
   localparam EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS;
 
-
   logic [EXT_HARTS_RND-1:0] ext_debug_req;
   logic ext_cpu_subsystem_rst_n;
   logic ext_debug_reset_n;
+
+  ${xheep.get_rh().get_node_local_signals(xheep.get_rh().get_root_node())}
 
   // PM signals
   logic cpu_subsystem_powergate_switch_n;
@@ -95,19 +94,16 @@ ${pad.x_heep_system_interface}
   // PAD controller
   reg_req_t pad_req;
   reg_rsp_t pad_resp;
-% if pads_attributes != None:
-  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${pads_attributes['bits']}] pad_attributes;
+% if xheep.get_pad_manager().get_attr_bits() != 0:
+  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${xheep.get_pad_manager().get_attr_bits()}-1:0] pad_attributes;
 % endif
- % if total_pad_muxed > 0:
-  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${max_total_pad_mux_bitlengh-1}:0] pad_muxes;
+ % if xheep.get_pad_manager().get_muxed_pad_num() > 0:
+  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${xheep.get_pad_manager().get_max_mux_bitlengh()-1}:0] pad_muxes;
 % endif
 
   logic rst_ngen;
 
   //input, output pins from core_v_mini_mcu
-% for pad in total_pad_list:
-${pad.internal_signals}
-% endfor
 
 `ifdef FPGA_SYNTHESIS
   assign cpu_subsystem_powergate_switch_ack_n = cpu_subsystem_powergate_switch_n;
@@ -123,11 +119,8 @@ ${pad.internal_signals}
     .AO_SPC_NUM(AO_SPC_NUM),
     .EXT_HARTS(EXT_HARTS)
   ) core_v_mini_mcu_i (
-
+    .clk_i(${xheep.get_rh().use_source_as_sv("clk", xheep.get_rh().get_root_node())}),
     .rst_ni(rst_ngen),
-% for pad in pad_list:
-${pad.core_v_mini_mcu_bonding}
-% endfor
     .intr_vector_ext_i,
     .xif_compressed_if,
     .xif_issue_if,
@@ -170,56 +163,58 @@ ${pad.core_v_mini_mcu_bonding}
     .external_ram_banks_set_retentive_no,
     .external_subsystem_clkgate_en_no,
     .exit_value_o,
-    .ext_dma_slot_tx_i,
-    .ext_dma_slot_rx_i,
-    .dma_done_o
+    .dma_done_o,
+    ${xheep.get_rh().get_instantiation_signals(xheep.get_mcu_node()).strip(",")}
   );
 
   pad_ring pad_ring_i (
-% for pad in total_pad_list:
-${pad.pad_ring_bonding_bonding}
-% endfor
-% if pads_attributes != None:
+    ${xheep.get_rh().get_instantiation_signals(xheep.get_pad_manager().get_pad_ring_node())}
+    ${xheep.get_pad_manager().make_root_io_ports_use()}
+% if xheep.get_pad_manager().get_attr_bits() != 0:
     .pad_attributes_i(pad_attributes)
 % else:
     .pad_attributes_i('0)
 % endif
   );
 
-${pad_constant_driver_assign}
-
-${pad_mux_process}
-
   pad_control #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t),
       .NUM_PAD  (core_v_mini_mcu_pkg::NUM_PAD)
   ) pad_control_i (
-      .clk_i(clk_in_x),
+      .clk_i(${xheep.get_rh().use_source_as_sv("clk", xheep.get_rh().get_root_node())}),
       .rst_ni(rst_ngen),
       .reg_req_i(pad_req),
       .reg_rsp_o(pad_resp)
-% if total_pad_muxed > 0 or pads_attributes != None:
+% if xheep.get_pad_manager().get_mk_ctrl():
       ,
 % endif
-% if pads_attributes != None:
+% if xheep.get_pad_manager().get_attr_bits() != 0:
       .pad_attributes_o(pad_attributes)
-% if total_pad_muxed > 0:
+% if xheep.get_pad_manager().get_muxed_pad_num() > 0:
       ,
 % endif
 % endif
-% if total_pad_muxed > 0:
+% if xheep.get_pad_manager().get_muxed_pad_num() > 0:
       .pad_muxes_o(pad_muxes)
 % endif
   );
 
+${xheep.get_pad_manager().make_muxers(xheep.get_rh())}
+
   rstgen rstgen_i (
-    .clk_i(clk_in_x),
-    .rst_ni(rst_nin_x),
+    .clk_i(${xheep.get_rh().use_source_as_sv("clk", xheep.get_rh().get_root_node())}),
+    .rst_ni(${xheep.get_rh().use_source_as_sv("rst_n", xheep.get_rh().get_root_node())}),
     .test_mode_i(1'b0),
     .rst_no(rst_ngen),
     .init_no()
   );
 
+% for i in range(xheep.get_ext_intr() -1, -1, -1):
+assign ${xheep.get_rh().use_source_as_sv(f"ext_intr_{i}", xheep.get_rh().get_root_node())} = intr_vector_ext_i[${i}];
+% endfor
+
+assign ${xheep.get_rh().use_source_as_sv("dma_ext_rx", xheep.get_rh().get_root_node())} = ext_dma_slot_rx_i;
+assign ${xheep.get_rh().use_source_as_sv("dma_ext_tx", xheep.get_rh().get_root_node())} = ext_dma_slot_tx_i;
 
 endmodule  // x_heep_system

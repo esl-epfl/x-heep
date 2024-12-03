@@ -458,9 +458,9 @@ int main(int argc, char *argv[])
     PRINTF("    TESTING WINDOW INTERRUPT   ");
     PRINTF("\n\n\r===================================\n\n\r");
 
-    plic_Init();
-    plic_irq_set_priority(DMA_WINDOW_INTR, 1);
-    plic_irq_set_enabled(DMA_WINDOW_INTR, kPlicToggleEnabled);
+    plic_Init(&rv_plic_0_inf);
+    plic_irq_set_priority(&rv_plic_0_inf, DMA_WINDOW_INTR, 1);
+    plic_irq_set_enabled(&rv_plic_0_inf, DMA_WINDOW_INTR, kPlicToggleEnabled);
 
     window_intr_flag = 0;
 

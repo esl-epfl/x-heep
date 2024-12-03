@@ -256,8 +256,9 @@ ssize_t _write(int file, const void *ptr, size_t len)
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
+#ifdef UART_0_IS_INCLUDED
     uart_t uart;
-    uart.base_addr   = mmio_region_from_addr((uintptr_t)UART_START_ADDRESS);
+    uart.base_addr   = mmio_region_from_addr((uintptr_t)UART_0_START_ADDRESS);
     uart.baudrate    = UART_BAUDRATE;
     uart.clk_freq_hz = soc_ctrl_get_frequency(&soc_ctrl);
 
@@ -266,6 +267,10 @@ ssize_t _write(int file, const void *ptr, size_t len)
         return -1;
     }
     return uart_write(&uart,(uint8_t *)ptr,len);
+
+#else
+    return len;
+#endif
 }
 
 

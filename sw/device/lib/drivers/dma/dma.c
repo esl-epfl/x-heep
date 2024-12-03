@@ -60,7 +60,7 @@ extern "C"
 /**
  * Returns the mask to enable/disable DMA interrupts.
  */
-#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ) ) // @ToDo Add definitions for this 19 and 11
+#define DMA_CSR_REG_MIE_MASK ( MIE_MASK_DMA | (1 << 11 ) ) // @ToDo Add definitions for this 11
 
 /**
  * Mask to determine if an address is multiple of 4 (Word aligned).

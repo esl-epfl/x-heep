@@ -33,7 +33,7 @@
 /**
  * Address of the I2S data of the read channel to be passed as address to the DMA
  */
-#define I2S_RX_DATA_ADDRESS (uint32_t)(I2S_RXDATA_REG_OFFSET+I2S_START_ADDRESS)
+#define I2S_RX_DATA_ADDRESS(base) (uint32_t)(I2S_RXDATA_REG_OFFSET+(base))
 
 
 /****************************************************************************/
@@ -48,6 +48,7 @@
 
 #include "bitfield.h"
 #include "i2s_regs.h"
+#include "i2s_structs.h"
 
 
 #ifdef __cplusplus
@@ -107,10 +108,6 @@ typedef enum i2s_channel_sel {
 /**                                                                        **/
 /****************************************************************************/
 
-/**
- * @brief Attends the plic interrupt.
- */
-__attribute__((weak, optimize("O0"))) void handler_irq_i2s(uint32_t id);
 
 /**
  * Initialize I2S peripheral
@@ -128,7 +125,7 @@ __attribute__((weak, optimize("O0"))) void handler_irq_i2s(uint32_t id);
  * @return kI2sOk initialized successful
  * @return kI2sError if peripheral was already running
  */
-i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length);
+i2s_result_t i2s_init(volatile i2s * i2s_peri, uint16_t div_value, i2s_word_length_t word_length);
 
 /**
  * Terminate I2S peripheral
@@ -136,7 +133,7 @@ i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length);
  *
  * Stops SCK and WS
  */
-void i2s_terminate(void);
+void i2s_terminate(volatile i2s * i2s_peri);
 
 
 /**
@@ -144,7 +141,7 @@ void i2s_terminate(void);
  *
  * @return true if i2s peripheral enable
  */
-bool i2s_is_running(void);
+bool i2s_is_running(volatile i2s * i2s_peri);
 
 
 //
@@ -163,7 +160,7 @@ bool i2s_is_running(void);
  * @return kI2sErrUninit error peripheral was not initialized
  * @return kI2sOverflow indicates overflow. (to clear call i2s_rx_stop())
  */
-i2s_result_t i2s_rx_start(i2s_channel_sel_t channels);
+i2s_result_t i2s_rx_start(volatile i2s * i2s_peri, i2s_channel_sel_t channels);
 
 /**
  * I2S stop rx channels and cleans overflow
@@ -174,7 +171,7 @@ i2s_result_t i2s_rx_start(i2s_channel_sel_t channels);
  * @return kI2sErrUninit error peripheral was not initialized
  * @return kI2sOverflow the RX-FIFO overflowed since the RX has been started.
  */
-i2s_result_t i2s_rx_stop(void);
+i2s_result_t i2s_rx_stop(volatile i2s * i2s_peri);
 
 
 /**
@@ -182,7 +179,7 @@ i2s_result_t i2s_rx_stop(void);
  *
  * @return true if RX data is available
  */
-bool i2s_rx_data_available(void);
+bool i2s_rx_data_available(volatile i2s * i2s_peri);
 
 /**
  * I2S read RX word
@@ -191,7 +188,7 @@ bool i2s_rx_data_available(void);
  *
  * @return uint32_t RX word
  */
-uint32_t i2s_rx_read_data(void);
+uint32_t i2s_rx_read_data(volatile i2s * i2s_peri);
 
 /**
  * I2S check RX FIFO overflow
@@ -205,7 +202,7 @@ uint32_t i2s_rx_read_data(void);
  * @return true if RX FIFO overflowed
  * @return false
  */
-bool i2s_rx_overflow(void);
+bool i2s_rx_overflow(volatile i2s * i2s_peri);
 
 
 
@@ -217,12 +214,12 @@ bool i2s_rx_overflow(void);
  * @param watermark number to trigger interrupt
  * @param interrupt_en enable/disable interrupt
  */
-void i2s_rx_enable_watermark(uint16_t watermark, bool interrupt_en);
+void i2s_rx_enable_watermark(volatile i2s * i2s_peri, uint16_t watermark, bool interrupt_en);
 
 /**
  * I2S disable watermark counter
  */
-void i2s_rx_disable_watermark(void);
+void i2s_rx_disable_watermark(volatile i2s * i2s_peri);
 
 
 /**
@@ -230,14 +227,14 @@ void i2s_rx_disable_watermark(void);
  *
  * @return uint16_t current counter value
  */
-uint16_t i2s_rx_read_waterlevel(void);
+uint16_t i2s_rx_read_waterlevel(volatile i2s * i2s_peri);
 
 
 /**
  * I2S reset RX Watermark counter to 0
  *
  */
-void i2s_rx_reset_waterlevel(void);
+void i2s_rx_reset_waterlevel(volatile i2s * i2s_peri);
 
 
 #ifdef __cplusplus

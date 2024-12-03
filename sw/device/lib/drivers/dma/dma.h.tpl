@@ -61,12 +61,15 @@
 #define DMA_SPI_MODE_SPI_FLASH_RX 0x03
 #define DMA_SPI_MODE_SPI_FLASH_TX 0x04
 
-
-#define DMA_SPI_RX_SLOT           0x01
-#define DMA_SPI_TX_SLOT           0x02
-#define DMA_SPI_FLASH_RX_SLOT     0x04
-#define DMA_SPI_FLASH_TX_SLOT     0x08
-#define DMA_I2S_RX_SLOT           0x10
+<%
+    dma_sources = xheep.get_rh().use_target_as_sv_multi("dma_default_target", xheep.get_ao_node())
+    dma_triggers = []
+    for i, source in enumerate(dma_sources):
+        dma_triggers.append((2**i, source.split(".")[-1].upper()))
+%>
+% for i, trigger in dma_triggers:
+#define DMA_${trigger}_SLOT ${f"0x{i:X}"}
+% endfor
 
 #define DMA_INT_TR_START     0x0
 
@@ -129,15 +132,10 @@ extern "C" {
  */
 typedef enum
 {
-    DMA_TRIG_MEMORY             = 0, /*!< Reads from memory or writes in
-    memory. */
-    DMA_TRIG_SLOT_SPI_RX        = 1, /*!< Slot 1 (MEM < SPI). */
-    DMA_TRIG_SLOT_SPI_TX        = 2, /*!< Slot 2 (MEM > SPI). */
-    DMA_TRIG_SLOT_SPI_FLASH_RX  = 4, /*!< Slot 3 (MEM < SPI FLASH). */
-    DMA_TRIG_SLOT_SPI_FLASH_TX  = 8, /*!< Slot 4 (MEM > SPI FLASH). */
-    DMA_TRIG_SLOT_I2S           = 16,/*!< Slot 5 (I2S). */
-    DMA_TRIG_SLOT_EXT_TX        = 32,/*!< Slot 6 (External peripherals TX). */
-    DMA_TRIG_SLOT_EXT_RX        = 64,/*!< Slot 7 (External peripherals RX). */
+    DMA_TRIG_MEMORY = 0, /*!< Reads from memory or writes in memory. */
+% for i, trigger in dma_triggers:
+    DMA_TRIG_SLOT_${trigger} = ${f"0x{i:X}"},
+% endfor
     DMA_TRIG__size,      /*!< Not used, only for sanity checks. */
     DMA_TRIG__undef,     /*!< DMA will not be used. */
 } dma_trigger_slot_mask_t;

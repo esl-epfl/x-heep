@@ -45,6 +45,8 @@ X_HEEP_CFG  ?= configs/general.hjson
 PAD_CFG  	?= pad_cfg.hjson
 EXT_PAD_CFG ?=
 
+DATA_OBJ_FILE=data_cfg.pickle
+
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER ?= gcc
 
@@ -91,9 +93,12 @@ export
 ## @section Conda
 conda: environment.yml
 	conda env create -f environment.yml
+	sed 's,ROOT_PATH,$(shell pwd),g' x_heep_pythonpath.pth > `conda run -n core-v-mini-mcu python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])'`/x_heep_pythonpath.pth
 
 environment.yml: python-requirements.txt
 	util/python-requirements2conda.sh
+
+
 
 ## @section Installation
 
@@ -103,33 +108,39 @@ environment.yml: python-requirements.txt
 ## @param MEMORY_BANKS=[2(default) to (16 - MEMORY_BANKS_IL)]
 ## @param MEMORY_BANKS_IL=[0(default),2,4,8]
 mcu-gen:
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/include --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --external_pads $(EXT_PAD_CFG) --pkg-sv hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/system_bus.sv.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/system_xbar.sv.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/memory_subsystem.sv.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/peripheral_subsystem.sv.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir tb/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv tb/tb_util.svh.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/system/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/system/pad_ring.sv.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/core_v_mini_mcu.sv.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/system/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/system/x_heep_system.sv.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir sw/device/lib/runtime --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --header-c sw/device/lib/runtime/core_v_mini_mcu.h.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir sw/device/lib/runtime --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --header-c sw/device/lib/runtime/core_v_mini_mcu_memory.h.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir $(LINK_FOLDER) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --linker_script $(LINK_FOLDER)/link.ld.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir . --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --pkg-sv ./core-v-mini-mcu.upf.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir . --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --pkg-sv ./core-v-mini-mcu.dc.upf.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/ip/power_manager/rtl --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/ip/power_manager/data/power_manager.sv.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/ip/power_manager/data --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/ip/power_manager/data/power_manager.hjson.tpl
+	$(PYTHON) util/mk_cfg.py -o $(DATA_OBJ_FILE) --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --external_pads $(EXT_PAD_CFG)
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/core-v-mini-mcu/include            --pkg-sv hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/core-v-mini-mcu/                   --tpl-sv hw/core-v-mini-mcu/system_bus.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/core-v-mini-mcu/                   --tpl-sv hw/core-v-mini-mcu/system_xbar.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/core-v-mini-mcu/                   --tpl-sv hw/core-v-mini-mcu/memory_subsystem.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/core-v-mini-mcu/                   --tpl-sv hw/core-v-mini-mcu/peripheral_subsystem.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/core-v-mini-mcu/                   --tpl-sv hw/core-v-mini-mcu/ao_peripheral_subsystem.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir tb/                                   --tpl-sv tb/tb_util.svh.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/system/                            --tpl-sv hw/system/pad_ring.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/core-v-mini-mcu/                   --tpl-sv hw/core-v-mini-mcu/core_v_mini_mcu.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/system/                            --tpl-sv hw/system/x_heep_system.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir sw/device/lib/runtime                 --header-c sw/device/lib/runtime/core_v_mini_mcu.h.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir sw/device/lib/drivers/rv_plic/        --header-c sw/device/lib/drivers/rv_plic/rv_plic_gen.h.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir sw/device/lib/drivers/rv_plic/        --header-c sw/device/lib/drivers/rv_plic/rv_plic_gen.c.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir sw/device/lib/drivers/fast_intr_ctrl/ --header-c sw/device/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.c.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir sw/device/lib/drivers/fast_intr_ctrl/ --header-c sw/device/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.h.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir sw/device/lib/drivers/dma/            --header-c sw/device/lib/drivers/dma/dma.h.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir sw/linker                             --linker_script sw/linker/link.ld.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir .                                     --pkg-sv ./core-v-mini-mcu.upf.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/ip/power_manager/rtl               --pkg-sv hw/ip/power_manager/data/power_manager.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/ip/power_manager/data              --pkg-sv hw/ip/power_manager/data/power_manager.hjson.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/core-v-mini-mcu                    --pkg-sv hw/core-v-mini-mcu/generated_if.sv.tpl
 	bash -c "cd hw/ip/power_manager; source power_manager_gen.sh; cd ../../../"
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir sw/device/lib/drivers/power_manager --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv sw/device/lib/drivers/power_manager/data/power_manager.h.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/system/pad_control/data --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_pads $(EXT_PAD_CFG) --pkg-sv hw/system/pad_control/data/pad_control.hjson.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/system/pad_control/rtl --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_pads $(EXT_PAD_CFG) --pkg-sv hw/system/pad_control/rtl/pad_control.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir sw/device/lib/drivers/power_manager   --pkg-sv sw/device/lib/drivers/power_manager/data/power_manager.h.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/system/pad_control/data            --pkg-sv hw/system/pad_control/data/pad_control.hjson.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/system/pad_control/rtl             --pkg-sv hw/system/pad_control/rtl/pad_control.sv.tpl
 	bash -c "cd hw/system/pad_control; source pad_control_gen.sh; cd ../../../"
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir $(LINK_FOLDER) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --linker_script $(LINK_FOLDER)/link_flash_exec.ld.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir $(LINK_FOLDER) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --linker_script $(LINK_FOLDER)/link_flash_load.ld.tpl
-	$(PYTHON) ./util/structs_periph_gen.py
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/fpga/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/fpga/sram_wrapper.sv.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/fpga/scripts/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/fpga/scripts/generate_sram.tcl.tpl
-	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir sw/device/lib/crt/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv sw/device/lib/crt/crt0.S.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir sw/linker                             --linker_script sw/linker/link_flash_exec.ld.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir sw/linker                             --linker_script sw/linker/link_flash_load.ld.tpl
+	$(PYTHON) ./util/structs_periph_gen.py -i ${DATA_OBJ_FILE}
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/fpga/                              --tpl-sv hw/fpga/sram_wrapper.sv.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir hw/fpga/scripts/                      --tpl-sv hw/fpga/scripts/generate_sram.tcl.tpl
+	$(PYTHON) util/mcu_gen.py -i ${DATA_OBJ_FILE} --outdir sw/device/lib/crt/                    --tpl-sv sw/device/lib/crt/crt0.S.tpl
 	$(MAKE) verible
 
 ## Display mcu_gen.py help
@@ -312,6 +323,9 @@ app-clean:
 app-restore:
 	rm -rf sw/build
 
+clean-cfg:
+	@rm -f ${DATA_OBJ_FILE}
+
 ## Removes the HW build folder
 clean-sim:
 	@rm -rf build
@@ -320,4 +334,4 @@ clean-sim:
 clean-app: app-restore
 
 ## Removes the CMake build folder and the HW build folder
-clean-all: app-restore clean-sim
+clean-all: app-restore clean-sim clean-cfg
