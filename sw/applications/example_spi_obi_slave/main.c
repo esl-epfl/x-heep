@@ -6,7 +6,6 @@
 */
 
 
-#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -62,6 +61,7 @@ typedef enum {
 
 spi_host_t* spi_hst; //Removed specific memory assignement
 uint32_t compare_data[DATA_LENGTH/4]; //!!! I have to check whether the process reads out more data than it sent in
+uint32_t compare_test_data[DATA_LENGTH/4]; //!!! I have to check whether the process reads out more data than it sent in
 
 
 spi_slave_flags_e spi_slave_init(spi_host_t* spi_host);
@@ -87,24 +87,26 @@ int main(int argc, char *argv[])
         printf("Failure to initialize\n Error code: %d", flags);
         return EXIT_FAILURE;
     }
-    printf("Checkpoint");
-    flags = spi_host_write(TARGET_ADDRESS, test_data, DATA_LENGTH);
+    flags = spi_host_write(compare_data, test_data, DATA_LENGTH);
     if (flags != SPI_SLAVE_FLAG_OK){
         printf("Failure to write\n Error code: %d", flags);
         return EXIT_FAILURE;
     }
 
-    flags = spi_slave_read(TARGET_ADDRESS, compare_data, DATA_LENGTH, DUMMY_CYCLES);
+    flags = spi_slave_read(compare_data, compare_test_data, DATA_LENGTH, DUMMY_CYCLES);
     if (flags != SPI_SLAVE_FLAG_OK){
         printf("Failure to read\n Error code: %d", flags);
         return EXIT_FAILURE;
     }
-    print_array("Test Data", test_data, DATA_LENGTH);
-    make_compare_data_compatible(compare_data, DATA_LENGTH);
-    print_array("Compare Data", compare_data, DATA_LENGTH);
-    if (memcmp(test_data, compare_data, DATA_LENGTH) != 0) {
+    //print_array("Test Data", test_data, DATA_LENGTH);
+    make_compare_data_compatible(compare_test_data, DATA_LENGTH);
+    //print_array("Compare Data", compare_test_data, DATA_LENGTH);
+    if (memcmp(test_data, compare_test_data, DATA_LENGTH) != 0) {
         printf("Failure to retrieve correct data\n");
         return EXIT_FAILURE;
+    }
+    else{
+        printf("Writting and reading terminated successfully\n");
     }
     return EXIT_SUCCESS;
 }
@@ -113,6 +115,7 @@ int main(int argc, char *argv[])
 spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uint8_t dummy_cycles){
     // ??? Is this necessary? What happens when address is invalid or data exceeds memory? What is the size of the memory?
     if (check_address_validity(addr, data, length) != true) return SPI_SLAVE_FLAG_ADDRESS_INVALID;
+    
 
     write_dummy_cycles(dummy_cycles);
 
@@ -202,14 +205,11 @@ spi_slave_flags_e spi_slave_init(spi_host_t* spi_host) {
     // Enable SPI host device
     spi_return_flags_e test = spi_set_enable(spi_hst, true);
     if(test != SPI_FLAG_OK){
-        printf("test\n");
-        printf("test value %d", test);
         return SPI_SLAVE_FLAG_NOT_INIT;
     };
 
     // Enable SPI output
     if(spi_output_enable(spi_hst, true) != SPI_FLAG_OK){
-        printf("testa");
         return SPI_SLAVE_FLAG_NOT_INIT;
     };
     // Configure SPI Master<->Slave connection on CSID 0
@@ -217,7 +217,6 @@ spi_slave_flags_e spi_slave_init(spi_host_t* spi_host) {
 
     // Set CSID
     if(spi_set_csid(spi_hst, 0) != SPI_FLAG_OK){
-        printf("testb");
         return SPI_SLAVE_FLAG_CSID_INVALID;
     };
 
@@ -237,6 +236,8 @@ static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t 
 
     write_wrap_length(length);
 
+
+
     const uint8_t write_byte_cmd = WRITE_SPI_SLAVE_CMD;
     spi_write_word(spi_hst, write_byte_cmd);
     const uint32_t cmd_write = spi_create_command((spi_command_t){
@@ -252,15 +253,31 @@ static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t 
     write_word_big_endian(addr);
 
     /*
+     * Set up segment parameters -> send data.
+    */
+    const uint32_t cmd_write_2 = spi_create_command((spi_command_t){
+        .len        = (SPI_HOST_PARAM_TX_DEPTH*4)-1,
+        .csaat      = true,
+        .speed      = SPI_SPEED_STANDARD,
+        .direction  = SPI_DIR_TX_ONLY
+    });
+
+    /*
      * Place data in TX FIFO
      * In simulation it do not wait for the flash to be ready, so we must check
      * if the FIFO is full before writing.
     */
-
+    int counter = 0;
     uint32_t *data_32bit = (uint32_t *)data;
-    for (int i = 0; i < length>>2; i++) {
+    for (int i = 0; i < (length>>2 ); i++) {
+        if(SPI_HOST_PARAM_TX_DEPTH == counter){
+            spi_set_command(spi_hst, cmd_write_2);
+            spi_wait_for_ready(spi_hst);
+            counter = 0;
+        }
         spi_wait_for_tx_not_full(spi_hst);
         spi_write_word(spi_hst, make_word_compatible_for_spi_host(data_32bit[i]));
+        counter++;
     }
     if (length % 4 != 0) {
         uint32_t last_word = 0;
@@ -269,19 +286,21 @@ static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t 
         spi_write_word(spi_hst, make_word_compatible_for_spi_host(last_word));
     }
 
+    uint16_t last_words = length-((length/(SPI_HOST_PARAM_TX_DEPTH*4))*(SPI_HOST_PARAM_TX_DEPTH*4));
 
-    /*
-     * Set up segment parameters -> send data.
-    */
-    const uint32_t cmd_write_2 = spi_create_command((spi_command_t){
-        .len        = length-1,
+    if(last_words == 0){
+        last_words = SPI_HOST_PARAM_TX_DEPTH*4;
+    }
+    const uint32_t cmd_write_3 = spi_create_command((spi_command_t){
+        .len        = last_words-1,
         .csaat      = false,
         .speed      = SPI_SPEED_STANDARD,
         .direction  = SPI_DIR_TX_ONLY
     });
-    spi_set_command(spi_hst, cmd_write_2);
-    spi_wait_for_ready(spi_hst);
 
+
+    spi_set_command(spi_hst, cmd_write_3);
+    spi_wait_for_ready(spi_hst);
     return SPI_SLAVE_FLAG_OK; // Success
 }
 
@@ -393,7 +412,7 @@ void write_wrap_length(uint16_t length){
         .direction  = SPI_DIR_TX_ONLY       // Write only
     });
 
-    for(int i = 0; i < 4; i++){ 
+    for(uint16_t i = 0; i < 4; i++){ 
         // Load command to TX FIFO
         spi_write_byte(spi_hst, wrap_length_cmds[i]);
         spi_wait_for_ready(spi_hst);
@@ -430,6 +449,7 @@ void print_array(const char *label, uint32_t *array, uint16_t size) {
         printf("%d", array[i]);
         if (i < size - 1) {
             printf(", ");
+            printf("]\n");
         }
     }
     printf("]\n");
