@@ -16,6 +16,9 @@ import re
 # Timeout for the simulation in seconds
 SIM_TIMEOUT_S = 180
 
+# Available compilers
+COMPILERS = ["gcc", "clang"]
+
 # Available simulators
 SIMULATORS = ["verilator"]
 
@@ -100,14 +103,30 @@ class Application:
 
     def __init__(self, name: str):
         self.name = name
-        self.compilation_success = False
+        self.compilation_success = {}
         self.simulation_results = {}
 
-    def set_compilation_status(self, success: bool):
-        self.compilation_success = success
+    def set_compilation_status(self, compiler: str, success: bool):
+        """
+        Set if the compilation with the compiler was successful or not.
+        """
+        if compiler not in COMPILERS:
+            raise ValueError(f"Compiler {compiler} is not supported.")
+        self.compilation_success[compiler] = success
 
     def add_simulation_result(self, simulator: str, result: SimResult):
+        """
+        Add the simulation result for the simulator.
+        """
+        if simulator not in SIMULATORS:
+            raise ValueError(f"Simulator {simulator} is not supported.")
         self.simulation_results[simulator] = result
+
+    def compilation_succeeded(self):
+        """
+        Check if the compilation was successful with every compiler.
+        """
+        return all(self.compilation_success.values())
 
 
 def compile_app(an_app, compiler, linker):
@@ -271,7 +290,7 @@ def filter_results(app_list):
         if in_blacklist(app.name):
             skipped_apps.append(app)
         # If the app didn't compile, no need to check the simulations
-        elif not app.compilation_success:
+        elif not app.compilation_succeeded():
             compilation_failed_apps.append(app)
         else:
             # Check if the app failed in any simulator
@@ -381,11 +400,19 @@ def main():
 
     # Compile every app and run with the simulators
     for an_app in app_list:
+        # If the app is in the blacklist, print a message and skip it
         if not in_blacklist(an_app.name):
-            compilation_result = compile_app(an_app, "gcc", "on_chip")
-            an_app.set_compilation_status(compilation_result)
-            if compilation_result and not args.compile_only:
+            # Compile the app with every compiler
+            for compiler in COMPILERS:
+                compilation_result = compile_app(an_app, compiler, "on_chip")
+                an_app.set_compilation_status(compiler, compilation_result)
+
+            # Run the app with every simulator if the compilation was successful
+            if not args.compile_only and an_app.compilation_succeeded:
+                # Recompile the app with gcc
+                compile_app(an_app, "gcc", "on_chip")
                 for simulator in SIMULATORS:
+                    # Only run the app with verilator if it is not in the verilator_blacklist
                     if simulator == "verilator" and in_verilator_blacklist(an_app.name):
                         an_app.add_simulation_result(simulator, SimResult.SKIPPED)
                         print(
