@@ -28,10 +28,6 @@ ERROR_PATTERN_DICT = {
     "verilator": r"Program Finished with value (\d+)",
 }
 
-# The following whitelists and blacklists allow for pattern matching
-# with their corresponding in_*list() functions. That is, if "example"
-# is in a list, in_*list("my_example_app") will return True.
-
 # Whitelist of apps. Has priority over the blacklist.
 # Useful if you only want to test certain apps
 WHITELIST = []
@@ -46,26 +42,19 @@ BLACKLIST = [
 # Blacklist of apps to skip with verilator
 VERILATOR_BLACKLIST = []
 
-
-def in_whitelist(name):
-    """
-    Checks if the given name is in the WHITELIST.
-    """
-    return any(word in name for word in WHITELIST)
+# Blacklist of apps to skip with clang
+CLANG_BLACKLIST = [
+    "example_cpp",
+]
 
 
-def in_blacklist(name):
+def in_list(name, list):
     """
-    Checks if the given name is in the BLACKLIST.
+    Checks if the given name is in the list. This allows for pattern
+    matching. For example, if "example" is in the list, in_list("my_example_app")
+    will return True.
     """
-    return any(word in name for word in BLACKLIST)
-
-
-def in_verilator_blacklist(name):
-    """
-    Checks if the given name is in the VERILATOR_BLACKLIST.
-    """
-    return any(word in name for word in VERILATOR_BLACKLIST)
+    return any(word in name for word in list)
 
 
 class BColors:
@@ -136,7 +125,12 @@ def compile_app(an_app, compiler, linker):
 
     Returns True if the compilation succeded and False otherwise.
     """
-    print(BColors.OKBLUE + f"Compiling {an_app.name}..." + BColors.ENDC, flush=True)
+    print(
+        BColors.OKBLUE
+        + f"Compiling {an_app.name} with {compiler} and {linker} linker..."
+        + BColors.ENDC,
+        flush=True,
+    )
     try:
         compile_command = ["make", "app", f"PROJECT={an_app.name}"]
         if compiler:
@@ -148,12 +142,18 @@ def compile_app(an_app, compiler, linker):
             compile_command, capture_output=True, check=True
         )
     except subprocess.CalledProcessError as exc:
-        print(BColors.FAIL + f"Error compiling {an_app.name}." + BColors.ENDC)
+        print(
+            BColors.FAIL
+            + f"Error compiling {an_app.name} with {compiler} and {linker} linker."
+            + BColors.ENDC
+        )
         print(exc.stderr.decode("utf-8"), flush=True)
         return False
     else:
         print(
-            BColors.OKGREEN + f"Compiled {an_app.name} successfully." + BColors.ENDC,
+            BColors.OKGREEN
+            + f"Compiled {an_app.name} with {compiler} and {linker} linker successfully."
+            + BColors.ENDC,
             flush=True,
         )
         return True
@@ -255,12 +255,12 @@ def get_apps(apps_dir):
         app_list = [Application(app) for app in os.listdir(apps_dir)]
     else:
         app_list = [
-            Application(app) for app in os.listdir(apps_dir) if in_whitelist(app)
+            Application(app) for app in os.listdir(apps_dir) if in_list(app, WHITELIST)
         ]
 
     print(BColors.OKCYAN + "Apps to test from " + apps_dir + ":" + BColors.ENDC)
     for app in app_list:
-        if not in_blacklist(app.name):
+        if not in_list(app.name, BLACKLIST):
             print(BColors.OKCYAN + f"    - {app.name}" + BColors.ENDC)
 
     return app_list
@@ -287,7 +287,7 @@ def filter_results(app_list):
 
     for app in app_list:
         # If the app is in the blacklist, no need to check the rest
-        if in_blacklist(app.name):
+        if in_list(app.name, BLACKLIST):
             skipped_apps.append(app)
         # If the app didn't compile, no need to check the simulations
         elif not app.compilation_succeeded():
@@ -401,19 +401,30 @@ def main():
     # Compile every app and run with the simulators
     for an_app in app_list:
         # If the app is in the blacklist, print a message and skip it
-        if not in_blacklist(an_app.name):
-            # Compile the app with every compiler
-            for compiler in COMPILERS:
-                compilation_result = compile_app(an_app, compiler, "on_chip")
-                an_app.set_compilation_status(compiler, compilation_result)
+        if not in_list(an_app.name, BLACKLIST):
+            # Compile the app with every compiler, leaving gcc for last
+            #   so the simulation is done with gcc
+            for compiler in [c for c in COMPILERS if c != "gcc"]:
+                if in_list(an_app.name, CLANG_BLACKLIST) and compiler == "clang":
+                    print(
+                        BColors.WARNING
+                        + f"Skipping compiling {an_app.name} with {compiler}..."
+                        + BColors.ENDC,
+                        flush=True,
+                    )
+                else:
+                    compilation_result = compile_app(an_app, compiler, "on_chip")
+                    an_app.set_compilation_status(compiler, compilation_result)
+            compilation_result = compile_app(an_app, "gcc", "on_chip")
+            an_app.set_compilation_status("gcc", compilation_result)
 
             # Run the app with every simulator if the compilation was successful
             if not args.compile_only and an_app.compilation_succeeded:
-                # Recompile the app with gcc
-                compile_app(an_app, "gcc", "on_chip")
                 for simulator in SIMULATORS:
                     # Only run the app with verilator if it is not in the verilator_blacklist
-                    if simulator == "verilator" and in_verilator_blacklist(an_app.name):
+                    if simulator == "verilator" and in_list(
+                        an_app.name, VERILATOR_BLACKLIST
+                    ):
                         an_app.add_simulation_result(simulator, SimResult.SKIPPED)
                         print(
                             BColors.WARNING
