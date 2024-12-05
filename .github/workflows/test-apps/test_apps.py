@@ -3,8 +3,6 @@ This script compiles or runs all the apps in X-HEEP
 
 FUTURE WORK:
 - The current setup only uses the on_chip linker.
-- The current setup only allows for the compilation with one compiler for 
-    each application.
 """
 
 import argparse
