@@ -72,12 +72,12 @@ compiled and linked are under `sw\build`
 
 ## FreeROTS based applications
 
-'X-HEEP' supports 'FreeRTOS' based applications. Please see `sw\applications\blinky_freertos`.
+'X-HEEP' supports 'FreeRTOS' based applications. Please see `sw\applications\example_freertos_blinky`.
 
 After that, you can run the command to compile and link the FreeRTOS based application. Please also set 'LINKER' and 'TARGET' parameters if needed.
 
 ```
-make app PROJECT=blinky_freertos
+make app PROJECT=example_freertos_blinky
 ```
 
 The main FreeRTOS configuration is allocated under `sw\freertos`, in `FreeRTOSConfig.h`. Please, change this file based on your application requirements.
