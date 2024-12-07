@@ -5,7 +5,7 @@ jobs:
   simulate:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+      image: ghcr.io/vlsi-lab/x-heep-toolchain:experimental
     name: Simulate all apps. All must pass.
     steps:
       - name: Checkout the pushed code. 

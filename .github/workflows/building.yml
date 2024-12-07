@@ -5,7 +5,7 @@ jobs:
   test_applications:
     runs-on: ubuntu-latest
     container: 
-      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+      image: ghcr.io/vlsi-lab/x-heep-toolchain:experimental
     name: Compiles all apps with gcc and clang. All must compile successfully.
     steps:
       - name: Checkout the pushed code. 
