@@ -33,7 +33,6 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { github, context } = require('@actions/github');
             github.rest.issues.createComment({
               ...context.repo,
               issue_number: context.issue.number,
