@@ -28,15 +28,3 @@ jobs:
           make mcu-gen X_HEEP_CFG=configs/ci.hjson
 
           python3 .github/workflows/test-apps/test_apps.py --compile-only
-      - name: Post comment on failure
-        if: failure()
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: context.issue.number,
-              body: "The compile action did not complete successfully. Please check the logs for more details."
-            });
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
