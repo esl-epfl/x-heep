@@ -6,7 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     container: 
       image: ghcr.io/vlsi-lab/x-heep-toolchain:experimental
-    continue-on-error: true
     name: Compiles all apps with gcc and clang. All must compile successfully.
     steps:
       - name: Checkout the pushed code. 
