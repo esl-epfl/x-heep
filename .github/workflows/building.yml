@@ -6,6 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     container: 
       image: ghcr.io/vlsi-lab/x-heep-toolchain:experimental
+    continue-on-error: true
     name: Compiles all apps with gcc and clang. All must compile successfully.
     steps:
       - name: Checkout the pushed code. 
@@ -28,8 +29,6 @@ jobs:
           make mcu-gen X_HEEP_CFG=configs/ci.hjson
 
           python3 .github/workflows/test-apps/test_apps.py --compile-only
-      continue-on-error: true
-
       - name: Post comment on failure
         if: failure()
         run: |
