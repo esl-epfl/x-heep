@@ -52,7 +52,7 @@ COMPILER ?= gcc
 COMPILER_PREFIX ?= riscv32-unknown-
 
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
-ARCH     ?= rv32imc
+ARCH     ?= rv32imc_zicsr
 
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= $(".")
