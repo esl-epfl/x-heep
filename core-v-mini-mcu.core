@@ -377,6 +377,8 @@ targets:
           - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
+          - '--timing'
+          - '--timescale 1ns/1ps'
 
   sim_sc:
     <<: *default_target
