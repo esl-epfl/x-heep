@@ -175,7 +175,7 @@ module peripheral_subsystem
   assign intr_vector[51] = dma_window_intr_i;
 
   // External interrupts assignement
-  for (genvar i = 0; i < NEXT_INT; i++) begin
+  for (genvar i = 0; i < NEXT_INT; i++) begin : gen_ext_int
     assign intr_vector[i+PLIC_USED_NINT] = intr_vector_ext_i[i];
   end
 
@@ -443,8 +443,17 @@ module peripheral_subsystem
       .intr_spi_event_o(spi2_intr_event)
   );
 
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX] = '0;
-  assign pdm2pcm_clk_o = '0;
+  pdm2pcm #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) pdm2pcm_i (
+      .clk_i(clk_cg),
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PDM2PCM_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX]),
+      .pdm_i(pdm2pcm_pdm_i),
+      .pdm_clk_o(pdm2pcm_clk_o)
+  );
 
   assign pdm2pcm_clk_en_o = 1;
 

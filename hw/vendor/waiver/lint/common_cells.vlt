@@ -16,3 +16,6 @@ lint_off -rule BLKSEQ -file "*/src/clk_int_div.sv"
 lint_off -rule WIDTH -file "*/src/clk_int_div.sv"
 lint_off -rule WIDTH -file "*/src/cdc_fifo_2phase.sv"
 lint_off -rule UNOPTFLAT -file "*src/fifo_v3.sv" -match "Signal unoptimizable: Feedback to clock or circular*"
+
+lint_off -rule GENUNNAMED -file "*/src/*.sv" -match "*"
+lint_off -rule UNOPTFLAT -file "*/src/*.sv" -match "*"

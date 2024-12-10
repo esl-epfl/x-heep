@@ -189,8 +189,8 @@ module dma_subsystem #(
             .slave_req_o(dma_addr_req_o),
             .slave_resp_i(dma_addr_resp_i)
         );
-      end else if (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS > 1 && core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS == core_v_mini_mcu_pkg::DMA_CH_NUM) begin : xbar_n_to_n_gen
-        for (genvar i = 0 ; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin
+      end else if (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS > 1 && core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS == core_v_mini_mcu_pkg::DMA_CH_NUM) begin : gen_xbar_n_to_n
+        for (genvar i = 0 ; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin : gen_req_resp
           assign dma_read_req_o[i] = xbar_read_req[i];
           assign xbar_read_resp[i] = dma_read_resp_i[i];
           assign dma_write_req_o[i] = xbar_write_req[i];
@@ -266,7 +266,7 @@ module dma_subsystem #(
           .out_rsp_i(submodules_rsp)
       );
 
-    end else begin
+    end else begin : xbar_single_dma_gen
 
       /* Bus ports routing in the case of a single DMA */
       assign dma_read_req_o[0] = xbar_read_req[0];
