@@ -90,9 +90,11 @@ targets:
     - tool_verilator? (files_verilator_waiver)
     - tool_verilator? (remote_bitbang_dpi)
     - tool_modelsim? (systemverilog_only_simjtag)
+    # - tool_verilator? (systemverilog_only_simjtag)
     - tool_vcs? (systemverilog_only_simjtag)
     - tool_xcelium? (systemverilog_only_simjtag)
     - tool_modelsim? (cypress_flash)
+    - tool_verilator? (cypress_flash)
     - tool_vcs? (cypress_flash)
     - tool_xcelium? (cypress_flash)
     toplevel:
