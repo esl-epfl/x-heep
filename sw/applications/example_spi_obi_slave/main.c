@@ -33,9 +33,9 @@
 typedef enum {
     // Everithing went well
     SPI_SLAVE_FLAG_OK                       = 0x0000,
-    // The SPI variabled passed was a null pointer
+    // The SPI variable passed was a null pointer
     SPI_SLAVE_FLAG_NULL_PTR                 = 0x0001,
-    //The SPI was not properly initalized
+    //The SPI host was not properly initalized
     SPI_SLAVE_FLAG_NOT_INIT                 = 0x0002,
     //The target address is invalid
     SPI_SLAVE_FLAG_ADDRESS_INVALID          = 0x0003,
@@ -51,22 +51,21 @@ typedef enum {
     SPI_SLAVE_FLAG_TX_QUEUE_FULL            = 0x0020,
     // The RX Queue is empty, thus could not read from RX register
     SPI_SLAVE_FLAG_RX_QUEUE_EMPTY           = 0x0040,
-    // The SPI is not ready
+    // The SPI host is not ready
     SPI_SLAVE_FLAG_NOT_READY                = 0x0080,
     // The event to enable is not a valid event
     SPI_SLAVE_FLAG_EVENT_INVALID            = 0x0100,
     // The error irq to enable is not a valid error irq
     SPI_SLAVE_FLAG_ERROR_INVALID            = 0x0200 
-} spi_slave_flags_e;
+} spi_host_flags_e;
 
 spi_host_t* spi_hst; //Removed specific memory assignement
 uint32_t compare_data[DATA_LENGTH/4]; //!!! I have to check whether the process reads out more data than it sent in
-uint32_t compare_test_data[DATA_LENGTH/4]; //!!! I have to check whether the process reads out more data than it sent in
 
 
-spi_slave_flags_e spi_slave_init(spi_host_t* spi_host);
-static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t length);
-spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uint8_t dummy_cycles);
+spi_host_flags_e spi_host_init(spi_host_t* host);
+static spi_host_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t length);
+spi_host_flags_e spi_host_read(uint32_t addr, void* data, uint16_t length, uint8_t dummy_cycles);
 bool check_address_validity(uint32_t addr, void* data, uint16_t length);
 void print_array(const char *label, uint32_t *array, uint16_t size);
 static void configure_spi();
@@ -82,7 +81,7 @@ int main(int argc, char *argv[])
 {   
     spi_hst = spi_host1;
     spi_return_flags_e flags;
-    flags = spi_slave_init(spi_hst);
+    flags = spi_host_init(spi_hst);
     if (flags != SPI_SLAVE_FLAG_OK){
         printf("Failure to initialize\n Error code: %d", flags);
         return EXIT_FAILURE;
@@ -93,15 +92,15 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    flags = spi_slave_read(compare_data, compare_test_data, DATA_LENGTH, DUMMY_CYCLES);
+    flags = spi_host_read(compare_data, compare_data, DATA_LENGTH, DUMMY_CYCLES);
     if (flags != SPI_SLAVE_FLAG_OK){
         printf("Failure to read\n Error code: %d", flags);
         return EXIT_FAILURE;
     }
     //print_array("Test Data", test_data, DATA_LENGTH);
-    make_compare_data_compatible(compare_test_data, DATA_LENGTH);
+    make_compare_data_compatible(compare_data, DATA_LENGTH);
     //print_array("Compare Data", compare_test_data, DATA_LENGTH);
-    if (memcmp(test_data, compare_test_data, DATA_LENGTH) != 0) {
+    if (memcmp(test_data, compare_data, DATA_LENGTH) != 0) {
         printf("Failure to retrieve correct data\n");
         return EXIT_FAILURE;
     }
@@ -112,7 +111,7 @@ int main(int argc, char *argv[])
 }
 
 
-spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uint8_t dummy_cycles){
+spi_host_flags_e spi_host_read(uint32_t addr, void* data, uint16_t length, uint8_t dummy_cycles){
     // ??? Is this necessary? What happens when address is invalid or data exceeds memory? What is the size of the memory?
     if (check_address_validity(addr, data, length) != true) return SPI_SLAVE_FLAG_ADDRESS_INVALID;
     
@@ -161,10 +160,10 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
      * RX FIFO depth. In this case the flag is not set to 0, so the loop will
      * continue until all the data is read.
     */
-    int flag = 1;
-    int to_read = 0;
-    int i_start = 0;
-    int length_original = length;
+    bool flag = 1;
+    uint16_t to_read = 0;
+    uint16_t i_start = 0;
+    uint16_t length_original = length;
     uint32_t *data_32bit = (uint32_t *)data;
     while (flag) {
         if (length >= SPI_HOST_PARAM_RX_DEPTH) {
@@ -177,9 +176,9 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
             to_read += length;
             flag = 0;
         }
-        // Wait till SPI RX FIFO is full (or I read all the data)
+        // Wait till SPI Host RX FIFO is full (or I read all the data)
         spi_wait_for_rx_watermark(spi_hst);
-        // Read data from SPI RX FIFO
+        // Read data from SPI Host RX FIFO
         for (int i = i_start; i < to_read>>2; i++) {
             spi_read_word(spi_hst, &data_32bit[i]); // Writes a full word
         }
@@ -197,22 +196,22 @@ spi_slave_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uin
 }
 
 
-spi_slave_flags_e spi_slave_init(spi_host_t* spi_host) {
+spi_host_flags_e spi_host_init(spi_host_t* host) {
  
     // Set the global spi variable to the one passed as argument.
-    spi_hst = spi_host;
+    spi_hst = host;
 
-    // Enable SPI host device
+    // Enable spi host device
     spi_return_flags_e test = spi_set_enable(spi_hst, true);
     if(test != SPI_FLAG_OK){
         return SPI_SLAVE_FLAG_NOT_INIT;
     };
 
-    // Enable SPI output
+    // Enable spi output
     if(spi_output_enable(spi_hst, true) != SPI_FLAG_OK){
         return SPI_SLAVE_FLAG_NOT_INIT;
     };
-    // Configure SPI Master<->Slave connection on CSID 0
+    // Configure spi Master<->Slave connection on CSID 0
     configure_spi();
 
     // Set CSID
@@ -229,7 +228,7 @@ bool check_address_validity(uint32_t addr, void* data, uint16_t length){
 }
 
 
-static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t length) {
+static spi_host_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t length) {
     if(DIV_ROUND_UP(length, WORD_SIZE_IN_BYTES) > MAX_DATA_SIZE){
         return SPI_SLAVE_FLAG_SIZE_OF_DATA_EXCEEDED;
     }
@@ -309,10 +308,10 @@ static spi_slave_flags_e spi_host_write(uint32_t addr, uint32_t *data, uint16_t 
 
 
 static void configure_spi() {
-    // Configure SPI clock
+    // Configure spi clock
     uint16_t clk_div = 0;
 
-    // SPI Configuration
+    // Spi Configuration
     // Configure chip 0 (slave)
     const uint32_t chip_cfg = spi_create_configopts((spi_configopts_t){
         .clkdiv     = clk_div,
@@ -328,28 +327,6 @@ static void configure_spi() {
 
 
 void write_word_big_endian(uint32_t word){
-
-/*    uint8_t word_in_bytes[4] = {LOWER_BYTE_16_BITS(LOWER_BYTES_32_BITS(word)),
-                                UPPER_BYTE_16_BITS(LOWER_BYTES_32_BITS(word)),
-                                LOWER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word)),
-                                UPPER_BYTE_16_BITS(UPPER_BYTES_32_BITS(word))
-    };
-    const uint32_t send_cmd_byte = spi_create_command((spi_command_t){
-        .len        = 0,                    // 1 Byte (The SPI SLAVE IP can only take one CMD byte at a time)
-        .csaat      = true,                 // Command not finished e.g. CS remains low after transaction
-        .speed      = SPI_SPEED_STANDARD,   // Single speed
-        .direction  = SPI_DIR_TX_ONLY       // Write only
-    });
-
-    for(int i = 0; i < 4; i++){ 
-        // Load command to TX FIFO
-        spi_write_byte(spi_hst, word_in_bytes[i]);
-        spi_wait_for_ready(spi_hst);
-
-        // Load segment parameters to COMMAND register
-        spi_set_command(spi_hst, send_cmd_byte);
-        spi_wait_for_ready(spi_hst);
-    }*/
 
     uint32_t sorted_word = make_word_compatible_for_spi_host(word);
     spi_write_word(spi_hst, sorted_word);
