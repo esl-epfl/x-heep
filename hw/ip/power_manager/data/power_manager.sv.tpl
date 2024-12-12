@@ -78,9 +78,9 @@ module power_manager import power_manager_pkg::*; #(
     intr_i[7]  // rv_timer_0
   };
 
-  if (core_v_mini_mcu_pkg::NEXT_INT > 16) begin
+  if (core_v_mini_mcu_pkg::NEXT_INT > 16) begin : gen_ext_int_all
     assign hw2reg.intr_state.d[31:16] = ext_irq_i[15:0];
-  end else begin
+  end else begin : gen_ext_int
     assign hw2reg.intr_state.d[31:16] = $unsigned(ext_irq_i);
   end
 
