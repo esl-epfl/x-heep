@@ -85,10 +85,10 @@ module spiflash (
 	reg io2_dout = 0;
 	reg io3_dout = 0;
 
-	assign #1 io0 = io0_oe ? io0_dout : 1'bz;
-	assign #1 io1 = io1_oe ? io1_dout : 1'bz;
-	assign #1 io2 = io2_oe ? io2_dout : 1'bz;
-	assign #1 io3 = io3_oe ? io3_dout : 1'bz;
+	assign io0 = io0_oe ? io0_dout : 1'bz;
+	assign io1 = io1_oe ? io1_dout : 1'bz;
+	assign io2 = io2_oe ? io2_dout : 1'bz;
+	assign io3 = io3_oe ? io3_dout : 1'bz;
 
 	wire io0_delayed;
 	wire io1_delayed;
