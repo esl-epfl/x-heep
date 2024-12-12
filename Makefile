@@ -85,33 +85,6 @@ else
 	FLASHWRITE_BYTES := $(shell echo $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 | bc)
 endif
 
-CORE_V_MINI_MCU_PKG_TPL 	            = hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
-SYSTEM_BUS_TPL          	            = hw/core-v-mini-mcu/system_bus.sv.tpl
-SYSTEM_XBAR_TPL         	            = hw/core-v-mini-mcu/system_xbar.sv.tpl
-MEMORY_SUBSYSTEM_TPL    	            = hw/core-v-mini-mcu/memory_subsystem.sv.tpl
-PERIPHERAL_SUBSYSTEM_TPL	            = hw/core-v-mini-mcu/peripheral_subsystem.sv.tpl
-TB_UTIL_TPL             	            = tb/tb_util.svh.tpl
-PAD_RING_TPL            	            = hw/system/pad_ring.sv.tpl
-CORE_V_MINI_MCU_TPL     	            = hw/core-v-mini-mcu/core_v_mini_mcu.sv.tpl
-X_HEEP_SYSTEM_TPL       	            = hw/system/x_heep_system.sv.tpl
-CORE_V_MINI_MCU_H_TPL   	            = sw/device/lib/runtime/core_v_mini_mcu.h.tpl
-CORE_V_MINI_MCU_MEMORY_H_TPL            = sw/device/lib/runtime/core_v_mini_mcu_memory.h.tpl
-CORE_V_MINI_MCU_UPF_TPL                 = core-v-mini-mcu.upf.tpl
-CORE_V_MINI_MCU_DC_UPF_TPL              = core-v-mini-mcu.dc.upf.tpl
-CORE_V_MINI_MCU_POWER_MANAGER_SV_TPL    = hw/ip/power_manager/data/power_manager.sv.tpl
-CORE_V_MINI_MCU_POWER_MANAGER_HJSON_TPL = hw/ip/power_manager/data/power_manager.hjson.tpl
-CORE_V_MINI_MCU_POWER_MANAGER_H_TPL     = sw/device/lib/drivers/power_manager/data/power_manager.h.tpl
-PAD_CONTROL_HJSON_TPL   				= hw/system/pad_control/data/pad_control.hjson.tpl
-PAD_CONTROL_SV_TPL 	    				= hw/system/pad_control/rtl/pad_control.sv.tpl
-LINK_LD_TPL 		    				= $(LINK_FOLDER)/link.ld.tpl
-LINK_FLASH_EXEC_LD_TPL  				= $(LINK_FOLDER)/link_flash_exec.ld.tpl
-LINK_FLASH_LOAD_LD_TPL  				= $(LINK_FOLDER)/link_flash_load.ld.tpl
-SRAM_WWRAPPER_TPL 	    				= hw/fpga/sram_wrapper.sv.tpl
-SRAM_GEN_TCL_TPL 	    				= hw/fpga/scripts/generate_sram.tcl.tpl
-CRT0_S_TPL 	    						= sw/device/lib/crt/crt0.S.tpl
-
-MCU_GEN_LOCK := build/.mcu-gen.lock
-
 # Export variables to sub-makefiles
 export
 
@@ -129,8 +102,7 @@ environment.yml: python-requirements.txt
 ## @param BUS=[onetoM(default),NtoM]
 ## @param MEMORY_BANKS=[2(default) to (16 - MEMORY_BANKS_IL)]
 ## @param MEMORY_BANKS_IL=[0(default),2,4,8]
-mcu-gen: $(MCU_GEN_LOCK)
-$(MCU_GEN_LOCK) : $(UPDATE_CHECK)
+mcu-gen:
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/include --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --external_pads $(EXT_PAD_CFG) --pkg-sv hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/system_bus.sv.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/system_xbar.sv.tpl
@@ -159,11 +131,6 @@ $(MCU_GEN_LOCK) : $(UPDATE_CHECK)
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/fpga/scripts/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/fpga/scripts/generate_sram.tcl.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir sw/device/lib/crt/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv sw/device/lib/crt/crt0.S.tpl
 	$(MAKE) verible
-	touch $@
-
-mcu-gen-force:
-	rm -f $(MCU_GEN_LOCK)
-	$(MAKE) mcu-gen
 
 ## Display mcu_gen.py help
 mcu-gen-help:
@@ -182,7 +149,7 @@ verible:
 ## @param COMPILER=gcc(default), clang
 ## @param COMPILER_PREFIX=riscv32-unknown-(default)
 ## @param ARCH=rv32imc(default), <any RISC-V ISA string supported by the CPU>
-app: clean-app $(MCU_GEN_LOCK)
+app: clean-app
 	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH) SOURCE=$(SOURCE) \
 	|| { \
 	@echo "\033[0;31mHmmm... seems like the compilation failed...\033[0m"; \
@@ -199,51 +166,51 @@ app-list:
 	tree sw/applications/
 
 ## Compile all the apps present in the repo
-app-compile-all: $(MCU_GEN_LOCK)
+app-compile-all:
 	bash util/test_all.sh nosim $(LINKER) $(COMPILER) $(TIMEOUT)
 
 ## @section Simulation
 
 ## Verilator simulation with C++
-verilator-sim: $(MCU_GEN_LOCK)
+verilator-sim:
 	$(UPDATE_CHECK)
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
 
 ## Verilator simulation with SystemC
-verilator-sim-sc: $(MCU_GEN_LOCK)
+verilator-sim-sc:
 	$(FUSESOC) --cores-root . run --no-export --target=sim_sc --tool=verilator $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
 
 ## Questasim simulation
-questasim-sim: $(MCU_GEN_LOCK)
+questasim-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=modelsim $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
 
 ## Questasim simulation with HDL optimized compilation
-questasim-sim-opt: questasim-sim $(MCU_GEN_LOCK)
+questasim-sim-opt: questasim-sim
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt
 
 ## Questasim simulation with HDL optimized compilation and UPF power domain description
 ## @param FUSESOC_PARAM="--USE_UPF"
-questasim-sim-opt-upf: questasim-sim $(MCU_GEN_LOCK)
+questasim-sim-opt-upf: questasim-sim
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt-upf
 
 ## VCS simulation
 ## @param CPU=cv32e20(default),cv32e40p,cv32e40x,cv32e40px
 ## @param BUS=onetoM(default),NtoM
-vcs-sim: $(MCU_GEN_LOCK)
+vcs-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=vcs $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
 
 ## VCS-AMS simulation:
-vcs-ams-sim: $(MCU_GEN_LOCK)
+vcs-ams-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --flag "ams_sim" --tool=vcs $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
 
 ## xcelium simulation
-xcelium-sim: $(MCU_GEN_LOCK)
+xcelium-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=xcelium $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
 
 ## Generates the build output for helloworld application
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
-run-helloworld: mcu-gen verilator-sim $(MCU_GEN_LOCK)
+run-helloworld: mcu-gen verilator-sim
 	$(MAKE) -C sw PROJECT=hello_world TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
@@ -253,7 +220,7 @@ run-helloworld: mcu-gen verilator-sim $(MCU_GEN_LOCK)
 ## Generates the build output for freertos blinky application
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
-run-blinkyfreertos: mcu-gen verilator-sim $(MCU_GEN_LOCK)
+run-blinkyfreertos: mcu-gen verilator-sim
 	$(MAKE) -C sw PROJECT=example_freertos_blinky TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
@@ -262,14 +229,14 @@ run-blinkyfreertos: mcu-gen verilator-sim $(MCU_GEN_LOCK)
 
 ## First builds the app and then uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
-run-app-verilator: app $(MCU_GEN_LOCK)
+run-app-verilator: app
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
 	cd ../../..;
 
 ## Simulate all the apps present in the repo
-app-simulate-all: $(MCU_GEN_LOCK)
+app-simulate-all:
 	bash util/test_all.sh $(LINKER) $(COMPILER) $(TIMEOUT) $(SIMULATOR)
 
 ## @section Vivado
@@ -277,18 +244,18 @@ app-simulate-all: $(MCU_GEN_LOCK)
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado
 ## @param FPGA_BOARD=nexys-a7-100t,pynq-z2,zcu104
 ## @param FUSESOC_FLAGS=--flag=<flagname>
-vivado-fpga: $(MCU_GEN_LOCK)
+vivado-fpga:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
 
-vivado-fpga-nobuild: $(MCU_GEN_LOCK)
+vivado-fpga-nobuild:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
 
-vivado-fpga-pgm: $(MCU_GEN_LOCK)
+vivado-fpga-pgm:
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/$(FPGA_BOARD)-vivado pgm
 
 ## @section ASIC
 ## Note that for this step you need to provide technology-dependent files (e.g., libs, constraints)
-asic: $(MCU_GEN_LOCK)
+asic:
 	$(FUSESOC) --cores-root . run --no-export --target=asic_synthesis $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee builddesigncompiler.log
 
 openroad-sky130:
@@ -355,9 +322,6 @@ clean-app: app-restore
 
 ## Removes the CMake build folder and the HW build folder
 clean-all: app-restore clean-sim
-
-# Utility target to check dependencies and force rebuild in case of update
-UPDATE_CHECK : $(CORE_V_MINI_MCU_PKG_TPL) $(SYSTEM_BUS_TPL) $(SYSTEM_XBAR_TPL) $(MEMORY_SUBSYSTEM_TPL) $(PERIPHERAL_SUBSYSTEM_TPL) $(TB_UTIL_TPL) $(PAD_RING_TPL) $(CORE_V_MINI_MCU_TPL) $(X_HEEP_SYSTEM_TPL) $(CORE_V_MINI_MCU_H_TPL) $(CORE_V_MINI_MCU_MEMORY_H_TPL) $(CORE_V_MINI_MCU_UPF_TPL) $(CORE_V_MINI_MCU_DC_UPF_TPL) $(CORE_V_MINI_MCU_POWER_MANAGER_SV_TPL) $(CORE_V_MINI_MCU_POWER_MANAGER_HJSON_TPL) $(CORE_V_MINI_MCU_POWER_MANAGER_H_TPL) $(PAD_CONTROL_HJSON_TPL) $(PAD_CONTROL_SV_TPL) $(LINK_LD_TPL) $(LINK_FLASH_EXEC_LD_TPL) $(LINK_FLASH_LOAD_LD_TPL) $(SRAM_WWRAPPER_TPL) $(SRAM_GEN_TCL_TPL) $(CRT0_S_TPL) $(MCU_CFG_PERIPHERALS) $(X_HEEP_CFG) $(PAD_CFG)
 
 %/:
 	mkdir -p $@
