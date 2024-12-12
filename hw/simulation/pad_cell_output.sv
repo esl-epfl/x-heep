@@ -19,7 +19,8 @@ module pad_cell_output #(
   logic pad;
 
   assign pad_out_o = 1'b0;
-  assign pad_io = pad;
+  // CAMBIATO QUESTO
+  assign pad_io = (pad_oe_i) ? pad : 1'bz;
   assign pad = pad_in_i;
 
 endmodule
