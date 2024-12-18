@@ -48,7 +48,9 @@ module testharness #(
   import reg_pkg::*;
   import testharness_pkg::*;
   import addr_map_rule_pkg::*;
+  import core_v_mini_mcu_pkg::*;
 
+  localparam AO_SPC_NUM = 1;
   localparam SWITCH_ACK_LATENCY = 15;
   localparam EXT_XBAR_NMASTER_RND = USE_EXTERNAL_DEVICE_EXAMPLE ? testharness_pkg::EXT_XBAR_NMASTER : 1;
   localparam HEEP_EXT_XBAR_NMASTER = USE_EXTERNAL_DEVICE_EXAMPLE ? testharness_pkg::EXT_XBAR_NMASTER : 0;
@@ -88,6 +90,9 @@ module testharness #(
   logic iffifo_in_ready, iffifo_out_valid;
   logic iffifo_int_o;
 
+  // Im2col SPC interrupt signal
+  logic im2col_spc_done_int_o;
+
   // External DMA slots
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx;
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx;
@@ -110,12 +115,12 @@ module testharness #(
   obi_resp_t heep_core_data_resp;
   obi_req_t heep_debug_master_req;
   obi_resp_t heep_debug_master_resp;
-  obi_req_t heep_dma_read_ch0_req;
-  obi_resp_t heep_dma_read_ch0_resp;
-  obi_req_t heep_dma_write_ch0_req;
-  obi_resp_t heep_dma_write_ch0_resp;
-  obi_req_t heep_dma_addr_ch0_req;
-  obi_resp_t heep_dma_addr_ch0_resp;
+  obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_req;
+  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_resp;
+  obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_req;
+  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_resp;
+  obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_req;
+  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_resp;
   obi_req_t [EXT_XBAR_NSLAVE-1:0] ext_slave_req;
   obi_resp_t [EXT_XBAR_NSLAVE-1:0] ext_slave_resp;
   reg_req_t periph_slave_req;
@@ -146,6 +151,12 @@ module testharness #(
       .X_MISA(fpu_ss_pkg::X_MISA)
   ) ext_if ();
 
+  // External SPC interface signals
+  reg_req_t [AO_SPC_NUM-1:0] ext_ao_peripheral_req;
+  reg_rsp_t [AO_SPC_NUM-1:0] ext_ao_peripheral_resp;
+
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_busy;
+
   always_comb begin
     // All interrupt lines set to zero by default
     for (int i = 0; i < core_v_mini_mcu_pkg::NEXT_INT; i++) begin
@@ -154,6 +165,7 @@ module testharness #(
     // Re-assign the interrupt lines used here
     intr_vector_ext[0] = memcopy_intr;
     intr_vector_ext[1] = iffifo_int_o;
+    intr_vector_ext[2] = im2col_spc_done_int_o;
   end
 
   //log parameters
@@ -178,6 +190,7 @@ module testharness #(
   end
 `endif
 
+  // X-HEEP system
   x_heep_system #(
       .COREV_PULP(COREV_PULP),
       .FPU(FPU),
@@ -259,12 +272,14 @@ module testharness #(
       .ext_core_data_resp_i(heep_core_data_resp),
       .ext_debug_master_req_o(heep_debug_master_req),
       .ext_debug_master_resp_i(heep_debug_master_resp),
-      .ext_dma_read_ch0_req_o(heep_dma_read_ch0_req),
-      .ext_dma_read_ch0_resp_i(heep_dma_read_ch0_resp),
-      .ext_dma_write_ch0_req_o(heep_dma_write_ch0_req),
-      .ext_dma_write_ch0_resp_i(heep_dma_write_ch0_resp),
-      .ext_dma_addr_ch0_req_o(heep_dma_addr_ch0_req),
-      .ext_dma_addr_ch0_resp_i(heep_dma_addr_ch0_resp),
+      .ext_dma_read_req_o(heep_dma_read_req),
+      .ext_dma_read_resp_i(heep_dma_read_resp),
+      .ext_dma_write_req_o(heep_dma_write_req),
+      .ext_dma_write_resp_i(heep_dma_write_resp),
+      .ext_dma_addr_req_o(heep_dma_addr_req),
+      .ext_dma_addr_resp_i(heep_dma_addr_resp),
+      .ext_ao_peripheral_req_i(ext_ao_peripheral_req),
+      .ext_ao_peripheral_resp_o(ext_ao_peripheral_resp),
       .ext_peripheral_slave_req_o(periph_slave_req),
       .ext_peripheral_slave_resp_i(periph_slave_rsp),
       .external_subsystem_powergate_switch_no(external_subsystem_powergate_switch_n),
@@ -275,7 +290,8 @@ module testharness #(
       .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n),
       .ext_dma_slot_tx_i(ext_dma_slot_tx),
       .ext_dma_slot_rx_i(ext_dma_slot_rx),
-      .ext_dma_stop_i('0)
+      .ext_dma_stop_i('0),
+      .dma_done_o(dma_busy)
   );
 
   // Testbench external bus
@@ -286,28 +302,28 @@ module testharness #(
       .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
       .EXT_XBAR_NSLAVE (EXT_XBAR_NSLAVE)
   ) ext_bus_i (
-      .clk_i                    (clk_i),
-      .rst_ni                   (rst_ni),
-      .addr_map_i               (EXT_XBAR_ADDR_RULES),
-      .default_idx_i            (SLOW_MEMORY_IDX[LOG_EXT_XBAR_NSLAVE-1:0]),
-      .heep_core_instr_req_i    (heep_core_instr_req),
-      .heep_core_instr_resp_o   (heep_core_instr_resp),
-      .heep_core_data_req_i     (heep_core_data_req),
-      .heep_core_data_resp_o    (heep_core_data_resp),
-      .heep_debug_master_req_i  (heep_debug_master_req),
-      .heep_debug_master_resp_o (heep_debug_master_resp),
-      .heep_dma_read_ch0_req_i  (heep_dma_read_ch0_req),
-      .heep_dma_read_ch0_resp_o (heep_dma_read_ch0_resp),
-      .heep_dma_write_ch0_req_i (heep_dma_write_ch0_req),
-      .heep_dma_write_ch0_resp_o(heep_dma_write_ch0_resp),
-      .heep_dma_addr_ch0_req_i  (heep_dma_addr_ch0_req),
-      .heep_dma_addr_ch0_resp_o (heep_dma_addr_ch0_resp),
-      .ext_master_req_i         (ext_master_req),
-      .ext_master_resp_o        (ext_master_resp),
-      .heep_slave_req_o         (heep_slave_req),
-      .heep_slave_resp_i        (heep_slave_resp),
-      .ext_slave_req_o          (ext_slave_req),
-      .ext_slave_resp_i         (ext_slave_resp)
+      .clk_i                   (clk_i),
+      .rst_ni                  (rst_ni),
+      .addr_map_i              (EXT_XBAR_ADDR_RULES),
+      .default_idx_i           (SLOW_MEMORY_IDX[LOG_EXT_XBAR_NSLAVE-1:0]),
+      .heep_core_instr_req_i   (heep_core_instr_req),
+      .heep_core_instr_resp_o  (heep_core_instr_resp),
+      .heep_core_data_req_i    (heep_core_data_req),
+      .heep_core_data_resp_o   (heep_core_data_resp),
+      .heep_debug_master_req_i (heep_debug_master_req),
+      .heep_debug_master_resp_o(heep_debug_master_resp),
+      .heep_dma_read_req_i     (heep_dma_read_req),
+      .heep_dma_read_resp_o    (heep_dma_read_resp),
+      .heep_dma_write_req_i    (heep_dma_write_req),
+      .heep_dma_write_resp_o   (heep_dma_write_resp),
+      .heep_dma_addr_req_i     (heep_dma_addr_req),
+      .heep_dma_addr_resp_o    (heep_dma_addr_resp),
+      .ext_master_req_i        (ext_master_req),
+      .ext_master_resp_o       (ext_master_resp),
+      .heep_slave_req_o        (heep_slave_req),
+      .heep_slave_resp_i       (heep_slave_resp),
+      .ext_slave_req_o         (ext_slave_req),
+      .ext_slave_resp_i        (ext_slave_resp)
   );
 
   logic pdm;
@@ -469,18 +485,20 @@ module testharness #(
       ) dma_i (
           .clk_i,
           .rst_ni,
+          .clk_gate_en_ni('1),
           .ext_dma_stop_i('0),
           .reg_req_i(ext_periph_slv_req[testharness_pkg::MEMCOPY_CTRL_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::MEMCOPY_CTRL_IDX]),
-          .dma_read_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER0_IDX]),
-          .dma_read_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER0_IDX]),
-          .dma_write_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER1_IDX]),
-          .dma_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER1_IDX]),
-          .dma_addr_ch0_req_o(),
-          .dma_addr_ch0_resp_i('0),
+          .dma_read_req_o(ext_master_req[testharness_pkg::EXT_MASTER0_IDX]),
+          .dma_read_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER0_IDX]),
+          .dma_write_req_o(ext_master_req[testharness_pkg::EXT_MASTER1_IDX]),
+          .dma_write_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER1_IDX]),
+          .dma_addr_req_o(),
+          .dma_addr_resp_i('0),
           .trigger_slot_i('0),
           .dma_done_intr_o(memcopy_intr),
-          .dma_window_intr_o()
+          .dma_window_intr_o(),
+          .dma_done_o()
       );
 
       simple_accelerator #(
@@ -497,6 +515,20 @@ module testharness #(
           .acc_read_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER2_IDX]),
           .acc_write_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER3_IDX]),
           .acc_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER3_IDX])
+      );
+
+      im2col_spc im2col_spc_i (
+          .clk_i,
+          .rst_ni,
+
+          .aopb2im2col_resp_i(ext_ao_peripheral_resp[0]),
+          .im2col2aopb_req_o (ext_ao_peripheral_req[0]),
+
+          .reg_req_i(ext_periph_slv_req[testharness_pkg::IM2COL_SPC_IDX]),
+          .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::IM2COL_SPC_IDX]),
+
+          .dma_done_i(dma_busy),
+          .im2col_spc_done_int_o(im2col_spc_done_int_o)
       );
 
       // AMS external peripheral
@@ -644,6 +676,7 @@ module testharness #(
       assign memcopy_intr = '0;
       assign iffifo_int_o = '0;
       assign periph_slave_rsp = '0;
+      assign im2col_spc_done_int_o = '0;
 
     end
   endgenerate

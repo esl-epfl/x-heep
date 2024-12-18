@@ -1,0 +1,28 @@
+CAPI=2:
+
+name: "example:ip:im2col_spc"
+description: "im2col smart peripheral controller"
+
+# Copyright 2024 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+      - x-heep:ip:dma
+    files:
+    - rtl/im2col_spc_reg_pkg.sv
+    - rtl/im2col_spc_reg_top.sv
+    - rtl/dma_if_pkg.sv
+    - rtl/pipe_reg.sv
+    - rtl/im2col_spc_regintfc_controller.sv
+    - rtl/im2col_spc_param_fsm.sv
+    - rtl/im2col_spc.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

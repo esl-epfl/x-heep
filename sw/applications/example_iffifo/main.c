@@ -130,16 +130,16 @@ int main(int argc, char *argv[]) {
 
     dma_init(NULL);
     tgt_src.ptr        = to_fifo;
-    tgt_src.inc_du     = 1;
+    tgt_src.inc_d1_du     = 1;
     tgt_src.trig       = DMA_TRIG_MEMORY;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
-    tgt_src.size_du    = 6;
 
     tgt_dst.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_IN_REG_OFFSET;
-    tgt_dst.inc_du     = 0;
+    tgt_dst.inc_d1_du     = 0;
     tgt_dst.trig       = DMA_TRIG_SLOT_EXT_TX;
     tgt_dst.type       = DMA_DATA_TYPE_WORD;
     
+    trans.size_d1_du    = 6;
     trans.src        = &tgt_src;
     trans.dst        = &tgt_dst;
     trans.end        = DMA_TRANS_END_INTR;
@@ -171,16 +171,16 @@ int main(int argc, char *argv[]) {
     
     dma_init(NULL);
     tgt_src.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_OUT_REG_OFFSET;
-    tgt_src.inc_du     = 0;
+    tgt_src.inc_d1_du     = 0;
     tgt_src.trig       = DMA_TRIG_SLOT_EXT_RX;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
-    tgt_src.size_du    = 4;
 
     tgt_dst.ptr        = from_fifo;
-    tgt_dst.inc_du     = 1;
+    tgt_dst.inc_d1_du     = 1;
     tgt_dst.trig       = DMA_TRIG_MEMORY;
     tgt_dst.type       = DMA_DATA_TYPE_WORD;
 
+    trans.size_d1_du    = 4;
     trans.src        = &tgt_src;
     trans.dst        = &tgt_dst;
     trans.end        = DMA_TRANS_END_INTR;

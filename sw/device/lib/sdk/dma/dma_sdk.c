@@ -38,7 +38,7 @@ extern "C"
 
     static __attribute__((always_inline)) void dma_start(dma *peri, uint32_t size, dma_data_type_t src_type)
     {
-        peri->SIZE_D1 = (uint32_t)((size * DMA_DATA_TYPE_2_SIZE(src_type)) & DMA_SIZE_D1_SIZE_MASK);
+        peri->SIZE_D1 = (uint32_t)((size) & DMA_SIZE_D1_SIZE_MASK);
     }
 
     // Initialize the DMA
@@ -60,6 +60,15 @@ extern "C"
         volatile dma *the_dma = dma_peri(channel);
         DMA_COPY(dst_ptr, src_ptr, size, src_type, dst_type, signed_data, the_dma);
         dma_start(the_dma, size, src_type);
+        DMA_WAIT(channel);
+        return;
+    }
+
+    void dma_copy_to_addr(uint32_t addr_ptr, uint32_t src_ptr, uint32_t size, uint8_t channel)
+    {
+        volatile dma *the_dma = dma_peri(channel);
+        DMA_COPY_ADDR(addr_ptr, src_ptr, size, the_dma);
+        dma_start(the_dma, size, DMA_DATA_TYPE_WORD);
         DMA_WAIT(channel);
         return;
     }

@@ -41,6 +41,7 @@ extern "C" {
 
 #define DMA_CH_NUM ${dma_ch_count}
 #define DMA_CH_SIZE 0x${dma_ch_size}
+#define DMA_NUM_MASTER_PORTS ${num_dma_master_ports}
 
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}

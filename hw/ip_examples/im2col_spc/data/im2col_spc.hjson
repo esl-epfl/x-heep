@@ -1,0 +1,255 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "im2col_spc",
+  clock_primary: "clk_i",
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ],
+  regwidth: "32",
+  registers: [
+    { name:     "SRC_PTR",
+      desc:     "Input data pointer (word aligned)",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "PTR_IN", desc: "Input data pointer (word aligned)" }
+      ]
+    },
+    { name:     "DST_PTR",
+      desc:     "Output data pointer (word aligned)",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
+      ]
+    },
+    { name:     "IW",
+      desc:     "Image width",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "15:0", name: "SIZE", desc: "Image width" }
+      ]
+    },
+    { name:     "IH",
+      desc:     "Image heigth",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "15:0", name: "SIZE", desc: "Image heigth" }
+      ]
+    },
+    { name:     "FW",
+      desc:     "Filter width",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "SIZE", desc: "Filter width" }
+      ]
+    },
+    { name:     "FH",
+      desc:     "Filter heigth",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "SIZE", desc: "Filter heigth" }
+      ]
+    },
+    { name:     "BATCH",
+      desc:     "Batch number",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "SIZE", desc: "Batch size" }
+      ]
+    },
+    { name:     "NUM_CH",
+      desc:     "Number of channels. When written, the im2col will start executing",
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true",
+      fields: [
+        { bits: "7:0", name: "NUM", desc: "Number of channels" }
+      ]
+    },
+    { name:     "CH_COL",
+      desc:     "Number of iterations to perform",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "15:0", name: "NUM", desc: "Number of iterations" }
+      ]
+    },
+    { name:     "N_PATCHES_W",
+      desc:     "Number of patches along W",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "15:0", name: "NUM", desc: "Number of patches" }
+      ]
+    },
+    { name:     "N_PATCHES_H",
+      desc:     "Number of patches along H",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "15:0", name: "NUM", desc: "Number of patches" }
+      ]
+    },
+    { name:     "ADPT_PAD_RIGHT",
+      desc:     "Adapted right padded region",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "SIZE", desc: "Size of the adapted padded region" }
+      ]
+    },
+    { name:     "ADPT_PAD_BOTTOM",
+      desc:     "Adapted bottom padded region",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "SIZE", desc: "Size of the adapted padded region" }
+      ]
+    },
+    { name:     "LOG_STRIDES_D1",
+      desc:     "Logarithmic number of strides along D1, set to 1 for no stride",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "3:0", name: "SIZE", desc: "Stride size" }
+      ]
+    },
+    { name:     "LOG_STRIDES_D2",
+      desc:     "Logarithmic number of strides along D2, set to 1 for no stride",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "3:0", name: "SIZE", desc: "Stride size" }
+      ]
+    },
+    { name:     "STATUS",
+      desc:     '''Status bit is set to one when the im2col SPC is ready''',
+      swaccess: "ro",
+      hwaccess: "hrw",
+      hwext: "true",
+      hwre:     "true", // enable `re` latched signal of software read pulse
+      resval:   1,
+      fields: [
+        { bits: "0", name: "READY", desc: "SPC is done"},
+      ]
+    },
+    { name:     "SLOT",
+      desc:     '''The DMA will wait for the signal 
+                   connected to the selected trigger_slots to be high
+                   on the read and write side respectivly''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "15:0", name: "RX_TRIGGER_SLOT",
+          desc: "Slot selection mask"
+        },
+        { bits: "31:16", name: "TX_TRIGGER_SLOT",
+          desc: "Slot selection mask"
+        }
+      ]
+    },
+    { name:     "DATA_TYPE",
+      desc:     '''Width/type of the data to transfer''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "1:0", name: "DATA_TYPE", 
+          desc: "Data type",
+          enum: [
+            { value: "0", name: "DMA_32BIT_WORD", desc: "Transfers 32 bits"},
+            { value: "1", name: "DMA_16BIT_WORD", desc: "Transfers 16 bits"},
+            { value: "2", name: "DMA_8BIT_WORD" , desc: "Transfers  8 bits"},
+            { value: "3", name: "DMA_8BIT_WORD_2",desc: "Transfers  8 bits"},
+          ]
+        }
+      ]
+    },
+    { name:     "PAD_TOP",
+      desc:     '''Set the top padding''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      resval:   0,
+      fields: [
+        { bits: "5:0", name: "PAD", desc: "Top margin padding (2D)"}
+      ]
+    },
+    { name:     "PAD_BOTTOM",
+      desc:     '''Set the bottom padding''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      resval:   0,
+      fields: [
+        { bits: "5:0", name: "PAD", desc: "Bottom margin padding (2D)"}
+      ]
+    },
+    { name:     "PAD_RIGHT",
+      desc:     '''Set the right padding''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      resval:   0,
+      fields: [
+        { bits: "5:0", name: "PAD", desc: "Right margin padding (1D/2D)"}
+      ]
+    },
+    { name:     "PAD_LEFT",
+      desc:     '''Set the left padding''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      resval:   0,
+      fields: [
+        { bits: "5:0", name: "PAD", desc: "Left margin padding (1D/2D)"}
+      ]
+    },
+    { name:    "INTERRUPT_EN",
+      desc:    '''Interrupt Enable Register''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "EN", desc: "Enables operation done interrupt" }
+      ]
+    },
+    { name:    "SPC_IFR",
+      desc:    '''Interrupt Flag Register for the SPC operation''',
+      swaccess: "ro",
+      hwaccess: "hrw",
+      hwext:    "true",
+      hwre:     "true", // latched signal of software write pulse
+      resval:        0,
+      fields: [
+        { bits: "0", name: "FLAG", desc: "Set for operation done interrupt" }
+      ]
+    },
+    { name:    "SPC_CH_MASK",
+      desc:    '''Mask that defines which DMA channel the SPC can access''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:        1,
+      fields: [
+        { bits: "31:0", name: "MASK", desc: "Mask of DMA channel" }
+      ]
+    },
+    { name:    "SPC_CH_OFFSET",
+      desc:    '''Offset of the DMA channel the SPC can access''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:        1,
+      fields: [
+        { bits: "31:0", name: "OFF", desc: "Offset of DMA channels" }
+      ]
+    }
+   ]
+}

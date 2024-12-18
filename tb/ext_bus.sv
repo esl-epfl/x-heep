@@ -34,14 +34,14 @@ module ext_bus #(
     input  obi_pkg::obi_req_t  heep_debug_master_req_i,
     output obi_pkg::obi_resp_t heep_debug_master_resp_o,
 
-    input  obi_pkg::obi_req_t  heep_dma_read_ch0_req_i,
-    output obi_pkg::obi_resp_t heep_dma_read_ch0_resp_o,
+    input  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_req_i ,
+    output obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_resp_o,
 
-    input  obi_pkg::obi_req_t  heep_dma_write_ch0_req_i,
-    output obi_pkg::obi_resp_t heep_dma_write_ch0_resp_o,
+    input  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_req_i,
+    output obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_resp_o,
 
-    input  obi_pkg::obi_req_t  heep_dma_addr_ch0_req_i,
-    output obi_pkg::obi_resp_t heep_dma_addr_ch0_resp_o,
+    input  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_req_i ,
+    output obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_resp_o,
 
     // External master ports
     input  obi_pkg::obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_master_req_i,
@@ -67,7 +67,7 @@ module ext_bus #(
   obi_req_t [EXT_XBAR_NMASTER-1:0][1:0] demux_xbar_req;
   obi_resp_t [EXT_XBAR_NMASTER-1:0][1:0] demux_xbar_resp;
 
-  // Dummy external master portp (to prevent unused warning)
+  // Dummy external master port (to prevent unused warning)
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req_unused;
   obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_resp_unused;
   obi_resp_t [EXT_XBAR_NSLAVE_RND-1:0] ext_slave_resp_unused;
@@ -80,9 +80,17 @@ module ext_bus #(
   assign master_req[CORE_INSTR_IDX] = heep_core_instr_req_i;
   assign master_req[CORE_DATA_IDX] = heep_core_data_req_i;
   assign master_req[DEBUG_MASTER_IDX] = heep_debug_master_req_i;
-  assign master_req[DMA_READ_CH0_IDX] = heep_dma_read_ch0_req_i;
-  assign master_req[DMA_WRITE_CH0_IDX] = heep_dma_write_ch0_req_i;
-  assign master_req[DMA_ADDR_CH0_IDX] = heep_dma_addr_ch0_req_i;
+
+  generate
+    for (
+        genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++
+    ) begin : gen_dma_master_req_map
+      assign master_req[core_v_mini_mcu_pkg::DMA_READ_P0_IDX+i*3]  = heep_dma_read_req_i[i];
+      assign master_req[core_v_mini_mcu_pkg::DMA_WRITE_P0_IDX+i*3] = heep_dma_write_req_i[i];
+      assign master_req[core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX+i*3]  = heep_dma_addr_req_i[i];
+    end
+  endgenerate
+
   generate
     for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_req_map
       assign master_req[SYSTEM_XBAR_NMASTER+i] = demux_xbar_req[i][DEMUX_XBAR_EXT_SLAVE_IDX];
@@ -93,9 +101,16 @@ module ext_bus #(
   assign heep_core_instr_resp_o = master_resp[CORE_INSTR_IDX];
   assign heep_core_data_resp_o = master_resp[CORE_DATA_IDX];
   assign heep_debug_master_resp_o = master_resp[DEBUG_MASTER_IDX];
-  assign heep_dma_read_ch0_resp_o = master_resp[DMA_READ_CH0_IDX];
-  assign heep_dma_write_ch0_resp_o = master_resp[DMA_WRITE_CH0_IDX];
-  assign heep_dma_addr_ch0_resp_o = master_resp[DMA_ADDR_CH0_IDX];
+
+  generate
+    for (
+        genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++
+    ) begin : gen_dma_master_resp_map
+      assign heep_dma_read_resp_o[i]  = master_resp[core_v_mini_mcu_pkg::DMA_READ_P0_IDX+i];
+      assign heep_dma_write_resp_o[i] = master_resp[core_v_mini_mcu_pkg::DMA_WRITE_P0_IDX+i];
+      assign heep_dma_addr_resp_o[i]  = master_resp[core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX+i];
+    end
+  endgenerate
 
   // X-HEEP slave requests
   generate

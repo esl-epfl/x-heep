@@ -13,6 +13,7 @@ filesets:
       - pulp-platform.org::common_cells
     files:
     - rtl/dma_subsystem.sv
+    - rtl/dma_NtoM_xbar.sv
     file_type: systemVerilogSource
 
 targets:

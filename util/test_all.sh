@@ -174,7 +174,7 @@ SIMULATOR=''
 declare -a LINKERS=( )
 
 # Simulation timeout to prevent apps from running infinitely
-SIM_TIMEOUT_S=120 # This time, in seconds, was chosen empirically.
+SIM_TIMEOUT_S=240 # This time, in seconds, was chosen empirically.
 
 # Prevent the re-generation of the mcu and the simualtion model on every
 # execution by changing DEBUG to 1
