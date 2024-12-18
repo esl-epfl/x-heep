@@ -8,6 +8,9 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
+`define WRITING 1'b1
+`define READING 1'b0
+
 module spi_slave_obi_plug #(
     parameter OBI_ADDR_WIDTH = 32,
     parameter OBI_DATA_WIDTH = 32
@@ -127,11 +130,11 @@ module spi_slave_obi_plug #(
         if (rx_valid) begin
           sample_fifo       = 1'b1;
           rx_ready          = 1'b1;
-          rxtx_state        = 1'b1;
+          rxtx_state        = `WRITING;
           sample_rxtx_state = 1'b1;
           OBI_NS            = OBIADDR;
         end else if (start_tx && !cs) begin
-          rxtx_state = 1'b0;
+          rxtx_state = `READING;
           sample_rxtx_state = 1'b1;
           OBI_NS = OBIADDR;
         end else begin
@@ -139,19 +142,19 @@ module spi_slave_obi_plug #(
         end
       end
       OBIADDR: begin
-        if (curr_rxtx_state) begin
+        if (curr_rxtx_state == `WRITING) begin
           obi_master_we = 1'b1;
         end
 
         obi_master_req = 1'b1;
 
-        if (obi_master_gnt && ((tx_ready && !curr_rxtx_state) || curr_rxtx_state)) OBI_NS = OBIRESP;
+        if (obi_master_gnt && ((tx_ready && (curr_rxtx_state == `READING)) || (curr_rxtx_state == `WRITING))) OBI_NS = OBIRESP;
         else OBI_NS = OBIADDR;
       end
       OBIRESP: begin
         if (obi_master_r_valid) begin
           OBI_NS = IDLE;
-          if (!curr_rxtx_state) begin
+          if (curr_rxtx_state == `READING) begin
             sample_obidata = 1'b1;
             OBI_NS = DATA;
           end else incr_addr_w = 1'b1;
