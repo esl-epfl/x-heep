@@ -5,47 +5,7 @@
 //
 // Pad configuration for core-v-mini-mcu. Read by mcu_gen.py.
 // 
-// The pads object contains the list of all the pads available in the design.
-// Each pad is defined by its name and can have the following attributes:
-//    num: <number> (mandatory) - the number of pads of this type
-//    type: <input|output|inout|bypass_input|bypass_output|bypass_inout|supply> (mandatory) - the type of the pad
-//    num_offset: <number> (optional) - the offset to the first pad of this type (default 0)
-//    mapping: <top|right|bottom|left> (optional) - the mapping of the pad in the design. Useful for ASICs (default top)
-//    active: <low|high> (optional) - the active level of the pad (default high)
-//    driven_manually: <True|False> (optional) - the pad is driven manually (default False)
-//    mux: <dict> (optional) - the muxing options for the pad
-//    skip_declaration: <True|False> (optional) - skip the declaration of the pad in the top level (default False)
-//    keep_internal: <True|False> (optional) - keep the pad internal to the design (default False)
-//    layout_attributes: (optional) - collection of attributes related to the physical (ASIC) layout of the pads
-//        index: (mandatory) index of the pad on its side of the I/O ring
-//        cell: (mandatory) <valid name of cell in the desired tech. library> - specific cell to use for the pad
-//        bondpad: (mandatory) <valid name of bondpad in the desired tech. library> - specific bondpad to use
-//        orient: (optional) <R0|R90|R180|R270|MX|MX90|MY|MY90> - orientation of the pad
-//        offset: (optional) <float> - offset from edge (in um). If this parameter is not defined, the offsets are calculated automatically using the physical_attributes (see below).
-//        skip: (optional) <float> - distance from neighboring pad (in um). If this parameter is not defined, the skips are calculated automatically using the physical_attributes (see below).
-// 
-// Add this field at the same level of pads (not inside) if you want to define PADs attributes
-//    attributes: {
-//        bits: 7:0
-//    },
-// Add this field at the same level of pads (not inside) if you want to define physical design attributes (ex. chip width/length, pad dimensions) in order to calculate pad offsets automatically
-//    physical_attributes: (optional) { 
-//        floorplan_dimensions: (mandatory) - Dimensions of the design floorplan
-//            width: (mandatory) <float> - Width of chip (in um)
-//            length: (mandatory) <float> - Length of chip (in um)
-//        edge_offset: (mandatory) - Offsets from the edge of the design to the specified objects
-//            bondpad: (mandatory) <float> - Distance (in um) from edge to bondpad
-//            pad: (mandatory) <float> - Distance (in um) from edge to pad
-//        spacing: (mandatory) <float> - Chosen spacing (in um) between objects
-//            bondpad: (mandatory) <float> - Spacing between bondpads. Make sure the minimum bondpad pitch of the packaging supplier is not violated.
-//        dimensions: (mandatory) - Dimensions of bondpads and pads in the design. These should exactly match the names in the "cell" field of the "layout_attributes". Found in the respective LEF files of each object.
-//            bondpad_cell_name_to_find_in_LEF_file: (mandatory) Not the actual name of the attribute, but a placeholder for a bondpad name (ex. PAD...)
-//                width: (mandatory) <float> - Width in um
-//                length: (optional) <float> - Length in um
-//            pad_cell_name_to_find_in_LEF_file: (mandatory) Not the actual name of the attribute, but a placeholder for a pad cell name (ex. PVDD...). 
-//                width: (mandatory) <float> - Width in um
-//                length: (optional) <float> - Length in um
-//    },
+// For detailed documentation and usage instructions, please refer to docs/Configuration/PadConfiguration.md
 
 {
 
