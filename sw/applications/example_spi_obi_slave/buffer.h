@@ -1,6 +1,6 @@
 #define DATA_1_LENGTH 33*8*4 //In bytes 
-#define DATA_2_LENGTH 20*4
-#define DATA_3_LENGTH 67*4
+#define DATA_2_LENGTH 20*4   //In bytes 
+#define DATA_3_LENGTH 67*4   //In bytes 
 
 uint32_t test_data_1[DATA_1_LENGTH/4] = {
     0x76543211, 0xfedcba99, 0x579a6f91, 0x657d5bef, 0x758ee420, 0x01234568, 0xfedbca97, 0x89abde00,

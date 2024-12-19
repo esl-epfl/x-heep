@@ -50,12 +50,38 @@ typedef enum {
 
 
 spi_host_t* spi_hst; 
-uint32_t compare_data_1_write[DATA_1_LENGTH/4]; 
-uint32_t compare_data_1_read[DATA_1_LENGTH/4]; 
-uint32_t compare_data_2_write[DATA_2_LENGTH/4]; 
-uint32_t compare_data_2_read[DATA_2_LENGTH/4]; 
-uint32_t compare_data_3_write[DATA_3_LENGTH/4]; 
-uint32_t compare_data_3_read[DATA_3_LENGTH/4]; 
+
+/** Lists used for testing. */
+uint32_t target_data_1[DATA_1_LENGTH/4]; //The target destination of the dataset 1 in the RAM
+uint32_t target_data_2[DATA_2_LENGTH/4]; //The target destination of the dataset 2 in the RAM
+uint32_t target_data_3[DATA_3_LENGTH/4]; //The target destination of the dataset 3 in the RAM
+
+
+
+/** Enums used for testing. */
+typedef enum {
+    OPERATION_WRITE,
+    OPERATION_READ
+} OperationType;
+
+typedef enum{
+    DATASET_1,
+    DATASET_2,
+    DATASET_3
+} DatasetNumber;
+
+/** Structs used for testing. */
+typedef struct {
+    uint8_t dataset_number;
+    OperationType operation_type;
+    uint8_t dummy_cycles;
+} TestOperation;
+
+typedef struct {
+    uint32_t *test_data;
+    uint32_t *target_data;
+    uint16_t data_length;
+} Dataset;
 
 spi_flags_e spi_host_init(spi_host_t* host);
 static spi_flags_e spi_slave_write(uint32_t addr, uint32_t *data, uint16_t length);
@@ -69,12 +95,10 @@ uint32_t make_word_compatible_for_spi_host(uint32_t word);
 void make_compare_data_compatible(uint32_t *compare_data, uint16_t length);
 void spi_slave_write_wrap_length(uint16_t length);
 static void send_command_to_spi_host(uint32_t len, bool csaat, uint8_t direction);
-
-uint32_t compare_arrays(uint32_t *data, uint32_t *compare_data, uint32_t length);
+bool test_process(Dataset *dataset, OperationType operation, uint8_t dummy_cycles);
 
 int main(int argc, char *argv[])
 {   
-    uint8_t dummy_cycles = 32; 
     spi_hst = spi_host1;
     spi_return_flags_e flags;
     flags = spi_host_init(spi_hst);
@@ -82,108 +106,32 @@ int main(int argc, char *argv[])
         printf("Failure to initialize\n Error code: %d", flags);
         return EXIT_FAILURE;
     }
-    //Write data 1
-    flags = spi_slave_write(compare_data_1_write, test_data_1, DATA_1_LENGTH);
-    if (flags != SPI_FLAG_SUCCESS){
-        printf("Failure to write\n Error code: %d", flags);
-        return EXIT_FAILURE;
-    }
-    uint32_t number = compare_arrays(test_data_1, compare_data_1_write, DATA_1_LENGTH/4);
-    if( compare_arrays(test_data_1, compare_data_1_write, DATA_1_LENGTH/4) !=0){
-        printf("Failure to send correct data 1\n %d", number);
-        return EXIT_FAILURE;
-    }
-    /*
-    if (memcmp(test_data_1, compare_data_1_write, DATA_1_LENGTH/4) != 0) {
-        printf("Failure to send correct data\n");
-        return EXIT_FAILURE;
-    }*/
 
-    //Read data 1
-    flags = spi_slave_read(compare_data_1_write, compare_data_1_read, DATA_1_LENGTH, dummy_cycles);
-    if (flags != SPI_FLAG_SUCCESS){
-        printf("Failure to read\n Error code: %d", flags);
-        return EXIT_FAILURE;
-    }
-    //print_array("Test Data", test_data, DATA_1_LENGTH);
-    make_compare_data_compatible(compare_data_1_read, DATA_1_LENGTH);
-    //print_array("Compare Data", compare_test_data, DATA_1_LENGTH);
-    /*if (memcmp(test_data_1, compare_data_1_read, DATA_1_LENGTH/4) != 0) {
-        printf("Failure to retrieve correct data\n");
-        return EXIT_FAILURE;
-    }*/
-    if (compare_arrays(test_data_1, compare_data_1_read, DATA_1_LENGTH/4) != 0) {
-        printf("Failure to retrieve correct data 1\n");
-        return EXIT_FAILURE;
+    Dataset all_test_datasets[] = { {test_data_1, target_data_1, DATA_1_LENGTH},
+                                    {test_data_2, target_data_2, DATA_2_LENGTH},
+                                    {test_data_3, target_data_3, DATA_3_LENGTH}
+    };
+
+    //Every entry of this array is a test that gets executed with the desired dataset, operation type and amount of dummy cycles
+    TestOperation test_order[] =   {{DATASET_1, OPERATION_WRITE, 0},  //dummy_cycles = 0 (not used)
+                                    {DATASET_1, OPERATION_READ, 32},
+                                    {DATASET_2, OPERATION_WRITE, 0},  //dummy_cycles = 0 (not used)
+                                    {DATASET_2, OPERATION_READ, 16},
+                                    {DATASET_3, OPERATION_WRITE, 0},  //dummy_cycles = 0 (not used)
+                                    {DATASET_3, OPERATION_READ, 8},
+                                    {DATASET_1, OPERATION_READ, 6},
+                                    {DATASET_2, OPERATION_READ, 6},   //The minimum amount of dummy cycles is 6.
+                                    {DATASET_3, OPERATION_READ, 6}    //Otherwise it breaks.
+    };
+
+
+    for(uint32_t i = 0; i < sizeof(test_order) / sizeof(test_order[0]); i++){
+        if(test_process(&all_test_datasets[test_order[i].dataset_number], test_order[i].operation_type, test_order[i].dummy_cycles) == EXIT_FAILURE){
+            printf("Error in operation: %d", i);
+            return EXIT_FAILURE;
+        }
     }
 
-    //Write data 2
-    flags = spi_slave_write(compare_data_2_write, test_data_2, DATA_2_LENGTH);
-    if (flags != SPI_FLAG_SUCCESS){
-        printf("Failure to write\n Error code: %d", flags);
-        return EXIT_FAILURE;
-    }
-
-    if( compare_arrays(test_data_2, compare_data_2_write, DATA_2_LENGTH/4) !=0){
-        printf("Failure to send correct data 2\n");
-        return EXIT_FAILURE;
-    }
-    /*
-    if (memcmp(test_data_2, compare_data_2_write, DATA_2_LENGTH/4) != 0) {
-        printf("Failure to send correct data 2\n");
-        return EXIT_FAILURE;
-    }*/
-    
-    //Read data 2
-    flags = spi_slave_read(compare_data_2_write, compare_data_2_read, DATA_2_LENGTH, dummy_cycles);
-    if (flags != SPI_FLAG_SUCCESS){
-        printf("Failure to read\n Error code: %d", flags);
-        return EXIT_FAILURE;
-    }
-    make_compare_data_compatible(compare_data_2_read, DATA_2_LENGTH);
-    /*if (memcmp(test_data_2, compare_data_2_read, DATA_2_LENGTH/4) != 0) {
-        printf("Failure to retrieve correct data 2\n");
-        return EXIT_FAILURE;
-    }*/
-   
-    if (compare_arrays(test_data_2, compare_data_2_read, DATA_2_LENGTH/4) != 0) {
-        printf("Failure to retrieve correct data 2\n");
-        return EXIT_FAILURE;
-    }
-     //Write data 3
-    flags = spi_slave_write(compare_data_3_write, test_data_3, DATA_3_LENGTH);
-    if (flags != SPI_FLAG_SUCCESS){
-        printf("Failure to write\n Error code: %d", flags);
-        return EXIT_FAILURE;
-    }
-    
-    if( compare_arrays(test_data_3, compare_data_3_write, DATA_3_LENGTH/4) !=0){
-        printf("Failure to send correct data 3\n");
-        return EXIT_FAILURE;
-    }
-   /*
-    if (memcmp(test_data_3, compare_data_3_write, DATA_3_LENGTH/4) != 0) {
-        printf("Failure to send correct data 3\n");
-        return EXIT_FAILURE;
-    }*/
-
-    //Read data 3
-    flags = spi_slave_read(compare_data_3_write, compare_data_3_read, DATA_3_LENGTH, dummy_cycles);
-    if (flags != SPI_FLAG_SUCCESS){
-        printf("Failure to read\n Error code: %d", flags);
-        return EXIT_FAILURE;
-    }
-    make_compare_data_compatible(compare_data_3_read, DATA_3_LENGTH);
-    /*
-    if (memcmp(test_data_3, compare_data_3_read, DATA_3_LENGTH/4) != 0) {
-        printf("Failure to retrieve correct data 3\n");
-        return EXIT_FAILURE;
-    }*/
-   
-    if (compare_arrays(test_data_3, compare_data_3_read, DATA_3_LENGTH/4) != 0) {
-        printf("Failure to retrieve correct data 3\n");
-        return EXIT_FAILURE;
-    }
     return EXIT_SUCCESS;
 }
 
@@ -269,7 +217,7 @@ spi_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uint8_t d
         spi_read_word(spi_hst, &last_word);
         memcpy(&data_32bit[length_original>>2], &last_word, length%4);
     }
-
+    spi_wait_for_rx_empty(spi_hst);
     return SPI_FLAG_SUCCESS; // Success
 }
 
@@ -354,6 +302,7 @@ static spi_flags_e spi_slave_write(uint32_t addr, uint32_t *data, uint16_t lengt
     }
 
     send_command_to_spi_host(last_words, false, SPI_DIR_TX_ONLY);
+    spi_wait_for_tx_empty(spi_hst);
     return SPI_FLAG_SUCCESS; // Success
 }
 
@@ -434,7 +383,7 @@ void print_array(const char *label, uint32_t *array, uint16_t size) {
         }
     }
     printf("]\n");
-}
+} 
 
 /*
 *   The SPI Host IP changes the byte order. This helper function changes the byte order sent to the SPI Host IP 
@@ -457,12 +406,36 @@ void make_compare_data_compatible(uint32_t *compare_data, uint16_t length){
     }    
 }
 
-uint32_t compare_arrays(uint32_t *data, uint32_t *compare_data, uint32_t length){
-    for(uint32_t i = 0; i < length; i++){
-        if(data[i] != compare_data[i]){
-            return i;
-        }
-    }
-    return 0;
 
+bool test_process(Dataset *dataset, OperationType operation, uint8_t dummy_cycles){
+    
+    spi_return_flags_e flags;
+    if(operation == OPERATION_WRITE){
+        flags = spi_slave_write(dataset->target_data, dataset->test_data, dataset->data_length);
+        if (flags != SPI_FLAG_SUCCESS){
+            printf("Failure to write\n Error code: %d", flags);
+            return EXIT_FAILURE;
+        }
+        if (memcmp(dataset->target_data, dataset->test_data, dataset->data_length/4) != 0) {
+            printf("Failure to send correct data\n");
+            return EXIT_FAILURE;
+        }
+    } 
+    else{
+        uint32_t *compare_data_read = (uint32_t *)calloc(dataset->data_length/4, sizeof(uint32_t));
+        flags = spi_slave_read(dataset->target_data, compare_data_read, dataset->data_length, dummy_cycles);
+        if (flags != SPI_FLAG_SUCCESS){
+            printf("Failure to read\n Error code: %d", flags);
+            free(compare_data_read);
+            return EXIT_FAILURE;
+        }
+        make_compare_data_compatible(compare_data_read, dataset->data_length);
+        if (memcmp(dataset->test_data, compare_data_read, dataset->data_length/4) != 0) {
+            printf("Failure to retrieve correct data\n");
+            free(compare_data_read);
+            return EXIT_FAILURE;
+        }
+        free(compare_data_read);
+    }
+    return EXIT_SUCCESS;
 }

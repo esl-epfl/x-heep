@@ -169,9 +169,9 @@ module spi_slave_obi_plug #(
             if (tx_counter == wrap_length_t - 1) begin
               OBI_NS = IDLE;
             end else begin
-              incr_addr_r = 1'b1;
               OBI_NS      = OBIADDR;
             end
+            incr_addr_r = 1'b1;
           end else begin
             OBI_NS = DATA;
           end
