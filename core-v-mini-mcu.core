@@ -370,13 +370,23 @@ targets:
           - '--trace-fst'
           - '--trace-structs'
           - '--trace-params'
+          - '--pins-inout-enables'
           - '--trace-max-array 1024'
           - '--x-assign unique'
           - '--x-initial unique'
+          - '--binary'
+          - '--build'
+          - '--build-jobs 4'
+          - '-j 4'
           - '--exe tb_top.cpp'
-          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
+          - '-CFLAGS "-Wall -g -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
+          - '--threads 4'
+          - '--timing'
+          - '--timescale-override 1ns/1ps'
+          - '-O3'
+          - '--verilate-jobs 4'
 
   sim_sc:
     <<: *default_target

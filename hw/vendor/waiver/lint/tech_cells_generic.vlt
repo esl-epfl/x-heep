@@ -15,3 +15,6 @@ lint_off -rule UNUSED -file "*/src/rtl/tc_sram.sv" -match "Parameter is not used
 lint_off -rule UNSIGNED -file "*/src/rtl/tc_sram.sv" -match "Comparison is constant due to unsigned arithmetic*"
 lint_off -rule BLKLOOPINIT -file "*/src/rtl/tc_sram.sv" -match "Unsupported: Delayed assignment to array inside for loops*"
 lint_off -rule UNUSED -file "*/src/rtl/tc_clk.sv" -match "Parameter is not used: 'IS_FUNCTIONAL'*"
+
+lint_off -rule COMBDLY -file "*/rtl/*.sv" -match "*"
+lint_off -rule NOLATCH -file "*/rtl/*.sv" -match "*"
