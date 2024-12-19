@@ -5,7 +5,7 @@
 //
 // Pad configuration for core-v-mini-mcu. Read by mcu_gen.py.
 // 
-// For detailed documentation and usage instructions, please refer to docs/Configuration/PadConfiguration.md
+// For detailed documentation and usage instructions, please refer to docs/source/Configuration/PadConfiguration.md
 
 {
 
