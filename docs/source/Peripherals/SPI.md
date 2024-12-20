@@ -1189,7 +1189,7 @@ checks wherever needed.
 
 A performance testing was carried out utilizing the _EPFL Programmer_, which includes
 a _W25Q128JW_ flash memory, and the _PYNQ-Z2_ FPGA. The 
-[SPI Flash Loading Boot Procedure](/How_to/ExecuteFromFlash.html#spi-flash-loading-boot-procedure)
+[SPI Flash Loading Boot Procedure](../How_to/ExecuteFromFlash.md#spi-flash-loading-boot-procedure)
 was employed for all tests.
 
 The test application used the 

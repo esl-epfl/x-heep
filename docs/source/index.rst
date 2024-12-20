@@ -90,3 +90,10 @@ Index
 
    ./Configuration/*
    ./Configuration/generated/modules.rst
+
+.. toctree::
+   :maxdepth: 1
+   :glob:
+   :caption: Verification
+
+   ./Verification/*

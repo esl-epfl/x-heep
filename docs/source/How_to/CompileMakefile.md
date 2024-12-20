@@ -70,7 +70,7 @@ This will create the executable file to be loaded in your target system (ASIC, F
 Remember that, `X-HEEP` is using CMake to compile and link. Thus, the generated files after having
 compiled and linked are under `sw\build`
 
-## FreeROTS based applications
+## FreeRTOS based applications
 
 'X-HEEP' supports 'FreeRTOS' based applications. Please see `sw\applications\example_freertos_blinky`.
 

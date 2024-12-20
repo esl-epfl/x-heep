@@ -20,7 +20,7 @@ Additionally, the EPFL programmer will be used for serial communication with the
 
 ## Methods description
 
-#### <i> __init__ </i>
+### <i> __init__ </i>
 
 _Purpose_:
 The initialization function is used to create the VerifHeep object. During this process, it's required to indicate the target of the verification and its directory. Furthermore, an optimization flag can be set when synthesis or simulation module building will be performed.
@@ -33,7 +33,7 @@ _Parameters_:
 - **xheep_dir**: Sets the directory of the X-Heep project, necessary to run scripts.
 - **opt_en**: By default set to _false_, this flag indicates whether optimization should be performed when building the simulation model. Available **only** with QuestaSim!
 
-#### <i> compileModel </i>
+### <i> compileModel </i>
 
 _Purpose_:
 This method is used to compile a simulation model for both Verilator and QuestaSim, i.e. run _make mcu-gen_, provided they are properly installed on the host system.
@@ -43,7 +43,7 @@ _Parameters_:
 - **cpu**: By default set to `cv32e40px`, this flags indicates which CPU will be included in the model.
 - **bus**: By default set to `1toN`, this flag indicates the bus type.
 
-#### <i> buildModel </i>
+### <i> buildModel </i>
 
 _Purpose_:
 This method is used to either build a simulation model for Verilator or QuestaSim or to synthesize the project with Xilinx Vivado, provided they are properly installed on the host system.
@@ -53,7 +53,7 @@ _Parameters_:
 - **cpu**: By default set to `cv32e40px`, this flags indicates which CPU will be included.
 - **bus**: By default set to `1toN`, this flag indicates the bus type.
 
-#### <i> serialBegin </i>
+### <i> serialBegin </i>
 
 _Purpose_:
 This method is used to set up the serial communication with the _pynq-z2_ FPGA board.
@@ -68,7 +68,7 @@ _Parameters_:
 _Return value_:
 - **Outcome of the connection**, which is _False_ for unsuccessful.
 
-#### <i> setupDeb </i>
+### <i> setupDeb </i>
 
 _Purpose_:
 This method is used to set up the GDB debugger. It creates a process on which the debug communication will be run, thus making this function conveniently non-blocking. 
@@ -78,7 +78,7 @@ This method is used to set up the GDB debugger. It creates a process on which th
 _Parameters_:
 None
 
-#### <i> stopDeb </i>
+### <i> stopDeb </i>
 
 _Purpose_:
 This method is used to close the debugger. Useful both at the end of a script or during the cyclical reset of the debug connection, as explained before. 
@@ -86,7 +86,7 @@ This method is used to close the debugger. Useful both at the end of a script or
 _Parameters_:
 None
 
-#### <i> genInputDataset </i>
+### <i> genInputDataset </i>
 
 _Purpose_:
 This method is used to generate random data that the application can use to perform verification. It's possible to set the range of the data, the dimension of the array, the datatype and its variable identifier. In addition, it's possible to obtain a single _.h_ file or both a _.c_ and a _.h_ file.
@@ -101,7 +101,7 @@ _Parameters_:
 - **dataset_name**: Indicates the name of the dataset.
 - **datatype**: By default set to *uint32_t*, indicates the datatype of the array to be generated.
 
-#### <i> genGoldenResult </i>
+### <i> genGoldenResult </i>
 
 _Purpose_:
 This method is used to generate golden data from an input dataset, enabling applications to verify the functionality of a unit or accelerator. This feature is performed by a user-defined function, passed as a parameter, which processes the input data.
@@ -120,7 +120,7 @@ _Parameters_:
 - **golden_name**: Indicates the name of the golden result array.
 - **output_datatype**: By default set to *uint32_t*, indicates the datatype of the array to be computed.
 
-#### <i> modifyFile </i>
+### <i> modifyFile </i>
 
 _Purpose_:
 This method is simple yet very useful in particular situations. It allows the user to modify a row with a replacement of its choice. It can be used to modify _#define_ that could change the behaviour of the application.
@@ -133,14 +133,14 @@ _Parameters_:
 - **pattern**: Indicates the pattern to look for in the file, using the library **re**.
 - **replacement**: Indicates the row that will be put in place instead of the pattern found.
 
-#### <i> chronoStart/chronoStop </i>
+### <i> chronoStart/chronoStop </i>
 
 _Purpose_:This method is used to track the execution time of an iteration and, by extension, to estimate the total execution time of the verification process.
 
 _Parameters_:
 None
 
-#### <i> chronoExecutionEst </i>
+### <i> chronoExecutionEst </i>
 
 _Purpose_:This method estimates the total execution time of the verification process, assuming the verification consists of a loop with N iterations. It requires that the `_chronoStart_` method is called at the beginning and the `_chronoStop_` method is called at the end of each iteration.
 
@@ -153,7 +153,7 @@ _Return value_:
   - _"minutes"_
   - _"seconds"_
 
-#### <i> launchTest </i>
+### <i> launchTest </i>
 
 _Purpose_:
 This method is crucial in the verification process, as it's in charge of compiling the application, loading it on the FPGA using the scan chains and GDB, waiting for the results and storing then in *self.results*.
