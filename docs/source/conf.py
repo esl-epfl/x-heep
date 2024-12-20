@@ -44,3 +44,6 @@ epub_show_urls = 'footnote'
 apidoc_module_dir = '../../util/x_heep_gen'
 apidoc_output_dir = 'Configuration/generated'
 apidoc_separate_modules = True
+
+# Auto-generate header anchors for MyST
+myst_heading_anchors = 4
