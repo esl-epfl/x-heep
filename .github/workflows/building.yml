@@ -1,17 +1,30 @@
-name: Building tests
+name: Compile all apps
 on: [push, pull_request]
 
 jobs:
   test_applications:
     runs-on: ubuntu-latest
     container: 
-      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
-    name: Builds apps with gcc and clang. All must build successfully.
+      image: ghcr.io/vlsi-lab/x-heep-toolchain:experimental
+    name: Compiles all apps with gcc and clang. All must compile successfully.
     steps:
       - name: Checkout the pushed code. 
         uses: actions/checkout@v3        
-      - name: Configure the job container and run tests.
+      - name: Configure the job container and compile all apps.
         run: |
-          chmod u+x ./.github/workflows/build-apps-job/setup.sh
-          ./.github/workflows/build-apps-job/setup.sh  
+          # Create the virtual environment and install the requirements. 
+          conda init bash
+          source /root/.bashrc
+          conda activate core-v-mini-mcu
+          make clean-all
 
+          # All peripherals are included to make sure all apps can be built.
+          sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
+
+          sed 's/num_channels:   0x1,/num_channels:   0x4,/' -i mcu_cfg.hjson
+          sed 's/num_channels_per_master_port: 0x1,/num_channels_per_master_port: 0x4,/' -i mcu_cfg.hjson
+
+          # The MCU is generated with various memory banks to avoid example code not fitting.
+          make mcu-gen X_HEEP_CFG=configs/ci.hjson
+
+          python3 .github/workflows/test-apps/test_apps.py --compile-only

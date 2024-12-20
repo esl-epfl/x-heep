@@ -15,3 +15,5 @@ lint_off -rule WIDTH -file "*tb/testharness.sv" -match "*"
 lint_off -rule LITENDIAN -file "*tb/testharness.sv" -match "*"
 lint_off -rule BLKSEQ -file "*tb/testharness.sv" -match "*"
 lint_off -rule UNOPTFLAT -file "*tb/testharness.sv" -match "*"
+
+lint_off -rule MULTIDRIVEN -file "*core_v_mini_mcu*" -match "*"

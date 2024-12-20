@@ -210,7 +210,7 @@ ${pad.core_v_mini_mcu_interface}
   assign memory_subsystem_clkgate_en_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].clkgate_en_n;
 % endfor
 
-  for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin
+  for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin : gen_ext_domains_pwr
     assign external_subsystem_powergate_switch_no[i]        = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
     assign external_subsystem_powergate_iso_no[i] = external_subsystem_pwr_ctrl_out[i].isogate_en_n;
     assign external_subsystem_rst_no[i] = external_subsystem_pwr_ctrl_out[i].rst_n;
@@ -505,10 +505,10 @@ ${pad.core_v_mini_mcu_interface}
   );
 
   // Debug_req assign
-  if (NRHARTS == 1) begin
+  if (NRHARTS == 1) begin : gen_one_hart
     assign debug_core_req = debug_req;
     assign ext_debug_req_o  = 1'b0;
-  end else begin
+  end else begin : gen_multi_hart
     always @(*) begin
       for (int i = 0; i < NRHARTS; i++) begin
         if (i == 0) debug_core_req = debug_req[i];

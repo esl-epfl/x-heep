@@ -88,7 +88,6 @@ int main (int argc, char * argv[])
   dut->rst_ni               = 0;
   runCycles(50, dut, m_trace);
 
-
   dut->rst_ni = 1;
   runCycles(20, dut, m_trace);
   std::cout<<"Reset Released"<< std::endl;

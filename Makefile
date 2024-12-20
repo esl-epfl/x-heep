@@ -52,7 +52,7 @@ COMPILER ?= gcc
 COMPILER_PREFIX ?= riscv32-unknown-
 
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
-ARCH     ?= rv32imc
+ARCH     ?= rv32imc_zicsr
 
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= $(".")
@@ -173,6 +173,7 @@ app-compile-all:
 
 ## Verilator simulation with C++
 verilator-sim:
+	$(UPDATE_CHECK)
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
 
 ## Verilator simulation with SystemC
@@ -321,3 +322,6 @@ clean-app: app-restore
 
 ## Removes the CMake build folder and the HW build folder
 clean-all: app-restore clean-sim
+
+%/:
+	mkdir -p $@
