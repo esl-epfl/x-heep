@@ -33,7 +33,7 @@ All the command listed in the README can be execute in the docker container, exc
 To use `X-HEEP`, first make sure you have the following apt packages, or install them as:
 
 ```bash
-sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf cmake flex bison libexpat-dev gawk tree xterm python3-venv python3-dev
+sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf make cmake flex bison libexpat-dev gawk tree xterm python3-venv python3-dev
 ```
 
 In general, have a look at the [Install required software](https://opentitan.org/guides/getting_started/index.html) section of the OpenTitan documentation.
