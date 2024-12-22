@@ -145,7 +145,7 @@ The following section describes how the spacing between pads is performed. When 
 2. Leaving these attributes empty and allowing `mcu-gen` to calculate them automatically using the global `physical_attributes`.
 Please note that a combination of the two can be performed; If a given `skip` or `offset` parameter is defined for a pad, then the calculated values are overwritten. This gives the designer flexibility to modify the pad locations on only one side, for example.
 
-![Physical attributes and layout attributes illustration](../images/pad_spacing.png)
+![Physical attributes and layout attributes illustration](/images/pad_spacing.png)
 
 The automatic pad placement calculates the pad `offset` and `skip` parameters such that:
 1. Bondpads are evenly spaced and centered on their respecitve side

@@ -24,3 +24,4 @@ pip install -r requirements.txt
 ```bash
 make clean html
 ```
+4. Open `docs/build/html/index.html` using a web browser.

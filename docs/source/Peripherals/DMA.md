@@ -22,7 +22,7 @@ The DMA **SDK**, on the other hand, offers user-friendly functions for essential
 
 ## Structural description
 
-![DMA subsystem structure](https://github.com/esl-epfl/x-heep/docs/images/dma_structure.png)
+![DMA subsystem structure](/images/dma_structure.png)
 
 <p  align="center">Figure 1: Structure of the DMA subsystem in X-Heep </p>
 
