@@ -146,9 +146,9 @@ verible:
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
 ## @param TARGET=sim(default),systemc,pynq-z2,nexys-a7-100t,zcu104
 ## @param LINKER=on_chip(default),flash_load,flash_exec
-## @param COMPILER=gcc(default), clang
+## @param COMPILER=gcc(default),clang
 ## @param COMPILER_PREFIX=riscv32-unknown-(default)
-## @param ARCH=rv32imc(default), <any RISC-V ISA string supported by the CPU>
+## @param ARCH=rv32imc(default),<any_RISC-V_ISA_string_supported_by_the_CPU>
 app: clean-app
 	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH) SOURCE=$(SOURCE) \
 	|| { \

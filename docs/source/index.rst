@@ -64,18 +64,22 @@ Index
 
 .. toctree::
    :maxdepth: 1
-   :glob:
-   :caption: How to...
+   :numbered: 1
+   :caption: Getting started
 
-   ./How_to/GettingStarted
-   ./How_to/*
+   /GettingStarted/Setup
+   /GettingStarted/GeneratingMCU
+   /GettingStarted/CompilingRunningSW
 
 .. toctree::
    :maxdepth: 1
    :glob:
-   :caption: Peripherals
+   :caption: How to...
 
-   ./Peripherals/*
+   ./How_to/CompileApps
+   ./How_to/Simulate
+   ./How_to/RunOnFPGA
+   ./How_to/*
 
 .. toctree::
    :maxdepth: 5
@@ -88,6 +92,14 @@ Index
 .. toctree::
    :maxdepth: 1
    :glob:
-   :caption: Verification
+   :caption: Testing
 
-   ./Verification/*
+   /Testing/Testing
+   /Testing/VerifHEEP
+
+.. toctree::
+   :maxdepth: 1
+   :glob:
+   :caption: Peripherals
+
+   ./Peripherals/*
