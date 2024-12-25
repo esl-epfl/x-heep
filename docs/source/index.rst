@@ -63,43 +63,10 @@ Index
 ^^^^^
 
 .. toctree::
-   :maxdepth: 1
-   :numbered: 1
-   :caption: Getting started
+   :maxdepth: 2
 
-   /GettingStarted/Setup
-   /GettingStarted/GeneratingMCU
-   /GettingStarted/CompilingRunningSW
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-   :caption: How to...
-
-   ./How_to/CompileApps
-   ./How_to/Simulate
-   ./How_to/RunOnFPGA
-   ./How_to/*
-
-.. toctree::
-   :maxdepth: 5
-   :glob:
-   :caption: Configuration
-
-   ./Configuration/*
-   ./Configuration/generated/modules.rst
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-   :caption: Testing
-
-   /Testing/Testing
-   /Testing/VerifHEEP
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-   :caption: Peripherals
-
-   ./Peripherals/*
+   /GettingStarted/index
+   /How_to/index
+   /Configuration/index
+   /Testing/index
+   /Peripherals/index
