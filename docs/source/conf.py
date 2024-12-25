@@ -37,6 +37,8 @@ templates_path = ['_templates']
 
 html_theme = 'sphinx_rtd_theme'
 
+html_logo = "images/x-heep-outline.png"
+
 epub_show_urls = 'footnote'
 
 apidoc_module_dir = '../../util/x_heep_gen'
