@@ -68,5 +68,6 @@ Index
    /GettingStarted/index
    /How_to/index
    /Configuration/index
+   /Extending/index
    /Testing/index
    /Peripherals/index
