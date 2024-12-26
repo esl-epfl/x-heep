@@ -183,7 +183,7 @@ module cpu_subsystem
 
         // Fence.i flush handshake
         .fencei_flush_req_o(),
-        .fencei_flush_ack_i(1'b0),
+        .fencei_flush_ack_i(1'b1),
 
         // Debug interface
         .debug_req_i      (debug_req_i),
