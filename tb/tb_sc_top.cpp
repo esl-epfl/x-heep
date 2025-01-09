@@ -21,8 +21,6 @@ sc_event obi_new_req;
 #include "systemc_tb/MainMemory.h"
 
 
-#define CLK_PERIOD 10
-
 SC_MODULE(external_memory)
 {
   MemoryRequest *memory_request;
@@ -184,7 +182,8 @@ int sc_main (int argc, char * argv[])
 {
 
   std::string firmware;
-  unsigned int max_sim_time, boot_sel, exit_val;
+  unsigned long long max_sim_time;
+  unsigned int boot_sel, exit_val;
   bool use_openocd;
   bool run_all = false;
   Verilated::commandArgs(argc, argv);
@@ -217,7 +216,7 @@ int sc_main (int argc, char * argv[])
   }
 
   // generate clock, twice the speed as we generate it by dividing it by 2
-  sc_clock clock_sig("clock", CLK_PERIOD>>1, SC_NS, 0.5);
+  sc_clock clock_sig("clock", CLK_PERIOD_ps/2, SC_PS, 0.5);
 
   Vtestharness dut("TOP");
   testbench tb("testbench");
