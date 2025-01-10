@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/esl-epfl/obi_spi_slave.git
-    rev: bdc96513fbb7f5e6fd7938c24d311603bbfc5426
+    rev: 59d1c50f137fb1216df7fe29364ff0f8a3e42079
   }
 }
