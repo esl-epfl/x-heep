@@ -60,6 +60,10 @@ SOURCE 	 ?= $(".")
 # Simulation engines options are verilator (default) and questasim
 SIMULATOR ?= verilator
 
+# SIM_ARGS: Additional simulation arguments for run-app-verilator based on input parameters:
+# - MAX_SIM_TIME: Maximum simulation time in clock cycles (unlimited if not provided)
+SIM_ARGS += $(if $(MAX_SIM_TIME),+max_sim_time=$(MAX_SIM_TIME))
+
 # Timeout for simulation, default 120
 TIMEOUT ?= 120
 
@@ -212,8 +216,9 @@ xcelium-sim:
 run-helloworld: mcu-gen verilator-sim
 	$(MAKE) -C sw PROJECT=hello_world TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-	./Vtestharness +firmware=../../../sw/build/main.hex; \
+	./Vtestharness +firmware=../../../sw/build/main.hex $(SIM_ARGS); \
 	cat uart0.log; \
+	echo '<end of uart0.log>'; \
 	cd ../../..;
 
 ## Generates the build output for freertos blinky application
@@ -222,16 +227,18 @@ run-helloworld: mcu-gen verilator-sim
 run-blinkyfreertos: mcu-gen verilator-sim
 	$(MAKE) -C sw PROJECT=example_freertos_blinky TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-	./Vtestharness +firmware=../../../sw/build/main.hex; \
+	./Vtestharness +firmware=../../../sw/build/main.hex $(SIM_ARGS); \
 	cat uart0.log; \
+	echo '<end of uart0.log>'; \
 	cd ../../..;
 
 ## First builds the app and then uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
 run-app-verilator: app
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-	./Vtestharness +firmware=../../../sw/build/main.hex; \
+	./Vtestharness +firmware=../../../sw/build/main.hex $(SIM_ARGS); \
 	cat uart0.log; \
+	echo '<end of uart0.log>'; \
 	cd ../../..;
 
 ## Simulate all the apps present in the repo
