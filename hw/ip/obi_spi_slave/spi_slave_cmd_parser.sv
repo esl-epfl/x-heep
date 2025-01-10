@@ -40,8 +40,7 @@ module spi_slave_cmd_parser (
     wait_dummy  = 0;
     reg_sel     = 2'b00;
     case (cmd)
-      `write_mem: 
-      begin
+      `write_mem: begin
         get_addr    = 1;
         get_data    = 1;
         send_data   = 0;
@@ -50,8 +49,7 @@ module spi_slave_cmd_parser (
         wait_dummy  = 0;
         reg_sel     = 2'b00;
       end
-      `read_reg0: 
-      begin
+      `read_reg0: begin
         get_addr    = 0;
         get_data    = 0;
         send_data   = 1;
@@ -60,8 +58,7 @@ module spi_slave_cmd_parser (
         wait_dummy  = 0;
         reg_sel     = 2'b00;
       end
-      `read_mem: 
-      begin
+      `read_mem: begin
         get_addr    = 1;
         get_data    = 0;
         send_data   = 1;
@@ -70,8 +67,7 @@ module spi_slave_cmd_parser (
         wait_dummy  = 1;
         reg_sel     = 2'b00;
       end
-      `write_reg0: 
-      begin
+      `write_reg0: begin
         get_addr    = 1'b0;
         get_data    = 1'b1;
         send_data   = 1'b0;
@@ -80,8 +76,7 @@ module spi_slave_cmd_parser (
         wait_dummy  = 1'b0;
         reg_sel     = 2'b00;
       end
-      `write_reg1: 
-      begin
+      `write_reg1: begin
         get_addr    = 1'b0;
         get_data    = 1'b1;
         send_data   = 1'b0;
@@ -90,8 +85,7 @@ module spi_slave_cmd_parser (
         wait_dummy  = 1'b0;
         reg_sel     = 2'b01;
       end
-      `read_reg1: 
-      begin
+      `read_reg1: begin
         get_addr    = 1'b0;
         get_data    = 1'b0;
         send_data   = 1'b1;
@@ -100,8 +94,7 @@ module spi_slave_cmd_parser (
         wait_dummy  = 1'b0;
         reg_sel     = 2'b01;
       end
-      `write_reg2: 
-      begin
+      `write_reg2: begin
         get_addr    = 1'b0;
         get_data    = 1'b1;
         send_data   = 1'b0;
@@ -110,8 +103,7 @@ module spi_slave_cmd_parser (
         wait_dummy  = 1'b0;
         reg_sel     = 2'b10;
       end
-      `read_reg2: 
-      begin
+      `read_reg2: begin
         get_addr    = 1'b0;
         get_data    = 1'b0;
         send_data   = 1'b1;

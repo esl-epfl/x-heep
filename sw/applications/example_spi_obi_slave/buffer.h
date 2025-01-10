@@ -1,8 +1,9 @@
-#define DATA_1_LENGTH 33*8*4 //In bytes 
-#define DATA_2_LENGTH 20*4   //In bytes 
-#define DATA_3_LENGTH 67*4   //In bytes 
+#define DATA_1_LENGTH sizeof(test_data_1) //In bytes 
+#define DATA_2_LENGTH sizeof(test_data_2) //In bytes 
+#define DATA_3_LENGTH sizeof(test_data_3) //In bytes 
 
-uint32_t test_data_1[DATA_1_LENGTH/4] = {
+
+uint32_t test_data_1[] = {
     0x76543211, 0xfedcba99, 0x579a6f91, 0x657d5bef, 0x758ee420, 0x01234568, 0xfedbca97, 0x89abde00,
     0x76543212, 0xfedcba9a, 0x579a6f92, 0x657d5bf0, 0x758ee421, 0x01234569, 0xfedbca98, 0x89abde01,
     0x76543213, 0xfedcba9b, 0x579a6f93, 0x657d5bf1, 0x758ee422, 0x0123456a, 0xfedbca99, 0x89abde02,
@@ -39,14 +40,14 @@ uint32_t test_data_1[DATA_1_LENGTH/4] = {
 };
 
 
-uint32_t test_data_2[DATA_2_LENGTH/4] = {
+uint32_t test_data_2[] = {
     0x12345678, 0xabcdef01, 0x87654321, 0x0fedcba9, 0x11223344, 0x99aabbcc, 0x55ffccaa, 0x10203040,
     0xaabbccdd, 0x33445566, 0x77889900, 0xffeeddcc, 0xdeadbeef, 0xcafebabe, 0x0badc0de, 0xbeadfeed,
     0x01234567, 0x89abcdef, 0x76543210, 0xf0e1d2c3
 };
 
 
-uint32_t test_data_3[DATA_3_LENGTH/4] = {
+uint32_t test_data_3[] = {
     0x1a2b3c4d, 0x5e6f7283, 0x9abcdef0, 0x01234567, 0x89abcdef, 0x76543210, 0xabcdef01, 0xdeadbeef,
     0xcafebabe, 0x0badc0de, 0xfacefeed, 0x11223344, 0x55667788, 0x99aabbcc, 0xddeeff00, 0x01234567,
     0x89abcdef, 0x1f2e3d4c, 0x5a6b7c8d, 0x9e0f1a2b, 0x3c4d5e6f, 0x7e829abc, 0xdef01234, 0x56789abc,

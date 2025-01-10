@@ -34,7 +34,7 @@ module spi_slave_regs #(
       2'b00: rd_data = reg0;
       2'b01: rd_data = reg1;
       2'b10: rd_data = reg2;
-      default: begin 
+      default: begin
       end
     endcase
   end
@@ -50,7 +50,7 @@ module spi_slave_regs #(
           2'b00: reg0 <= wr_data;
           2'b01: reg1 <= wr_data;
           2'b10: reg2 <= wr_data;
-          default:begin 
+          default: begin
           end
         endcase
       end

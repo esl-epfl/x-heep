@@ -75,9 +75,9 @@ The values of the registers will return to their default values when reset signa
 
 ### Reading and writing 
 
-To read from the _OBI SPI slave IP_ the _SPI Host_ has to send the read command which is `0x0B`. After the read command has been sent it has to be followed by the 32-bit starting address of the desired data. 
+To read from the memory the _SPI Host_ has to send the read command which is `0x0B`. After the read command has been sent it has to be followed by the 32-bit starting address of the desired data. 
 
-To write from the _SPI Host_ to the _SPI Target_ the _SPI Host_ has to send the write command which is `0x02`. After the write command has been sent it has to be followed by the 32-bit address of the desired data destination. 
+To write from the _SPI Host_ to the memory the _SPI Host_ has to send the write command which is `0x02`. After the write command has been sent it has to be followed by the 32-bit address of the desired data destination. 
 
 ## Writing Data
 
@@ -151,6 +151,7 @@ static spi_flags_e spi_slave_write(uint32_t addr, uint32_t *data, uint16_t lengt
     }
 
     send_command_to_spi_host(last_words, false, SPI_DIR_TX_ONLY);
+    spi_wait_for_tx_empty(spi_hst);
     return SPI_FLAG_SUCCESS; // Success
 }
 ```
@@ -180,7 +181,7 @@ static void send_command_to_spi_host(uint32_t len, bool csaat, uint8_t direction
 
 #### Define the amount of words that are to be sent
 
-The length (wrap length) must be set by writing to `reg1` (lower byte) and `reg2` (upper byte). The following function handles this:
+The data size (wrap length) must be set by writing to `reg1` (lower byte) and `reg2` (upper byte). The following function handles this:
 ```c
 void spi_slave_write_wrap_length(uint16_t length){
 
@@ -283,6 +284,7 @@ static spi_flags_e spi_slave_write(uint32_t addr, uint32_t *data, uint16_t lengt
     }
 
     send_command_to_spi_host(last_words, false, SPI_DIR_TX_ONLY);
+    spi_wait_for_tx_empty(spi_hst);
     return SPI_FLAG_SUCCESS; 
 }
 ```
@@ -317,7 +319,7 @@ The process of reading data from the _SPI Target_ with a_SPI Host_ is as follows
 1. Deactivate the chip select. 
 
 ```{caution}
-The amount of dummy cycles can't be too low since the communication between the _OBI SPI slave IP_ and the OBI Bus doesn't fill the TX FIFO buffer instantly. Thus setting the dummy cycles too low would lead the _SPI Host_ to read from the _SPI Target_ when the FIFO buffer of the _SPI Target_ isn't ready. This would result in the _SPI Host_ reading zeroes instead of the real data and it would desynchronize the _SPI Host_ and _SPI Target_.
+The amount of dummy cycles can't be too low since the communication between the _OBI SPI slave IP_ and the OBI Bus doesn't fill the TX FIFO buffer instantly. Thus setting the dummy cycles too low would lead the _SPI Host_ to read from the _SPI Target_ when the FIFO buffer of the _SPI Target_ isn't ready. This would result in the _SPI Host_ reading incorrect values instead of the real data and it would desynchronize the _SPI Host_ and _OBI SPI Slave IP_.
 ```
 ### Example with SPI Host IP
 
@@ -509,6 +511,20 @@ Same as in the writing example.
 
 ## Remarks for writing a SPI Host code
 
-### Address handeling
+### Synchronization Challenges
 
-The  _OBI SPI slave IP_ has no way of knowing or handling incorrect addresses. Using an incorrect address leads to an abort of the simulation and it is unkown what happens when this issue occurs after physical implementation. This is why it is absolutely necessary that the SPI Host handles the addresses properly. 
+The CPU has no way of knowing if the _OBI SPI Slave IP_ is actively writing. Consequently, when the CPU attempts to read data from RAM that the _OBI SPI Slave IP_ has not yet finished writing to, the data the CPU reads can be partially incorrect. In the _example_spi_obi_slave_ code, a workaround was introduced: the CPU waits until the TX FIFO buffer of the _SPI Host IP_ has been emptied:
+
+```c
+static spi_flags_e spi_slave_write(uint32_t addr, uint32_t *data, uint16_t length) {
+    
+    ...
+
+    spi_wait_for_tx_empty(spi_hst);
+    return SPI_FLAG_SUCCESS; 
+}
+```
+
+```{caution}
+This workaround alone is insufficient to guarantee that the synchronization issue will not occur when the CPU reads from memory. It has only been added to the _example_spi_obi_slave_ code for functional testing purposes of the IP.
+```

@@ -51,7 +51,7 @@ typedef enum {
 
 spi_host_t* spi_hst; 
 
-/** Lists used for testing. */
+/** Arrays used for testing. */
 uint32_t target_data_1[DATA_1_LENGTH/4]; //The target destination of the dataset 1 in the RAM
 uint32_t target_data_2[DATA_2_LENGTH/4]; //The target destination of the dataset 2 in the RAM
 uint32_t target_data_3[DATA_3_LENGTH/4]; //The target destination of the dataset 3 in the RAM
@@ -86,7 +86,6 @@ typedef struct {
 spi_flags_e spi_host_init(spi_host_t* host);
 static spi_flags_e spi_slave_write(uint32_t addr, uint32_t *data, uint16_t length);
 spi_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uint8_t dummy_cycles);
-bool check_address_validity(uint32_t addr, void* data, uint16_t length);
 void print_array(const char *label, uint32_t *array, uint16_t size);
 static void configure_spi();
 void spi_slave_write_dummy_cycles(uint8_t cycles); 
@@ -217,7 +216,7 @@ spi_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uint8_t d
         spi_read_word(spi_hst, &last_word);
         memcpy(&data_32bit[length_original>>2], &last_word, length%4);
     }
-    spi_wait_for_rx_empty(spi_hst);
+    
     return SPI_FLAG_SUCCESS; // Success
 }
 
@@ -386,8 +385,8 @@ void print_array(const char *label, uint32_t *array, uint16_t size) {
 } 
 
 /*
-*   The SPI Host IP changes the byte order. This helper function changes the byte order sent to the SPI Host IP 
-*   such that the correct byte order will be transmitted to the SPI slave
+* The SPI Host IP changes the byte order. This helper function changes the byte order sent to the SPI Host IP 
+* such that the correct byte order will be transmitted to the SPI slave
 */
 uint32_t make_word_compatible_for_spi_host(uint32_t word){
     return (LOWER_BYTE_16_BITS(LOWER_BYTES_32_BITS(word)) << 24) 
@@ -397,7 +396,7 @@ uint32_t make_word_compatible_for_spi_host(uint32_t word){
 }
 
 /*
-* The SPI Host IP also shuffels the byte order when receiving data. 
+* The SPI Host IP also shuffles the byte order when receiving data. 
 * The following helper function corrects the byte order of the received data.
 */
 void make_compare_data_compatible(uint32_t *compare_data, uint16_t length){

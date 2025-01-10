@@ -146,11 +146,7 @@ module spi_slave_controller #(
             state_next     = DUMMY;
             rx_counter     = s_dummy_cycles;
             rx_counter_upd = 1;
-          end else if (send_data) begin
-            state_next          = DATA_TX;
-            tx_counter_upd_next = 1;
-            tx_counter_next     = 8'h1F;
-          end else if (get_data) begin
+          end else begin
             state_next     = DATA_RX;
             rx_counter_upd = 1;
             rx_counter     = 8'h1F;
@@ -161,17 +157,11 @@ module spi_slave_controller #(
       end
       DUMMY: begin
         if (rx_data_valid) begin
-          if (get_data) begin
-            state_next     = DATA_RX;
-            rx_counter     = 8'h1F;
-            rx_counter_upd = 1;
-          end else begin
-            state_next          = DATA_TX;
-            tx_counter_next     = 8'h1F;
-            tx_counter_upd_next = 1;
-            tx_data_valid_next  = 1'b1;
-            if (~enable_regs) ctrl_data_tx_ready_next = 1'b1;
-          end
+          state_next          = DATA_TX;
+          tx_counter_next     = 8'h1F;
+          tx_counter_upd_next = 1;
+          tx_data_valid_next  = 1'b1;
+          if (~enable_regs) ctrl_data_tx_ready_next = 1'b1;
         end else begin
           state_next = DUMMY;
         end
