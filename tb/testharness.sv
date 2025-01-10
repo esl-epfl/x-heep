@@ -224,10 +224,10 @@ module testharness #(
       .gpio_11_io(gpio[11]),
       .gpio_12_io(gpio[12]),
       .gpio_13_io(gpio[13]),
-      .gpio_14_io(gpio[14]),
-      .gpio_15_io(gpio[15]),
-      .gpio_16_io(gpio[16]),
-      .gpio_17_io(gpio[17]),
+      .spi_slave_sck_io(spi_sck),
+      .spi_slave_cs_io(spi_csb[0]),
+      .spi_slave_miso_io(spi_sd_io[1]),
+      .spi_slave_mosi_io(spi_sd_io[0]),
       .spi_flash_sck_io(spi_flash_sck),
       .spi_flash_cs_0_io(spi_flash_csb[0]),
       .spi_flash_cs_1_io(spi_flash_csb[1]),
@@ -612,29 +612,7 @@ module testharness #(
           .i2s_sd_o(gpio[22])
       );
 
-`ifndef VERILATOR
-      // Flash used for booting (execute from flash or copy from flash)
-      spiflash flash_boot_i (
-          .csb(spi_flash_csb[0]),
-          .clk(spi_flash_sck),
-          .io0(spi_flash_sd_io[0]),  // MOSI
-          .io1(spi_flash_sd_io[1]),  // MISO
-          .io2(spi_flash_sd_io[2]),
-          .io3(spi_flash_sd_io[3])
-      );
-`endif
 
-`ifndef VERILATOR
-      // Flash used as an example device with an SPI interface
-      spiflash flash_device_i (
-          .csb(spi_csb[0]),
-          .clk(spi_sck),
-          .io0(spi_sd_io[0]),  // MOSI
-          .io1(spi_sd_io[1]),  // MISO
-          .io2(spi_sd_io[2]),
-          .io3(spi_sd_io[3])
-      );
-`endif
 
       if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px) && X_EXT != 0) begin: gen_fpu_ss_wrapper
         fpu_ss_wrapper #(

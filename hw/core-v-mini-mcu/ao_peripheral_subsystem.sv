@@ -47,6 +47,27 @@ module ao_peripheral_subsystem
 
     output logic spi_flash_intr_event_o,
 
+
+    //SPI Slave
+    output logic spi_slave_sck_o,
+    input  logic spi_slave_sck_i,
+    output logic spi_slave_sck_oe_o,
+    output logic spi_slave_cs_o,
+    input  logic spi_slave_cs_i,
+    output logic spi_slave_cs_oe_o,
+    output logic spi_slave_miso_o,
+    input  logic spi_slave_miso_i,
+    output logic spi_slave_miso_oe_o,
+    output logic spi_slave_mosi_o,
+    input  logic spi_slave_mosi_i,
+    output logic spi_slave_mosi_oe_o,
+
+    //OBI master cpu subsystem:
+
+    // Instruction memory interface
+    output obi_req_t  spi_slave_req_o,
+    input  obi_resp_t spi_slave_resp_i,
+
     // POWER MANAGER
     input logic [31:0] intr_i,
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
@@ -481,5 +502,34 @@ module ao_peripheral_subsystem
       .intr_rx_timeout_o(uart_intr_rx_timeout_o),
       .intr_rx_parity_err_o(uart_intr_rx_parity_err_o)
   );
+
+
+  obi_spi_slave obi_spi_slave_i (
+      .spi_sclk(spi_slave_sck_i),
+      .spi_cs(spi_slave_cs_i),
+      .spi_miso(spi_slave_miso_o),
+      .spi_mosi(spi_slave_mosi_i),
+      .obi_aclk(clk_i),
+      .obi_aresetn(rst_ni),
+      .obi_master_req(spi_slave_req_o.req),
+      .obi_master_gnt(spi_slave_resp_i.gnt),
+      .obi_master_addr(spi_slave_req_o.addr),
+      .obi_master_we(spi_slave_req_o.we),
+      .obi_master_w_data(spi_slave_req_o.wdata),
+      .obi_master_be(spi_slave_req_o.be),
+      .obi_master_r_valid(spi_slave_resp_i.rvalid),
+      .obi_master_r_data(spi_slave_resp_i.rdata)
+  );
+
+
+
+  assign spi_slave_sck_o = 1'b0;
+  assign spi_slave_sck_oe_o = 1'b0;
+  assign spi_slave_cs_o = 1'b0;
+  assign spi_slave_cs_oe_o = 1'b0;
+  assign spi_slave_miso_oe_o = 1'b1;
+  assign spi_slave_mosi_o = 1'b0;
+  assign spi_slave_mosi_oe_o = 1'b0;
+
 
 endmodule : ao_peripheral_subsystem
