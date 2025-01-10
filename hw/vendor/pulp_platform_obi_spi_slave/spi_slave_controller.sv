@@ -10,7 +10,7 @@
 
 
 module spi_slave_controller #(
-    parameter DUMMY_CYCLES = 32
+  parameter DUMMY_CYCLES = 32
 ) (
     input  logic        sclk,
     input  logic        sys_rstn,
@@ -88,7 +88,8 @@ module spi_slave_controller #(
   );
 
   spi_slave_regs #(
-      .REG_SIZE(REG_SIZE)
+      .REG_SIZE(REG_SIZE),
+      .DUMMY_CYCLES(DUMMY_CYCLES)
   ) u_spiregs (
       .sclk(sclk),
       .rstn(sys_rstn),
@@ -199,6 +200,9 @@ module spi_slave_controller #(
         end else begin
           state_next = DATA_TX;
         end
+      end
+      default: begin
+        state_next = state;
       end
     endcase
   end

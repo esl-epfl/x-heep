@@ -9,8 +9,7 @@
 // specific language governing permissions and limitations under the License.
 
 module spi_slave_dc_fifo #(
-    parameter DATA_WIDTH   = 32,
-    parameter BUFFER_DEPTH = 8
+    parameter DATA_WIDTH   = 32
 ) (
     input logic clk_a,
     input logic rstn_a,

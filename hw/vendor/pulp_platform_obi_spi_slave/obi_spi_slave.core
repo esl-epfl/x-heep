@@ -1,9 +1,9 @@
 CAPI=2:
 
-name: "x-heep:ip:obi_spi_slave"
+name: "esl_epfl:ip:obi_spi_slave"
 description: "core-v-mini-mcu SPI2OBI peripheral"
 
-# Copyright 2021 OpenHW Group
+# Copyright 2024 EPFL
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
@@ -22,15 +22,6 @@ filesets:
     - spi_slave_syncro.sv
     - spi_slave_tx.sv
     file_type: systemVerilogSource
-  
-  files_verilator_waiver:
-    depend:
-      # common waivers
-      - lowrisc:lint:common
-      - lowrisc:lint:comportable
-    files:
-      - obi_spi_slave.vlt
-    file_type: vlt
 
 targets:
   default:
