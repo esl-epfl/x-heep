@@ -447,18 +447,10 @@ ${pad.core_v_mini_mcu_interface}
       .ext_dma_slot_rx_i,
       .ext_dma_stop_i,
       .dma_done_o,
-      .spi_slave_sck_o(spi_slave_sck_o),
       .spi_slave_sck_i(spi_slave_sck_i),
-      .spi_slave_sck_oe_o(spi_slave_sck_oe_o),
-      .spi_slave_cs_o(spi_slave_cs_o),
       .spi_slave_cs_i(spi_slave_cs_i),
-      .spi_slave_cs_oe_o(spi_slave_cs_oe_o),
       .spi_slave_miso_o(spi_slave_miso_o),
-      .spi_slave_miso_i(spi_slave_miso_i),
-      .spi_slave_miso_oe_o(spi_slave_miso_oe_o),
-      .spi_slave_mosi_o(spi_slave_mosi_o),
       .spi_slave_mosi_i(spi_slave_mosi_i),
-      .spi_slave_mosi_oe_o(spi_slave_mosi_oe_o),
       .spi_slave_req_o(spi_slave_req),
       .spi_slave_resp_i(spi_slave_resp)
   );
