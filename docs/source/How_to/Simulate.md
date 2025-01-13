@@ -155,6 +155,27 @@ and type to run your compiled software:
 make run PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
+## Simulation parameters
+
+You may pass additional simulation parameters to the generated simulation executable, in the form of *plusargs*: `+<parameter>=<value>`.
+
+- `+firmware=<path>`:
+  Loads the hex file specified in `<path>` into memory.
+  This allows you to run a compiled executable directly, as if it were already written in memory since the beginning of the simulation.
+  For example, `./Vtestharness +firmware=../../../sw/build/main.hex` will launch the Verilator simulation and instruct it to load the compiled application executable into memory and run it.
+
+- `+max_sim_time=<time>`:
+  Runs the simulation for a maximum of `<time>` clock cycles.
+  This is useful in case your application gets stuck in a certain point and never finishes; this parameter will force the simulation to terminate after a certain time so that you can later analyze the generated `waveform.vcd` file.
+  In that case, the simulation executable will exit with a return code of 2, indicating premature termination.
+  If this parameter is not provided, the simulation will run until the program finishes (the `main()` function ends).
+
+  Alternatively, you may add a time suffix (`s`, `ms`, `us`, `ns`, `ps`) to run the simulation until the specified simulation time has been reached (1 clock cycle = 10ns).
+  This is, `+max_sim_time=750us` is the same as `+max_sim_time=75000`.
+  (Note that there's no space between the number and the unit, and that fractional values are not supported.)
+
+  If you're launching the Verilator simulation via `make`, you may pass this parameter via the `MAX_SIM_TIME=` command line argument, e.g. `make run-helloworld MAX_SIM_TIME=750us`.
+
 ## Simulating the UART DPI
 
 To simulate the UART, we use the LowRISC OpenTitan [UART DPI](https://github.com/lowRISC/opentitan/tree/master/hw/dv/dpi/uartdpi).

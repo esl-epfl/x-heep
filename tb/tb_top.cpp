@@ -15,11 +15,11 @@
 vluint64_t sim_time = 0;
 
 void runCycles(unsigned int ncycles, Vtestharness *dut, VerilatedFstC *m_trace){
-  for(unsigned int i = 0; i < ncycles; i++) {
+  for(unsigned int i = 0; i < 2*ncycles; i++) {
+    sim_time += CLK_PERIOD_ps/2;
     dut->clk_i ^= 1;
     dut->eval();
     m_trace->dump(sim_time);
-    sim_time++;
   }
 }
 
@@ -27,7 +27,8 @@ int main (int argc, char * argv[])
 {
 
   std::string firmware;
-  unsigned int max_sim_time, boot_sel, exit_val;
+  vluint64_t max_sim_time;
+  unsigned int boot_sel, exit_val;
   bool use_openocd;
   bool run_all = false;
 
@@ -80,17 +81,16 @@ int main (int argc, char * argv[])
 
   dut->eval();
   m_trace->dump(sim_time);
-  sim_time++;
 
   dut->rst_ni               = 1;
   //this creates the negedge
-  runCycles(50, dut, m_trace);
+  runCycles(20, dut, m_trace);
   dut->rst_ni               = 0;
-  runCycles(50, dut, m_trace);
+  runCycles(40, dut, m_trace);
 
 
   dut->rst_ni = 1;
-  runCycles(20, dut, m_trace);
+  runCycles(40, dut, m_trace);
   std::cout<<"Reset Released"<< std::endl;
 
   //dont need to exit from boot loop if using OpenOCD or Boot from Flash
@@ -106,17 +106,24 @@ int main (int argc, char * argv[])
   }
 
   if(run_all==false) {
-    runCycles(max_sim_time, dut, m_trace);
+    while(dut->exit_valid_o!=1 && sim_time<max_sim_time) {
+      runCycles(100, dut, m_trace);
+    }
   } else {
     while(dut->exit_valid_o!=1) {
-      runCycles(500, dut, m_trace);
+      runCycles(100, dut, m_trace);
     }
   }
 
   if(dut->exit_valid_o==1) {
     std::cout<<"Program Finished with value "<<dut->exit_value_o<<std::endl;
     exit_val = EXIT_SUCCESS;
-  } else exit_val = EXIT_FAILURE;
+  } else {
+    std::cout<<"Simulation was terminated before program finished"<<std::endl;
+    exit_val = 2; // exit 2 to indicate successful run but premature termination
+  }
+
+  std::cout<<"Simulation finished after "<<(sim_time/CLK_PERIOD_ps)<<" clock cycles"<<std::endl;
 
   m_trace->close();
   delete dut;
