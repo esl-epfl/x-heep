@@ -26,6 +26,6 @@ To learn how to extend X-HEEP you can read the guides in this section.
 :maxdepth: 3
 :numbered: 1
 
-eXtendingHEEP
+eXtendingHW
 eXtendingSW
 eXamples

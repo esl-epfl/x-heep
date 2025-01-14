@@ -1,4 +1,4 @@
-# eXtending HEEP
+# eXtending hardware
 
 To extend X-HEEP with your own custom IPs, you first have to create a top-level repository that will contain both X-HEEP and your IP.
 
