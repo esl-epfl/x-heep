@@ -54,7 +54,7 @@ sw/device/lib/drivers/**/*_structs.h
 flow/OpenROAD-flow-scripts
 
 # automatically generated docs
-/docs/source/Configuration/generated
+/docs/source/Configuration/x_heep_gen
 
 # User-dependent configuration files
 .vscode
