@@ -19,6 +19,7 @@ In this section you will also find the detailed documentation for configuring th
 
 SystemConfiguration
 
+CPUConfiguration
 MemoryConfiguration
 BusConfiguration
 LinkerConfiguration
