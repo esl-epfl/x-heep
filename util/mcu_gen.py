@@ -574,6 +574,16 @@ def main():
     else:
         cpu_type = obj['cpu_type']
 
+    if 'cve2_rv32e' in obj:
+        cve2_rv32e = obj['cve2_rv32e']
+    else:
+        cve2_rv32e = None
+    
+    if 'cve2_rv32m' in obj:
+        cve2_rv32m = obj['cve2_rv32m']
+    else:
+        cve2_rv32m = None
+
     if args.bus != None and args.bus != '':
         config_override.bus_type = BusType(args.bus)
 
@@ -1073,6 +1083,8 @@ def main():
     kwargs = {
         "xheep"                            : xheep,
         "cpu_type"                         : cpu_type,
+        "cve2_rv32e"                       : cve2_rv32e,
+        "cve2_rv32m"                       : cve2_rv32m,
         "external_domains"                 : external_domains,
         "debug_start_address"              : debug_start_address,
         "debug_size_address"               : debug_size_address,
