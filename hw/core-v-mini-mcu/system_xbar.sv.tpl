@@ -88,8 +88,6 @@ module system_xbar
     end
 % if xheep.has_il_ram():
 
-    localparam ZERO = 32'h0;
-
     for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot
       always_comb begin
         port_sel[j] = pre_port_sel[j];
@@ -97,7 +95,7 @@ module system_xbar
 % for i, group in enumerate(xheep.iter_il_groups()):
 
         if (pre_port_sel[j] == RAM_IL${i}_IDX[LOG_XBAR_NSLAVE-1:0]) begin
-          port_sel[j] = RAM_IL${i}_IDX[LOG_XBAR_NSLAVE-1:0] + {ZERO[LOG_XBAR_NSLAVE-${1+group.n.bit_length()}:0],master_req_i[j].addr[${group.n.bit_length()-1 +1}:2]};
+          port_sel[j] = RAM_IL${i}_IDX[LOG_XBAR_NSLAVE-1:0] + $unsigned(master_req_i[j].addr[${group.n.bit_length()-1 +1}:2]);
           post_master_req_addr[j] = {master_req_i[j].addr[31:${2+group.n.bit_length()-1}], ${2+group.n.bit_length()-1}'h0};
         end
 % endfor
