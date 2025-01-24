@@ -50,8 +50,7 @@ Choose between `2.a` or `2.b` to setup your enviroment.
 
 #### 2.a Miniconda
 
-Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html#linux-installers) python 3.8 version as described in the link,
-and create the Conda enviroment:
+Install [Miniconda](https://docs.anaconda.com/miniconda/install/#quick-command-line-install) python 3.8 version by downloading an older version and selecting the latest `py38` version [here](https://repo.anaconda.com/miniconda/). Then, create the Conda enviroment:
 
 ```bash
 make conda
