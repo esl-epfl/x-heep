@@ -50,10 +50,10 @@ module dma_NtoM_xbar #(
     );
 
     for (genvar i = 1; i < XBAR_MSLAVE; i++) begin : gen_xbar
-      if (core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i] == 1) begin
+      if (core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i] == 1) begin : gen_xbar_1
         assign slave_req_o[i] = master_req_i[i+core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1];
         assign master_resp_o[i+core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1] = slave_resp_i[i];
-      end else begin
+      end else begin : gen_xbar_n
         xbar_varlat_n_to_one #(
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i])
         ) xbar_i (

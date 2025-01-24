@@ -99,7 +99,7 @@ module testharness #(
 
   assign ext_dma_slot_tx[0] = iffifo_in_ready;
   assign ext_dma_slot_rx[0] = iffifo_out_valid;
-  if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin
+  if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : gen_DMA_SLOTS
     assign ext_dma_slot_tx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
     assign ext_dma_slot_rx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
   end
@@ -612,7 +612,7 @@ module testharness #(
           .i2s_sd_o(gpio[22])
       );
 
-`ifndef VERILATOR
+      // `ifndef VERILATOR
       // Flash used for booting (execute from flash or copy from flash)
       spiflash flash_boot_i (
           .csb(spi_flash_csb[0]),
@@ -622,9 +622,9 @@ module testharness #(
           .io2(spi_flash_sd_io[2]),
           .io3(spi_flash_sd_io[3])
       );
-`endif
+      // `endif
 
-`ifndef VERILATOR
+      // `ifndef VERILATOR
       // Flash used as an example device with an SPI interface
       spiflash flash_device_i (
           .csb(spi_csb[0]),
@@ -634,7 +634,7 @@ module testharness #(
           .io2(spi_sd_io[2]),
           .io3(spi_sd_io[3])
       );
-`endif
+      // `endif
 
       if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px) && X_EXT != 0) begin: gen_fpu_ss_wrapper
         fpu_ss_wrapper #(
