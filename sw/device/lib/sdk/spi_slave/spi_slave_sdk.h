@@ -1,0 +1,43 @@
+
+#include "spi_host.h"
+
+#define REVERT_ENDIANNESS(x) ( \
+    ((x & 0x000000FF) << 24) | \
+    ((x & 0x0000FF00) << 8)  | \
+    ((x & 0x00FF0000) >> 8)  | \
+    ((x & 0xFF000000) >> 24)   \
+)
+
+
+/** Macros for SPI SLAVE hardware. */
+#define WRITE_SPI_SLAVE_REG_0 0x11
+#define WRITE_SPI_SLAVE_REG_1 0x20
+#define WRITE_SPI_SLAVE_REG_2 0x30
+#define READ_SPI_SLAVE_CMD 0xB
+#define WRITE_SPI_SLAVE_CMD 0x2
+
+
+/** Enum for SPI operation status flags. */
+typedef enum {
+    // Everithing went well
+    SPI_FLAG_SUCCESS                        = 0x0000,        
+    //The SPI host was not properly initalized
+    SPI_HOST_FLAG_NOT_INIT                  = 0x0001,   
+    //The target address is invalid
+    SPI_SLAVE_FLAG_ADDRESS_INVALID          = 0x0002,
+    // The CSID was out of the bounds specified in SPI_HOST_PARAM_NUM_C_S 
+    SPI_HOST_FLAG_CSID_INVALID              = 0x0003,    
+    //The amount of data exceeds the memory capacity of the SPI SLAVE (X-HEEP)
+    SPI_SLAVE_FLAG_SIZE_OF_DATA_EXCEEDED    = 0x0004, 
+} spi_flags_e;
+
+typedef enum {
+    OPERATION_WRITE,
+    OPERATION_READ
+} OperationType;
+
+
+spi_flags_e spi_host_init(spi_host_t* host);
+spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t *data, uint16_t length);
+void spi_slave_write_wrap_length(spi_host_t* host, uint16_t length); 
+void send_command_to_spi_host(spi_host_t* host, uint32_t len, bool csaat, uint8_t direction);
