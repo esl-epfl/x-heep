@@ -56,16 +56,16 @@ spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t *data, uint
      * Place data in TX FIFO
      * We fill the FIFO of the SPI host and then flush every 72 words (the depth of the fifo)
     */
-    uint16_t words_in_fifo` = 0;
+    uint16_t words_in_fifo = 0;
     uint32_t *data_32bit = (uint32_t *)data;
     for (uint16_t i = 0; i < length_W; i++) {
-        if( words_in_fifo` == SPI_HOST_PARAM_TX_DEPTH){
+        if( words_in_fifo == SPI_HOST_PARAM_TX_DEPTH){
             send_command_to_spi_host(host, SPI_HOST_PARAM_TX_DEPTH*4, true, SPI_DIR_TX_ONLY);
-            words_in_fifo` = 0;
+            words_in_fifo = 0;
         }
         spi_wait_for_tx_not_full(host);
         spi_write_word(host, REVERT_ENDIANNESS(data_32bit[i]));
-        words_in_fifo`++;
+        words_in_fifo++;
     }
     
     if ( remaining_bytes ) {
@@ -76,21 +76,21 @@ spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t *data, uint
     }
 
     // SPI host cannot send individual bytes, so we will send the words available at the fifo and if there are any remaining bytes we add one extra full word. 
-    send_command_to_spi_host(host, (words_in_fifo`+ (uint16_t)(remaining_bytes != 0))*4 , false, SPI_DIR_TX_ONLY);
+    send_command_to_spi_host(host, (words_in_fifo+ (uint16_t)(remaining_bytes != 0))*4 , false, SPI_DIR_TX_ONLY);
     spi_wait_for_tx_empty(host);
     return SPI_FLAG_SUCCESS;
 }
 
-void send_command_to_spi_host(spi_host_t* host, uint32_t len, bool csaat, uint8_t direction){
+void send_command_to_spi_host(spi_host_t* host, uint32_t length_B, bool csaat, uint8_t direction){
     if(direction != SPI_DIR_DUMMY){
-        len--; //The SPI HOST IP uses len-1 = amount of bytes to read and write. But also len = amount of dummy cycles
+        length_B--; //The SPI HOST IP uses length_B-1 = amount of bytes to read and write. But also length_B = amount of dummy cycles
     }
-    const uint32_t send_cmd_byte = spi_create_command((spi_command_t){
-        .len        = len,                     
+    const uint32_t send_cmd_W = spi_create_command((spi_command_t){
+        .len        = length_B,                     
         .csaat      = csaat,                    // Command not finished e.g. CS remains low after transaction
         .speed      = SPI_SPEED_STANDARD,       // Single speed
         .direction  = direction
     });
-    spi_set_command(host, send_cmd_byte);
+    spi_set_command(host, send_cmd_W);
     spi_wait_for_ready(host);
 }
