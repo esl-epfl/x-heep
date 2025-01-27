@@ -54,32 +54,31 @@ spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t *data, uint
  
     /*
      * Place data in TX FIFO
-     * In simulation it does not wait for the flash (?) to be ready, so we must check
-     * if the FIFO is full before writing.
+     * We fill the FIFO of the SPI host and then flush every 72 words (the depth of the fifo)
     */
-    uint16_t counter = 0;
+    uint16_t words_in_fifo` = 0;
     uint32_t *data_32bit = (uint32_t *)data;
     for (uint16_t i = 0; i < length_W; i++) {
-        if( counter == SPI_HOST_PARAM_TX_DEPTH){
+        if( words_in_fifo` == SPI_HOST_PARAM_TX_DEPTH){
             send_command_to_spi_host(host, SPI_HOST_PARAM_TX_DEPTH*4, true, SPI_DIR_TX_ONLY);
-            counter = 0;
+            words_in_fifo` = 0;
         }
         spi_wait_for_tx_not_full(host);
         spi_write_word(host, REVERT_ENDIANNESS(data_32bit[i]));
-        counter++;
+        words_in_fifo`++;
     }
     
     if ( remaining_bytes ) {
-        uint32_t mask = (1 << (8 * remaining_bytes)) - 1; // Only keep the remaining bytes from the mask
+        uint32_t mask = (1 << (8 * remaining_bytes)) - 1; // Only keep the remaining bytes with a mask
         uint32_t last_word = ((uint32_t*)data)[length_W] & mask;
         spi_wait_for_tx_not_full(host);
         spi_write_word(host,  REVERT_ENDIANNESS( last_word ) );
     }
 
-    send_command_to_spi_host(host, (counter+ (uint16_t)(remaining_bytes != 0))*4 , false, SPI_DIR_TX_ONLY);
-    // send_command_to_spi_host(host, (counter)*4 + remaining_bytes , false, SPI_DIR_TX_ONLY);
+    // SPI host cannot send individual bytes, so we will send the words available at the fifo and if there are any remaining bytes we add one extra full word. 
+    send_command_to_spi_host(host, (words_in_fifo`+ (uint16_t)(remaining_bytes != 0))*4 , false, SPI_DIR_TX_ONLY);
     spi_wait_for_tx_empty(host);
-    return SPI_FLAG_SUCCESS; // Success
+    return SPI_FLAG_SUCCESS;
 }
 
 void send_command_to_spi_host(spi_host_t* host, uint32_t len, bool csaat, uint8_t direction){
