@@ -97,7 +97,7 @@ make vivado-fpga FPGA_BOARD=pynq-z2
 | Slice Registers  | 12.1K           | 11.3            |
 | RAM              | 16              |11.4             |
 | DSP              | 1               | 0.5             |
--------------------|-----------------|-----------------|
+
 
 
 ### Bigger configuration
@@ -118,5 +118,4 @@ make vivado-fpga FPGA_BOARD=pynq-z2 FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"
 | Slice Registers  | 28799           | 27.1            |
 | RAM              | 16              | 11.4            |
 | DSP              | 9               | 4.1             |
--------------------|-----------------|-----------------|
 
