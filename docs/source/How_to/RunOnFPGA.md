@@ -91,13 +91,13 @@ make mcu-gen MCU_CFG_PERIPHERALS=mcu_cfg_minimal.hjson
 make vivado-fpga FPGA_BOARD=pynq-z2
 ```
 
-| Resource         | Utilization (%) |
-|------------------|-----------------|
-| Slice LUTs       | 22.7            |
-| Slice Registers  | 11.3            |
-| RAM              | 11.4            |
-| DSP              | 0.5             |
--------------------|-----------------|
+| Resource         | Quantity        | Utilization (%) |
+|------------------|-----------------|-----------------|
+| Slice LUTs       | 12.1K           | 22.7            |
+| Slice Registers  | 12.1K           | 11.3            |
+| RAM              | 16              |11.4             |
+| DSP              | 1               | 0.5             |
+-------------------|-----------------|-----------------|
 
 
 ### Bigger configuration
@@ -112,12 +112,11 @@ make mcu-gen CPU=cv32e40p BUS=NtoM
 make vivado-fpga FPGA_BOARD=pynq-z2 FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"
 ```
 
-| Resource         | Utilization (%) |
-|------------------|-----------------|
-| Slice LUTs       | 62.9            |
-| Slice Registers  | 27.1            |
-| RAM              | 11.4            |
-| DSP              | 4.1             |
--------------------|-----------------|
-
+| Resource         | Quantity        | Utilization (%) |
+|------------------|-----------------|-----------------|
+| Slice LUTs       | 33466           | 62.9            |
+| Slice Registers  | 28799           | 27.1            |
+| RAM              | 16              | 11.4            |
+| DSP              | 9               | 4.1             |
+-------------------|-----------------|-----------------|
 
