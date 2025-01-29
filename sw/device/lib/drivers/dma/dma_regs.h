@@ -122,6 +122,7 @@ extern "C" {
 #define DMA_MODE_MODE_VALUE_CIRCULAR_MODE 0x1
 #define DMA_MODE_MODE_VALUE_ADDRESS_MODE 0x2
 #define DMA_MODE_MODE_VALUE_SUBADDRESS_MODE 0x3
+#define DMA_MODE_MODE_VALUE_HW_FIFO_MODE 0x4
 
 // Set the dimensionality of the DMA
 #define DMA_DIM_CONFIG_REG_OFFSET 0x3c
@@ -185,6 +186,11 @@ extern "C" {
 // Interrupt Flag Register for windows
 #define DMA_WINDOW_IFR_REG_OFFSET 0x64
 #define DMA_WINDOW_IFR_FLAG_BIT 0
+
+// In HW_FIFO_MODE, is the input data to be sign extended before sending it
+// to the hw read fifo?
+#define DMA_HW_FIFO_MODE_SIGN_EXT_REG_OFFSET 0x68
+#define DMA_HW_FIFO_MODE_SIGN_EXT_HW_FIFO_SIGNED_BIT 0
 
 #ifdef __cplusplus
 }  // extern "C"

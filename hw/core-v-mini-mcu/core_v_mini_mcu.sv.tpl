@@ -5,6 +5,7 @@
 module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
+  import hw_fifo_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -57,6 +58,9 @@ ${pad.core_v_mini_mcu_interface}
     input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_resp_i,
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
     input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i,
+
+    output hw_fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
+    input hw_fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
 
@@ -413,6 +417,8 @@ ${pad.core_v_mini_mcu_interface}
       .dma_addr_resp_i(dma_addr_resp),
       .dma_done_intr_o(dma_done_intr),
       .dma_window_intr_o(dma_window_intr),
+      .hw_fifo_req_o,
+      .hw_fifo_resp_i,
       .spi_flash_intr_event_o(spi_flash_intr),
       .pad_req_o,
       .pad_resp_i,

@@ -12,6 +12,8 @@ module dma #(
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
     parameter type obi_resp_t = logic,
+    parameter type hw_fifo_req_t = logic,
+    parameter type hw_fifo_resp_t = logic,
     parameter int unsigned SLOT_NUM = 0
 ) (
     input logic clk_i,
@@ -31,6 +33,9 @@ module dma #(
 
     output obi_req_t  dma_addr_req_o,
     input  obi_resp_t dma_addr_resp_i,
+
+    input  hw_fifo_resp_t hw_fifo_resp_i,
+    output hw_fifo_req_t  hw_fifo_req_o,
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
@@ -77,6 +82,7 @@ module dma #(
   logic [31:0] data_in_addr;
   logic data_in_gnt;
   logic data_in_rvalid;
+  logic data_in_rvalid_fifo;
   logic [31:0] data_in_rdata;
 
   logic data_addr_in_req;
@@ -113,9 +119,9 @@ module dma #(
   logic [3:0] read_fifo_full;
   logic [3:0] read_fifo_empty;
   logic read_fifo_alm_full;
-  logic read_fifo_pop_pad;
+  logic pad_read_fifo_pop;
+  logic [3:0] subaddr_read_fifo_pop;
   logic [3:0] read_fifo_pop;
-  logic [3:0] read_fifo_pop_act;
   logic [31:0] read_fifo_input;
   logic [31:0] read_fifo_output;
 
@@ -127,12 +133,12 @@ module dma #(
   logic write_fifo_full;
   logic write_fifo_empty;
   logic write_fifo_alm_full;
+  logic pad_write_fifo_push;
   logic write_fifo_push;
-  logic write_fifo_push_act;
   logic write_fifo_pop;
-  logic [31:0] write_fifo_input;
+  logic [31:0] pad_write_fifo_input;
   logic [31:0] write_fifo_output;
-  logic [31:0] write_fifo_input_act;
+  logic [31:0] write_fifo_input;
 
   /* Trigger signals */
   logic wait_for_rx;
@@ -160,6 +166,7 @@ module dma #(
   logic circular_mode;
   logic address_mode;
   logic subaddressing_mode;
+  logic hw_fifo_mode;
 
   logic dma_start_pending;
 
@@ -203,15 +210,15 @@ module dma #(
       .usage_o(read_fifo_usage[0]),
       // as long as the queue is not full we can push new data
       .data_i(read_fifo_input[7:0]),
-      .push_i(data_in_rvalid),
+      .push_i(data_in_rvalid_fifo),
       // as long as the queue is not empty we can pop new elements
       .data_o(read_fifo_output[7:0]),
-      .pop_i(read_fifo_pop_act[0])
+      .pop_i(read_fifo_pop[0])
   );
 
   fifo_v3 #(
       .DEPTH(FIFO_DEPTH),
-      .FALL_THROUGH(1'b1),
+      .FALL_THROUGH(1'b0),
       .DATA_WIDTH(8)
   ) dma_read_fifo_1_i (
       .clk_i(clk_cg),
@@ -224,15 +231,15 @@ module dma #(
       .usage_o(read_fifo_usage[1]),
       // as long as the queue is not full we can push new data
       .data_i(read_fifo_input[15:8]),
-      .push_i(data_in_rvalid),
+      .push_i(data_in_rvalid_fifo),
       // as long as the queue is not empty we can pop new elements
       .data_o(read_fifo_output[15:8]),
-      .pop_i(read_fifo_pop_act[1])
+      .pop_i(read_fifo_pop[1])
   );
 
   fifo_v3 #(
       .DEPTH(FIFO_DEPTH),
-      .FALL_THROUGH(1'b1),
+      .FALL_THROUGH(1'b0),
       .DATA_WIDTH(8)
   ) dma_read_fifo_2_i (
       .clk_i(clk_cg),
@@ -245,15 +252,15 @@ module dma #(
       .usage_o(read_fifo_usage[2]),
       // as long as the queue is not full we can push new data
       .data_i(read_fifo_input[23:16]),
-      .push_i(data_in_rvalid),
+      .push_i(data_in_rvalid_fifo),
       // as long as the queue is not empty we can pop new elements
       .data_o(read_fifo_output[23:16]),
-      .pop_i(read_fifo_pop_act[2])
+      .pop_i(read_fifo_pop[2])
   );
 
   fifo_v3 #(
       .DEPTH(FIFO_DEPTH),
-      .FALL_THROUGH(1'b1),
+      .FALL_THROUGH(1'b0),
       .DATA_WIDTH(8)
   ) dma_read_fifo_3_i (
       .clk_i(clk_cg),
@@ -266,10 +273,10 @@ module dma #(
       .usage_o(read_fifo_usage[3]),
       // as long as the queue is not full we can push new data
       .data_i(read_fifo_input[31:24]),
-      .push_i(data_in_rvalid),
+      .push_i(data_in_rvalid_fifo),
       // as long as the queue is not empty we can pop new elements
       .data_o(read_fifo_output[31:24]),
-      .pop_i(read_fifo_pop_act[3])
+      .pop_i(read_fifo_pop[3])
   );
 
   /* Read address mode FIFO */
@@ -307,8 +314,8 @@ module dma #(
       .empty_o(write_fifo_empty),
       .usage_o(write_fifo_usage),
       // as long as the queue is not full we can push new data
-      .data_i(write_fifo_input_act),
-      .push_i(write_fifo_push_act),
+      .data_i(write_fifo_input),
+      .push_i(write_fifo_push),
       // as long as the queue is not empty we can pop new elements
       .data_o(write_fifo_output),
       .pop_i(write_fifo_pop)
@@ -338,6 +345,10 @@ module dma #(
       .read_fifo_full_i(|read_fifo_full),
       .read_fifo_alm_full_i(read_fifo_alm_full),
       .wait_for_rx_i(wait_for_rx),
+
+      .hw_fifo_mode_i  (hw_fifo_mode),
+      .hw_r_fifo_full_i(hw_fifo_resp_i.full),
+
       .data_in_gnt_i(data_in_gnt),
       .data_in_rvalid_i(data_in_rvalid),
       .data_in_rdata_i(data_in_rdata),
@@ -366,6 +377,8 @@ module dma #(
       .data_addr_in_addr_o(data_addr_in_addr)
   );
 
+  logic hw_r_fifo_push_padding;
+
   /* DMA padding FSM */
   dma_padding_fsm dma_padding_fsm_i (
       .clk_i(clk_cg),
@@ -377,22 +390,34 @@ module dma #(
       .write_fifo_full_i(write_fifo_full),
       .write_fifo_alm_full_i(write_fifo_alm_full),
       .data_read_i(read_fifo_output),
+
+      .hw_fifo_mode_i(hw_fifo_mode),
+      .hw_r_fifo_push_padding_o(hw_r_fifo_push_padding),
+      .hw_w_fifo_push_i(hw_fifo_resp_i.push),
+
       .padding_fsm_done_o(padding_fsm_done),
-      .write_fifo_push_o(write_fifo_push),
-      .read_fifo_pop_o(read_fifo_pop_pad),
-      .data_write_o(write_fifo_input)
+      .write_fifo_push_o(pad_write_fifo_push),
+      .read_fifo_pop_o(pad_read_fifo_pop),
+      .data_write_o(pad_write_fifo_input)
   );
 
+  logic [31:0] hw_w_fifo_data;
   /* Write FSM */
   dma_obiwrite_fsm dma_obiwrite_fsm_i (
       .clk_i(clk_cg),
       .rst_ni,
       .reg2hw_i(reg2hw),
+      //      .reg_req_i,
       .dma_start_i(dma_start),
       .write_fifo_empty_i(write_fifo_empty),
       .read_addr_fifo_empty_i(read_addr_fifo_empty),
       .fifo_output_i(write_fifo_output),
       .wait_for_tx_i(wait_for_tx),
+
+      .hw_fifo_mode_i(hw_fifo_mode),
+      .hw_w_fifo_data_i(hw_w_fifo_data),
+      .hw_w_fifo_empty_i(hw_fifo_resp_i.empty),
+
       .address_mode_i(address_mode),
       .padding_fsm_done_i(padding_fsm_done),
       .fifo_addr_output_i(read_addr_fifo_output),
@@ -403,6 +428,26 @@ module dma #(
       .data_out_addr_o(data_out_addr),
       .data_out_wdata_o(data_out_wdata),
       .dma_done_o(dma_done)
+  );
+
+  /* Hardware Read Fifo Interface Controller */
+  hw_r_fifo_ctrl hw_r_fifo_ctrl_i (
+      .hw_fifo_mode_i(hw_fifo_mode),
+      .data_i(read_fifo_input),
+      .data_valid_i(data_in_rvalid),
+      .hw_r_fifo_push_padding_i(hw_r_fifo_push_padding),
+      .push_o(hw_fifo_req_o.push),
+      .data_o(hw_fifo_req_o.data)
+  );
+
+
+  /* Hardware Write Fifo Interface Controller */
+  hw_w_fifo_ctrl hw_w_fifo_ctrl_i (
+      .hw_fifo_mode_i(hw_fifo_mode),
+      .data_o(hw_w_fifo_data),
+      .data_out_gnt_i(write_fifo_pop),
+      .data_i(hw_fifo_resp_i.data),
+      .pop_o(hw_fifo_req_o.pop)
   );
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -567,19 +612,19 @@ module dma #(
 
   always_ff @(posedge clk_cg, negedge rst_ni) begin
     if (~rst_ni) begin
-      read_fifo_pop <= 4'b0000;
+      subaddr_read_fifo_pop <= 4'b0000;
     end else begin
       if (subaddressing_mode == 1'b1) begin
         case (src_data_type)
           DMA_DATA_TYPE_HALF_WORD: begin
 
             if (dma_start == 1'b1) begin
-              read_fifo_pop <= 4'b0011;
-            end else if (read_fifo_pop_pad == 1'b1) begin
-              if (read_fifo_pop == 4'b1100) begin
-                read_fifo_pop <= 4'b0011;
+              subaddr_read_fifo_pop <= 4'b0011;
+            end else if (pad_read_fifo_pop == 1'b1) begin
+              if (subaddr_read_fifo_pop == 4'b1100) begin
+                subaddr_read_fifo_pop <= 4'b0011;
               end else begin
-                read_fifo_pop <= read_fifo_pop << 2;
+                subaddr_read_fifo_pop <= 4'b1100;
               end
             end
           end
@@ -587,91 +632,103 @@ module dma #(
           DMA_DATA_TYPE_BYTE: begin
 
             if (dma_start == 1'b1) begin
-              read_fifo_pop <= 4'b0001;
-            end else if (read_fifo_pop_pad == 1'b1) begin
-              if (read_fifo_pop == 4'b1000) begin
-                read_fifo_pop <= 4'b0001;
+              subaddr_read_fifo_pop <= 4'b0001;
+            end else if (pad_read_fifo_pop == 1'b1) begin
+              if (subaddr_read_fifo_pop == 4'b1000) begin
+                subaddr_read_fifo_pop <= 4'b0001;
               end else begin
-                read_fifo_pop <= read_fifo_pop << 1;
+                subaddr_read_fifo_pop <= subaddr_read_fifo_pop << 1;
               end
             end
           end
 
-          default: read_fifo_pop <= {4{read_fifo_pop_pad}};
+          default: subaddr_read_fifo_pop <= {4{pad_read_fifo_pop}};
 
         endcase
+      end else if (hw_fifo_mode == 1'b1) begin
+        // hw fifo mode: no pop is needed from the internal read fifo
+        subaddr_read_fifo_pop <= 4'b0000;
       end else begin
-        read_fifo_pop <= {4{read_fifo_pop_pad}};
+        // other modes: normal popping from the internal read fifo
+        subaddr_read_fifo_pop <= {4{pad_read_fifo_pop}};
       end
     end
   end
 
   always_comb begin
     if (subaddressing_mode == 1'b1) begin
-      if (read_fifo_pop_pad == 1'b1) begin
+      if (pad_read_fifo_pop == 1'b1) begin
         case (src_data_type)
           DMA_DATA_TYPE_HALF_WORD: begin
 
-            read_fifo_pop_act = read_fifo_pop;
+            read_fifo_pop = subaddr_read_fifo_pop;
 
-            if (read_fifo_pop == 4'b0000) begin
-              write_fifo_input_act = '0;
-              write_fifo_push_act  = 1'b0;
-            end else if (read_fifo_pop == 4'b1100) begin
-              write_fifo_input_act = {{16{1'b0}}, write_fifo_input[31:16]};
-              write_fifo_push_act  = 1'b1;
-            end else if (read_fifo_pop == 4'b0011) begin
-              write_fifo_input_act = {{16{1'b0}}, write_fifo_input[15:0]};
-              write_fifo_push_act  = 1'b1;
+            if (subaddr_read_fifo_pop == 4'b0000) begin
+              write_fifo_input = '0;
+              write_fifo_push  = 1'b0;
+            end else if (subaddr_read_fifo_pop == 4'b1100) begin
+              write_fifo_input = {{16{1'b0}}, pad_write_fifo_input[31:16]};
+              write_fifo_push  = 1'b1;
+            end else if (subaddr_read_fifo_pop == 4'b0011) begin
+              write_fifo_input = {{16{1'b0}}, pad_write_fifo_input[15:0]};
+              write_fifo_push  = 1'b1;
             end else begin
-              write_fifo_input_act = write_fifo_input;
-              write_fifo_push_act  = write_fifo_push;
+              write_fifo_input = pad_write_fifo_input;
+              write_fifo_push  = pad_write_fifo_push;
             end
 
           end
 
           DMA_DATA_TYPE_BYTE: begin
 
-            read_fifo_pop_act = read_fifo_pop;
+            read_fifo_pop = subaddr_read_fifo_pop;
 
-            if (read_fifo_pop == 4'b0000) begin
-              write_fifo_input_act = '0;
-              write_fifo_push_act  = 1'b0;
-            end else if (read_fifo_pop == 4'b1000) begin
-              write_fifo_input_act = {{24{1'b0}}, write_fifo_input[31:24]};
-              write_fifo_push_act  = 1'b1;
-            end else if (read_fifo_pop == 4'b0100) begin
-              write_fifo_input_act = {{24{1'b0}}, write_fifo_input[23:16]};
-              write_fifo_push_act  = 1'b1;
-            end else if (read_fifo_pop == 4'b0010) begin
-              write_fifo_input_act = {{24{1'b0}}, write_fifo_input[15:8]};
-              write_fifo_push_act  = 1'b1;
-            end else if (read_fifo_pop == 4'b0001) begin
-              write_fifo_input_act = {{24{1'b0}}, write_fifo_input[7:0]};
-              write_fifo_push_act  = 1'b1;
+            if (subaddr_read_fifo_pop == 4'b0000) begin
+              write_fifo_input = '0;
+              write_fifo_push  = 1'b0;
+            end else if (subaddr_read_fifo_pop == 4'b1000) begin
+              write_fifo_input = {{24{1'b0}}, pad_write_fifo_input[31:24]};
+              write_fifo_push  = 1'b1;
+            end else if (subaddr_read_fifo_pop == 4'b0100) begin
+              write_fifo_input = {{24{1'b0}}, pad_write_fifo_input[23:16]};
+              write_fifo_push  = 1'b1;
+            end else if (subaddr_read_fifo_pop == 4'b0010) begin
+              write_fifo_input = {{24{1'b0}}, pad_write_fifo_input[15:8]};
+              write_fifo_push  = 1'b1;
+            end else if (subaddr_read_fifo_pop == 4'b0001) begin
+              write_fifo_input = {{24{1'b0}}, pad_write_fifo_input[7:0]};
+              write_fifo_push  = 1'b1;
             end else begin
-              write_fifo_input_act = write_fifo_input;
-              write_fifo_push_act  = write_fifo_push;
+              write_fifo_input = pad_write_fifo_input;
+              write_fifo_push  = pad_write_fifo_push;
             end
 
           end
 
           default: begin
-            write_fifo_input_act = write_fifo_input;
-            write_fifo_push_act = write_fifo_push;
-            read_fifo_pop_act = {4{read_fifo_pop_pad}};
+            write_fifo_input = pad_write_fifo_input;
+            write_fifo_push = pad_write_fifo_push;
+            read_fifo_pop = {4{pad_read_fifo_pop}};
           end
 
         endcase
       end else begin
-        write_fifo_input_act = '0;
-        write_fifo_push_act = 1'b0;
-        read_fifo_pop_act = {4{read_fifo_pop_pad}};
+        // no pop from read fifo issued by padding fsm
+        write_fifo_input = '0;
+        write_fifo_push = 1'b0;
+        read_fifo_pop = {4{pad_read_fifo_pop}};
       end
+    end else if (hw_fifo_mode == 1'b1) begin
+      // hw fifo mode: no pop and no push are needed from the internal read fifo
+      // and to the internal write fifo respectively
+      write_fifo_input = '0;
+      write_fifo_push = 1'b0;
+      read_fifo_pop = {4{1'b0}};
     end else begin
-      write_fifo_input_act = write_fifo_input;
-      write_fifo_push_act = write_fifo_push;
-      read_fifo_pop_act = {4{read_fifo_pop_pad}};
+      // other modes
+      write_fifo_input = pad_write_fifo_input;
+      write_fifo_push = pad_write_fifo_push;
+      read_fifo_pop = {4{pad_read_fifo_pop}};
     end
   end
 
@@ -691,6 +748,7 @@ module dma #(
 
   assign data_in_gnt = dma_read_resp_i.gnt;
   assign data_in_rvalid = dma_read_resp_i.rvalid;
+  assign data_in_rvalid_fifo = dma_read_resp_i.rvalid && ~hw_fifo_mode;
   assign data_in_rdata = dma_read_resp_i.rdata;
 
   assign dma_addr_req_o.req = data_addr_in_req;
@@ -729,7 +787,8 @@ module dma #(
 
   assign circular_mode = reg2hw.mode.q == 1;
   assign address_mode = reg2hw.mode.q == 2;
-  assign subaddressing_mode = reg2hw.mode.q == 4;
+  assign subaddressing_mode = reg2hw.mode.q == 3;
+  assign hw_fifo_mode = reg2hw.mode.q == 4;
 
   assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
   assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));

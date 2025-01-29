@@ -149,6 +149,9 @@ module dma_reg_top #(
   logic transaction_ifr_re;
   logic window_ifr_qs;
   logic window_ifr_re;
+  logic hw_fifo_mode_sign_ext_qs;
+  logic hw_fifo_mode_sign_ext_wd;
+  logic hw_fifo_mode_sign_ext_we;
 
   // Register instances
   // R[src_ptr]: V(False)
@@ -889,9 +892,36 @@ module dma_reg_top #(
   );
 
 
+  // R[hw_fifo_mode_sign_ext]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_hw_fifo_mode_sign_ext (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(hw_fifo_mode_sign_ext_we),
+      .wd(hw_fifo_mode_sign_ext_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.hw_fifo_mode_sign_ext.q),
+
+      // to register interface (read)
+      .qs(hw_fifo_mode_sign_ext_qs)
+  );
 
 
-  logic [25:0] addr_hit;
+
+
+  logic [26:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_SRC_PTR_OFFSET);
@@ -920,6 +950,7 @@ module dma_reg_top #(
     addr_hit[23] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
     addr_hit[24] = (reg_addr == DMA_TRANSACTION_IFR_OFFSET);
     addr_hit[25] = (reg_addr == DMA_WINDOW_IFR_OFFSET);
+    addr_hit[26] = (reg_addr == DMA_HW_FIFO_MODE_SIGN_EXT_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -952,7 +983,8 @@ module dma_reg_top #(
                (addr_hit[22] & (|(DMA_PERMIT[22] & ~reg_be))) |
                (addr_hit[23] & (|(DMA_PERMIT[23] & ~reg_be))) |
                (addr_hit[24] & (|(DMA_PERMIT[24] & ~reg_be))) |
-               (addr_hit[25] & (|(DMA_PERMIT[25] & ~reg_be)))));
+               (addr_hit[25] & (|(DMA_PERMIT[25] & ~reg_be))) |
+               (addr_hit[26] & (|(DMA_PERMIT[26] & ~reg_be)))));
   end
 
   assign src_ptr_we = addr_hit[0] & reg_we & !reg_error;
@@ -1034,6 +1066,9 @@ module dma_reg_top #(
   assign transaction_ifr_re = addr_hit[24] & reg_re & !reg_error;
 
   assign window_ifr_re = addr_hit[25] & reg_re & !reg_error;
+
+  assign hw_fifo_mode_sign_ext_we = addr_hit[26] & reg_we & !reg_error;
+  assign hw_fifo_mode_sign_ext_wd = reg_wdata[0];
 
   // Read data return
   always_comb begin
@@ -1144,6 +1179,10 @@ module dma_reg_top #(
 
       addr_hit[25]: begin
         reg_rdata_next[0] = window_ifr_qs;
+      end
+
+      addr_hit[26]: begin
+        reg_rdata_next[0] = hw_fifo_mode_sign_ext_qs;
       end
 
       default: begin

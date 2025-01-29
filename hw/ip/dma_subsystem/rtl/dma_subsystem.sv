@@ -15,6 +15,8 @@ module dma_subsystem #(
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
     parameter type obi_resp_t = logic,
+    parameter type hw_fifo_req_t = logic,
+    parameter type hw_fifo_resp_t = logic,
     parameter int unsigned GLOBAL_SLOT_NUM = 0,
     parameter int unsigned EXT_SLOT_NUM = 0
 ) (
@@ -33,6 +35,9 @@ module dma_subsystem #(
 
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_o,
     input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_i,
+
+    output hw_fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
+    input hw_fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
     input logic [GLOBAL_SLOT_NUM-1:0] global_trigger_slot_i,
     input logic [EXT_SLOT_NUM-1:0] ext_trigger_slot_i,
@@ -119,6 +124,8 @@ module dma_subsystem #(
           .reg_rsp_t (reg_pkg::reg_rsp_t),
           .obi_req_t (obi_pkg::obi_req_t),
           .obi_resp_t(obi_pkg::obi_resp_t),
+          .hw_fifo_req_t (hw_fifo_pkg::hw_fifo_req_t),
+          .hw_fifo_resp_t(hw_fifo_pkg::hw_fifo_resp_t),
           .SLOT_NUM  (GLOBAL_SLOT_NUM + 2),
           .FIFO_DEPTH (fifo_size)
       ) dma_i (
@@ -134,6 +141,10 @@ module dma_subsystem #(
           .dma_write_resp_i(xbar_write_resp[i]),
           .dma_addr_req_o(xbar_address_req[i]),
           .dma_addr_resp_i(xbar_address_resp[i]),
+
+          .hw_fifo_req_o(hw_fifo_req_o[i]),
+          .hw_fifo_resp_i(hw_fifo_resp_i[i]),
+
           .trigger_slot_i({
             ext_trigger_slot_i[2*i+1], ext_trigger_slot_i[2*i], global_trigger_slot_i
           }),

@@ -318,6 +318,8 @@ The previous parameters, including the register offsets, can be found at `sw/dev
     - 0: _linear mode_
     - 1: _circular mode_
     - 2: _address mode_
+    - 3: _subaddress mode_
+    - 4: _hardware fifo mode_
 
 <hr>
 
@@ -560,7 +562,7 @@ If senseless configurations are input to functions, assertions may halt the whol
 
 #### Transaction modes
 
-There are three different transaction modes:
+There are five different transaction modes:
 
 **Single Mode:** The default mode, where the DMA channel will perform the copy from the source target to the destination, and trigger an interrupt once done.
 
@@ -568,6 +570,10 @@ There are three different transaction modes:
 
 **Address Mode:** Instead of using the destination pointer and increment to decide where to copy information, an _address list_ must be provided, containing addresses for each data unit being copied. It is only carried out in _single_ mode. 
 In this mode it's possible to perform only 1D transactions.
+
+**Subaddress Mode:** In this mode, the DMA can be configured to transfer words, half words or bytes from a slot (e.g. SPI) or whichever fixed location to another destination target one. This mode is mostly useful when, in case of fixed source target, the source data type is a half word or a byte. This mode allows the DMA to sequentially read the half words or bytes composing the word retrieved from the slot (or fixed location), and to forward them to the destination target.
+
+**Hardware Fifo Mode:** the DMA fetches data from the source target and forwards it directly to an external accelerator tightly coupled with the DMA itself. The accelerator must have two internal fifos. The first one, referred to as hardware read fifo, is filled with source target data directly from the DMA. Then, the accelerator is in charge of popping from the hardware read fifo and processing the data. In the end, the results must be pushed into another fifo, referred to as hardware write fifo. The DMA reads data from the hardware write fifo and store it into the destination target.
 
   
 
@@ -747,8 +753,9 @@ Here is a brief overview of the examples:
 6) Matrix zero padding
 7) Multichannel mem2mem transaction, focusing on the IRQ handler
 8) Multichannel flash2mem transaction using the SPI FLASH
+9) Single-channel flash2mem transactions with different data widths (bytes, half-words and words) using the SPI FLASH
 
-The complete code for these examples can be found in `sw/applications/example_dma`, `sw/applications/example_dma_2d`, `sw/applications/example_dma_multichannel` and `sw/applications/example_dma_sdk`. These applications offer both verification and performance estimation modes, enabling users to verify the DMA and measure the application's execution time.
+The complete code for these examples can be found in `sw/applications/example_dma`, `sw/applications/example_dma_2d`, `sw/applications/example_dma_multichannel`, `sw/applications/example_dma_sdk` and `sw/applications/example_dma_subaddressing`. These applications offer both verification and performance estimation modes, enabling users to verify the DMA and measure the application's execution time.
 
 The user is strongly incouraged to look at these applications, as well as any other application that employs the DMA, to gain insight in practical examples of the use of this peripheral. Some aspects or specific usecases might in fact not be present in this guide and could be found in the applications.
 
