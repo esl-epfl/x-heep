@@ -95,7 +95,7 @@ make vivado-fpga FPGA_BOARD=pynq-z2
 |------------------|-----------------|-----------------|
 | Slice LUTs       | 12.1K           | 22.7            |
 | Slice Registers  | 12.1K           | 11.3            |
-| RAM              | 16              |11.4             |
+| RAM              | 16              | 11.4            |
 | DSP              | 1               | 0.5             |
 
 
