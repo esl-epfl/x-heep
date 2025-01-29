@@ -282,7 +282,7 @@ module testharness #(
       .ext_dma_write_resp_i(heep_dma_write_resp),
       .ext_dma_addr_req_o(heep_dma_addr_req),
       .ext_dma_addr_resp_i(heep_dma_addr_resp),
-      .hw_fifo_req_o (hw_fifo_req),
+      .hw_fifo_req_o(hw_fifo_req),
       .hw_fifo_resp_i(hw_fifo_resp),
       .ext_ao_peripheral_req_i(ext_ao_peripheral_req),
       .ext_ao_peripheral_resp_o(ext_ao_peripheral_resp),
