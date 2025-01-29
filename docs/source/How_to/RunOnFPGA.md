@@ -6,7 +6,7 @@ This project offers X-HEEP implementetions on Xilinx FPGAs.
 ## Set-up
 In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA, and its input/output are connected to the available headers on the FPGA board.
 
-Two FPGA boards are supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
+Three FPGA boards are supported: the Xilinx Pynq-z2, Nexys-A7-100t, and the ZCU104.
 
 1. Make sure you have the FPGA board files installed in your Vivado.
 > For example, for the Pynq-Z2 board, use the documentation provided at the following [link](https://pynq.readthedocs.io/en/v2.5/overlay_design_methodology/board_settings.html) to download and install them.
