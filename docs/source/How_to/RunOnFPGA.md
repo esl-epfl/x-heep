@@ -99,7 +99,6 @@ make vivado-fpga FPGA_BOARD=pynq-z2
 | DSP              | 1               | 0.5             |
 
 
-
 ### Bigger configuration
 
 
