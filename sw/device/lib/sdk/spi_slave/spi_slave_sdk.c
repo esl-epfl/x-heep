@@ -26,17 +26,16 @@ spi_flags_e spi_host_init(spi_host_t* host) {
     return SPI_FLAG_SUCCESS; // Success
 }
 
-spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t *data, uint16_t length_B) {
+spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t* data, uint16_t length_B) {
 
     uint32_t length_W       = length_B >> 2;
     uint8_t remaining_bytes = length_B % 4;
     uint32_t length_W_tx    = remaining_bytes ? length_W +1 : length_W;  
 
-    uint32_t wrap_length_W_cmds = 
-    (WRITE_SPI_SLAVE_REG_1)                     // Move to the lowest byte
-    | ((length_W_tx & 0xFF) << 8)           // Convert Length in bytes to length in words and move to the second lowest byte
-    | (WRITE_SPI_SLAVE_REG_2 << 16)             // Move to the second highest byte
-    | (((length_W_tx >> 8) & 0xFF) << 24);        // Convert Length in bytes to length in words and move to the highest byte
+    uint32_t wrap_length_W_cmds =   (WRITE_SPI_SLAVE_REG_1)                     // Move to the lowest byte
+                                    | ((length_W_tx & 0xFF) << 8)           // Convert Length in bytes to length in words and move to the second lowest byte
+                                    | (WRITE_SPI_SLAVE_REG_2 << 16)             // Move to the second highest byte
+                                    | (((length_W_tx >> 8) & 0xFF) << 24);        // Convert Length in bytes to length in words and move to the highest byte
 
     spi_write_word(host, wrap_length_W_cmds);
     spi_wait_for_ready(host);
@@ -81,6 +80,83 @@ spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t *data, uint
     return SPI_FLAG_SUCCESS;
 }
 
+
+spi_flags_e spi_slave_read(spi_host_t* host, uint8_t* addr, uint8_t* data, uint16_t length_B, uint8_t dummy_cycles){
+
+    // if(dummy_cycles) send_command_to_spi_host(host, dummy_cycles, true, SPI_DIR_DUMMY);
+    
+    uint32_t length_W           = length_B >> 2;
+    uint8_t remaining_bytes     = length_B % 4;
+    uint32_t length_W_rx        = remaining_bytes ? length_W +1 : length_W; 
+    uint32_t wrap_length_W_cmds =   (WRITE_SPI_SLAVE_REG_1)                     // Move to the lowest byte
+                                    | ((length_W_rx & 0xFF) << 8)           // Convert Length in bytes to length in words and move to the second lowest byte
+                                    | (WRITE_SPI_SLAVE_REG_2 << 16)             // Move to the second highest byte
+                                    | (((length_W_rx >> 8) & 0xFF) << 24);        // Convert Length in bytes to length in words and move to the highest byte
+
+
+    spi_write_word(host, wrap_length_W_cmds);
+    spi_wait_for_ready(host);
+    send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);
+ 
+    spi_write_byte(host, READ_SPI_SLAVE_CMD);
+    spi_wait_for_ready(host);
+    send_command_to_spi_host(host, 1, true, SPI_DIR_TX_ONLY);
+
+    //write address
+    spi_write_word(host, REVERT_ENDIANNESS((uint32_t)addr));
+    spi_wait_for_ready(host); 
+    send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);
+
+    if(dummy_cycles) send_command_to_spi_host(host, dummy_cycles, true, SPI_DIR_DUMMY);
+
+    send_command_to_spi_host(host, length_W_rx*4, false, SPI_DIR_RX_ONLY);
+
+    /*
+     * Set RX watermark to length_B. The watermark is in words.
+     * If the length_B is not a multiple of 4, the RX watermark is set to length_B/4+1
+     * to take into account the extra bytes.
+     * If the length_B is higher then the RX FIFO depth, the RX watermark is set to
+     * RX FIFO depth. In this case the there_is_data_to_read is not set to 0, so the loop will
+     * continue until all the data is read.
+    */
+    uint16_t remaining_W = length_W_rx;
+    uint16_t to_read_W = 0;
+    uint16_t i_start = 0;
+    uint16_t length_B_original = length_B;
+    uint32_t data_32bit;
+    
+    while (remaining_W) {
+
+        to_read_W = (remaining_W >= SPI_HOST_PARAM_RX_DEPTH>>2) ? SPI_HOST_PARAM_RX_DEPTH >> 2 : remaining_W;
+        spi_set_rx_watermark(host, to_read_W);
+        spi_wait_for_rx_watermark(host);
+        // Read data from SPI Host RX FIFO
+        for (uint16_t i = length_W_rx - remaining_W; i < to_read_W-1; i++) {
+            spi_read_word(host, &data_32bit); // Writes a full word
+            ((uint32_t *)data)[i] = REVERT_ENDIANNESS(data_32bit);
+        }
+        remaining_W -= to_read_W;
+    }
+
+    // // Always treat the last word with extra care in case we were not copying a full 32-bit word. 
+    spi_read_word(host, &data_32bit);
+
+    // printf("A%d\n\r",data_32bit);
+
+    data_32bit = REVERT_ENDIANNESS(data_32bit);
+    uint32_t mask = (1 << (8 * remaining_bytes)) - 1; // Only keep the remaining bytes with a mask
+    data_32bit = data_32bit & mask;
+    printf("B%d\n\r",data_32bit);
+    printf("BC%d\n\r", ((uint32_t*)data)[length_W_rx-1]);
+    ((uint32_t*)data)[length_W_rx-1] &= ~mask;
+    printf("C%d\n\r", ((uint32_t*)data)[length_W_rx-1]);
+    ((uint32_t*)data)[length_W_rx-1] |= data_32bit;    
+    printf("D%d\n\r", ((uint32_t*)data)[length_W_rx-1]);  
+    
+    return SPI_FLAG_SUCCESS; // Success
+}
+
+
 void send_command_to_spi_host(spi_host_t* host, uint32_t length_B, bool csaat, uint8_t direction){
     if(direction != SPI_DIR_DUMMY){
         length_B--; //The SPI HOST IP uses length_B-1 = amount of bytes to read and write. But also length_B = amount of dummy cycles
@@ -94,3 +170,4 @@ void send_command_to_spi_host(spi_host_t* host, uint32_t length_B, bool csaat, u
     spi_set_command(host, send_cmd_W);
     spi_wait_for_ready(host);
 }
+
