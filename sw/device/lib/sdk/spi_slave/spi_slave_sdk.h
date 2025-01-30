@@ -1,3 +1,13 @@
+// Copyright 2025 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// File: spi_slave_sdk.h
+// Author: Juan Sapriza
+// Description: This is not an actual SDK. The SPI slave cannot be controlled from 
+// software. This "misleading file" is using the SPI Host SDK to read and write 
+// to the SPI slave.
+
 
 #include "spi_host.h"
 
@@ -10,11 +20,11 @@
 
 
 /** Macros for SPI SLAVE hardware. */
-#define WRITE_SPI_SLAVE_REG_0 0x11
-#define WRITE_SPI_SLAVE_REG_1 0x20
-#define WRITE_SPI_SLAVE_REG_2 0x30
-#define READ_SPI_SLAVE_CMD 0xB
-#define WRITE_SPI_SLAVE_CMD 0x2
+#define WRITE_SPI_SLAVE_REG_0   0x11    // Used to specify the amount of dummy cycles
+#define WRITE_SPI_SLAVE_REG_1   0x20    // To store the 8 LSBs of the wrap length
+#define WRITE_SPI_SLAVE_REG_2   0x30    // To store the 8 MSBs of the wrap length
+#define READ_SPI_SLAVE_CMD      0xB     // Command the SPI slave to READ from memory and send data out
+#define WRITE_SPI_SLAVE_CMD     0x2     // Command the SPI slave to receive data and WRITE it to memory
 
 
 /** Enum for SPI operation status flags. */
@@ -30,12 +40,6 @@ typedef enum {
     //The amount of data exceeds the memory capacity of the SPI SLAVE (X-HEEP)
     SPI_SLAVE_FLAG_SIZE_OF_DATA_EXCEEDED    = 0x0004, 
 } spi_flags_e;
-
-typedef enum {
-    OPERATION_WRITE,
-    OPERATION_READ
-} OperationType;
-
 
 spi_flags_e spi_host_init(spi_host_t* host);
 spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t* data, uint16_t length_B);
