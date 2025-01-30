@@ -1,12 +1,25 @@
+// Copyright 2025 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// File: spi_slave_sdk.c
+// Author: Juan Sapriza
+// Description: This is not an actual SDK. The SPI slave cannot be controlled from 
+// software. This "misleading file" is using the SPI Host SDK to read and write 
+// to the SPI slave.
+
+
 #include "spi_slave_sdk.h"
 
 
-
+/*
+* Initilize the SPI Host
+*/
 spi_flags_e spi_host_init(spi_host_t* host) {
  
     // Enable spi host device
     if( spi_set_enable(host, true) != SPI_FLAG_SUCCESS) return SPI_HOST_FLAG_NOT_INIT;
-    if(spi_output_enable(host, true) != SPI_FLAG_SUCCESS) return SPI_HOST_FLAG_NOT_INIT;
+    if( spi_output_enable(host, true) != SPI_FLAG_SUCCESS) return SPI_HOST_FLAG_NOT_INIT;
 
     // Spi Configuration
     // Configure chip 0 (slave)
@@ -26,47 +39,61 @@ spi_flags_e spi_host_init(spi_host_t* host) {
     return SPI_FLAG_SUCCESS; // Success
 }
 
+/**
+ * @brief Command the SPI slave to write in memory
+ *
+ * @param host The SPI host instance
+ * @param addr uint8_t pointer to memory where the data will be written. 
+ * @param data uint8_t pointer to memory where the data to be written will be copied from. 
+ * @param length_B Length (in bytes) of the data to be copied.
+ * @return SPI_FLAG_SUCCESS always
+*/
 spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t* data, uint16_t length_B) {
 
-    uint32_t length_W       = length_B >> 2;
-    uint8_t remaining_bytes = length_B % 4;
-    uint32_t length_W_tx    = remaining_bytes ? length_W +1 : length_W;  
+    uint32_t length_W       = length_B >> 2;    // The length in bytes is converted to length in 32-bit words
+    uint8_t remaining_bytes = length_B % 4;     // The bytes that do not fit in full words are managed separately
+    uint32_t length_W_tx    = remaining_bytes ? length_W +1 : length_W;  // We will request the SPI to write an extra word if there are remaining bytes
 
-    uint32_t wrap_length_W_cmds =   (WRITE_SPI_SLAVE_REG_1)                     // Move to the lowest byte
+    // Write the wrap length: How many words will be sent
+    uint32_t wrap_length_W_cmds =   (WRITE_SPI_SLAVE_REG_1)                 // Move to the lowest byte
                                     | ((length_W_tx & 0xFF) << 8)           // Convert Length in bytes to length in words and move to the second lowest byte
-                                    | (WRITE_SPI_SLAVE_REG_2 << 16)             // Move to the second highest byte
-                                    | (((length_W_tx >> 8) & 0xFF) << 24);        // Convert Length in bytes to length in words and move to the highest byte
+                                    | (WRITE_SPI_SLAVE_REG_2 << 16)         // Move to the second highest byte
+                                    | (((length_W_tx >> 8) & 0xFF) << 24);  // Convert Length in bytes to length in words and move to the highest byte
 
-    spi_write_word(host, wrap_length_W_cmds);
-    spi_wait_for_ready(host);
-    send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);
+    // Send the wrap length (how many words are going to be sent)
+    spi_write_word(host, wrap_length_W_cmds);                   // The value is added to the buffer
+    spi_wait_for_ready(host);                                   // Blockingly wait until the SPI host is free
+    send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);   // Send the command. One full word. 
 
-    spi_write_byte(host, WRITE_SPI_SLAVE_CMD);
-    spi_wait_for_ready(host); 
-    send_command_to_spi_host(host, 1, true, SPI_DIR_TX_ONLY);
+    // Send the command to instruct the slave that it will be writing in memory
+    spi_write_byte(host, WRITE_SPI_SLAVE_CMD);                  // The value is added to the buffer 
+    spi_wait_for_ready(host);                                   // Blockingly wait until the SPI host is free
+    send_command_to_spi_host(host, 1, true, SPI_DIR_TX_ONLY);   // Send the command. One full word. 
 
-    ///write address
-    spi_write_word(host, REVERT_ENDIANNESS((uint32_t)addr));
-    spi_wait_for_ready(host); 
-    send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);
+    ///write the address in memory where the data needs to be written to
+    spi_write_word(host, REVERT_ENDIANNESS((uint32_t)addr));    // The value is added to the buffer
+    spi_wait_for_ready(host);                                   // Blockingly wait until the SPI host is free
+    send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);   // Send the command. One full word. 
 
  
     /*
      * Place data in TX FIFO
-     * We fill the FIFO of the SPI host and then flush every 72 words (the depth of the fifo)
+     * We fill the FIFO of the SPI host and then flush every 72 words (the depth of the fifo).
     */
     uint16_t words_in_fifo = 0;
-    uint32_t *data_32bit = (uint32_t *)data;
     for (uint16_t i = 0; i < length_W; i++) {
         if( words_in_fifo == SPI_HOST_PARAM_TX_DEPTH){
             send_command_to_spi_host(host, SPI_HOST_PARAM_TX_DEPTH*4, true, SPI_DIR_TX_ONLY);
             words_in_fifo = 0;
         }
         spi_wait_for_tx_not_full(host);
-        spi_write_word(host, REVERT_ENDIANNESS(data_32bit[i]));
+        spi_write_word(host, REVERT_ENDIANNESS( ((uint32_t *)data)[i]));
         words_in_fifo++;
     }
     
+     /*
+     * The remaining bytes are added to an extra word. The copied word from memory is cleaned with a mask before sending.
+    */
     if ( remaining_bytes ) {
         uint32_t mask = (1 << (8 * remaining_bytes)) - 1; // Only keep the remaining bytes with a mask
         uint32_t last_word = ((uint32_t*)data)[length_W] & mask;
