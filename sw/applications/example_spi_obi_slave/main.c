@@ -436,5 +436,8 @@ bool test_process(Dataset *dataset, OperationType operation, uint8_t dummy_cycle
         }
         free(compare_data_read);
     }
+
+
+
     return EXIT_SUCCESS;
 }

@@ -38,6 +38,7 @@ typedef enum {
 
 
 spi_flags_e spi_host_init(spi_host_t* host);
-spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t *data, uint16_t length);
+spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t* data, uint16_t length_B);
+spi_flags_e spi_slave_read(spi_host_t* host, uint8_t* addr, uint8_t* data, uint16_t length, uint8_t dummy_cycles);
 void spi_slave_write_wrap_length(spi_host_t* host, uint16_t length); 
 void send_command_to_spi_host(spi_host_t* host, uint32_t len, bool csaat, uint8_t direction);
