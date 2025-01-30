@@ -83,8 +83,6 @@ spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t* data, uint
 
 spi_flags_e spi_slave_read(spi_host_t* host, uint8_t* addr, uint8_t* data, uint16_t length_B, uint8_t dummy_cycles){
 
-    // if(dummy_cycles) send_command_to_spi_host(host, dummy_cycles, true, SPI_DIR_DUMMY);
-    
     uint32_t length_W           = length_B >> 2;
     uint8_t remaining_bytes     = length_B % 4;
     uint32_t length_W_rx        = remaining_bytes ? length_W +1 : length_W; 
@@ -141,17 +139,11 @@ spi_flags_e spi_slave_read(spi_host_t* host, uint8_t* addr, uint8_t* data, uint1
     // // Always treat the last word with extra care in case we were not copying a full 32-bit word. 
     spi_read_word(host, &data_32bit);
 
-    // printf("A%d\n\r",data_32bit);
-
     data_32bit = REVERT_ENDIANNESS(data_32bit);
     uint32_t mask = (1 << (8 * remaining_bytes)) - 1; // Only keep the remaining bytes with a mask
     data_32bit = data_32bit & mask;
-    printf("B%d\n\r",data_32bit);
-    printf("BC%d\n\r", ((uint32_t*)data)[length_W_rx-1]);
     ((uint32_t*)data)[length_W_rx-1] &= ~mask;
-    printf("C%d\n\r", ((uint32_t*)data)[length_W_rx-1]);
     ((uint32_t*)data)[length_W_rx-1] |= data_32bit;    
-    printf("D%d\n\r", ((uint32_t*)data)[length_W_rx-1]);  
     
     return SPI_FLAG_SUCCESS; // Success
 }
