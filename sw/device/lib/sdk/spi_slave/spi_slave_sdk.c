@@ -43,12 +43,12 @@ spi_flags_e spi_host_init(spi_host_t* host) {
  * @brief Command the SPI slave to write in memory
  *
  * @param host The SPI host instance
- * @param addr uint8_t pointer to memory where the data will be written. 
- * @param data uint8_t pointer to memory where the data to be written will be copied from. 
+ * @param write_addr uint8_t Address in the slave's memory where the data will be written. 
+ * @param read_ptr uint8_t pointer to memory where the data is read from. 
  * @param length_B Length (in bytes) of the data to be copied.
  * @return SPI_FLAG_SUCCESS always
 */
-spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t* data, uint16_t length_B) {
+spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* write_addr, uint8_t* read_ptr, uint16_t length_B) {
 
     uint32_t length_W       = length_B >> 2;    // The length in bytes is converted to length in 32-bit words
     uint8_t remaining_bytes = length_B % 4;     // The bytes that do not fit in full words are managed separately
@@ -71,13 +71,13 @@ spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t* data, uint
     send_command_to_spi_host(host, 1, true, SPI_DIR_TX_ONLY);   // Send the command. One full word. 
 
     ///write the address in memory where the data needs to be written to
-    spi_write_word(host, REVERT_ENDIANNESS((uint32_t)addr));    // The value is added to the buffer
+    spi_write_word(host, REVERT_ENDIANNESS((uint32_t)write_addr));    // The value is added to the buffer
     spi_wait_for_ready(host);                                   // Blockingly wait until the SPI host is free
     send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);   // Send the command. One full word. 
 
  
     /*
-     * Place data in TX FIFO
+     * Place read_ptr in TX FIFO
      * We fill the FIFO of the SPI host and then flush every 72 words (the depth of the fifo).
     */
     uint16_t words_in_fifo = 0;
@@ -87,7 +87,7 @@ spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t* data, uint
             words_in_fifo = 0;
         }
         spi_wait_for_tx_not_full(host);
-        spi_write_word(host, REVERT_ENDIANNESS( ((uint32_t *)data)[i]));
+        spi_write_word(host, REVERT_ENDIANNESS( ((uint32_t *)read_ptr)[i]));
         words_in_fifo++;
     }
     
@@ -96,7 +96,7 @@ spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t* data, uint
     */
     if ( remaining_bytes ) {
         uint32_t mask = (1 << (8 * remaining_bytes)) - 1; // Only keep the remaining bytes with a mask
-        uint32_t last_word = ((uint32_t*)data)[length_W] & mask;
+        uint32_t last_word = ((uint32_t*)read_ptr)[length_W] & mask;
         spi_wait_for_tx_not_full(host);
         spi_write_word(host,  REVERT_ENDIANNESS( last_word ) );
     }
@@ -107,8 +107,16 @@ spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* addr, uint8_t* data, uint
     return SPI_FLAG_SUCCESS;
 }
 
-
-spi_flags_e spi_slave_read(spi_host_t* host, uint8_t* addr, uint8_t* data, uint16_t length_B, uint8_t dummy_cycles){
+/**
+ * @brief Command the SPI slave to write in memory
+ *
+ * @param host The SPI host instance
+ * @param read_address uint8_t Address in the slave's memory where the data will be read from. 
+ * @param write_ptr uint8_t pointer to memory where the data is written to. 
+ * @param length_B Length (in bytes) of the data to be copied.
+ * @return SPI_FLAG_SUCCESS always
+*/
+spi_flags_e spi_slave_read(spi_host_t* host, uint8_t* read_address, uint8_t* write_ptr, uint16_t length_B, uint8_t dummy_cycles){
 
     uint32_t length_W           = length_B >> 2;
     uint8_t remaining_bytes     = length_B % 4;
@@ -128,7 +136,7 @@ spi_flags_e spi_slave_read(spi_host_t* host, uint8_t* addr, uint8_t* data, uint1
     send_command_to_spi_host(host, 1, true, SPI_DIR_TX_ONLY);
 
     //write address
-    spi_write_word(host, REVERT_ENDIANNESS((uint32_t)addr));
+    spi_write_word(host, REVERT_ENDIANNESS((uint32_t)read_address));
     spi_wait_for_ready(host); 
     send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);
 
@@ -142,7 +150,7 @@ spi_flags_e spi_slave_read(spi_host_t* host, uint8_t* addr, uint8_t* data, uint1
      * to take into account the extra bytes.
      * If the length_B is higher then the RX FIFO depth, the RX watermark is set to
      * RX FIFO depth. In this case the there_is_data_to_read is not set to 0, so the loop will
-     * continue until all the data is read.
+     * continue until all the write_ptr is read.
     */
     uint16_t remaining_W = length_W_rx;
     uint16_t to_read_W = 0;
@@ -155,23 +163,26 @@ spi_flags_e spi_slave_read(spi_host_t* host, uint8_t* addr, uint8_t* data, uint1
         to_read_W = (remaining_W >= SPI_HOST_PARAM_RX_DEPTH>>2) ? SPI_HOST_PARAM_RX_DEPTH >> 2 : remaining_W;
         spi_set_rx_watermark(host, to_read_W);
         spi_wait_for_rx_watermark(host);
-        // Read data from SPI Host RX FIFO
-        for (uint16_t i = length_W_rx - remaining_W; i < to_read_W-1; i++) {
+        // Read write_ptr from SPI Host RX FIFO
+        // If there are remaining bytes (# bytes to read is not multiple of 4), do not read the last word
+        for (uint16_t i = length_W_rx - remaining_W; i < to_read_W - (remaining_bytes!=0); i++) {
             spi_read_word(host, &data_32bit); // Writes a full word
-            ((uint32_t *)data)[i] = REVERT_ENDIANNESS(data_32bit);
+            ((uint32_t *)write_ptr)[i] = REVERT_ENDIANNESS(data_32bit);
         }
         remaining_W -= to_read_W;
     }
 
-    // // Always treat the last word with extra care in case we were not copying a full 32-bit word. 
-    spi_read_word(host, &data_32bit);
+    if( remaining_bytes ){
+        // // Always treat the last word with extra care in case we were not copying a full 32-bit word. 
+        spi_read_word(host, &data_32bit);
 
-    data_32bit = REVERT_ENDIANNESS(data_32bit);
-    uint32_t mask = (1 << (8 * remaining_bytes)) - 1; // Only keep the remaining bytes with a mask
-    data_32bit = data_32bit & mask;
-    ((uint32_t*)data)[length_W_rx-1] &= ~mask;
-    ((uint32_t*)data)[length_W_rx-1] |= data_32bit;    
-    
+        data_32bit = REVERT_ENDIANNESS(data_32bit);
+        uint32_t mask = (1 << (8 * remaining_bytes)) - 1; // Only keep the remaining bytes with a mask
+        data_32bit = data_32bit & mask;
+        ((uint32_t*)write_ptr)[length_W_rx-1] &= ~mask;
+        ((uint32_t*)write_ptr)[length_W_rx-1] |= data_32bit;    
+    }
+
     return SPI_FLAG_SUCCESS; // Success
 }
 
