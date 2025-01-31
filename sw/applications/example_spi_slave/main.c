@@ -30,6 +30,8 @@ int main(){
     host = spi_host1;
     spi_return_flags_e flags;
 
+    PRINTF("STARTING...\n\r");
+
     // Initialize the SPI host to transmit data to the SPI slave
     if( spi_host_init(host)!= SPI_FLAG_SUCCESS) {
         PRINTF("Failure to initialize\n\r");
