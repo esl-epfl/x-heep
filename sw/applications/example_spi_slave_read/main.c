@@ -20,9 +20,10 @@
 #define DUMMY_CYCLES  32
 
 #define DATA_LENGTH_B   200
-#define DATA_CHUNK_W    3
-#define CHUNKS_N        (DATA_LENGTH_B/(DATA_CHUNK_W*4)) + ((DATA_LENGTH_B%(DATA_CHUNK_W*4))!=0)
-
+#define DATA_CHUNK_W    1
+#define DATA_CHUNK_B    1
+#define CHUNKS_NW       (DATA_LENGTH_B/(DATA_CHUNK_W*4)) + ((DATA_LENGTH_B%(DATA_CHUNK_W*4))!=0)
+#define CHUNKS_NB       (DATA_LENGTH_B/DATA_CHUNK_B)
 
 uint8_t buffer_src[DATA_LENGTH_B] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 
@@ -36,20 +37,52 @@ uint8_t buffer_src[DATA_LENGTH_B] = {
 uint8_t buffer_dst[DATA_LENGTH_B];
 
 int main(){
+    uint16_t i;
 
     if( spi_host_init(spi_host1)!= SPI_FLAG_SUCCESS) return EXIT_FAILURE;
 
+    uint8_t byte_by_byte_length_b = 10;
 
-    for( uint8_t i=0; i<CHUNKS_N; i++){
-        spi_slave_read(spi_host1, &buffer_src[i*DATA_CHUNK_W*4], &buffer_dst[i*DATA_CHUNK_W*4], DATA_CHUNK_W<<2, DUMMY_CYCLES);
+    for( i=0; i<byte_by_byte_length_b; i++){
+        spi_slave_request_read(spi_host1,&buffer_src[i],  1, DUMMY_CYCLES );
+        spi_wait_for_rx_watermark(spi_host1);
+        buffer_dst[i] = spi_copy_byte(spi_host1, i%4 );
     }
 
-    // check that the new values still match
-    for(int i=0; i < DATA_LENGTH_B; i++){
-        // printf("%d,%d\n\r",buffer_src[i], buffer_dst[i] );
+    for(int i=0; i < byte_by_byte_length_b; i++){
         if(buffer_src[i] != buffer_dst[i]) return EXIT_FAILURE;
     }
-    PRINTF("READ OK\n\r");
+    PRINTF("B/B OK\n\r");
+
+
+    uint8_t word_by_word_length_w = 10;
+    uint8_t start_w = byte_by_byte_length_b/4;
+
+    for( i=0; i<word_by_word_length_w; i++){
+        spi_slave_request_read(spi_host1,&((uint32_t*)buffer_src)[start_w + i],  4, DUMMY_CYCLES );
+        spi_wait_for_rx_watermark(spi_host1);
+        ((uint32_t*)buffer_dst)[ start_w + i ] = spi_copy_word(spi_host1);
+    }
+
+    for(int i=start_w; i < start_w+word_by_word_length_w*4; i++){
+        if(buffer_src[i] != buffer_dst[i]) return EXIT_FAILURE;
+    }
+    PRINTF("W/W OK\n\r");
+
+    uint8_t chunk_w     = 5;
+    uint8_t chunks_n    = 5;
+    start_w               += word_by_word_length_w;
+
+    for( i=0; i<chunks_n; i++){
+        spi_slave_request_read(spi_host1,&((uint32_t*)buffer_src)[start_w + i*chunk_w],  chunk_w*4, DUMMY_CYCLES );
+        spi_wait_for_rx_watermark(spi_host1);
+        spi_copy_words( spi_host1, &((uint32_t*)buffer_dst)[start_w + i*chunk_w],  chunk_w );
+    }
+
+    for( i=start_w*4; i < start_w*4 + chunks_n*chunk_w*4; i++){
+        if(buffer_src[i] != buffer_dst[i]) return EXIT_FAILURE;
+    }
+    PRINTF("C/C OK\n\r");
 
     return EXIT_SUCCESS;
 }
