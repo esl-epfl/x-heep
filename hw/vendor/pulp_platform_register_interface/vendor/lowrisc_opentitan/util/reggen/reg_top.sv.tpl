@@ -20,6 +20,11 @@
   max_regs_char = len("{}".format(len(regs_flat) - 1))
   addr_width = rb.get_addr_width()
 
+  # Used for the dev_select_i signal on a tlul_socket_1n with N =
+  # num_wins + 1. This needs to be able to represent any value up to
+  # N-1.
+  steer_msb = ((num_wins).bit_length()) - 1
+
   lblock = block.name.lower()
   ublock = lblock.upper()
 
@@ -189,7 +194,7 @@ module ${mod_name} \
       % endif
   % endif
 % else:
-  logic [${num_wins_width-1}:0] reg_steer;
+  logic [${steer_msb}:0] reg_steer;
 
   % if use_reg_iface:
   ${reg_intf_req} [${num_dsp}-1:0] reg_intf_demux_req;
