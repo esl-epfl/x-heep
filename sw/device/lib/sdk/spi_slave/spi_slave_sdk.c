@@ -55,13 +55,13 @@ spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* write_addr, uint8_t* read
     uint32_t length_w_tx    = remaining_bytes ? length_w +1 : length_w;  // We will request the SPI to write an extra word if there are remaining bytes
 
     // Write the wrap length: How many words will be sent
-    uint32_t wrap_length_w_cmds =   (WRITE_SPI_SLAVE_REG_1)                 // Move to the lowest byte
-                                    | ((length_w_tx & 0xFF) << 8)           // Convert Length in bytes to length in words and move to the second lowest byte
-                                    | (WRITE_SPI_SLAVE_REG_2 << 16)         // Move to the second highest byte
-                                    | (((length_w_tx >> 8) & 0xFF) << 24);  // Convert Length in bytes to length in words and move to the highest byte
+    uint32_t command =   (WRITE_SPI_SLAVE_REG_1)                 // Move to the lowest byte
+                        | ((length_w_tx & 0xFF) << 8)           // Convert Length in bytes to length in words and move to the second lowest byte
+                        | (WRITE_SPI_SLAVE_REG_2 << 16)         // Move to the second highest byte
+                        | (((length_w_tx >> 8) & 0xFF) << 24);  // Convert Length in bytes to length in words and move to the highest byte
 
     // Send the wrap length (how many words are going to be sent)
-    spi_write_word(host, wrap_length_w_cmds);                   // The value is added to the buffer
+    spi_write_word(host, command);                   // The value is added to the buffer
     spi_wait_for_ready(host);                                   // Blockingly wait until the SPI host is free
     send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);   // Send the command. One full word. 
 
@@ -111,26 +111,46 @@ uint16_t spi_slave_request_read( spi_host_t* host, uint8_t* read_address, uint16
     uint32_t length_w           = length_B >> 2;
     uint8_t remaining_bytes     = length_B % 4;
     uint32_t length_w_rx        = remaining_bytes ? length_w +1 : length_w; 
-    uint32_t wrap_length_w_cmds =   (WRITE_SPI_SLAVE_REG_1)                     // Move to the lowest byte
-                                    | ((length_w_rx & 0xFF) << 8)           // Convert Length in bytes to length in words and move to the second lowest byte
-                                    | (WRITE_SPI_SLAVE_REG_2 << 16)             // Move to the second highest byte
-                                    | (((length_w_rx >> 8) & 0xFF) << 24);        // Convert Length in bytes to length in words and move to the highest byte
+    uint32_t command;
 
 
-    spi_write_word(host, wrap_length_w_cmds);
+    // Dummy cycles
+    command = (WRITE_SPI_SLAVE_REG_0) | ((dummy_cycles & 0xFF) << 8);           
+    spi_write_word(host, command);
+    spi_wait_for_ready(host);
+    send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);
+
+    // Wrap length
+    command =   (WRITE_SPI_SLAVE_REG_1)                     // Move to the lowest byte
+                | ((length_w_rx & 0xFF) << 8)           // Convert Length in bytes to length in words and move to the second lowest byte
+                | (WRITE_SPI_SLAVE_REG_2 << 16)             // Move to the second highest byte
+                | (((length_w_rx >> 8) & 0xFF) << 24);        // Convert Length in bytes to length in words and move to the highest byte
+    spi_write_word(host, command);
     spi_wait_for_ready(host);
     send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);
  
+    // Dummy cycles
+    command = (WRITE_SPI_SLAVE_REG_0) | ((dummy_cycles & 0xFF) << 8);           
+    spi_write_word(host, command);
+    spi_wait_for_ready(host);
+    send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);
+
+    // SPI slave Read 
     spi_write_byte(host, READ_SPI_SLAVE_CMD);
     spi_wait_for_ready(host);
     send_command_to_spi_host(host, 1, true, SPI_DIR_TX_ONLY);
+
 
     //write address
     spi_write_word(host, REVERT_ENDIANNESS((uint32_t)read_address));
     spi_wait_for_ready(host); 
     send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);
 
-    if(dummy_cycles) send_command_to_spi_host(host, dummy_cycles, true, SPI_DIR_DUMMY);
+
+
+    send_command_to_spi_host(host, dummy_cycles, true, SPI_DIR_DUMMY);
+
+    // spi_wait_for_ready(host);
 
     send_command_to_spi_host(host, length_w_rx*4, false, SPI_DIR_RX_ONLY);
 
