@@ -17,7 +17,7 @@
 #define PRINTF(...)
 #endif
 
-#define DUMMY_CYCLES  32
+#define DUMMY_CYCLES  10
 
 #define DATA_LENGTH_B   200
 #define DATA_CHUNK_W    1
