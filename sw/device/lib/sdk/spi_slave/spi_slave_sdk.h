@@ -23,8 +23,8 @@
 #define WRITE_SPI_SLAVE_REG_0   0x11    // Used to specify the amount of dummy cycles
 #define WRITE_SPI_SLAVE_REG_1   0x20    // To store the 8 LSBs of the wrap length
 #define WRITE_SPI_SLAVE_REG_2   0x30    // To store the 8 MSBs of the wrap length
-#define READ_SPI_SLAVE_CMD      0xB     // Command the SPI slave to READ from memory and send data out
-#define WRITE_SPI_SLAVE_CMD     0x2     // Command the SPI slave to receive data and WRITE it to memory
+#define SPI_SLAVE_CMD_READ      0xB     // Command the SPI slave to READ from memory and send data out
+#define SPI_SLAVE_CMD_WRITE     0x2     // Command the SPI slave to receive data and WRITE it to memory
 
 
 /** Enum for SPI operation status flags. */

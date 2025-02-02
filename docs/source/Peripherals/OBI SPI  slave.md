@@ -111,7 +111,7 @@ static spi_flags_e spi_slave_write(uint32_t addr, uint32_t *data, uint16_t lengt
 
     spi_slave_write_wrap_length(length);
 
-    spi_write_byte(spi_hst, WRITE_SPI_SLAVE_CMD);
+    spi_write_byte(spi_hst, SPI_SLAVE_CMD_WRITE);
     spi_wait_for_ready(spi_hst); 
     send_command_to_spi_host(1, true, SPI_DIR_TX_ONLY);
 
@@ -216,7 +216,7 @@ spi_flags_e spi_slave_write(uint32_t addr, uint32_t *data, uint16_t length) {
 
     ...
 
-    spi_write_byte(spi_hst, WRITE_SPI_SLAVE_CMD);
+    spi_write_byte(spi_hst, SPI_SLAVE_CMD_WRITE);
     spi_wait_for_ready(spi_hst); 
     send_command_to_spi_host(1, true, SPI_DIR_TX_ONLY);
 
@@ -334,7 +334,7 @@ spi_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uint8_t d
     spi_slave_write_wrap_length(length);
  
 
-    spi_write_byte(spi_hst, READ_SPI_SLAVE_CMD);
+    spi_write_byte(spi_hst, SPI_SLAVE_CMD_READ);
     spi_wait_for_ready(spi_hst);
 
     send_command_to_spi_host(1, true, SPI_DIR_TX_ONLY);
@@ -431,7 +431,7 @@ spi_flags_e spi_slave_read(uint32_t addr, void* data, uint16_t length, uint8_t d
  
     ...
  
-    spi_write_byte(spi_hst, READ_SPI_SLAVE_CMD);
+    spi_write_byte(spi_hst, SPI_SLAVE_CMD_READ);
     spi_wait_for_ready(spi_hst);
 
     send_command_to_spi_host(1, true, SPI_DIR_TX_ONLY);
