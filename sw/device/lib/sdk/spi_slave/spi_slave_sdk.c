@@ -53,28 +53,10 @@ spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* write_addr, uint8_t* read
     uint8_t remaining_bytes = length_B % 4;     // The bytes that do not fit in full words are managed separately
     uint32_t length_w_tx    = remaining_bytes ? length_w +1 : length_w;  // We will request the SPI to write an extra word if there are remaining bytes
 
-    // Write the wrap length: How many words will be sent
-    uint32_t command =   (WRITE_SPI_SLAVE_REG_1)                 // Move to the lowest byte
-                        | ((length_w_tx & 0xFF) << 8)           // Convert Length in bytes to length in words and move to the second lowest byte
-                        | (WRITE_SPI_SLAVE_REG_2 << 16)         // Move to the second highest byte
-                        | (((length_w_tx >> 8) & 0xFF) << 24);  // Convert Length in bytes to length in words and move to the highest byte
-
-    // Send the wrap length (how many words are going to be sent)
-    spi_write_word(host, command);                   // The value is added to the buffer
-    spi_wait_for_ready(host);                                   // Blockingly wait until the SPI host is free
-    send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);   // Send the command. One full word. 
-
-    // Send the command to instruct the slave that it will be writing in memory
-    spi_write_byte(host, WRITE_SPI_SLAVE_CMD);                  // The value is added to the buffer 
-    spi_wait_for_ready(host);                                   // Blockingly wait until the SPI host is free
-    send_command_to_spi_host(host, 1, true, SPI_DIR_TX_ONLY);   // Send the command. One full word. 
-
-    ///write the address in memory where the data needs to be written to
-    spi_write_word(host, REVERT_ENDIANNESS((uint32_t)write_addr));    // The value is added to the buffer
-    spi_wait_for_ready(host);                                   // Blockingly wait until the SPI host is free
-    send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);   // Send the command. One full word. 
-
- 
+    spi_slave_send_wrap_length(host, length_w_tx);
+    spi_slave_send_dir(host, SPI_SLAVE_CMD_WRITE);
+    spi_slave_send_address(host,write_addr );
+    
     /*
      * Place read_ptr in TX FIFO
      * We fill the FIFO of the SPI host and then flush every 72 words (the depth of the fifo).
@@ -121,8 +103,8 @@ uint16_t spi_slave_request_read( spi_host_t* host, uint8_t* read_address, uint16
 
     spi_slave_send_dummy_cycles(host, dummy_cycles);
     spi_slave_send_wrap_length(host, length_w);
-    spi_slave_send_read(host);
-    spi_slave_send_read_address( host, read_address );
+    spi_slave_send_dir(host, SPI_SLAVE_CMD_READ);
+    spi_slave_send_address( host, read_address );
 
     send_command_to_spi_host(host, dummy_cycles, true, SPI_DIR_DUMMY);
     send_command_to_spi_host(host, length_w*4, false, SPI_DIR_RX_ONLY);
@@ -150,32 +132,33 @@ void spi_slave_send_dummy_cycles( spi_host_t* host, uint8_t dummy_cycles ){
  * @param length_w The length in words to be read. .
 */
 void spi_slave_send_wrap_length( spi_host_t* host,uint16_t length_w ){
-    uint32_t command            = (WRITE_SPI_SLAVE_REG_1)                     // Move to the lowest byte
-                                    | ((length_w & 0xFF) << 8)           // Convert Length in bytes to length in words and move to the second lowest byte
-                                    | (WRITE_SPI_SLAVE_REG_2 << 16)             // Move to the second highest byte
-                                    | (((length_w >> 8) & 0xFF) << 24);        // Convert Length in bytes to length in words and move to the highest byte
+    uint32_t command = (WRITE_SPI_SLAVE_REG_1)               // Move to the lowest byte
+                        | ((length_w & 0xFF) << 8)           // Convert Length in bytes to length in words and move to the second lowest byte
+                        | (WRITE_SPI_SLAVE_REG_2 << 16)      // Move to the second highest byte
+                        | (((length_w >> 8) & 0xFF) << 24);  // Convert Length in bytes to length in words and move to the highest byte
     spi_write_word(host, command);
     spi_wait_for_ready(host);
     send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);
 }
 
 /**
- * @brief Send the order to start a read transaction. You later need to call spi_slave_send_read_address
+ * @brief Send the order to start a read/write transaction. You later need to call spi_slave_send_address
  * @param host The SPI host instance
+ * @param dir The transaction's direction: either SPI_SLAVE_CMD_READ or SPI_SLAVE_CMD_WRITE
 */
-void spi_slave_send_read( spi_host_t* host ){
-    spi_write_byte(host, READ_SPI_SLAVE_CMD);
+void spi_slave_send_dir( spi_host_t* host, uint8_t dir ){
+    spi_write_byte(host, dir);
     spi_wait_for_ready(host);
     send_command_to_spi_host(host, 1, true, SPI_DIR_TX_ONLY);
 }
 
 /**
- * @brief Send the read address to the SPI slave. This command will trigger the beginning of the transaction.
+ * @brief Send the read/write address to the SPI slave. This command will trigger the beginning of the transaction.
  * The SPI slave will wait for the specified dummy cycles before sending the data. 
  * @param host The SPI host instance
 */
-void spi_slave_send_read_address( spi_host_t* host, uint8_t* read_address ){
-    spi_write_word(host, REVERT_ENDIANNESS((uint32_t)read_address));
+void spi_slave_send_address( spi_host_t* host, uint8_t* address ){
+    spi_write_word(host, REVERT_ENDIANNESS((uint32_t)address));
     spi_wait_for_ready(host); 
     send_command_to_spi_host(host, 4, true, SPI_DIR_TX_ONLY);
 }
