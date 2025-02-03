@@ -51,6 +51,13 @@ ____________________________________________________
                     Master->|(Ck)(Mo)           |   
                             |(Cs)[  ]           | PMODs
 
+
+Disclaimer: 
+The FPGAs can have different bitstreams as long as the pinout remains the same. 
+The two softwares instead NEED TO BE THE SAME. We are cheating in this demo by using the same software in both FPGAs.
+This allows us to know the address of the buffer with the data on the slave X-HEEP (because it is linked to the same
+location as in the master!). Even adding one tiny printf on one of the devices might make this addresses to not match, 
+so the application will fail (you will read from the wrong address).
 */
 
 #include <stdint.h>
