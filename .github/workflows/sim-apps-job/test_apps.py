@@ -50,7 +50,7 @@ apps = {app: {"building": "", "simulation": ""} for app in app_list}
 print(BColors.OKBLUE + f"Generating {SIMULATOR} model of X-HEEP..." + BColors.ENDC)
 try:
     simulation_build_output = subprocess.run(
-        ["make", f"{SIMULATOR}-sim"], capture_output=True, check=False
+        ["make", f"{SIMULATOR}-sim"], capture_output=True, check=True
     )
 except subprocess.CalledProcessError as exc:
     print(BColors.FAIL + "=====================================" + BColors.ENDC)
@@ -64,6 +64,7 @@ else:
         + f"Generated {SIMULATOR} model of X-HEEP successfully!"
         + BColors.ENDC
     )
+    print(str(simulation_build_output.stdout.decode("utf-8")))
 
 error_pattern = r"Program Finished with value (\d+)"
 
