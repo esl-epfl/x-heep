@@ -101,7 +101,7 @@ bank_sizes_B = [32*1024] * (num_banks)
 banks = []
 for i in range(num_banks):
     bank = {
-        'type'  : "C" if i<(num_banks-num_il_banks) else "I",
+        'type'  : "Cont" if i<(num_banks-num_il_banks) else "IntL",
         'size'  : bank_sizes_B[i],
 
     }
@@ -154,18 +154,18 @@ data_start_B =  regions['data']['origin_B']
 
 print("")
 
-for bank in banks:
+for i, bank in enumerate(banks):
     bank['use'] = ['-']*int((bank['size']/granularity_B))
     utilization = 0
 
-    if bank['type'] == 'C':
+    if bank['type'] == 'Cont':
         for piece in range(len(bank['use'])):
             address += granularity_B
             if address <= regions['code']['origin_B'] + size_code_B:
                 if address <= regions['code']['origin_B'] + regions['code']['length_B']:
-                    bank['use'][piece] = 'P'
+                    bank['use'][piece] = 'C'
                 else:
-                    bank['use'][piece] = 'x'
+                    bank['use'][piece] = '!'
                 utilization += granularity_B
 
             elif address >= data_start_B  and address <= data_start_B + size_data_B:
@@ -177,7 +177,7 @@ for bank in banks:
             else:
                 bank['use'][piece] = '-'
 
-    if bank['type'] == "I":
+    if bank['type'] == "IntL":
         size_per_il_bank = int((size_ildt_B/num_il_banks)/granularity_B)
         for piece in range(size_per_il_bank):
             bank['use'][piece] = 'd'
@@ -186,5 +186,5 @@ for bank in banks:
 
 
     bank['use'] = ''.join([''.join(sublist) for sublist in bank['use']])
-    print(bank['type'],bank['use'], f"\t{100*(utilization/bank['size']):0.1f}%")
+    print(bank['type'],i,bank['use'], f"\t{100*(utilization/bank['size']):0.1f}%")
 
