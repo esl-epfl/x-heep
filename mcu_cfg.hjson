@@ -120,13 +120,13 @@
         pdm2pcm: {
             offset:  0x00060000,
             length:  0x00010000,
-            is_included: "yes",
+            is_included: "no",
             path:    "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
         },
         i2s: {
             offset:  0x00070000,
             length:  0x00010000,
-            is_included: "no",
+            is_included: "yes",
             path:    "./hw/ip/i2s/data/i2s.hjson"
         },
 
