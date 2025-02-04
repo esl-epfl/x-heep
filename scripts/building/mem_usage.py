@@ -3,6 +3,7 @@ def parse_map_file(file_path):
     with open(file_path, 'r') as file:
         collect = False
         for line in file:
+            if line.startswith('.comment'): break
             if line.startswith('.text') or line.startswith('.data') or line.startswith('.bss'):
                 collect = True
             if collect:
@@ -68,6 +69,7 @@ def find_hex_numbers(file_path):
 
     with open(file_path, 'r') as file:
         for line in file:
+            if line.startswith('.comment'): break
             matches = pattern.findall(line)
             if matches:
                 occurrences.extend(matches)
@@ -78,7 +80,8 @@ def extract_ildt_length(file_path):
     # Regex to match `.data_interleaved` followed by any amount of non-printable characters,
     # then a long hex number, more non-printable characters, and finally a short hex number.
     pattern = re.compile(r'\.data_interleaved\s+0x[0-9A-Fa-f]+\s+0x[0-9A-Fa-f]+')
-    ildt_length = None
+    ildt_length     = None
+    ildt_address    = None
 
     with open(file_path, 'r') as file:
         content = file.read()  # Read the whole file into a single string
@@ -86,9 +89,9 @@ def extract_ildt_length(file_path):
         if matches:
             last_match = matches[-1]  # Get the last match
             parts = last_match.split()
-            # ildt_length = parts[-1]  # Extract the last hex number from the last match
-
-    return parts[-2], parts[-1]
+            ildt_length = parts[-1]  # Extract the last hex number from the last match
+            ildt_address = parts[-2]
+    return ildt_address, ildt_length
 
 
 num_banks, num_il_banks = parse_sv_file('hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv')
@@ -126,21 +129,25 @@ regions['ildt']['length_B'] = regions['ildt']['length']
 addr_ildt_hex, size_ildt_hex   = extract_ildt_length('sw/build/main.map')
 
 hexs = find_hex_numbers('sw/build/main.map')
-last_valid_address_idx = hexs[::-1].index(addr_ildt_hex)
-hexs = hexs[:-last_valid_address_idx]
+try:
+    last_valid_address_idx = hexs[::-1].index(addr_ildt_hex)
+    hexs = hexs[:-last_valid_address_idx]   
+    size_ildt_B = int(size_ildt_hex,16)
+except:
+    size_ildt_B = 0
 
 import numpy as np
 hexs = np.array([ int(h,16) if h != '0xffffffffffffffff' else 0 for h in hexs])
 
 size_code_B = max( hexs[hexs < regions['data']['origin_B']] ) - regions['code']['origin_B']
 size_data_B = max( hexs[hexs < regions['ildt']['origin_B']] ) - regions['data']['origin_B']
-size_ildt_B = int(size_ildt_hex,16)
 
 
 print( "Region \t Start \tEnd\tSize(kB)\tUsed(kB)\tUtilz(%) ")
 print(f"Code:  \t{regions['code']['origin_B']/1024:5.1f}\t{(regions['code']['origin_B']+regions['code']['length_B'])/1024:5.1f}\t{regions['code']['length_B']/1024:5.1f}\t\t{size_code_B/1024:0.1f}\t\t{100*size_code_B/regions['code']['length_B']:0.1f}")
 print(f"Data:  \t{regions['data']['origin_B']/1024:5.1f}\t{(regions['data']['origin_B']+regions['data']['length_B'])/1024:5.1f}\t{regions['data']['length_B']/1024:5.1f}\t\t{size_data_B/1024:0.1f}\t\t{100*size_data_B/regions['data']['length_B']:0.1f}")
-print(f"ILdata:\t{regions['ildt']['origin_B']/1024:5.1f}\t{(regions['ildt']['origin_B']+regions['ildt']['length_B'])/1024:5.1f}\t{regions['ildt']['length_B']/1024:5.1f}\t\t{size_ildt_B/1024:0.1f}\t\t{100*size_ildt_B/regions['ildt']['length_B']:0.1f}")
+if num_il_banks:
+    print(f"ILdata:\t{regions['ildt']['origin_B']/1024:5.1f}\t{(regions['ildt']['origin_B']+regions['ildt']['length_B'])/1024:5.1f}\t{regions['ildt']['length_B']/1024:5.1f}\t\t{size_ildt_B/1024:0.1f}\t\t{100*size_ildt_B/regions['ildt']['length_B']:0.1f}")
 
 
 char = '.'
