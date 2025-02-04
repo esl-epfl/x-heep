@@ -168,6 +168,7 @@ app: clean-app
 	echo "\033[0;31mI would start by checking b) if I were you!\033[0m"; \
 	exit 1; \
 	}
+	@python scripts/building/mem_usage.py
 
 ## Just list the different application names available
 app-list:
