@@ -126,7 +126,7 @@
         i2s: {
             offset:  0x00070000,
             length:  0x00010000,
-            is_included: "yes",
+            is_included: "no",
             path:    "./hw/ip/i2s/data/i2s.hjson"
         },
 
