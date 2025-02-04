@@ -136,11 +136,10 @@ try:
 except:
     size_ildt_B = 0
 
-import numpy as np
-hexs = np.array([ int(h,16) if h != '0xffffffffffffffff' else 0 for h in hexs])
+hexs = [ int(h,16) if h != '0xffffffffffffffff' else 0 for h in hexs]
 
-size_code_B = max( hexs[hexs < regions['data']['origin_B']] ) - regions['code']['origin_B']
-size_data_B = max( hexs[hexs < regions['ildt']['origin_B']] ) - regions['data']['origin_B']
+size_code_B = max( [ h if h < regions['data']['origin_B'] else 0 for h in hexs ]  ) - regions['code']['origin_B']
+size_data_B = max( [ h if h < regions['ildt']['origin_B'] else 0 for h in hexs ]  ) - regions['data']['origin_B']
 
 
 print( "Region \t Start \tEnd\tSize(kB)\tUsed(kB)\tUtilz(%) ")
