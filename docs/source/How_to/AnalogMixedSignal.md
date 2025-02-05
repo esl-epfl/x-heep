@@ -68,7 +68,7 @@ The example AMS peripheral used by simulations of X-HEEP is located in `hw/ip_ex
 
 ### The repository's example SPICE files
 
-<p align="center"><img src="../images/example_adc.svg" width="500"></p>
+![Example ADC](/images/example_adc.svg)
 
 An example `adc.sp` file can be found in `hw/ip_examples/ams/analog`. This is a 1-bit ADC with a threshold that is configured through the 2-bit wide SEL input: an input of 00, 01, 10 and 11 will provide a threshold of 20%, 40%, 60% and 80% of VDD (1.2V) respectively. The input signal of the ADC is a sine wave with a peak-to-peak amplitude of 1.2V directly placed inside the SPICE netlist.
 

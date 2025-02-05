@@ -3,6 +3,9 @@
 
 #include <iostream>
 
+#define CLK_FREQUENCY_kHz (100*1000)
+#define CLK_PERIOD_ps (1000*1000*1000 / CLK_FREQUENCY_kHz)
+
 class XHEEP_CmdLineOptions // declare Calculator class
 {
 
@@ -12,7 +15,7 @@ class XHEEP_CmdLineOptions // declare Calculator class
     std::string getCmdOption(int argc, char* argv[], const std::string& option); // get options from cmd lines
     bool get_use_openocd();
     std::string get_firmware();
-    unsigned int get_max_sim_time(bool& run_all);
+    unsigned long long get_max_sim_time(bool& run_all);
     unsigned int get_boot_sel();
     int argc;
     char** argv;

@@ -32,7 +32,7 @@ module debug_subsystem
   logic [NRHARTS-1:0]    unavailable;
   dm::hartinfo_t [NRHARTS-1:0] hartinfo;
 
-  always @(*) begin
+  always_comb begin
     for (int i = 0; i < NRHARTS; i++) begin
       hartinfo[i].zero1 = '0;
       hartinfo[i].nscratch = 2;  // Debug module needs at least two scratch regs

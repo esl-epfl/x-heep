@@ -2,8 +2,8 @@
 
 For FW development, `X-HEEP` can be used together with different Integrated Development Environments (IDEs) flavours. Up to now, full support is just provided by [Segger Embedded Studio (SES)](https://www.segger.com/products/development-tools/embedded-studio/editions/risc-v/). This readme guides you through all the needed steps to get SES working and debugging when prototyping `X-HEEP` into the pynq-z2 board.
 
+## SES installation
 
-## SES installation.
 The platform was only tested under Linux and version 7.32 of the Embedded Studio for RISC-V. Please, go to the Segger [download center](https://www.segger.com/downloads/embedded-studio/) to get that version. It is assumed that you have already installed the RISC-V compiler and openOCD. If the latter is not true, check the main [Readme](https://github.com/esl-epfl/x-heep) please.
 
 ## Configuration
@@ -28,7 +28,7 @@ Once the paths are set properly, you can open `xheep.emProject` with SES. That w
 
 The output should be like this:
 
-<p align="left"><img src="../_static/ides/build_screenshot.png" width="600"></p>
+![SES Build](/images/ses_build.png)
 
 Note that on the right part, you have the memory usage based on the linker we have configured. If you do not see this, you can activate that view in `View > Memory Usage`.
 
@@ -38,7 +38,7 @@ Finally, after building (compile and linking), you can directly start debugging 
 
 The output should be something like this:
 
-<p align="left"><img src="../_static/ides/debug_screenshot.png" width="600"></p>
+![SES Debug](/images/ses_debug.png)
 
 Note that when debugging and setting breakpoints, please, go one-by-one (one breakpoint at a time). Several breakpoints support will be supported in the following releases.
 

@@ -45,11 +45,15 @@ X_HEEP_CFG  ?= configs/general.hjson
 PAD_CFG  	?= pad_cfg.hjson
 EXT_PAD_CFG ?=
 
+
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER ?= gcc
 
 # Compiler prefix options are 'riscv32-unknown-' (default)
 COMPILER_PREFIX ?= riscv32-unknown-
+
+# Compiler flags to be passed (for both linking and compiling)
+COMPILER_FLAGS ?=
 
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
 ARCH     ?= rv32imc
@@ -59,6 +63,10 @@ SOURCE 	 ?= $(".")
 
 # Simulation engines options are verilator (default) and questasim
 SIMULATOR ?= verilator
+
+# SIM_ARGS: Additional simulation arguments for run-app-verilator based on input parameters:
+# - MAX_SIM_TIME: Maximum simulation time in clock cycles (unlimited if not provided)
+SIM_ARGS += $(if $(MAX_SIM_TIME),+max_sim_time=$(MAX_SIM_TIME))
 
 # Timeout for simulation, default 120
 TIMEOUT ?= 120
@@ -108,6 +116,7 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/system_xbar.sv.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/memory_subsystem.sv.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/peripheral_subsystem.sv.tpl
+	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/  --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/cpu_subsystem.sv.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir tb/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv tb/tb_util.svh.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/system/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/system/pad_ring.sv.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/core_v_mini_mcu.sv.tpl
@@ -146,17 +155,17 @@ verible:
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
 ## @param TARGET=sim(default),systemc,pynq-z2,nexys-a7-100t,zcu104
 ## @param LINKER=on_chip(default),flash_load,flash_exec
-## @param COMPILER=gcc(default), clang
+## @param COMPILER=gcc(default),clang
 ## @param COMPILER_PREFIX=riscv32-unknown-(default)
-## @param ARCH=rv32imc(default), <any RISC-V ISA string supported by the CPU>
+## @param ARCH=rv32imc(default),<any_RISC-V_ISA_string_supported_by_the_CPU>
 app: clean-app
-	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH) SOURCE=$(SOURCE) \
+	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) COMPILER_FLAGS=$(COMPILER_FLAGS) ARCH=$(ARCH) SOURCE=$(SOURCE) \
 	|| { \
-	@echo "\033[0;31mHmmm... seems like the compilation failed...\033[0m"; \
-	@echo "\033[0;31mIf you do not understand why, it is likely that you either:\033[0m"; \
-	@echo "\033[0;31m  a) offended the Leprechaun of Electronics\033[0m"; \
-	@echo "\033[0;31m  b) forgot to run make mcu-gen\033[0m"; \
-	@echo "\033[0;31mI would start by checking b) if I were you!\033[0m"; \
+	echo "\033[0;31mHmmm... seems like the compilation failed...\033[0m"; \
+	echo "\033[0;31mIf you do not understand why, it is likely that you either:\033[0m"; \
+	echo "\033[0;31m  a) offended the Leprechaun of Electronics\033[0m"; \
+	echo "\033[0;31m  b) forgot to run make mcu-gen\033[0m"; \
+	echo "\033[0;31mI would start by checking b) if I were you!\033[0m"; \
 	exit 1; \
 	}
 
@@ -212,8 +221,9 @@ xcelium-sim:
 run-helloworld: mcu-gen verilator-sim
 	$(MAKE) -C sw PROJECT=hello_world TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-	./Vtestharness +firmware=../../../sw/build/main.hex; \
+	./Vtestharness +firmware=../../../sw/build/main.hex $(SIM_ARGS); \
 	cat uart0.log; \
+	echo '<end of uart0.log>'; \
 	cd ../../..;
 
 ## Generates the build output for freertos blinky application
@@ -222,16 +232,18 @@ run-helloworld: mcu-gen verilator-sim
 run-blinkyfreertos: mcu-gen verilator-sim
 	$(MAKE) -C sw PROJECT=example_freertos_blinky TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-	./Vtestharness +firmware=../../../sw/build/main.hex; \
+	./Vtestharness +firmware=../../../sw/build/main.hex $(SIM_ARGS); \
 	cat uart0.log; \
+	echo '<end of uart0.log>'; \
 	cd ../../..;
 
 ## First builds the app and then uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
 run-app-verilator: app
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-	./Vtestharness +firmware=../../../sw/build/main.hex; \
+	./Vtestharness +firmware=../../../sw/build/main.hex $(SIM_ARGS); \
 	cat uart0.log; \
+	echo '<end of uart0.log>'; \
 	cd ../../..;
 
 ## Simulate all the apps present in the repo

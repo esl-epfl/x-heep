@@ -1,4 +1,6 @@
-# Get started
+# Setup
+
+There are two ways of setting up X-HEEP. You can either use the provided docker image or install and configure the environment manually.
 
 ## Docker setup
 
@@ -16,15 +18,17 @@ Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\fol
 docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep ghcr.io/esl-epfl/x-heep-toolchain
 ```
 
-:warning: Take care to indicate the absolute path to the local clone of X-HEEP, otherwise docker will not be able to properly mount the local folder in the container.
+```{warning}
+Take care to indicate the absolute path to the local clone of X-HEEP, otherwise docker will not be able to properly mount the local folder in the container.
+```
 
-All the command listed in the README can be execute in the docker container, except for:
+The docker setup has certain limitations. For example, the following are not supported:
 
-- Simulation with Questasim and VCS, synthesis with Design Compiler (licenses are required to use these tools, so they are not installed in the container)
+- Simulation with Questasim and VCS, synthesis with Design Compiler. Licenses are required to use these tools, so they are not installed in the container.
 
-- OpenRoad flow is not installed in the container, so it is not possible to run the related make commands
+- OpenRoad flow is not installed in the container, so it is not possible to run the related make commands.
 
-- Synthesis with Vivado could be possible, but currently is untested
+- Synthesis with Vivado could be possible, but currently is untested.
 
 ## Manual setup
 
@@ -40,15 +44,13 @@ In general, have a look at the [Install required software](https://opentitan.org
 
 ### 2. Python
 
-
 We rely on either (a) `miniconda`, or (b) `virtual environment` enviroment.
 
 Choose between `2.a` or `2.b` to setup your enviroment.
 
 #### 2.a Miniconda
 
-Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html#linux-installers) python 3.8 version as described in the link,
-and create the Conda enviroment:
+Install [Miniconda](https://docs.anaconda.com/miniconda/install/#quick-command-line-install) python 3.8 version by downloading an older version and selecting the latest `py38` version [here](https://repo.anaconda.com/miniconda/). Then, create the Conda enviroment:
 
 ```bash
 make conda
@@ -59,7 +61,6 @@ You need to do it only the first time, then just activate the environment everyt
 ```bash
 conda activate core-v-mini-mcu
 ```
-
 
 #### 2.b Virtual Environment
 
@@ -130,9 +131,9 @@ sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 sudo apt-get install -y gtkwave
 ```
 
-### Files are formatted with Verible
+### 5. Install Verible
 
-We use version v0.0-1824-ga3b5bedf
+Files are formatted with Verible. We use version v0.0-1824-ga3b5bedf
 
 See: [Install Verible](https://opentitan.org/guides/getting_started/index.html#step-7a-install-verible-optional)
 
@@ -141,9 +142,3 @@ To format your RTL code type:
 ```
 make verible
 ```
-### Compilation Flow and Package Manager
-
-We use [FuseSoC](https://github.com/olofk/fusesoc) for all the tools we use.
-
-The `fusesoc` commands are inside the Makefile.
-
