@@ -1,28 +1,3 @@
-def parse_map_file(file_path):
-    sections = {}
-    with open(file_path, 'r') as file:
-        collect = False
-        for line in file:
-            if line.startswith('.comment'): break
-            if line.startswith('.text') or line.startswith('.data') or line.startswith('.bss'):
-                collect = True
-            if collect:
-                if line.strip() == '':  # Stop collecting when there's a blank line
-                    collect = False
-                parts = line.split()
-                if len(parts) >= 3 and parts[1].startswith('0x'):
-                    section = parts[0]
-                    address = int(parts[1], 16)
-                    try:
-                        size = int(parts[2], 16)
-                    except ValueError:
-                        continue  # Skip lines where the third part is not a size
-                    if section in sections:
-                        sections[section]['size'] += size
-                    else:
-                        sections[section] = {'address': address, 'size': size}
-    return sections
-
 def parse_memory_regions(file_path):
     regions = {}
     try:
@@ -66,13 +41,16 @@ def find_hex_numbers(file_path):
     # Pattern to match hex numbers of specific length (12 digits after "0x")
     pattern = re.compile(r'0x[0-9A-Fa-f]{16}\b')
     occurrences = []
-
+    start = False
     with open(file_path, 'r') as file:
         for line in file:
-            if line.startswith('.comment'): break
-            matches = pattern.findall(line)
-            if matches:
-                occurrences.extend(matches)
+            if start:
+                if line.startswith('.comment'): break
+                matches = pattern.findall(line)
+                if matches:
+                    occurrences.extend(matches)
+            elif line.startswith(' .text.start '): 
+                start = True
 
     return occurrences
 
