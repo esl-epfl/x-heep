@@ -37,7 +37,8 @@ def parse_sv_file(file_path):
     return num_banks, num_il_banks
 
 import re
-def find_hex_numbers(file_path):
+
+def get_text_addresses(file_path):
     # Pattern to match hex numbers of specific length (12 digits after "0x")
     pattern = re.compile(r'0x[0-9A-Fa-f]{16}\b')
     occurrences = []
@@ -45,13 +46,31 @@ def find_hex_numbers(file_path):
     with open(file_path, 'r') as file:
         for line in file:
             if start:
-                if line.startswith('.comment'): break
+                if line.startswith('.rodata '): break
                 matches = pattern.findall(line)
                 if matches:
                     occurrences.extend(matches)
             elif line.startswith(' .text.start '): 
                 start = True
+    return occurrences
 
+def get_data_addresses(file_path):
+    # Pattern to match hex numbers of specific length (12 digits after "0x")
+    pattern = re.compile(r'0x[0-9A-Fa-f]{16}\b')
+    occurrences = []
+    start = False
+    with open(file_path, 'r') as file:
+        for line in file:
+            if start:
+                if line.startswith('.comment '): 
+                    print("exited")
+                    break
+                matches = pattern.findall(line)
+                if matches:
+                    occurrences.extend(matches)
+            elif line.startswith(' *(.rodata .rodata'): 
+                print("started")
+                start = True
     return occurrences
 
 def extract_ildt_length(file_path):
@@ -104,21 +123,20 @@ regions['data']['length_B'] = regions['data']['length']
 regions['ildt']['origin_B'] = regions['ildt']['origin']
 regions['ildt']['length_B'] = regions['ildt']['length']
 
-addr_ildt_hex, size_ildt_hex   = extract_ildt_length('sw/build/main.map')
 
-hexs = find_hex_numbers('sw/build/main.map')
-try:
-    last_valid_address_idx = hexs[::-1].index(addr_ildt_hex)
-    hexs = hexs[:-last_valid_address_idx]   
+hexs = get_text_addresses('sw/build/main.map')
+hexs = [ int(h,16) for h in hexs]
+size_code_B = max( hexs  ) - regions['code']['origin_B']
+
+hexs = get_data_addresses('sw/build/main.map')
+hexs = [ int(h,16) for h in hexs]
+size_data_B = max( hexs  ) - regions['data']['origin_B']
+
+addr_ildt_hex, size_ildt_hex   = extract_ildt_length('sw/build/main.map')
+try: 
     size_ildt_B = int(size_ildt_hex,16)
 except:
     size_ildt_B = 0
-
-hexs = [ int(h,16) if h != '0xffffffffffffffff' else 0 for h in hexs]
-
-size_code_B = max( [ h if h < regions['data']['origin_B'] else 0 for h in hexs ]  ) - regions['code']['origin_B']
-size_data_B = max( [ h if h < regions['ildt']['origin_B'] else 0 for h in hexs ]  ) - regions['data']['origin_B']
-
 
 print( "Region \t Start \tEnd\tSize(kB)\tUsed(kB)\tUtilz(%) ")
 print(f"Code:  \t{regions['code']['origin_B']/1024:5.1f}\t{(regions['code']['origin_B']+regions['code']['length_B'])/1024:5.1f}\t{regions['code']['length_B']/1024:5.1f}\t\t{size_code_B/1024:0.1f}\t\t{100*size_code_B/regions['code']['length_B']:0.1f}")
