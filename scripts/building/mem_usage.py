@@ -72,10 +72,11 @@ def get_memory_sections(map_path):
     map_path - path of the .map file, relative to the location from which this script is called (e.g. the Makefile)
 
     Returns: 
-    regions - Dictionary with the regions found
+    sections - Dictionary with the sections found
     """
-    regions = {}
+    sections = {}
     try:
+        index = 0
         with open(map_path, 'r') as file:
             collect = False
             for line in file:
@@ -88,14 +89,15 @@ def get_memory_sections(map_path):
                         continue
                     parts = line.split()
                     if len(parts) >= 4:
-                        name = parts[0]
+                        if parts[0] == 'FLASH': return None
                         origin = int(parts[1], 16)
                         length = int(parts[2], 16)
                         attributes = parts[3]
-                        regions[name] = {'origin': origin, 'length': length, 'attributes': attributes}
+                        sections[index] = {'origin': origin, 'length': length, 'attributes': attributes}
+                        index += 1
     except FileNotFoundError:
         print("File not found. Please check the path and try again.")
-    return regions
+    return sections
 
 def get_readelf_output(elf_file):
     """
@@ -255,9 +257,10 @@ for i in range(num_banks):
 # GET THE MEMORY REGIONS FOR CODE AND DATA, TRANSLATE ramx to code, data, IL
 # If there are no IL banks, create an entry with length 0
 sections = get_memory_sections('sw/build/main.map')
-sections['code'] = sections.pop('ram0')
-sections['data'] = sections.pop('ram1')
-sections['ildt'] = sections.pop('ram2') if num_il_banks else {'origin': regions['data']['origin'] + regions['data']['length'], 'length':0}
+if sections == None: 
+    print("Memory distribution analysis not available for LINKER=flash_exec")
+    quit()
+sections[2] = sections[2] if num_il_banks else {'origin': sections[1]['origin'] + sections[1]['length'], 'length':0}
     
 # Compute the total space used for code and data
 total_space_used_code = sum(region['size_B'] for region in regions if region['name'] == 'code')
@@ -283,10 +286,10 @@ total_space_required_ildt = max_ildt_end - min_ildt_start
 
 # # PRINT THE SUMMARY OF UTILIZATION
 print( "Region \t Start \tEnd\tSz(kB)\tUsd(kB)\tReq(kB)\tUtilz(%) ")
-print(f"Code:  \t{sections['code']['origin']/1024:5.1f}\t{(sections['code']['origin']+sections['code']['length'])/1024:5.1f}\t{sections['code']['length']/1024:5.1f}\t{total_space_used_code/1024:0.1f}\t{total_space_required_code/1024:5.1f}\t{100*total_space_required_code/sections['code']['length']:0.1f}")
-print(f"Data:  \t{sections['data']['origin']/1024:5.1f}\t{(sections['data']['origin']+sections['data']['length'])/1024:5.1f}\t{sections['data']['length']/1024:5.1f}\t{total_space_used_data/1024:0.1f}\t{total_space_required_data/1024:5.1f}\t{100*total_space_required_data/sections['data']['length']:0.1f}")
+print(f"Code:  \t{sections[0]['origin']/1024:5.1f}\t{(sections[0]['origin']+sections[0]['length'])/1024:5.1f}\t{sections[0]['length']/1024:5.1f}\t{total_space_used_code/1024:0.1f}\t{total_space_required_code/1024:5.1f}\t{100*total_space_required_code/sections[0]['length']:0.1f}")
+print(f"Data:  \t{sections[1]['origin']/1024:5.1f}\t{(sections[1]['origin']+sections[1]['length'])/1024:5.1f}\t{sections[1]['length']/1024:5.1f}\t{total_space_used_data/1024:0.1f}\t{total_space_required_data/1024:5.1f}\t{100*total_space_required_data/sections[1]['length']:0.1f}")
 if num_il_banks:
-    print(f"ILdata:\t{sections['ildt']['origin']/1024:5.1f}\t{(sections['ildt']['origin']+sections['ildt']['length'])/1024:5.1f}\t{sections['ildt']['length']/1024:5.1f}\t{total_space_used_ildt/1024:0.1f}\t{total_space_required_ildt/1024:5.1f}\t{100*total_space_required_ildt/sections['ildt']['length']:0.1f}")
+    print(f"ILdata:\t{sections[2]['origin']/1024:5.1f}\t{(sections[2]['origin']+sections[2]['length'])/1024:5.1f}\t{sections[2]['length']/1024:5.1f}\t{total_space_used_ildt/1024:0.1f}\t{total_space_required_ildt/1024:5.1f}\t{100*total_space_required_ildt/sections[2]['length']:0.1f}")
 
 
 # DISPLAY THE UTILIZATION BY SHOWING THE BANKS 
