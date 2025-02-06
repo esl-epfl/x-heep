@@ -10,6 +10,7 @@ echo ========================================
 conda init bash
 source /root/.bashrc
 conda activate core-v-mini-mcu
+apt install readelf
 
 echo ========================================
 echo ========================================
