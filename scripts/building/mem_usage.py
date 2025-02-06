@@ -19,6 +19,15 @@
 import subprocess
 import re
 
+
+def is_readelf_available():
+    try:
+        subprocess.run(["readelf", "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except FileNotFoundError:
+        return False
+
+
 def get_banks_and_sizes(mcu_pkg_size):
     """
     Parses the core_v_mini_mcu_pkg.sv file to extract the count of memory banks and their sizes. 
@@ -233,6 +242,11 @@ def parse_section_to_segment(readelf_output):
                     mapping[segment_index] = sections
                 segment_index += 1
     return mapping
+
+
+if not is_readelf_available():
+    print("readelf not available. Will not print the memory utilization report.")
+    quit()
 
 # READ THE READELF OUTPUT AND PARSE TO OBTAIN THE DIFFERENT REGIONS
 output              = get_readelf_output('sw/build/main.elf')
