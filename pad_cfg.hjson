@@ -17,7 +17,7 @@
         },
         rst: {
             num: 1,
-            active: low,
+            active: low
             driven_manually: True
             type: input
         },
@@ -39,7 +39,7 @@
         },
         jtag_trst: {
             num: 1,
-            active: low,
+            active: low
             type: input
         },
         jtag_tdi: {
