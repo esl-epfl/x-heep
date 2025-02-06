@@ -10,7 +10,6 @@ echo ========================================
 conda init bash
 source /root/.bashrc
 conda activate core-v-mini-mcu
-apt update && apt install -y binutils
 
 echo ========================================
 echo ========================================
