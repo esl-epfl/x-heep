@@ -17,6 +17,8 @@
 # For the IL data (ildt) only the length is extracted, for simplicity. We assume an homogeneous distribution.
 
 
+
+import subprocess
 import re
 
 def get_banks_and_sizes(mcu_pkg_size):
@@ -61,97 +63,147 @@ def get_banks_and_sizes(mcu_pkg_size):
     return num_banks, num_il_banks, sizes_B
 
 
-def get_memory_regions(map_path):
+def get_readelf_output(elf_file):
     """
-    Parses the main.map file to obtain the origin and length of each region. 
-    These are called ram0 (code), ram1 (data) and ram2 (IL data) - but that does not necessarily 
-    correspond with an index of memory banks. 
-
-    The origin and size of each are defined in the configs/*.hjson files.
-
-    Parameters:
-    map_path - path of the .map file, relative to the location from which this script is called (e.g. the Makefile)
-
-    Returns: 
-    regions - Dictionary with the regions found
+    Executes the readelf command on the provided ELF file with -l option to list program headers.
     """
-    regions = {}
     try:
-        with open(map_path, 'r') as file:
-            collect = False
-            for line in file:
-                if "Name" in line and "Origin" in line and "Length" in line:
-                    collect = True
-                    continue
-                if collect:
-                    if line.strip() == '':
-                        collect = False  # Stop collecting when a blank line is encountered
-                        continue
-                    parts = line.split()
-                    if len(parts) >= 4:
-                        name = parts[0]
-                        origin = int(parts[1], 16)
-                        length = int(parts[2], 16)
-                        attributes = parts[3]
-                        regions[name] = {'origin': origin, 'length': length, 'attributes': attributes}
-    except FileNotFoundError:
-        print("File not found. Please check the path and try again.")
+        result = subprocess.run(['readelf', '-l', elf_file], capture_output=True, text=True)
+        return result.stdout
+    except Exception as e:
+        print(f"Error running readelf: {e}")
+        return None
+
+def parse_program_headers(readelf_output):
+    """
+    Parses the output of readelf to extract program headers.
+    """
+    program_headers = []
+    headers_started = False
+    for line in readelf_output.split('\n'):
+        if 'Program Headers:' in line:
+            headers_started = True
+        elif headers_started:
+            if 'LOAD' in line:
+                parts = re.split(r'\s+', line.strip())
+                program_headers.append({
+                    'Type': parts[0],
+                    'Offset': int(parts[1], 16),
+                    'VirtAddr': int(parts[2], 16),
+                    'PhysAddr': int(parts[3], 16),
+                    'FileSiz': int(parts[4], 16),
+                    'MemSiz': int(parts[5], 16),
+                    'Flg': parts[6],
+                    'Align': int(parts[7], 16)
+                })
+            if 'Section to Segment mapping:' in line:
+                break  # Stop after collecting program headers
+    return program_headers
+
+def parse_elf_output_to_regions(program_headers, section_to_segment):
+    """
+    Parse program headers and section-to-segment mapping to create a list of dictionaries
+    describing each segment's start address, size, and type.
+    """
+    # Define a mapping from section names to region types
+    code_sections = {'.vectors', '.init', '.text', '.eh_frame'}
+    data_sections = {'.power_manager', '.rodata', '.data', '.sdata', '.sbss', '.bss', '.heap', '.stack'}
+    interleaved_data_sections = {'.data_interleaved'}
+    
+    # List to store region dictionaries
+    regions = []
+
+    # Iterate through each program header
+    for idx, ph in enumerate(program_headers):
+        # Determine the type of region based on the sections it contains
+        sections = section_to_segment[idx]
+        region_type = 'd'  # default to data
+        if any(sec in sections for sec in code_sections):
+            region_type = 'C'
+        elif any(sec in sections for sec in interleaved_data_sections):
+            region_type = 'd'  # Special data handling like interleaved can be marked differently if needed
+        
+        # Create dictionary for the region
+        region_dict = {
+            'name': 'code' if region_type == 'C' else 'data',
+            'symbol': region_type,
+            'start_add': ph['VirtAddr'],
+            'size_B': ph['MemSiz'],
+            'end_add': ph['VirtAddr'] + ph['MemSiz']
+        }
+        
+        # Append to the list
+        regions.append(region_dict)
+
     return regions
 
-def get_addresses(map_path, start_str, end_str):
+import subprocess
+import re
+
+def get_readelf_output(elf_file):
     """
-    Parses the main.map file to obtain an array of addresses of each .text or data section.
-    This corresponds with the space used for each.
-    It looks between the start_str and the end_str.  
-
-    Parameters:
-    map_path - path of the .map file, relative to the location from which this script is called (e.g. the Makefile)
-    start_str - A string that indicates the beginning of the section
-    end_str - A string that indicates the end of the section
-    
-    Returns: 
-    addresses - A list of addresses where code is stored
+    Executes the readelf command on the provided ELF file with -l option to list program headers.
     """
-    pattern = re.compile(r'0x[0-9A-Fa-f]{16}\b')
-    addresses = []
-    start = False
-    with open(map_path, 'r') as file:
-        for line in file:
-            if start:
-                if line.startswith(end_str): break
-                matches = pattern.findall(line)
-                if matches:
-                    addresses.extend(matches)
-            elif line.startswith(start_str): 
-                start = True
-    addresses = [ int(a,16) for a in addresses]
-    return addresses
+    try:
+        result = subprocess.run(['readelf', '-l', elf_file], capture_output=True, text=True)
+        return result.stdout
+    except Exception as e:
+        print(f"Error running readelf: {e}")
+        return None
 
-def extract_ildt_length(map_path):
+def parse_program_headers(readelf_output):
     """
-    Parses the main.map file to obtain the length of the IL section
-
-    Parameters:
-    map_path - path of the .map file, relative to the location from which this script is called (e.g. the Makefile)
-        
-    Returns: 
-    ildt_address    - The start address of the IL section
-    ildt_length     - The length of the data stored there 
+    Parses the output of readelf to extract program headers.
     """
-    pattern = re.compile(r'\.data_interleaved\s+0x[0-9A-Fa-f]+\s+0x[0-9A-Fa-f]+')
-    ildt_length     = None
-    ildt_address    = None
+    program_headers = []
+    headers_started = False
+    for line in readelf_output.split('\n'):
+        if 'Program Headers:' in line:
+            headers_started = True
+        elif headers_started:
+            if 'LOAD' in line:
+                parts = re.split(r'\s+', line.strip())
+                program_headers.append({
+                    'Type': parts[0],
+                    'Offset': int(parts[1], 16),
+                    'VirtAddr': int(parts[2], 16),
+                    'PhysAddr': int(parts[3], 16),
+                    'FileSiz': int(parts[4], 16),
+                    'MemSiz': int(parts[5], 16),
+                    'Flg': parts[6],
+                    'Align': int(parts[7], 16)
+                })
+            if 'Section to Segment mapping:' in line:
+                break  # Stop after collecting program headers
+    return program_headers
 
-    with open(map_path, 'r') as file:
-        content = file.read()  # Read the whole file into a single string
-        matches = pattern.findall(content)
-        if matches:
-            last_match = matches[-1]  # Get the last match
-            parts = last_match.split()
-            ildt_length = parts[-1]  # Extract the last hex number from the last match
-            ildt_address = parts[-2]
-    return ildt_address, ildt_length
+def parse_section_to_segment(readelf_output):
+    """
+    Parses the 'Section to Segment mapping' from the output of readelf.
+    """
+    mapping = {}
+    capture = False
+    segment_index = 0
+    for line in readelf_output.split('\n'):
+        if 'Section to Segment mapping:' in line:
+            capture = True
+        elif capture:
+            if line.strip().startswith("Segment"):
+                segments = re.findall(r'Segment\s+(\d+)', line)
+                if segments:
+                    segment_index = int(segments[0])
+            else:
+                sections = re.findall(r'\.\w+', line)
+                if sections:
+                    mapping[segment_index] = sections
+                segment_index += 1
+    return mapping
 
+# Get readelf output
+output = get_readelf_output('sw/build/main.elf')
+program_headers = parse_program_headers(output)
+section_to_segment = parse_section_to_segment(output)
+regions = parse_elf_output_to_regions(program_headers, section_to_segment)
 
 
 # OBTAIN THE NUMBER AND SIZE OF THE BANKS
@@ -170,30 +222,32 @@ for i in range(num_banks):
 
 # GET THE MEMORY REGIONS FOR CODE AND DATA, TRANSLATE ramx to code, data, IL
 # If there are no IL banks, create an entry with length 0
-regions = get_memory_regions('sw/build/main.map')
-regions['code'] = regions.pop('ram0')
-regions['data'] = regions.pop('ram1')
-regions['ildt'] = regions.pop('ram2') if num_il_banks else {'origin': regions['data']['origin'] + regions['data']['length'], 'length':0}
+# regions = get_memory_regions('sw/build/main.map')
+# regions['code'] = regions.pop('ram0')
+# regions['data'] = regions.pop('ram1')
+# regions['ildt'] = regions.pop('ram2') if num_il_banks else {'origin': regions['data']['origin'] + regions['data']['length'], 'length':0}
     
-# COMPUTE THE UTILIZATION OF CODE (max address used for code)
-text_addresses = get_addresses('sw/build/main.map', ' .text.start ', '.rodata ', )
-size_code_B = max( text_addresses  ) - regions['code']['origin']
+# # COMPUTE THE UTILIZATION OF CODE (max address used for code)
+# text_addresses = get_addresses('sw/build/main.map', ' .text.start ', '.rodata ', )
+# size_code_B = max( text_addresses  ) - regions['code']['origin']
 
-# COMPUTE THE UTILIZATION OF DATA (max address used for data)
-end_str = '.data_interleaved' if num_il_banks else '.comment '
-data_addresses = get_addresses('sw/build/main.map', ' *(.rodata .rodata', end_str)
-size_data_B = max( data_addresses  ) - regions['data']['origin']
+# # COMPUTE THE UTILIZATION OF DATA (max address used for data)
+# end_str = '.data_interleaved' if num_il_banks else '.comment '
+# data_addresses = get_addresses('sw/build/main.map', ' *(.rodata .rodata', end_str)
+# size_data_B = max( data_addresses  ) - regions['data']['origin']
 
-# COMPUTE THE UTILIZATION OF IL DATA (length detected for IL data)
-addr_ildt_hex, size_ildt_hex   = extract_ildt_length('sw/build/main.map')
-size_ildt_B = int(size_ildt_hex,16) if num_il_banks else 0
+# # COMPUTE THE UTILIZATION OF IL DATA (length detected for IL data)
+# addr_ildt_hex, size_ildt_hex   = extract_ildt_length('sw/build/main.map')
+# size_ildt_B = int(size_ildt_hex,16) if num_il_banks else 0
 
-# PRINT THE SUMMARY OF UTILIZATION
-print( "Region \t Start \tEnd\tSize(kB)\tUsed(kB)\tUtilz(%) ")
-print(f"Code:  \t{regions['code']['origin']/1024:5.1f}\t{(regions['code']['origin']+regions['code']['length'])/1024:5.1f}\t{regions['code']['length']/1024:5.1f}\t\t{size_code_B/1024:0.1f}\t\t{100*size_code_B/regions['code']['length']:0.1f}")
-print(f"Data:  \t{regions['data']['origin']/1024:5.1f}\t{(regions['data']['origin']+regions['data']['length'])/1024:5.1f}\t{regions['data']['length']/1024:5.1f}\t\t{size_data_B/1024:0.1f}\t\t{100*size_data_B/regions['data']['length']:0.1f}")
-if num_il_banks:
-    print(f"ILdata:\t{regions['ildt']['origin']/1024:5.1f}\t{(regions['ildt']['origin']+regions['ildt']['length'])/1024:5.1f}\t{regions['ildt']['length']/1024:5.1f}\t\t{size_ildt_B/1024:0.1f}\t\t{100*size_ildt_B/regions['ildt']['length']:0.1f}")
+
+
+# # PRINT THE SUMMARY OF UTILIZATION
+# print( "Region \t Start \tEnd\tSize(kB)\tUsed(kB)\tUtilz(%) ")
+# print(f"Code:  \t{regions['code']['origin']/1024:5.1f}\t{(regions['code']['origin']+regions['code']['length'])/1024:5.1f}\t{regions['code']['length']/1024:5.1f}\t\t{size_code_B/1024:0.1f}\t\t{100*size_code_B/regions['code']['length']:0.1f}")
+# print(f"Data:  \t{regions['data']['origin']/1024:5.1f}\t{(regions['data']['origin']+regions['data']['length'])/1024:5.1f}\t{regions['data']['length']/1024:5.1f}\t\t{size_data_B/1024:0.1f}\t\t{100*size_data_B/regions['data']['length']:0.1f}")
+# if num_il_banks:
+#     print(f"ILdata:\t{regions['ildt']['origin']/1024:5.1f}\t{(regions['ildt']['origin']+regions['ildt']['length'])/1024:5.1f}\t{regions['ildt']['length']/1024:5.1f}\t\t{size_ildt_B/1024:0.1f}\t\t{100*size_ildt_B/regions['ildt']['length']:0.1f}")
 
 
 # DISPLAY THE UTILIZATION BY SHOWING THE BANKS 
@@ -202,48 +256,36 @@ if num_il_banks:
 # The area used by data is identified with a d
 # The utilization is shown at the end
 # The granularity stands for how many Bytes each character represents
-char = '.'
-address = 0
-granularity_B = 1024
-
-# Switch these two lines to choose if to display the correct start of the data or the
-# "de facto" start, displaced by the code (in case the code size exceeds the designated length
-data_start_B = max(regions['data']['origin'],regions['code']['origin'] + size_code_B)
-data_start_B =  regions['data']['origin']
+char            = '.'
+address         = 0
+granularity_B   = 1024
+start_IL_B      = sum(bank_sizes_B[:-num_il_banks])
 
 print("")
-
-for i, bank in enumerate(banks):
+for bank_idx, bank in enumerate(banks):
     bank['use'] = ['-']*int((bank['size']/granularity_B))
     utilization = 0
 
     if bank['type'] == 'Cont':
         for piece in range(len(bank['use'])):
             address += granularity_B
-            if address <= regions['code']['origin'] + size_code_B:
-                if address <= regions['code']['origin'] + regions['code']['length']:
-                    bank['use'][piece] = 'C'
-                else:
-                    bank['use'][piece] = '!'
-                utilization += granularity_B
 
-            elif address >= data_start_B  and address <= data_start_B + size_data_B:
-                if address <= data_start_B + regions['data']['length']:
-                    bank['use'][piece] = 'd'
-                else:
-                    bank['use'][piece] = '!'
-                utilization += granularity_B
-            else:
-                bank['use'][piece] = '-'
-
-    if bank['type'] == "IntL":
-        size_per_il_bank = int((size_ildt_B/num_il_banks)/granularity_B)
-        for piece in range(size_per_il_bank):
-            bank['use'][piece] = 'd'
-        for piece in range(size_per_il_bank, len(bank['use'])):
             bank['use'][piece] = '-'
-
+            for region in regions:
+                if address> region['start_add'] and address <= region['end_add']:
+                    bank['use'][piece] = region['symbol']
+                    utilization += granularity_B
+            
+    if bank['type'] == "IntL":
+        for piece in range(len(bank['use'])):
+            address = start_IL_B + granularity_B*piece
+            bank['use'][piece] = '-'
+            for region in regions:
+                used_by_others = (region['size_B']*(num_il_banks-1)/num_il_banks)
+                if address>= region['start_add'] and address < region['end_add'] - used_by_others:
+                    bank['use'][piece] = region['symbol']
+                    utilization += granularity_B
 
     bank['use'] = ''.join([''.join(sublist) for sublist in bank['use']])
-    print(bank['type'],i,bank['use'], f"\t{100*(utilization/bank['size']):0.1f}%")
+    print(bank['type'],bank_idx,bank['use'], f"\t{100*(utilization/bank['size']):0.1f}%")
 
