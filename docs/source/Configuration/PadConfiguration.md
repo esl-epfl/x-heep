@@ -6,7 +6,7 @@ An example pad configuration file is `pad_cfg.hjson`.
 Each pad of the design is defined as an object in the `pads` list. For example,
 ```
 clk: {
-        num: 1,
+        num: 1
         type: input
     }
 ```
@@ -36,12 +36,12 @@ The `driven_manually` attribute is the opposite of the `keep_internal` attribute
 Multiplexing is when two signals share the same pad, which can save space on the I/O ring of the design. Here is an example of a multiplexed pad design:
 ```
 i2s_sck: {
-    num: 1,
+    num: 1
     type: inout
     mux: {
         i2s_sck: {
             type: inout
-        },
+        }
         gpio_20: {
             type: inout
         }
@@ -67,7 +67,7 @@ Additionally, the following optional attributes can be defined:
 To put it all together, here is an example of a pad with several of the above attributes defined:
 ```
 gpio_0: {
-    num: 1,
+    num: 1
     type: inout
     mapping: left
     layout_attributes: {
@@ -112,29 +112,29 @@ Here is an example of the `physical_attributes` definition:
         floorplan_dimensions: {
             width: 2000
             length: 1500
-        },
+        }
         edge_offset: {
             bondpad: 20
             pad: 90
-        },
+        }
         spacing: {
             bondpad: 25
-        },
+        }
         dimensions: {
             # Bondpads
             BONDPAD1: {
                 width: 50
-            },
+            }
             BONDPAD2: {
                 width: 60
-            },
+            }
             # Pads
             PAD1: {
                 width: 40
-            },
+            }
             PAD2: {
                 width: 45
-            },
+            }
         }
     }
 ```

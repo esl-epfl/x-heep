@@ -93,7 +93,7 @@ c. The pads configuration (pad_cfg.hjson) must be adapted as well:
 +            num: <N-D>
              num_offset: 0 # first gpio is gpio0
              type: inout
-         },
+         }
 +        pdm2pcm_pdm: {
 +            num: 1
 +            type: inout
@@ -105,7 +105,7 @@ c. The pads configuration (pad_cfg.hjson) must be adapted as well:
 +                    type: inout
 +                }
 +            }
-+        },
++        }
 ```
 
 5. The peripheral subsystem (`hw/core-v-mini-mcu/peripheral_subsystem.sv`) must also be adapted:
@@ -161,8 +161,8 @@ II. The module must be instantiated in the peripheral subsystem:
 +        <peripheral>: {
 +            offset:  0x00060000
 +            length:  0x00010000
-+        },
-    },
++        }
+    }
 ```
 
 ## How to implement the registers

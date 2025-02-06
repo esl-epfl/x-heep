@@ -26,7 +26,7 @@ int32_t __attribute__((section(".xheep_data_interleaved"))) m_c[16*16];
 ```{code} js
 {
     ram_address: 0
-    bus_type: "onetoM",
+    bus_type: "onetoM"
     ram_banks: {
         code_and_data: {
             num: 2
@@ -46,7 +46,7 @@ int32_t __attribute__((section(".xheep_data_interleaved"))) m_c[16*16];
 
             // Alternatively the end tag can be used to provide the end.
             size: 0x00000C800
-        },
+        }
         {
             name: data
             start: 0x00000C800
