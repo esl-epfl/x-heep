@@ -315,7 +315,9 @@ void handler_irq_fast_timer_1(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kTimer_1_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_timer_1();
+    #endif
 }
 
 void handler_irq_fast_timer_2(void)
@@ -323,7 +325,9 @@ void handler_irq_fast_timer_2(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kTimer_2_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_timer_2();
+    #endif
 }
 
 void handler_irq_fast_timer_3(void)
@@ -331,7 +335,9 @@ void handler_irq_fast_timer_3(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kTimer_3_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_timer_3();
+    #endif
 }
 
 void handler_irq_fast_dma(void)
@@ -339,7 +345,9 @@ void handler_irq_fast_dma(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kDma_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_dma();
+    #endif
 }
 
 void handler_irq_fast_spi(void)
@@ -347,7 +355,9 @@ void handler_irq_fast_spi(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kSpi_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_spi();
+    #endif
 }
 
 void handler_irq_fast_spi_flash(void)
@@ -355,7 +365,9 @@ void handler_irq_fast_spi_flash(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kSpiFlash_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_spi_flash();
+    #endif
 }
 
 void handler_irq_fast_gpio_0(void)
@@ -363,7 +375,9 @@ void handler_irq_fast_gpio_0(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_0_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_gpio_0();
+    #endif
 }
 
 void handler_irq_fast_gpio_1(void)
@@ -371,7 +385,9 @@ void handler_irq_fast_gpio_1(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_1_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_gpio_1();
+    #endif
 }
 
 void handler_irq_fast_gpio_2(void)
@@ -379,7 +395,9 @@ void handler_irq_fast_gpio_2(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_2_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_gpio_2();
+    #endif
 }
 
 void handler_irq_fast_gpio_3(void)
@@ -387,7 +405,9 @@ void handler_irq_fast_gpio_3(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_3_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_gpio_3();
+    #endif
 }
 
 void handler_irq_fast_gpio_4(void)
@@ -395,7 +415,9 @@ void handler_irq_fast_gpio_4(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_4_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_gpio_4();
+    #endif
 }
 
 void handler_irq_fast_gpio_5(void)
@@ -403,7 +425,9 @@ void handler_irq_fast_gpio_5(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_5_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_gpio_5();
+    #endif
 }
 
 void handler_irq_fast_gpio_6(void)
@@ -411,7 +435,9 @@ void handler_irq_fast_gpio_6(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_6_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_gpio_6();
+    #endif
 }
 
 void handler_irq_fast_gpio_7(void)
@@ -419,7 +445,9 @@ void handler_irq_fast_gpio_7(void)
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_7_fic_e);
     // call the weak fic handler
+    #ifdef FIC_IRQ_ENABLED
     fic_irq_gpio_7();
+    #endif
 }
 #ifdef __cplusplus
 }
