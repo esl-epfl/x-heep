@@ -1,13 +1,12 @@
 # Run on FPGA
 
-This project offers two different X-HEEP implementetions on Xilinx FPGAs, called Standalone and FEMU.
+This project offers X-HEEP implementetions on Xilinx FPGAs.
 
-## Standalone
 
-### Set-up
+## Set-up
 In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA, and its input/output are connected to the available headers on the FPGA board.
 
-Two FPGA boards are supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
+Three FPGA boards are supported: the Xilinx Pynq-z2, Nexys-A7-100t, and the ZCU104.
 
 1. Make sure you have the FPGA board files installed in your Vivado.
 > For example, for the Pynq-Z2 board, use the documentation provided at the following [link](https://pynq.readthedocs.io/en/v2.5/overlay_design_methodology/board_settings.html) to download and install them.
@@ -22,7 +21,7 @@ Two FPGA boards are supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
 * Follow the [instructions for Linux](https://docs.amd.com/api/khub/documents/6EIhov6ruoilhq8zq7bXBA/content?Ft-Calling-App=ft%2Fturnkey-portal&Ft-Calling-App-Version=4.3.26#G4.262534)
 * Restart your PC
 
-### Running
+## Running
 
 To build and program the bitstream for your FPGA with vivado, type:
 
@@ -74,8 +73,48 @@ To look at the output of your printf, run in another terminal:
 `picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSB2`
 Please be sure to use the right `ttyUSB` number (you can discover it with `dmesg --time-format iso | grep FTDI` for example).
 
-## FPGA EMUlation Platform (FEMU)
+## FPGA Utilizations
 
-In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the Xilinx Zynq-7020 chip on the Pynq-Z2 board and Linux is run on the ARM-based processing system (PS) side of the same chip.
+X-HEEP is a continuosly evolving design, therefore these numbers need to be updated from time to time.
 
-NOTE: This platform is not part of this repository, but you can access it with the following link: [FEMU](https://github.com/esl-epfl/x-heep-femu-sdk).
+As of today (`29.01.2025`), on a `pynq-z2` FPGA, X-HEEP utilizes:
+
+### Small configuration
+
+
+It contains few peripherals, 64kB of SRAM, the small bus, and the CV32E2 CPU with RV32IMC ISA extensions.
+
+Generated as:
+
+```
+make mcu-gen MCU_CFG_PERIPHERALS=mcu_cfg_minimal.hjson
+make vivado-fpga FPGA_BOARD=pynq-z2
+```
+
+| Resource         | Quantity        | Utilization (%) |
+|------------------|-----------------|-----------------|
+| Slice LUTs       | 12.1K           | 22.7            |
+| Slice Registers  | 12.1K           | 11.3            |
+| RAM              | 16              | 11.4            |
+| DSP              | 1               | 0.5             |
+
+
+### Bigger configuration
+
+
+It contains more peripherals, 64kB of SRAM, the wider bus, and the CV32E40P CPU with RV32IMFCXpulp ISA extensions.
+
+Generated as:
+
+```
+make mcu-gen CPU=cv32e40p BUS=NtoM
+make vivado-fpga FPGA_BOARD=pynq-z2 FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"
+```
+
+| Resource         | Quantity        | Utilization (%) |
+|------------------|-----------------|-----------------|
+| Slice LUTs       | 33.5K           | 62.9            |
+| Slice Registers  | 28.8K           | 27.1            |
+| RAM              | 16              | 11.4            |
+| DSP              | 9               | 4.1             |
+

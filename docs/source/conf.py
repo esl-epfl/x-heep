@@ -25,8 +25,6 @@ extensions = [
     'myst_parser',
 ]
 
-html_static_path = ['_static']
-
 source_suffix = ['.rst', '.md']
 
 intersphinx_mapping = {
@@ -39,8 +37,14 @@ templates_path = ['_templates']
 
 html_theme = 'sphinx_rtd_theme'
 
+html_logo = "images/x-heep-outline.png"
+
 epub_show_urls = 'footnote'
 
 apidoc_module_dir = '../../util/x_heep_gen'
-apidoc_output_dir = 'Configuration/generated'
+apidoc_output_dir = 'Configuration/x_heep_gen'
 apidoc_separate_modules = True
+apidoc_toc_file = 'index'
+
+# Auto-generate header anchors for MyST
+myst_heading_anchors = 4

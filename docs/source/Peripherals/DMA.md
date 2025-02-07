@@ -22,11 +22,11 @@ The DMA **SDK**, on the other hand, offers user-friendly functions for essential
 
 ## Structural description
 
-![DMA subsystem structure](https://github.com/esl-epfl/x-heep/docs/images/dma_structure.png)
+![DMA subsystem structure](/images/dma_structure.png)
 
 <p  align="center">Figure 1: Structure of the DMA subsystem in X-Heep </p>
 
-#### DMA channels layout
+### DMA channels layout
 
 The DMA subsystem is composed of a parametrized number of control units called **channels**. 
 Each channel can be configured, by the CPU or by an external controller, to perform a *transaction*, independently of the state of other channels.
@@ -52,7 +52,7 @@ While the 1st solution is a general purpose, balanced configuration, the 2nd sol
 This mechanism guarantees **maximum flexibility**, enabling the user to adapt the DMA subsystem to its requirements, both in terms of area and performance.
 <br>
 
-#### Interrupts
+### Interrupts
 
 If enabled, a transaction interrupt is raised every time a DMA transaction is completed. However, due to architectural limitations, there is only a single transaction done signal for the entire DMA subsystem.
 
@@ -64,7 +64,7 @@ It is possible that a channel could raise an interrupt while the CPU is processi
 
 For this reason, the handler implemented by the user should be as brief as possible.
 
-#### Data FIFOs configuration
+### Data FIFOs configuration
 
 Each DMA channel uses FIFOs to buffer the data to be read and written, which is crucial for mitigating the combined delays from the system bus and the Always On Peripheral Bus (**AOPB**). 
 
@@ -96,7 +96,7 @@ Now, let's set the first 2 channels, CH0 and CH1, to the large size, CH2 to smal
 
 <br>
 
-#### Triggers
+### Triggers
 
 In the case of memory-peripheral operations, it is common for the peripheral to have a reaction time that cannot match the system clock. For example, the SPI trasmits data with a period of circa 30 clock cycles. 
 
@@ -107,7 +107,7 @@ The DMA can be configured to respond to triggers by enabling the appropriate _sl
 
 <br>
 
-#### Tips for DMA-based accelerator developers
+### Tips for DMA-based accelerator developers
 
 The DMA subsystem has been developed with specific features to facilitate the creation of custom accelerators that can leverage it to improve memory-intense applications.
 
@@ -132,7 +132,7 @@ Additional documentation can be found in the **VerifHEEP documentation**, but in
   - Analyze the performance of the tests. 
 <br>
 
-### Registers description
+## Registers description
 
 This section will describe every register of a DMA channel and their function.
 The complete addres of a DMA channel register is the following:

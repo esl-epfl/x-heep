@@ -57,19 +57,30 @@ std::string XHEEP_CmdLineOptions::get_firmware()
 }
 
 
-unsigned int XHEEP_CmdLineOptions::get_max_sim_time(bool& run_all)
+unsigned long long XHEEP_CmdLineOptions::get_max_sim_time(bool& run_all)
 {
 
   std::string arg_max_sim_time = this->getCmdOption(this->argc, this->argv, "+max_sim_time=");
-  unsigned int max_sim_time;
+  unsigned long long max_sim_time;
 
   max_sim_time     = 0;
   if(arg_max_sim_time.empty()){
     std::cout<<"[TESTBENCH]: No Max time specified"<<std::endl;
     run_all = true;
   } else {
-    max_sim_time = stoi(arg_max_sim_time);
-    std::cout<<"[TESTBENCH]: Max Times is  "<<max_sim_time<<std::endl;
+    size_t u;
+    max_sim_time = stoull(arg_max_sim_time, &u);
+    if(u == arg_max_sim_time.length())  max_sim_time *= CLK_PERIOD_ps; // no suffix: clock cycles
+    else if(arg_max_sim_time[u] == 'p') max_sim_time *= 1;             // "p" or "ps" suffix: picoseconds
+    else if(arg_max_sim_time[u] == 'n') max_sim_time *= 1000;          // "n" or "ns" suffix: nanoseconds
+    else if(arg_max_sim_time[u] == 'u') max_sim_time *= 1000000;       // "u" or "us" suffix: microseconds
+    else if(arg_max_sim_time[u] == 'm') max_sim_time *= 1000000000;    // "m" or "ms" suffix: milliseconds
+    else if(arg_max_sim_time[u] == 's') max_sim_time *= 1000000000000; // "s" suffix: seconds
+    else {
+      std::cout<<"[TESTBENCH]: ERROR: Unsupported suffix '"<<arg_max_sim_time.substr(u)<<"' for +max_sim_time"<<std::endl;
+      exit(EXIT_FAILURE);
+    }
+    std::cout<<"[TESTBENCH]: Max sim time is "<<(max_sim_time/CLK_PERIOD_ps)<<" clock cycles"<<std::endl;
   }
 
   return max_sim_time;

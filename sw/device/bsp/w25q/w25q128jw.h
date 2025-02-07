@@ -340,6 +340,25 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad(uint32_t addr, void* data, uin
 w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void* data, uint32_t length);
 
 /**
+ * @brief Read from flash at quad speed using DMA but wait for DMA in the application using w25q128jw_wait_quad_dma()
+ *
+ * @param addr 24-bit flash address to read from.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+*/
+w25q_error_codes_t w25q128jw_read_quad_dma_async(uint32_t addr, void *data, uint32_t length);
+
+/**
+ * @brief Wait for w25q128jw_read_quad_dma_async (works only used along with that function) and take care of the last bytes, if present
+ *
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+*/
+void w25q128jw_wait_quad_dma_async(void *data, uint32_t length);
+
+/**
  * @brief Write to flash at quad speed using DMA. Use this function only to write to unitialized data
  *
  * @param addr 24-bit flash address to read from.

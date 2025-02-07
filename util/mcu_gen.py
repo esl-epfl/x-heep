@@ -210,7 +210,7 @@ class Pad:
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'oe_i(' + oe_internal_signals + '),'
         self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'io,'
 
-  def __init__(self, name, cell_name, pad_type, pad_mapping, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, has_attribute, attribute_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip):
+  def __init__(self, name, cell_name, pad_type, pad_mapping, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, has_attribute, attribute_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_bondpad, pad_layout_offset, pad_layout_skip):
 
     self.name = name
     self.cell_name = cell_name
@@ -244,6 +244,7 @@ class Pad:
     self.layout_index = pad_layout_index
     self.layout_orient = pad_layout_orient
     self.layout_cell = pad_layout_cell
+    self.layout_bondpad = pad_layout_bondpad
     self.layout_offset = pad_layout_offset
     self.layout_skip = pad_layout_skip
 
@@ -304,6 +305,140 @@ def write_template(tpl_path, outdir, outfile, **kwargs):
                 file.write(code)
         else:
             raise FileNotFoundError
+
+def prepare_pads_for_layout(total_pad_list, physical_attributes):
+    """
+    Separate pads into pad lists for the top, bottom, left, and right pads and order them according to their layout_index attribute, and set their positions on the floorplan.
+    """
+
+    # Separate pads according to side
+    top_pad_list = []
+    bottom_pad_list = []
+    right_pad_list = []
+    left_pad_list = []
+    for pad in total_pad_list:
+        if (pad.pad_mapping == "top"):
+            top_pad_list.append(pad)
+        elif (pad.pad_mapping == "bottom"):
+            bottom_pad_list.append(pad)
+        elif (pad.pad_mapping == "right"):
+            right_pad_list.append(pad)
+        elif (pad.pad_mapping == "left"):
+            left_pad_list.append(pad)
+    
+    # Order pads according to layout index
+    top_pad_list.sort(key=lambda x: x.layout_index)
+    bottom_pad_list.sort(key=lambda x: x.layout_index)
+    left_pad_list.sort(key=lambda x: x.layout_index)
+    right_pad_list.sort(key=lambda x: x.layout_index)
+
+    # Calculate pad offsets and check whether requested pad configuration fits in the floorplan
+    top_pad_list, bondpad_offset_top = set_pad_positions(top_pad_list, physical_attributes)
+    bottom_pad_list, bondpad_offset_bottom = set_pad_positions(bottom_pad_list, physical_attributes)
+    left_pad_list, bondpad_offset_left = set_pad_positions(left_pad_list, physical_attributes)
+    right_pad_list, bondpad_offset_right = set_pad_positions(right_pad_list, physical_attributes)
+
+    bondpad_offsets = {
+        "top": bondpad_offset_top,
+        "bottom": bondpad_offset_bottom,
+        "left": bondpad_offset_left,
+        "right": bondpad_offset_right
+    }
+    
+    return top_pad_list, bottom_pad_list, left_pad_list, right_pad_list, bondpad_offsets
+
+def set_pad_positions(pad_list, physical_attributes):
+    """Calculate the `offset` and `skip` attributes of the pads such that the bondpads are centered on each side and the pads are aligned with their respective bondpads.
+    Perform checks to make sure the pads can all fit on the requested side without violating design constraints or exceeding layout margins.
+    """
+
+    # Ensure the physical attributes were properly set in the pad config file
+    try:
+        fp_width = float(physical_attributes["floorplan_dimensions"]["width"])
+        fp_length = float(physical_attributes["floorplan_dimensions"]["length"])
+        edge_to_bp = float(physical_attributes["edge_offset"]["bondpad"])
+        edge_to_pad = float(physical_attributes["edge_offset"]["pad"])
+        bp_spacing = float(physical_attributes["spacing"]["bondpad"])
+        pad_dims = physical_attributes["dimensions"]
+    except KeyError:
+        print("ERROR: Please set all of the mandatory fields of the physical_attributes in the pad config file.")
+        return
+
+    # Determine which dimension we are dealing with
+    side = pad_list[0].pad_mapping
+    if ((side == "top") | (side == "bottom")):
+        side_length = fp_width
+    else:
+        side_length = fp_length
+    
+    # Calculate space occupied by bondpads on the designated side of the chip
+    bp_space = 0
+    for pad in pad_list:
+        bp_cell = pad.layout_bondpad
+        if bp_cell is not None:
+            # Get bondpad width from physical attributes
+            try: 
+                bp_width = float(pad_dims[bp_cell]["width"])
+            except KeyError:
+                print("ERROR: Width not defined for bondpad cell {0} of pad {1}".format(bp_cell, pad.cell_name))
+                return
+        else:
+            print("ERROR: A bondpad cell is not defined for pad {1}".format(pad.cell_name))
+            return
+        bp_space += bp_width
+    bp_space += bp_spacing*(len(pad_list)-1)
+
+    # Check if the bondpads are able to fit on the side
+    extra_space = side_length - bp_space - 2*edge_to_bp
+    if (extra_space<0):
+        print("ERROR: Bondpads cannot fit on side {0}. Either reduce bondpad spacing or move some pads to another side".format(side))
+
+    # Calculate distance from edge to first bondpad (i.e. bondpad offset) to center the pads
+    bp_offset = extra_space/2
+    
+    # Calculate skip parameter between one pad and the next to center the pads
+    for i, pad in enumerate(pad_list):
+
+        # Get bondpad width from physical attributes
+        bp_cell = pad.layout_bondpad
+        bp_width = float(pad_dims[bp_cell]["width"])
+
+        if (i>0):
+            last_bp_cell = pad_list[i-1].layout_bondpad
+            last_bp_width = float(pad_dims[last_bp_cell]["width"])
+
+        # Get pad width from physical attributes
+        pad_cell = pad.layout_cell
+        if pad_cell is not None:
+            try: 
+                pad_width = float(pad_dims[pad_cell]["width"])
+            except KeyError:
+                print("ERROR: Width not defined for pad cell {0} of pad {1}".format(pad_cell, pad.cell_name))
+                return
+        else:
+            print("ERROR: A pad cell is not defined for pad {1}".format(pad.cell_name))
+            return
+
+        if (i>0):
+            last_pad_cell = pad_list[i-1].layout_cell
+            if pad_cell is not None:
+                try: 
+                    last_pad_width = float(pad_dims[last_pad_cell]["width"])
+                except KeyError:
+                    print("ERROR: Width not defined for pad cell {0} of pad {1}".format(last_pad_cell, pad_list[i-1].cell_name))
+                    return
+            else:
+                print("ERROR: A pad cell is not defined for pad {1}".format(pad_list[i-1].cell_name))
+                return
+        if (i==0)&(pad.layout_offset is None)& (pad.layout_skip is None):
+            pad.layout_offset = bp_offset - (edge_to_pad - edge_to_bp) + (bp_width/2) - (pad_width/2)
+        
+        # If the layout/skip of the pads is not predefined, calculate automatically
+        if (pad.layout_offset is None) & (pad.layout_skip is None):
+            pad.layout_skip = (last_bp_width + bp_width)/2 + bp_spacing - (last_pad_width + pad_width)/2
+    
+    return pad_list, bp_offset
+
 
 def main():
     parser = argparse.ArgumentParser(prog="mcugen")
@@ -438,6 +573,16 @@ def main():
         cpu_type = args.cpu
     else:
         cpu_type = obj['cpu_type']
+
+    if 'cve2_rv32e' in obj:
+        cve2_rv32e = obj['cve2_rv32e']
+    else:
+        cve2_rv32e = None
+    
+    if 'cve2_rv32m' in obj:
+        cve2_rv32m = obj['cve2_rv32m']
+    else:
+        cve2_rv32m = None
 
     if args.bus != None and args.bus != '':
         config_override.bus_type = BusType(args.bus)
@@ -683,6 +828,11 @@ def main():
             pad_layout_cell = None
         
         try:
+            pad_layout_bondpad = pads[key]['layout_attributes']['bondpad']
+        except KeyError:
+            pad_layout_bondpad = None
+
+        try:
             pad_layout_offset = pads[key]['layout_attributes']['offset']
         except KeyError:
             pad_layout_offset = None
@@ -722,13 +872,13 @@ def main():
             except KeyError:
                 pad_skip_declaration_mux = False
 
-            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
+            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_bondpad, pad_layout_offset, pad_layout_skip)
             pad_mux_list.append(p)
 
         if pad_num > 1:
             for p in range(pad_num):
                 pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
+                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_bondpad, pad_layout_offset, pad_layout_skip)
                 if not pad_keep_internal:
                     pad_obj.create_pad_ring()
                 pad_obj.create_core_v_mini_mcu_ctrl()
@@ -747,7 +897,7 @@ def main():
 
         else:
             pad_cell_name = "pad_" + key + "_i"
-            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
+            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_bondpad, pad_layout_offset, pad_layout_skip)
             if not pad_keep_internal:
                 pad_obj.create_pad_ring()
             pad_obj.create_core_v_mini_mcu_ctrl()
@@ -817,6 +967,11 @@ def main():
                 pad_layout_cell = external_pads[key]['layout_attributes']['cell']
             except KeyError:
                 pad_layout_cell = None
+
+            try:
+                pad_layout_bondpad = external_pads[key]['layout_attributes']['bondpad']
+            except KeyError:
+                pad_layout_bondpad = None
             
             try:
                 pad_layout_offset = external_pads[key]['layout_attributes']['offset']
@@ -858,13 +1013,13 @@ def main():
                 except KeyError:
                     pad_skip_declaration_mux = False
 
-                p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
+                p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_bondpad, pad_layout_offset, pad_layout_skip)
                 pad_mux_list.append(p)
 
             if pad_num > 1:
                 for p in range(pad_num):
                     pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
+                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_bondpad, pad_layout_offset, pad_layout_skip)
                     pad_obj.create_pad_ring()
                     pad_obj.create_pad_ring_bonding()
                     pad_obj.create_internal_signals()
@@ -880,7 +1035,7 @@ def main():
 
             else:
                 pad_cell_name = "pad_" + key + "_i"
-                pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_offset, pad_layout_skip)
+                pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits, pad_layout_index, pad_layout_orient, pad_layout_cell, pad_layout_bondpad, pad_layout_offset, pad_layout_skip)
                 pad_obj.create_pad_ring()
                 pad_obj.create_pad_ring_bonding()
                 pad_obj.create_internal_signals()
@@ -913,9 +1068,23 @@ def main():
     last_pad.remove_comma_io_interface()
     total_pad_list.append(last_pad)
 
+    # If layout parameters exist in the pad config file, compute the pad offset/skip parameters and order the pads on each side
+    try:
+        physical_attributes = obj_pad['physical_attributes']
+        top_pad_list, bottom_pad_list, left_pad_list, right_pad_list, bondpad_offsets = prepare_pads_for_layout(total_pad_list, physical_attributes)
+    except KeyError:
+        physical_attributes = None
+        top_pad_list = None
+        bottom_pad_list = None
+        left_pad_list = None
+        right_pad_list = None
+        bondpad_offsets = None
+
     kwargs = {
         "xheep"                            : xheep,
         "cpu_type"                         : cpu_type,
+        "cve2_rv32e"                       : cve2_rv32e,
+        "cve2_rv32m"                       : cve2_rv32m,
         "external_domains"                 : external_domains,
         "debug_start_address"              : debug_start_address,
         "debug_size_address"               : debug_size_address,
@@ -945,6 +1114,12 @@ def main():
         "external_pad_list"                : external_pad_list,
         "total_pad_list"                   : total_pad_list,
         "total_pad"                        : total_pad,
+        "right_pad_list"                   : right_pad_list,
+        "left_pad_list"                    : left_pad_list,
+        "top_pad_list"                     : top_pad_list,
+        "bottom_pad_list"                  : bottom_pad_list,
+        "physical_attributes"              : physical_attributes,
+        "bondpad_offsets"                  : bondpad_offsets,
         "pad_constant_driver_assign"       : pad_constant_driver_assign,
         "pad_mux_process"                  : pad_mux_process,
         "pad_muxed_list"                   : pad_muxed_list,

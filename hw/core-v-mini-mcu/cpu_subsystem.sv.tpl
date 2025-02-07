@@ -61,6 +61,12 @@ module cpu_subsystem
 
     cve2_top #(
         .DmHaltAddr(DM_HALTADDRESS),
+% if cve2_rv32e:
+        .RV32E(${cve2_rv32e}),
+% endif
+% if cve2_rv32m:
+        .RV32M(${cve2_rv32m}),
+% endif
         .DmExceptionAddr('0)
     ) cv32e20_i (
         .clk_i (clk_i),

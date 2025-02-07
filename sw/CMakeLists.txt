@@ -355,6 +355,7 @@ if(NOT ${PROJECT} MATCHES "coremark")
     -D${CRT_TYPE} \
     -D${CRTO} \
     -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
+    ${COMPILER_FLAGS}\
   ")
 else()
   set(COMPILER_LINKER_FLAGS "\
@@ -369,6 +370,11 @@ else()
 endif()
 set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
 set(CMAKE_CXX_FLAGS ${COMPILER_LINKER_FLAGS})
+
+
+message( "${Yellow}Compiler/linker flags: ${COMPILER_LINKER_FLAGS}${ColourReset}")
+
+message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
 
 if (${COMPILER} MATCHES "clang")
      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
