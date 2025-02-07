@@ -258,7 +258,7 @@ regions             = get_regions(program_headers, section_to_segment)
 # OBTAIN THE NUMBER AND SIZE OF THE BANKS
 num_banks, num_il_banks, bank_sizes_B = get_banks_and_sizes('hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv')
 total_size_B = sum(bank_sizes_B)
-print(f"Total space: {total_size_B/1024:0.1f} kB = Continuous:",[int(s/1024) for s in bank_sizes_B[:num_banks-num_il_banks]],"kB + Interleaved:", [int(s/1024) for s in bank_sizes_B[-num_il_banks:]], "kB")
+print(f"Total space: {total_size_B/1024:0.1f} kB = Continuous:",[int(s/1024) for s in bank_sizes_B[:num_banks-num_il_banks]],"kB + Interleaved:", [int(s/1024) for s in bank_sizes_B[-num_il_banks:]] if num_il_banks else [0], "kB")
 
 # CONVERT THE BANKS INTO A LIST OF DICTIONARIES
 banks = []
