@@ -119,7 +119,7 @@ make
 make install
 ```
 
-After installation you need to add `/home/$USER/tools/verilator/$VERILATOR_VERSION/bin` to your `PATH` environment variable. Also add it to your `~/.bashrc` or equivalent so that it's on the `PATH` in the future, like this:
+After installation you need to add `/home/$USER/tools/verilator/$VERILATOR_VERSION/bin` to your `PATH` environment variable. Also consider adding it to your `~/.bashrc` or equivalent so that it's on the `PATH` in the future, like this:
 
 ```
 export VERILATOR_VERSION=4.210
@@ -149,7 +149,7 @@ rm verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
 rm -r verible-${VERIBLE_VERSION}
 ```
 
-After installation you need to add `/home/$USER/tools/verible/${VERIBLE_VERSION}/bin` to your `PATH` environment variable. Also add it to your `~/.bashrc` or equivalent so that it's on the `PATH` in the future, like this:
+After installation you need to add `/home/$USER/tools/verible/${VERIBLE_VERSION}/bin` to your `PATH` environment variable. Also consider adding it to your `~/.bashrc` or equivalent so that it's on the `PATH` in the future, like this:
 
 ```
 export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
