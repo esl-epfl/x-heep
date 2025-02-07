@@ -104,6 +104,8 @@ cmake --build . --target install
 
 ### 4. Install Verilator:
 
+Note that Verilator 4.210 will not build with GCC 12.0 or later, so it will need to be built with an older toolchain.
+
 ```
 export VERILATOR_VERSION=4.210
 
