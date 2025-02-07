@@ -9,7 +9,7 @@ extern "C" {
 #include "handler.h"
 #include "csr.h"
 #include "stdasm.h"
-
+#include "syscalls.h"
 
 /**
  * Default Error Handling

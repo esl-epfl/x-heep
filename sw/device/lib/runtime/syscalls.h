@@ -1,0 +1,1 @@
+int _write(int file, const void *ptr, int len);
