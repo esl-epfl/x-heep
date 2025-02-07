@@ -85,7 +85,7 @@ cd riscv-gnu-toolchain
 make
 ```
 
-Then, set the `RISCV` env variable as:
+Then, you need to set the `RISCV` environment variable. Also consider adding it to your `~/.bashrc` or equivalent so that it's set automatically in the future, like this:
 
 ```
 export RISCV=/home/$USER/tools/riscv
@@ -119,9 +119,10 @@ make
 make install
 ```
 
-After installation you need to add `/home/$USER/tools/verilator/$VERILATOR_VERSION/bin` to your `PATH` environment variable. Also add it to your `~/.bashrc` or equivalent so that it’s on the `PATH` in the future, like this:
+After installation you need to add `/home/$USER/tools/verilator/$VERILATOR_VERSION/bin` to your `PATH` environment variable. Also add it to your `~/.bashrc` or equivalent so that it's on the `PATH` in the future, like this:
 
 ```
+export VERILATOR_VERSION=4.210
 export PATH=/home/$USER/tools/verilator/$VERILATOR_VERSION/bin:$PATH
 ```
 
@@ -138,10 +139,27 @@ sudo apt-get install -y gtkwave
 
 Files are formatted with Verible. We use version v0.0-1824-ga3b5bedf
 
-See: [Install Verible](https://opentitan.org/guides/getting_started/index.html#step-7a-install-verible-optional)
+```
+export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
+wget https:wget https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
+tar -xf verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
+mkdir -p /home/$USER/tools/verible/${VERIBLE_VERSION}/
+mv verible-${VERIBLE_VERSION}/ /home/$USER/tools/verible/${VERIBLE_VERSION}/
+rm verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
+rm -r verible-${VERIBLE_VERSION}
+```
+
+After installation you need to add `/home/$USER/tools/verible/${VERIBLE_VERSION}/bin` to your `PATH` environment variable. Also add it to your `~/.bashrc` or equivalent so that it's on the `PATH` in the future, like this:
+
+```
+export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
+export PATH=/home/$USER/tools/verilator/$VERILATOR_VERSION/bin:$PATH
+```
 
 To format your RTL code type:
 
 ```
 make verible
 ```
+
+In general, have a look at the [Install Verible](https://opentitan.org/book/doc/getting_started/index.html#step-7a-install-verible-optional) section of the OpenTitan documentation.
