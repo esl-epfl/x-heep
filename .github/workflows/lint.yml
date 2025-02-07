@@ -4,8 +4,6 @@
 # Run all lint checks
 name: lint
 on: [push, pull_request]
-env:
-  VERIBLE_VERSION: 0.0-1824-ga3b5bedf
 jobs:
   #####################
   # Vendor Up-to-Date #
@@ -14,15 +12,17 @@ jobs:
   check-vendor:
     name: Vendor Up-to-Date
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/vlsi-lab/x-heep-toolchain:experimental
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: Install requirements
-      run: pip install -r python-requirements.txt
+    - name: Checkout the pushed code. 
+      uses: actions/checkout@v3
     - name: Re-vendor and diff
       run: |
+        conda init bash
+        source /root/.bashrc
+        conda activate core-v-mini-mcu
+        make clean-all
         find . \
         -name '*.vendor.hjson' \
         | xargs -n1 util/vendor.py --verbose \
@@ -34,26 +34,17 @@ jobs:
     name: Generates sv files
     # This job runs on Linux (fixed ubuntu version)
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/vlsi-lab/x-heep-toolchain:experimental
+    name: Simulate all apps. All must pass.
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-    - name: Install requirements
-      run: |
-        make venv
-        echo "PATH=`pwd`/.venv/bin:$PATH" >> $GITHUB_ENV
-        pip install -r python-requirements.txt
-    - name: Install Verible
-      run: |
-        set -e
-        mkdir -p build/verible
-        cd build/verible
-        curl -Ls -o verible.tar.gz https://github.com/google/verible/releases/download/v$VERIBLE_VERSION/verible-v$VERIBLE_VERSION-Ubuntu-18.04-bionic-x86_64.tar.gz
-        sudo mkdir -p /tools/verible && sudo chmod 777 /tools/verible
-        tar -C /tools/verible -xf verible.tar.gz --strip-components=1
-        echo "PATH=$PATH:/tools/verible/bin" >> $GITHUB_ENV
+      - name: Checkout the pushed code. 
+        uses: actions/checkout@v3
     - name: Run Gen
       run: |
+        conda init bash
+        source /root/.bashrc
+        conda activate core-v-mini-mcu
+        make clean-all
         make mcu-gen
         util/git-diff.py --error-msg "::error ::Found differences in SystemVerilog files generated with default configuration."
