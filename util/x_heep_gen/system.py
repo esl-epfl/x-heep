@@ -243,8 +243,8 @@ class XHeep():
         :return: the validity of the configuration
         :rtype: bool
         """
-        if not self.ram_numbanks() in range(2, 17):
-            print(f"The number of banks should be between 2 and 16 instead of {self.ram_numbanks()}") #TODO: clarify upper limit
+        if not self.ram_numbanks() in range(1, 17):
+            print(f"The number of banks should be between 1 and 16 instead of {self.ram_numbanks()}") #TODO: clarify upper limit
             return False
         
         if not ("code" in self._used_section_names and "data" in self._used_section_names):
