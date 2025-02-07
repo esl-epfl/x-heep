@@ -36,7 +36,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/vlsi-lab/x-heep-toolchain:experimental
-    name: Simulate all apps. All must pass.
     steps:
       - name: Checkout the pushed code. 
         uses: actions/checkout@v3
