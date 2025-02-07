@@ -156,10 +156,4 @@ export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
 export PATH=/home/$USER/tools/verible/${VERIBLE_VERSION}/bin:$PATH
 ```
 
-To format your RTL code type:
-
-```
-make verible
-```
-
 In general, have a look at the [Install Verible](https://opentitan.org/book/doc/getting_started/index.html#step-7a-install-verible-optional) section of the OpenTitan documentation.
