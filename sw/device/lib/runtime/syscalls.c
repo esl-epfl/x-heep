@@ -33,7 +33,6 @@ extern "C" {
 #include "core_v_mini_mcu.h"
 #include "error.h"
 #include "x-heep.h"
-#include <stdio.h>
 
 #undef errno
 extern int errno;
@@ -62,7 +61,7 @@ int     _kill (pid_t pid, int sig);
 void unimplemented_syscall()
 {
     const char *p = "Unimplemented system call called!\n";
-    _write(STDOUT_FILENO, p, strlen(p));
+    _write(STDOUT_FILENO, p, 34);
 }
 
 int nanosleep(const struct timespec *rqtp, struct timespec *rmtp)

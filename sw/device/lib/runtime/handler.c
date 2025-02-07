@@ -9,25 +9,20 @@ extern "C" {
 #include "handler.h"
 #include "csr.h"
 #include "stdasm.h"
-#include <stdio.h>'
 
-/**
- * Return value of mtval
- */
-static uint32_t get_mtval(void) {
-  uint32_t mtval;
-  CSR_READ(CSR_REG_MTVAL, &mtval);
-  return mtval;
-}
 
 /**
  * Default Error Handling
  * @param msg error message supplied by caller
  * TODO - this will be soon by a real print formatting
  */
-static void print_exc_msg(const char *msg) {
-  printf("%s", msg);
-  printf("MTVAL value is 0x%x\n", get_mtval());
+static void print_exc_msg(const char *msg, int length) {
+  _write(1, msg, length );
+  uint32_t mtval; 
+  CSR_READ(CSR_REG_MTVAL, &mtval);
+  _write(1,"MTVAL value is ", 15);
+  const char p[6] = {(mtval >> 24) & 0xFF, (mtval >> 16) & 0xFF, (mtval >> 8) & 0xFF, mtval & 0xFF, '\n', 0};
+  _write(1, p, 5 );
   while (1) {
   };
 }
@@ -69,19 +64,22 @@ __attribute__((weak)) void handler_exception(void) {
 }
 
 __attribute__((weak)) void handler_irq_software(void) {
-  printf("Software IRQ triggered!\n");
+  const char *p = "Software IRQ triggered!\n";
+  _write(1, p, 24 ); 
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_timer(void) {
-  printf("Timer IRQ triggered!\n");
+  const char *p = "Timer IRQ triggered!\n";
+  _write(1, p, 21 ); 
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_external(void) {
-  printf("External IRQ triggered!\n");
+  const char *p = "External IRQ triggered!\n";
+  _write(1, p, 24 );
   while (1) {
   }
 }
@@ -89,28 +87,28 @@ __attribute__((weak)) void handler_irq_external(void) {
 __attribute__((weak)) void handler_instr_acc_fault(void) {
   const char fault_msg[] =
       "Instruction access fault, mtval shows fault address\n";
-  print_exc_msg(fault_msg);
+  print_exc_msg(fault_msg, 52);
 }
 
 __attribute__((weak)) void handler_instr_ill_fault(void) {
   const char fault_msg[] =
       "Illegal Instruction fault, mtval shows instruction content\n";
-  print_exc_msg(fault_msg);
+  print_exc_msg(fault_msg, 59);
 }
 
 __attribute__((weak)) void handler_bkpt(void) {
   const char exc_msg[] =
       "Breakpoint triggerd, mtval shows the breakpoint address\n";
-  print_exc_msg(exc_msg);
+  print_exc_msg(exc_msg, 56);
 }
 
 __attribute__((weak)) void handler_lsu_fault(void) {
   const char exc_msg[] = "Load/Store fault, mtval shows the fault address\n";
-  print_exc_msg(exc_msg);
+  print_exc_msg(exc_msg, 48);
 }
 
 __attribute__((weak)) void handler_ecall(void) {
-  printf("Environment call encountered\n");
+  //printf("Environment call encountered\n");
   while (1) {
   }
 }
