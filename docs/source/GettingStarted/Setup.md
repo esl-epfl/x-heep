@@ -153,7 +153,7 @@ After installation you need to add `/home/$USER/tools/verible/${VERIBLE_VERSION}
 
 ```
 export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
-export PATH=/home/$USER/tools/verilator/$VERILATOR_VERSION/bin:$PATH
+export PATH=/home/$USER/tools/verible/${VERIBLE_VERSION}/bin:$PATH
 ```
 
 To format your RTL code type:
