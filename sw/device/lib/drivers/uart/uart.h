@@ -32,6 +32,10 @@ typedef struct uart {
    */
   uint32_t baudrate;
   /**
+  * The NCO to control the baudrate
+  */
+  uint64_t nco;
+  /**
    * The peripheral clock frequency (used to compute the UART baudrate divisor).
    */
   uint32_t clk_freq_hz;

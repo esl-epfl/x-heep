@@ -50,15 +50,10 @@ system_error_t uart_init(const uart_t *uart) {
     return kErrorUartInvalidArgument;
   }
 
-  // Calculation formula: NCO = 16 * 2^nco_width * baud / fclk.
-  // NCO creates 16x of baudrate. So, in addition to the nco_width,
-  // 2^4 should be multiplied.
-  uint64_t nco =
-      ((uint64_t)uart->baudrate << (NCO_WIDTH + 4)) / uart->clk_freq_hz;
-  uint32_t nco_masked = nco & UART_CTRL_NCO_MASK;
+  uint32_t nco_masked = uart->nco & UART_CTRL_NCO_MASK;
 
   // Requested baudrate is too high for the given clock frequency.
-  if (nco != nco_masked) {
+  if (uart->nco != nco_masked) {
     return kErrorUartBadBaudRate;
   }
 
