@@ -21,8 +21,9 @@
 extern "C" {
 #endif
 
+
+#include "syscalls.h"
 #include <sys/stat.h>
-#include <string.h> 
 #include <sys/reent.h>
 #include <newlib.h>
 #include <unistd.h>
@@ -33,7 +34,6 @@ extern "C" {
 #include "core_v_mini_mcu.h"
 #include "error.h"
 #include "x-heep.h"
-#include <stdio.h>
 
 #undef errno
 extern int errno;
@@ -49,11 +49,10 @@ pid_t   _getpid (void);
 int     _isatty (int __fildes);
 int     _link (const char *__path1, const char *__path2);
 _off_t  _lseek (int __fildes, _off_t __offset, int __whence);
-ssize_t _read (int __fd, void *__buf, size_t __nbyte);
+int     _read (int __fd, void *__buf, int __nbyte);
 void *  _sbrk (ptrdiff_t __incr);
 int     _brk(void *addr);
 int     _unlink (const char *__path);
-ssize_t _write (int __fd, const void *__buf, size_t __nbyte);
 int     _execve (const char *__path, char * const __argv[], char * const __envp[]);
 int     _kill (pid_t pid, int sig);
 #endif
@@ -62,7 +61,7 @@ int     _kill (pid_t pid, int sig);
 void unimplemented_syscall()
 {
     const char *p = "Unimplemented system call called!\n";
-    _write(STDOUT_FILENO, p, strlen(p));
+    _write(STDOUT_FILENO, p, 34);
 }
 
 int nanosleep(const struct timespec *rqtp, struct timespec *rmtp)
@@ -204,7 +203,7 @@ int _openat(int dirfd, const char *name, int flags, int mode)
     return -1;
 }
 
-ssize_t _read(int file, void *ptr, size_t len)
+int _read(int file, void *ptr, int len)
 {
     return 0;
 }
@@ -246,7 +245,7 @@ int _wait(int *status)
     return -1;
 }
 
-ssize_t _write(int file, const void *ptr, size_t len)
+int _write(int file, const void *ptr, int len)
 {
     if (file != STDOUT_FILENO) {
         errno = ENOSYS;
@@ -259,6 +258,7 @@ ssize_t _write(int file, const void *ptr, size_t len)
     uart_t uart;
     uart.base_addr   = mmio_region_from_addr((uintptr_t)UART_START_ADDRESS);
     uart.baudrate    = UART_BAUDRATE;
+    uart.nco         = UART_NCO;
     uart.clk_freq_hz = soc_ctrl_get_frequency(&soc_ctrl);
 
     if (uart_init(&uart) != kErrorOk) {

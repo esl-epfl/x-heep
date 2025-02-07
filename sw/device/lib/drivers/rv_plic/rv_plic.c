@@ -46,12 +46,12 @@ extern "C" {
 #include "handler.h"
 
 // Peripheral modules from where to obtain the irq handlers
-#include "uart.h"
-#include "gpio.h"
-#include "i2c.h"
-#include "i2s.h"
-#include "dma.h"
-#include "spi_host.h"
+// #include "uart.h"
+// #include "gpio.h"
+// #include "i2c.h"
+// #include "i2s.h"
+// #include "dma.h"
+// #include "spi_host.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -382,39 +382,39 @@ plic_result_t plic_assign_external_irq_handler( uint32_t id, void *handler )
 
 void plic_reset_handlers_list(void)
 {
-  handlers[NULL_INTR] = &handler_irq_dummy;
+  // handlers[NULL_INTR] = &handler_irq_dummy;
 
-  for( uint8_t i = NULL_INTR +1; i < QTY_INTR; i++ )
-  {
-    if ( i <= UART_ID_END)
-    {
-      handlers[i] = &handler_irq_uart;
-    }
-    else if ( i <= GPIO_ID_END)
-    {
-      handlers[i] = &handler_irq_gpio;
-    }
-    else if ( i <= I2C_ID_END)
-    {
-      handlers[i] = &handler_irq_i2c;
-    }
-    else if ( i == SPI_ID)
-    {
-      handlers[i] = &handler_irq_spi;
-    }
-    else if ( i == I2S_ID)
-    {
-      handlers[i] = &handler_irq_i2s;
-    }
-    else if ( i == DMA_ID)
-    {
-      handlers[i] = &handler_irq_dma;
-    }
-    else
-    {
-      handlers[i] = &handler_irq_dummy;
-    }
-  }
+  // for( uint8_t i = NULL_INTR +1; i < QTY_INTR; i++ )
+  // {
+  //   if ( i <= UART_ID_END)
+  //   {
+  //     handlers[i] = &handler_irq_uart;
+  //   }
+  //   else if ( i <= GPIO_ID_END)
+  //   {
+  //     handlers[i] = &handler_irq_gpio;
+  //   }
+  //   else if ( i <= I2C_ID_END)
+  //   {
+  //     handlers[i] = &handler_irq_i2c;
+  //   }
+  //   else if ( i == SPI_ID)
+  //   {
+  //     handlers[i] = &handler_irq_spi;
+  //   }
+  //   else if ( i == I2S_ID)
+  //   {
+  //     handlers[i] = &handler_irq_i2s;
+  //   }
+  //   else if ( i == DMA_ID)
+  //   {
+  //     handlers[i] = &handler_irq_dma;
+  //   }
+  //   else
+  //   {
+  //     handlers[i] = &handler_irq_dummy;
+  //   }
+  // }
 }
 
 /****************************************************************************/
