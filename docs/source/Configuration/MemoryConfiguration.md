@@ -30,11 +30,11 @@ ram_banks: {
             {
                 num: 4
                 sizes: 8
-            },
+            }
             {
                 num: 16
                 sizes: 4
-            },
+            }
         ]
     }
 }

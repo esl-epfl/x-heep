@@ -1,38 +1,38 @@
 // Copyright lowRISC contributors.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
-{ name: "fast_intr_ctrl",
-  clock_primary: "clk_i",
+{ name: "fast_intr_ctrl"
+  clock_primary: "clk_i"
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
-  ],
-  regwidth: "32",
+  ]
+  regwidth: "32"
   registers: [
-    { name:     "FAST_INTR_PENDING",
-      desc:     "Pending fast interrupt",
+    { name:     "FAST_INTR_PENDING"
+      desc:     "Pending fast interrupt"
       resval:   "0x00000000"
-      swaccess: "ro",
-      hwaccess: "hrw",
+      swaccess: "ro"
+      hwaccess: "hrw"
       fields: [
         { bits: "14:0", name: "FAST_INTR_PENDING", desc: "Pending Fast Interrupt Reg" }
       ]
     }
 
-    { name:     "FAST_INTR_CLEAR",
-      desc:     "Clear fast interrupt",
+    { name:     "FAST_INTR_CLEAR"
+      desc:     "Clear fast interrupt"
       resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
+      swaccess: "rw"
+      hwaccess: "hrw"
       fields: [
         { bits: "14:0", name: "FAST_INTR_CLEAR", desc: "Clear Fast Interrupt" }
       ]
     }
 
-    { name:     "FAST_INTR_ENABLE",
-      desc:     "Enable fast interrupt",
+    { name:     "FAST_INTR_ENABLE"
+      desc:     "Enable fast interrupt"
       resval:   "0x7fff"
-      swaccess: "rw",
-      hwaccess: "hro",
+      swaccess: "rw"
+      hwaccess: "hro"
       fields: [
         { bits: "14:0", name: "FAST_INTR_ENABLE", desc: "Enable fast interrupt" }
       ]
