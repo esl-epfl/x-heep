@@ -27,13 +27,6 @@ module add_two_number #(
   //-------------------------------------------------------------------------
   // Register Write and Computation Process
   //-------------------------------------------------------------------------
-  // We assume that the memory-mapped interface uses a simple protocol in which:
-  //   - reg_req_i.valid indicates a valid request.
-  //   - reg_req_i.write is high for a write, low for a read.
-  //   - reg_req_i.addr is the target address.
-  //   - reg_req_i.wdata is the write data.
-  // Likewise, we assume that reg_rsp_o has at least an rdata field.
-  //-------------------------------------------------------------------------
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       operand0_reg <= 32'd0;
@@ -46,14 +39,11 @@ module add_two_number #(
         case (reg_req_i.addr)
           ADDR_OPERAND0: operand0_reg <= reg_req_i.wdata;
           ADDR_OPERAND1: operand1_reg <= reg_req_i.wdata;
-          // Writing to the control register: bit 0 is the START flag.
           ADDR_CTRL:     start_reg    <= reg_req_i.wdata[0];
-          // (Any write to ADDR_RESULT or other addresses is ignored.)
           default: ;
         endcase
       end
 
-      // If the start flag is set, perform the addition and clear the flag.
       if (start_reg) begin
         result_reg <= operand0_reg + operand1_reg;
         start_reg <= 1'b0;

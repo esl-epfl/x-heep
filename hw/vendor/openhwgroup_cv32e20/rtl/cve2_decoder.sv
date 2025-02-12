@@ -629,6 +629,18 @@ module cve2_decoder #(
           illegal_insn = csr_illegal;
         end
 
+        7'b1010000: begin
+          // This "add_two" instruction uses RS1 and RS2, writes result to RD.
+          // It is basically an ALU operation with our new ALU_ADD_TWO code.
+          rf_ren_a_o       = 1'b1;     // read RS1
+          rf_ren_b_o       = 1'b1;     // read RS2
+          rf_we            = 1'b1;     // write back to RD
+          alu_operator_o   = ALU_ADD_TWO;  // our new custom ALU op
+          alu_op_a_mux_sel_o = OP_A_REG_A; // operand A from RS1
+          alu_op_b_mux_sel_o = OP_B_REG_B; // operand B from RS2
+          // everything else can stay default
+        end
+
       end
       default: begin
         illegal_insn = 1'b1;

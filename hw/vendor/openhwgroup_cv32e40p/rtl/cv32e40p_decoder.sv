@@ -2122,20 +2122,13 @@ module cv32e40p_decoder
             // New custom instruction: ADD_TWO_NUMBER
             // (It uses RS1 and RS2; the result is written to RD.)
             //
-            // We set a custom ALU operator that (in the execution stage)
-            // will cause the core to perform a memory–mapped transaction
-            // to the add_two_number peripheral.
-            //
-            // (Note: You must add a definition for ALU_ADD_TWO in your package.)
             alu_operator_o    = ALU_ADD_TWO;  // NEW custom operator
             alu_en            = 1'b1;         // Enable the (custom) ALU/extension datapath
             rega_used_o       = 1'b1;         // RS1 is used
             regb_used_o       = 1'b1;         // RS2 is used
             regfile_alu_we    = 1'b1;         // Write back the result to the register file
-            // Select the register values for the two operands:
             alu_op_a_mux_sel_o = OP_A_REGA_OR_FWD;  // Operand A from RS1
             alu_op_b_mux_sel_o = OP_B_REGB_OR_FWD;  // Operand B from RS2
-            // No immediate operand is needed here.
             imm_b_mux_sel_o    = IMMB_VS;
           end
 

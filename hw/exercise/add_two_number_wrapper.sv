@@ -24,9 +24,6 @@ module add_two_number_wrapper #(
   input  logic rst_ni,
 
   // eXtension interface signals.
-  // We assume that the peripheral is accessed through the memory–mapped
-  // interface. The types and fields of these interfaces are defined in the
-  // package (if_xif) used in the X-Heep design.
   if_xif.coproc_mem        xif_mem_if,
   if_xif.coproc_mem_result xif_mem_result_if,
   if_xif.coproc_result     xif_result_if
@@ -34,15 +31,6 @@ module add_two_number_wrapper #(
 
   //-------------------------------------------------------------------------
   // Internal Connections
-  //-------------------------------------------------------------------------
-  // We assume that the coprocessor memory interface carries the register 
-  // request/response signals as follows:
-  //   - xif_mem_if.mem_req  : (of type reg_req_t) carries the incoming
-  //                           register read/write request.
-  //   - xif_mem_if.mem_resp : (of type reg_rsp_t) carries the response.
-  // The peripheral is always ready to accept a new request (so we drive
-  // mem_ready high). The other coprocessor interfaces are not used by this
-  // peripheral.
   //-------------------------------------------------------------------------
 
 typedef struct packed {
