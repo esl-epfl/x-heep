@@ -2118,6 +2118,21 @@ module cv32e40px_decoder
               end
             end
           endcase
+
+         2'b11: begin
+            // New custom instruction: ADD_TWO_NUMBER
+            // (It uses RS1 and RS2; the result is written to RD.)
+            //
+            alu_operator_o    = ALU_ADD_TWO;  // NEW custom operator
+            alu_en            = 1'b1;         // Enable the (custom) ALU/extension datapath
+            rega_used_o       = 1'b1;         // RS1 is used
+            regb_used_o       = 1'b1;         // RS2 is used
+            regfile_alu_we    = 1'b1;         // Write back the result to the register file
+            alu_op_a_mux_sel_o = OP_A_REGA_OR_FWD;  // Operand A from RS1
+            alu_op_b_mux_sel_o = OP_B_REGB_OR_FWD;  // Operand B from RS2
+            imm_b_mux_sel_o    = IMMB_VS;
+          end
+
         end else begin
           illegal_insn_o = 1'b1;
         end
