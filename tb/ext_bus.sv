@@ -34,13 +34,13 @@ module ext_bus #(
     input  obi_pkg::obi_req_t  heep_debug_master_req_i,
     output obi_pkg::obi_resp_t heep_debug_master_resp_o,
 
-    input  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_req_i ,
+    input obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_req_i,
     output obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_resp_o,
 
-    input  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_req_i,
+    input obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_req_i,
     output obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_resp_o,
 
-    input  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_req_i ,
+    input obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_req_i,
     output obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_resp_o,
 
     // External master ports
@@ -114,14 +114,14 @@ module ext_bus #(
 
   // X-HEEP slave requests
   generate
-    for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin
+    for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_heep_slave_req_map
       assign heep_slave_req_o[i] = demux_xbar_req[i][DEMUX_XBAR_INT_SLAVE_IDX];
     end
   endgenerate
 
   // X-HEEP slave responses
   generate
-    for (genvar i = 0; unsigned'(i) < EXT_XBAR_NMASTER; i++) begin
+    for (genvar i = 0; unsigned'(i) < EXT_XBAR_NMASTER; i++) begin : gen_heep_slave_resp_map
       assign demux_xbar_resp[i][DEMUX_XBAR_INT_SLAVE_IDX] = heep_slave_resp_i[i];
     end
   endgenerate
@@ -137,8 +137,9 @@ module ext_bus #(
   // show writes if requested
   always_ff @(posedge clk_i, negedge rst_ni) begin : verbose_writes
     if ($test$plusargs("verbose") != 0 && heep_core_data_req_i.req && heep_core_data_req_i.we)
-      $display("write addr=0x%08x: data=0x%08x", heep_core_data_req_i.addr,
-               heep_core_data_req_i.wdata);
+      $display(
+          "write addr=0x%08x: data=0x%08x", heep_core_data_req_i.addr, heep_core_data_req_i.wdata
+      );
   end
 `endif
 

@@ -153,9 +153,9 @@ module system_bus
   % endfor
   
   // External master responses
-  if (EXT_XBAR_NMASTER == 0) begin
+  if (EXT_XBAR_NMASTER == 0) begin : gen_no_ext_masters
     assign ext_xbar_master_resp_o = '0;
-  end else begin
+  end else begin : gen_ext_masters
     for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_resp_map
       assign ext_xbar_master_resp_o[i] = master_resp[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+i];
     end
