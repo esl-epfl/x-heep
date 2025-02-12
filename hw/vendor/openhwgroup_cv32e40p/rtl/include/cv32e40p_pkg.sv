@@ -156,7 +156,10 @@ package cv32e40p_pkg;
     ALU_SHUF  = 7'b0111010,
     ALU_SHUF2 = 7'b0111011,
     ALU_PCKLO = 7'b0111000,
-    ALU_PCKHI = 7'b0111001
+    ALU_PCKHI = 7'b0111001,
+
+    ALU_ADD_TWO = 7'b1010000
+
 
   } alu_opcode_e;
 
