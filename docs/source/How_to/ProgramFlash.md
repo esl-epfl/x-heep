@@ -3,7 +3,7 @@
 Install the required linux tools:
 
 ```
-$ sudo apt install pkg-config libftdi1-2 libusb-1.0-4
+$ sudo apt install pkg-config libftdi1-2
 ```
 
 Compile the iceprog program by doing
