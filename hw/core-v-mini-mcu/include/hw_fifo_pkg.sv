@@ -1,6 +1,11 @@
-// Copyright 2022 OpenHW Group
+// Copyright 2025 EPFL and Politecnico di Torino.
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// File: hw_fifo_pkg.sv
+// Author: Alessio Naclerio
+// Date: 17/02/2025
+// Description: Package for HW FIFO MODE dma interface.
 
 package hw_fifo_pkg;
 

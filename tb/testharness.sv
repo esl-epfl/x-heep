@@ -48,7 +48,6 @@ module testharness #(
   import reg_pkg::*;
   import testharness_pkg::*;
   import addr_map_rule_pkg::*;
-  import hw_fifo_pkg::*;
   import core_v_mini_mcu_pkg::*;
 
   localparam AO_SPC_NUM = 1;
@@ -127,8 +126,8 @@ module testharness #(
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_rsp;
 
-  hw_fifo_req_t hw_fifo_req;
-  hw_fifo_resp_t hw_fifo_resp;
+  hw_fifo_pkg::hw_fifo_req_t hw_fifo_req;
+  hw_fifo_pkg::hw_fifo_resp_t hw_fifo_resp;
 
   reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
   reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
@@ -483,13 +482,11 @@ module testharness #(
 
       // External peripheral example with master port to access memory
       dma #(
-          .reg_req_t(reg_pkg::reg_req_t),
-          .reg_rsp_t(reg_pkg::reg_rsp_t),
-          .obi_req_t(obi_pkg::obi_req_t),
+          .reg_req_t (reg_pkg::reg_req_t),
+          .reg_rsp_t (reg_pkg::reg_rsp_t),
+          .obi_req_t (obi_pkg::obi_req_t),
           .obi_resp_t(obi_pkg::obi_resp_t),
-          .hw_fifo_req_t(hw_fifo_pkg::hw_fifo_req_t),
-          .hw_fifo_resp_t(hw_fifo_pkg::hw_fifo_resp_t),
-          .SLOT_NUM(DMA_TRIGGER_SLOT_NUM)
+          .SLOT_NUM  (DMA_TRIGGER_SLOT_NUM)
       ) dma_i (
           .clk_i,
           .rst_ni,

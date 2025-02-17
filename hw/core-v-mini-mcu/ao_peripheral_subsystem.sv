@@ -6,7 +6,6 @@ module ao_peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
   import power_manager_pkg::*;
-  import hw_fifo_pkg::*;
 #(
     parameter AO_SPC_NUM = 0,
     //do not touch these parameters
@@ -77,8 +76,8 @@ module ao_peripheral_subsystem
     output logic                                                      dma_done_intr_o,
     output logic                                                      dma_window_intr_o,
 
-    output hw_fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
-    input  hw_fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
+    output hw_fifo_pkg::hw_fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
+    input  hw_fifo_pkg::hw_fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
     // External PADs
     output reg_req_t pad_req_o,
@@ -399,8 +398,6 @@ module ao_peripheral_subsystem
       .reg_rsp_t(reg_pkg::reg_rsp_t),
       .obi_req_t(obi_pkg::obi_req_t),
       .obi_resp_t(obi_pkg::obi_resp_t),
-      .hw_fifo_req_t(hw_fifo_pkg::hw_fifo_req_t),
-      .hw_fifo_resp_t(hw_fifo_pkg::hw_fifo_resp_t),
       .GLOBAL_SLOT_NUM(DMA_GLOBAL_TRIGGER_SLOT_NUM),
       .EXT_SLOT_NUM(DMA_EXT_TRIGGER_SLOT_NUM)
   ) dma_subsystem_i (

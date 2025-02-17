@@ -12,8 +12,6 @@ module dma #(
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
     parameter type obi_resp_t = logic,
-    parameter type hw_fifo_req_t = logic,
-    parameter type hw_fifo_resp_t = logic,
     parameter int unsigned SLOT_NUM = 0
 ) (
     input logic clk_i,
@@ -34,8 +32,8 @@ module dma #(
     output obi_req_t  dma_addr_req_o,
     input  obi_resp_t dma_addr_resp_i,
 
-    input  hw_fifo_resp_t hw_fifo_resp_i,
-    output hw_fifo_req_t  hw_fifo_req_o,
+    input  hw_fifo_pkg::hw_fifo_resp_t hw_fifo_resp_i,
+    output hw_fifo_pkg::hw_fifo_req_t  hw_fifo_req_o,
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
@@ -407,7 +405,6 @@ module dma #(
       .clk_i(clk_cg),
       .rst_ni,
       .reg2hw_i(reg2hw),
-      //      .reg_req_i,
       .dma_start_i(dma_start),
       .write_fifo_empty_i(write_fifo_empty),
       .read_addr_fifo_empty_i(read_addr_fifo_empty),

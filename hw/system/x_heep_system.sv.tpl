@@ -5,7 +5,6 @@
 module x_heep_system
   import obi_pkg::*;
   import reg_pkg::*;
-  import hw_fifo_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -39,8 +38,8 @@ module x_heep_system
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
     input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i,
 
-    output hw_fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
-    input hw_fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
+    output hw_fifo_pkg::hw_fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
+    input hw_fifo_pkg::hw_fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
     input reg_req_t  [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_req_i,
     output reg_rsp_t [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_resp_o,
