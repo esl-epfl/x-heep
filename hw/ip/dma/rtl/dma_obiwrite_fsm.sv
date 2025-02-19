@@ -21,11 +21,15 @@ module dma_obiwrite_fsm
     input logic read_addr_fifo_empty_i,
     input logic [31:0] fifo_output_i,
     input logic wait_for_tx_i,
+
+    input logic hw_w_fifo_empty_i,
+    input logic hw_fifo_mode_i,
+    input logic [31:0] hw_w_fifo_data_i,
+
     input logic address_mode_i,
     input logic padding_fsm_done_i,
     input logic data_out_gnt_i,
     input logic [31:0] fifo_addr_output_i,
-
     output logic data_out_req_o,
     output logic data_out_we_o,
     output logic [3:0] data_out_be_o,
@@ -211,14 +215,18 @@ module dma_obiwrite_fsm
       // Read one word
       DMA_WRITE_FSM_ON: begin
         // If all input data read exit
-        if (padding_fsm_done_i == 1'b1 && write_fifo_empty == 1'b1) begin
+        if (hw_fifo_mode_i == 1'b1 && padding_fsm_done_i == 1'b1 && hw_w_fifo_empty_i == 1'b1) begin
+          dma_done = 1'b1;
+          dma_write_fsm_n_state = DMA_WRITE_FSM_IDLE;
+        end else if (hw_fifo_mode_i == 1'b0 && padding_fsm_done_i == 1'b1 && write_fifo_empty == 1'b1) begin
           dma_done = (write_fifo_empty == 1'b1);
           // If all input data has been processed and written, exit, otherwise finish storing the data
           dma_write_fsm_n_state = dma_done ? DMA_WRITE_FSM_IDLE : DMA_WRITE_FSM_ON;
         end else begin
           dma_write_fsm_n_state = DMA_WRITE_FSM_ON;
           // Wait if write fifo is empty or if the SPI TX is not ready for new data (only in SPI mode 2).
-          if (write_fifo_empty == 1'b0 && wait_for_tx == 1'b0 && (read_addr_fifo_empty && address_mode) == 1'b0) begin
+          if ((write_fifo_empty == 1'b0 && wait_for_tx == 1'b0
+              && (read_addr_fifo_empty && address_mode) == 1'b0) || (hw_w_fifo_empty_i == 1'b0 && hw_fifo_mode_i == 1'b1)) begin
             data_out_req  = 1'b1;
             data_out_we   = 1'b1;
             data_out_be   = byte_enable_out;
@@ -229,15 +237,24 @@ module dma_obiwrite_fsm
     endcase
   end
 
+  logic [31:0] data_to_write;
+  always_comb begin
+    if (hw_fifo_mode_i) begin
+      data_to_write = hw_w_fifo_data_i;
+    end else begin
+      data_to_write = fifo_output;
+    end
+  end
+
   /* Perform the data shift */
   always_comb begin : proc_output_data
 
-    data_out_wdata[7:0]   = fifo_output[7:0];
-    data_out_wdata[15:8]  = fifo_output[15:8];
-    data_out_wdata[23:16] = fifo_output[23:16];
-    data_out_wdata[31:24] = fifo_output[31:24];
+    data_out_wdata[7:0]   = data_to_write[7:0];
+    data_out_wdata[15:8]  = data_to_write[15:8];
+    data_out_wdata[23:16] = data_to_write[23:16];
+    data_out_wdata[31:24] = data_to_write[31:24];
 
-    if (address_mode == 1'b0) begin
+    if (address_mode == 1'b0 && hw_fifo_mode_i == 1'b0) begin
       case (write_ptr_reg[1:0])
         2'b00: begin
           if (sign_extend) begin
@@ -248,20 +265,20 @@ module dma_obiwrite_fsm
               {
                 DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_WORD
               } :
-              data_out_wdata[31:16] = {16{fifo_output[15]}};
+              data_out_wdata[31:16] = {16{data_to_write[15]}};
               {
                 DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_WORD
               }, {
                 DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_WORD
               } :
-              data_out_wdata[31:8] = {24{fifo_output[7]}};
+              data_out_wdata[31:8] = {24{data_to_write[7]}};
               {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD} : ;
               {
                 DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_HALF_WORD
               }, {
                 DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_HALF_WORD
               } :
-              data_out_wdata[15:8] = {8{fifo_output[7]}};
+              data_out_wdata[15:8] = {8{data_to_write[7]}};
               default: ;
             endcase
           end else begin
@@ -288,10 +305,10 @@ module dma_obiwrite_fsm
           end
         end
         2'b01:
-        data_out_wdata[15:8] = fifo_output[7:0];  // Writing a byte, no need for sign extension
+        data_out_wdata[15:8] = data_to_write[7:0];  // Writing a byte, no need for sign extension
         2'b10: begin  // Writing a half-word or a byte
-          data_out_wdata[23:16] = fifo_output[7:0];
-          data_out_wdata[31:24] = fifo_output[15:8];
+          data_out_wdata[23:16] = data_to_write[7:0];
+          data_out_wdata[31:24] = data_to_write[15:8];
 
           if (sign_extend) begin
             case ({
@@ -303,7 +320,7 @@ module dma_obiwrite_fsm
               }, {
                 DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_HALF_WORD
               } :
-              data_out_wdata[31:24] = {8{fifo_output[7]}};
+              data_out_wdata[31:24] = {8{data_to_write[7]}};
               default: ;
             endcase
           end else begin
@@ -322,7 +339,7 @@ module dma_obiwrite_fsm
           end
         end
         2'b11:
-        data_out_wdata[31:24] = fifo_output[7:0];  // Writing a byte, no need for sign extension
+        data_out_wdata[31:24] = data_to_write[7:0];  // Writing a byte, no need for sign extension
       endcase
     end
   end
@@ -356,6 +373,5 @@ module dma_obiwrite_fsm
 
   /* Sign extension */
   assign sign_extend = reg2hw.sign_ext.q & ( (src_data_type[1] & ~dst_data_type[1]) | ((src_data_type[1] == dst_data_type[1]) & (src_data_type[0] & ~dst_data_type[0])));
-
 
 endmodule
