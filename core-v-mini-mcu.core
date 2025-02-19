@@ -339,6 +339,7 @@ targets:
         vsim_options:
         - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi
         - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs
+        - -voptargs=+acc=npr
       vcs:
         vcs_options:
          - -override_timescale=1ns/1ps

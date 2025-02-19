@@ -225,6 +225,16 @@ w25q_error_codes_t w25q128jw_read(uint32_t addr, void* data, uint32_t length);
 w25q_error_codes_t w25q128jw_write(uint32_t addr, void* data, uint32_t length, uint8_t erase_before_write);
 
 /**
+ * @brief Setup SPI to read from flash at standard speed. (NEEDS TO BE FOLLOWED BY MANUAL SETUP OF THE DMA)
+ *
+ * @param addr 24-bit flash address to read from.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @return ptr to SPI data register.
+*/
+uint32_t* w25q128jw_read_standard_setup(uint32_t addr, void *data, uint32_t length);
+
+/**
  * @brief Read from flash at standard speed.
  *
  *
@@ -308,6 +318,16 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* d
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
 w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void* data, uint32_t length);
+
+/**
+ * @brief Setup SPI to read from flash at quad speed. (NEEDS TO BE FOLLOWED BY MANUAL SETUP OF THE DMA)
+ *
+ * @param addr 24-bit flash address to read from.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @return ptr to SPI data register.
+*/
+uint32_t* w25q128jw_read_quad_setup(uint32_t addr, void *data, uint32_t length);
 
 /**
  * @brief Write to flash at quad speed. Use this function only to write to unitialized data

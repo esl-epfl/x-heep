@@ -24,6 +24,8 @@
 #endif
 
 
+#define EXTERNAL_CSR_REG_MIE_MASK (1<<11)
+
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
 #define PRINTF_IN_SIM   0
@@ -71,6 +73,10 @@ int main(int argc, char *argv[])
     power_manager_counters_t power_manager_counters;
     //counters
     uint32_t reset_off, reset_on, switch_off, switch_on, iso_off, iso_on;
+
+    CSR_CLEAR_BITS(CSR_REG_MIE, EXTERNAL_CSR_REG_MIE_MASK );
+    /* Enable machine-level external interrupt. */
+    CSR_SET_BITS(CSR_REG_MIE, EXTERNAL_CSR_REG_MIE_MASK );
 
     // Setup pads
 #ifndef TARGET_IS_FPGA
