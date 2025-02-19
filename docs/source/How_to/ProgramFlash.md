@@ -1,9 +1,13 @@
 # Program the FLASH on the EPFL Programmer
 
+```{note}
+Windows/WSL2 users should configure usbipd, as outlined in the [Additional steps](#additional-steps-for-windowswsl2-users) section, before proceeding.
+```
+
 Install the required linux tools:
 
 ```
-$ sudo apt install pkg-config libftdi1-2 libusb-1.0-4
+$ sudo apt install pkg-config libftdi1-2
 ```
 
 Compile the iceprog program by doing
@@ -117,3 +121,26 @@ or just  `boot_sel_i` to `1` and `execute_from_flash_i` to `0`  if you `load fro
 Reset the logic (so the x-heep reset and not the bitstream reset) and enjoy.
 
 Additional note: To use the flash directly from X-HEEP, you first need to execute from the PC any iceprog command targeting the Flash. On the exit of any iceprog program, the FTDI pins will be set to high impedance. If this is not performed, the pins from the FTDI won't be on high impedance and the SPI signals cannot be driven from X-HEEP (or any other device).
+
+## Additional steps for Windows/WSL2 users:
+
+Windows/WSL2 users can also use this tutorial, but need to forward the USB connection from the Windows host to WSL2. Once the USB is forwarded, `iceprog` can program the EPFL programmer.
+
+1. **Install `usbipd-win`**  
+   Follow the instructions in the [official guide](https://learn.microsoft.com/en-us/windows/wsl/connect-usb).
+
+2. **Add Auto-Bind Policies**  
+   Configure USBIP policies to automatically bind supported hardware:  
+
+   - **For ZCU104 and EPFL programmer** (which share the same hardware ID):  
+     ```sh
+     usbipd policy add --effect Allow --operation AutoBind --hardware-id 0403:6011
+     ```
+   - **For PYNQ-Z2**:  
+     ```sh
+     usbipd policy add --effect Allow --operation AutoBind --hardware-id 0403:6010
+     ```
+    For more information, please refer to [USBIPD Policy Configuration](https://github.com/dorssel/usbipd-win/wiki/New-design:-policies).
+
+3. **Using VS Code for USB Control**  
+   If you're using **VS Code**, you can manage USB attach/detach more conveniently using the **[USBIP Connect](https://marketplace.visualstudio.com/items?itemName=thecreativedodo.usbip-connect)** extension.

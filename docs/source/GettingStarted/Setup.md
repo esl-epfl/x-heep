@@ -144,7 +144,7 @@ export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
 wget https:wget https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
 tar -xf verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
 mkdir -p /home/$USER/tools/verible/${VERIBLE_VERSION}/
-mv verible-${VERIBLE_VERSION}/ /home/$USER/tools/verible/${VERIBLE_VERSION}/
+mv verible-${VERIBLE_VERSION}/* /home/$USER/tools/verible/${VERIBLE_VERSION}/
 rm verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
 rm -r verible-${VERIBLE_VERSION}
 ```
