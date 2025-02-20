@@ -70,6 +70,7 @@ module peripheral_subsystem
     output logic [                        3:0] spi2_sd_en_o,
     input  logic [                        3:0] spi2_sd_i,
 
+
     //RV TIMER
     output logic rv_timer_2_intr_o,
     output logic rv_timer_3_intr_o,
@@ -601,4 +602,6 @@ module peripheral_subsystem
 % endif
 % endfor
 
+
+  
 endmodule : peripheral_subsystem

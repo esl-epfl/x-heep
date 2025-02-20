@@ -63,7 +63,7 @@
             type: output
         },
         gpio: {
-            num: 18,
+            num: 14,
             num_offset: 0, #first gpio is gpio0
             type: inout
         },
@@ -91,7 +91,54 @@
             num: 4,
             type: inout
         },
-
+        spi_slave_sck: {
+            num: 1,
+            type: inout
+            mux: {
+                spi_slave_sck: {
+                    type: input
+                },
+                gpio_14: {
+                    type: inout
+                }
+            }
+        },
+        spi_slave_cs: {
+            num: 1,
+            type: inout
+            mux: {
+                spi_slave_cs: {
+                    type: input
+                },
+                gpio_15: {
+                    type: inout
+                }
+            }
+        },
+        spi_slave_miso: {
+            num: 1,
+            type: inout
+            mux: {
+                spi_slave_miso: {
+                    type: output
+                },
+                gpio_16: {
+                    type: inout
+                }
+            }
+        },
+        spi_slave_mosi: {
+            num: 1,
+            type: inout
+            mux: {
+                spi_slave_mosi: {
+                    type: input
+                },
+                gpio_17: {
+                    type: inout
+                }
+            }
+        },
         pdm2pcm_pdm: {
             num: 1,
             type: inout

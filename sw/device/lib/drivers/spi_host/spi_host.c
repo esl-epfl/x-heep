@@ -327,6 +327,7 @@ spi_return_flags_e spi_read_word(spi_host_t* spi, uint32_t* dst)
     // Check we're not underflowing
     if (spi_get_rx_queue_depth(spi) == 0) return SPI_FLAG_RX_QUEUE_EMPTY;
     *dst = SPI_HW(spi)->RXDATA;
+    // printf("!%d>%d %d %d %d\n\r",dst,((uint32_t)*dst&0xff000000)>>24, ((uint32_t)*dst&0x00ff0000)>>16, ((uint32_t)*dst&0x0000ff00)>>8,((uint32_t)*dst&0x000000ff));
     return SPI_FLAG_OK;
 }
 
