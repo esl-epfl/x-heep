@@ -277,7 +277,7 @@ __attribute__((used)) _ssize_t _write_r(struct _reent *ptr, int fd, const void *
 
 void _writestr(const void *ptr)
 {
-    _write(STDOUT_FILENO, ptr, strlen(ptr));
+    _write(STDOUT_FILENO, ptr, strlen(ptr)+1);
 }
 
 extern char __heap_start[];
