@@ -70,9 +70,11 @@ extern "C" {
  * an interrupt routine you need to back up all registers.
  * To avoid this, we hard-code the back-up of the registers used during interrupt
  * clearing and jumping to the actual handler. 
- * This allows us to make the interrupt handlers "naked" (with no register back-up)
- * but forces us to make the weak implementations "interrupt", so that they do back
- * up all registers correctly.  
+ * This allows us to make the interrupt handlers "naked" (with no register back-up).
+ * This saves some space in code... BUT IS DANGEROUS!!   
+ * Giving the strong implementation of fic_irq_xxx the __attribute__((interrupt)) 
+ * should cover this danger, but for some reason that causes an Illegal instr. 
+ * @ToDo: Find out why and fix.  
 */
 #define SAVE_REGISTERS()         \
     __asm volatile(              \
