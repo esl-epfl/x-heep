@@ -22,6 +22,6 @@
 int main(int argc, char *argv[])
 {
     /* write something to stdout */
-    printf("Hello World!\n");
+    printf("hello world!\n");
     return EXIT_SUCCESS;
 }
