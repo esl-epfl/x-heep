@@ -55,6 +55,7 @@ int     _brk(void *addr);
 int     _unlink (const char *__path);
 int     _execve (const char *__path, char * const __argv[], char * const __envp[]);
 int     _kill (pid_t pid, int sig);
+void    _writestr(const void *ptr); // Not a standard function
 #endif
 
 
@@ -272,6 +273,11 @@ int _write(int file, const void *ptr, int len)
 __attribute__((used)) _ssize_t _write_r(struct _reent *ptr, int fd, const void *buf, size_t cnt)
 {
     return _write(fd,buf,cnt);
+}
+
+void _writestr(const void *ptr)
+{
+    _write(STDOUT_FILENO, ptr, strlen(ptr));
 }
 
 extern char __heap_start[];
