@@ -94,7 +94,7 @@ int _chown(const char *path, uid_t owner, gid_t group)
     return -1;
 }
 
-int _close(int file)
+__attribute__((used)) int _close(int file)
 {
     return -1;
 }
@@ -127,7 +127,7 @@ pid_t _fork(void)
     return -1;
 }
 
-int _fstat(int file, struct stat *st)
+__attribute__((used)) int _fstat(int file, struct stat *st)
 {
     st->st_mode = S_IFCHR;
     return 0;
@@ -164,7 +164,7 @@ int _gettimeofday(struct timeval *tp, void *tzp)
     return -1;
 }
 
-int _isatty(int file)
+__attribute__((used)) int _isatty(int file)
 {
     return (file == STDOUT_FILENO);
 }
@@ -181,7 +181,7 @@ int _link(const char *old_name, const char *new_name)
     return -1;
 }
 
-off_t _lseek(int file, off_t ptr, int dir)
+__attribute__((used)) off_t _lseek(int file, off_t ptr, int dir)
 {
     return 0;
 }
@@ -203,7 +203,7 @@ int _openat(int dirfd, const char *name, int flags, int mode)
     return -1;
 }
 
-int _read(int file, void *ptr, int len)
+__attribute__((used)) int _read(int file, void *ptr, int len)
 {
     return 0;
 }
@@ -269,7 +269,7 @@ int _write(int file, const void *ptr, int len)
 }
 
 
-_ssize_t _write_r(struct _reent *ptr, int fd, const void *buf, size_t cnt)
+__attribute__((used)) _ssize_t _write_r(struct _reent *ptr, int fd, const void *buf, size_t cnt)
 {
     return _write(fd,buf,cnt);
 }
