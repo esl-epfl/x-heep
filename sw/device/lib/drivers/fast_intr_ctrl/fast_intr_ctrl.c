@@ -62,7 +62,38 @@ extern "C" {
  * in an interrupt handler. Subsequent functions can just use the regular RISC-V
  * calling convention.
  */
-#define INTERRUPT_HANDLER_ABI __attribute__((aligned(4), interrupt))
+#define INTERRUPT_HANDLER_ABI __attribute__((aligned(4), naked))
+
+
+/**
+ * Having interrupt functions defined is expensive in memory, as when you jump to
+ * an interrupt routine you need to back up all registers.
+ * To avoid this, we hard-code the back-up of the registers used during interrupt
+ * clearing and jumping to the actual handler. 
+ * This allows us to make the interrupt handlers "naked" (with no register back-up)
+ * but forces us to make the weak implementations "interrupt", so that they do back
+ * up all registers correctly.  
+*/
+#define SAVE_REGISTERS()         \
+    __asm volatile(              \
+        "addi sp, sp, -16\n\t"   \
+        "sw   a0, 12(sp)\n\t"   \
+        "sw   ra, 8(sp)\n\t"     \
+        "sw   a4, 4(sp)\n\t"     \
+        "sw   a5, 0(sp)\n\t"     \
+    )
+
+#define RESTORE_REGISTERS()      \
+    __asm volatile(              \
+        "lw   a5, 0(sp)\n\t"     \
+        "lw   a4, 4(sp)\n\t"     \
+        "lw   ra, 8(sp)\n\t"     \
+        "lw   a0, 12(sp)\n\t"   \
+        "addi sp, sp, 16\n\t"    \
+        "mret\n\t"              \
+    )
+
+#define WEAK_INTERRUPT_HANDLER_ABI __attribute__((weak, optimize("O0")))
 
 /****************************************************************************/
 /**                                                                        **/
@@ -234,72 +265,72 @@ fast_intr_ctrl_result_t clear_fast_interrupt(fast_intr_ctrl_fast_interrupt_t\
     return kFastIntrCtrlOk_e;
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_timer_1(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_timer_1(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_timer_2(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_timer_2(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_timer_3(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_timer_3(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_dma(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_dma(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_spi(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_spi(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_spi_flash(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_spi_flash(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_gpio_0(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_gpio_0(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_gpio_1(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_gpio_1(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_gpio_2(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_gpio_2(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_gpio_3(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_gpio_3(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_gpio_4(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_gpio_4(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_gpio_5(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_gpio_5(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_gpio_6(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_gpio_6(void)
 {
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_gpio_7(void)
+WEAK_INTERRUPT_HANDLER_ABI void fic_irq_gpio_7(void)
 {
     /* Users should implement their non-weak version */
 }
@@ -312,114 +343,142 @@ __attribute__((weak, optimize("O0"))) void fic_irq_gpio_7(void)
 
 void handler_irq_fast_timer_1(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kTimer_1_fic_e);
     // call the weak fic handler
     fic_irq_timer_1();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_timer_2(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kTimer_2_fic_e);
     // call the weak fic handler
     fic_irq_timer_2();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_timer_3(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kTimer_3_fic_e);
     // call the weak fic handler
     fic_irq_timer_3();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_dma(void)
 {
+    SAVE_REGISTERS(); 
     // The interrupt is cleared.
     clear_fast_interrupt(kDma_fic_e);
     // call the weak fic handler
     fic_irq_dma();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_spi(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kSpi_fic_e);
     // call the weak fic handler
     fic_irq_spi();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_spi_flash(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kSpiFlash_fic_e);
     // call the weak fic handler
     fic_irq_spi_flash();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_gpio_0(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_0_fic_e);
     // call the weak fic handler
     fic_irq_gpio_0();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_gpio_1(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_1_fic_e);
     // call the weak fic handler
     fic_irq_gpio_1();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_gpio_2(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_2_fic_e);
     // call the weak fic handler
     fic_irq_gpio_2();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_gpio_3(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_3_fic_e);
     // call the weak fic handler
     fic_irq_gpio_3();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_gpio_4(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_4_fic_e);
     // call the weak fic handler
     fic_irq_gpio_4();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_gpio_5(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_5_fic_e);
     // call the weak fic handler
     fic_irq_gpio_5();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_gpio_6(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_6_fic_e);
     // call the weak fic handler
     fic_irq_gpio_6();
+    RESTORE_REGISTERS();
 }
 
 void handler_irq_fast_gpio_7(void)
 {
+    SAVE_REGISTERS();
     // The interrupt is cleared.
     clear_fast_interrupt(kGpio_7_fic_e);
     // call the weak fic handler
     fic_irq_gpio_7();
+    RESTORE_REGISTERS();
 }
 #ifdef __cplusplus
 }
