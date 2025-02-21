@@ -35,7 +35,7 @@
     #define assert(expression) \
         do { \
             if (!(expression)) { \
-                _write(1, "Assertion failed\n", 17 ); \
+                _writestr("Assertion failed\n"); \
                 while(1); \
             } \
         } while (0)
