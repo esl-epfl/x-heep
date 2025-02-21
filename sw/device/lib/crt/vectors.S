@@ -128,14 +128,24 @@ new vector table (which is at mtvec) */
 /* exception handling */
 .globl __no_irq_handler
 __no_irq_handler:
+	/*
+	REMOVING THIS CALL REDUCES CODE SIZE CONSIDERABLY
+	This will not print an error message in case of not finding 
+	the proper handler to manage an interrupt.
 	la a0, no_exception_handler_msg
 	jal ra, puts
+	*/
 	j __no_irq_handler
 
 .globl handle_unknown
 handle_unknown:
+	/*
+	REMOVING THIS CALL REDUCES CODE SIZE CONSIDERABLY
+	This will not print an error message in case of 
+	jumping to an unknown error handler.
 	la a0, unknown_msg
 	jal ra, puts
+	*/
 	j end_handler
 
 end_handler:
@@ -147,6 +157,10 @@ end_handler:
 verification_irq_handler:
 	mret
 
+/*
+THESE STRINGS ARE NOT LONGER NEEDED
+Only the last two were used, and their 
+call was removed to reduce base code size
 .section .rodata
 illegal_insn_msg:
 	.string "illegal instruction exception handler entered\n"
@@ -158,3 +172,4 @@ unknown_msg:
 	.string "unknown exception handler entered\n"
 no_exception_handler_msg:
 	.string "no exception handler installed\n"
+*/
