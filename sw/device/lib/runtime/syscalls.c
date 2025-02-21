@@ -61,8 +61,7 @@ void    _writestr(const void *ptr); // Not a standard function
 
 void unimplemented_syscall()
 {
-    const char *p = "Unimplemented system call called!\n";
-    _write(STDOUT_FILENO, p, 34);
+    _writestr("Unimplemented system call called!\n");
 }
 
 int nanosleep(const struct timespec *rqtp, struct timespec *rmtp)
