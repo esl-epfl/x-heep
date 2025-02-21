@@ -18,6 +18,8 @@ filesets:
     - rtl/dma_obiread_fsm.sv
     - rtl/dma_obiread_addr_fsm.sv
     - rtl/dma_obiwrite_fsm.sv
+    - rtl/hw_r_fifo_ctrl.sv
+    - rtl/hw_w_fifo_ctrl.sv
     - rtl/dma.sv
     file_type: systemVerilogSource
 

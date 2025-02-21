@@ -33,6 +33,7 @@ blacklist = [
     "example_spi_read",
     "example_spidma_powergate",
     "example_spi_write",
+    "example_dma_subaddressing",
 ]
 
 app_list = [app for app in os.listdir("sw/applications")]

@@ -319,6 +319,54 @@ w25q_error_codes_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, u
     return status;
 }
 
+uint32_t* w25q128jw_read_standard_setup(uint32_t addr, void *data, uint32_t length) {
+
+    // Sanity checks
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return NULL;
+
+    // Take into account the extra bytes (if any)
+    if (length % 4 != 0) {
+        //only multiple of 4 bytes are supported in this function
+        return NULL;
+    }
+
+    /*
+     * SET UP DMA
+    */
+    // SPI and SPI_FLASH are the same IP so same register map
+    uint32_t *fifo_ptr_rx = (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
+
+    // Address + Read command
+    uint32_t read_byte_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_RD);
+    // Load command to TX FIFO
+    spi_write_word(spi, read_byte_cmd);
+    spi_wait_for_ready(spi);
+
+    // Set up segment parameters -> send command and address
+    const uint32_t cmd_read_1 = spi_create_command((spi_command_t){
+        .len        = 3,                 // 4 Bytes
+        .csaat      = true,              // Command not finished
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
+    });
+    // Load segment parameters to COMMAND register
+    spi_set_command(spi, cmd_read_1);
+    spi_wait_for_ready(spi);
+
+    // Set up segment parameters -> read length bytes
+    const uint32_t cmd_read_2 = spi_create_command((spi_command_t){
+        .len        = length-1,          // len bytes
+        .csaat      = false,             // End command
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_RX_ONLY      // Read only
+    });
+    spi_set_command(spi, cmd_read_2);
+    spi_wait_for_ready(spi);
+
+    
+    return fifo_ptr_rx;
+}
+
 w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
     // Sanity checks
     if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
@@ -440,7 +488,6 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
 
 }
 
-
 w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_wait_init_dma, uint8_t no_sanity_checks) {
 
     // Sanity checks
@@ -540,6 +587,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
 
     return FLASH_OK;
 }
+
 w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, uint32_t length) {
 
     // Sanity checks
@@ -679,6 +727,67 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* d
 
 }
 
+uint32_t* w25q128jw_read_quad_setup(uint32_t addr, void *data, uint32_t length) {
+    // Sanity checks
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return NULL;
+
+    // Send quad read command at standard speed
+    uint32_t cmd_read_quadIO = FC_RDQIO;
+    spi_write_word(spi, cmd_read_quadIO);
+    const uint32_t cmd_read = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
+        .csaat      = true,              // Command not finished
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
+    });
+    spi_set_command(spi, cmd_read);
+    spi_wait_for_ready(spi);
+
+    /*
+     * Send address at quad speed.
+     * Last byte is Fxh (here FFh) required by W25Q128JW
+    */
+    uint32_t read_byte_cmd = (REVERT_24b_ADDR(addr) | (0xFF << 24));
+    spi_write_word(spi, read_byte_cmd);
+    const uint32_t cmd_address = spi_create_command((spi_command_t){
+        .len        = 3,                // 3 Byte
+        .csaat      = true,             // Command not finished
+        .speed      = SPI_SPEED_QUAD,    // Quad speed
+        .direction  = SPI_DIR_TX_ONLY     // Write only
+    });
+    spi_set_command(spi, cmd_address);
+    spi_wait_for_ready(spi);
+
+    // Quad read requires dummy clocks
+    const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
+        #ifndef TARGET_SIM
+        .len        = DUMMY_CLOCKS_FAST_READ_QUAD_IO-1, // W25Q128JW flash needs 4 dummy cycles
+        #else
+        .len        = DUMMY_CLOCKS_SIM-1, // SPI flash simulation model needs 8 dummy cycles
+        #endif
+        .csaat      = true,              // Command not finished
+        .speed      = SPI_SPEED_QUAD,     // Quad speed
+        .direction  = SPI_DIR_DUMMY       // Dummy
+    });
+    spi_set_command(spi, dummy_clocks_cmd);
+    spi_wait_for_ready(spi);
+
+    // Read back the requested data at quad speed
+    const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
+        .len        = length-1,        // length bytes
+        .csaat      = false,           // End command
+        .speed      = SPI_SPEED_QUAD,   // Quad speed
+        .direction  = SPI_DIR_RX_ONLY    // Read only
+    });
+    spi_set_command(spi, cmd_read_rx);
+    spi_wait_for_ready(spi);
+
+    /* COMMAND FINISHED */
+
+    // SPI and SPI_FLASH are the same IP so same register map
+    return (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
+
+}
 
 w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
