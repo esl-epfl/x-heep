@@ -25,6 +25,7 @@ extern "C" {
 #include "syscalls.h"
 #include <sys/stat.h>
 #include <sys/reent.h>
+#include <string.h>
 #include <newlib.h>
 #include <unistd.h>
 #include <reent.h>
