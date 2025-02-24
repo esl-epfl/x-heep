@@ -244,12 +244,6 @@ def parse_section_to_segment(readelf_output):
                 segment_index += 1
     return mapping
 
-# Get readelf output
-output = get_readelf_output('sw/build/main.elf')
-program_headers = parse_program_headers(output)
-section_to_segment = parse_section_to_segment(output)
-regions = parse_elf_output_to_regions(program_headers, section_to_segment)
-
 if not is_readelf_available():
     print("readelf not available. Will not print the memory utilization report.")
     quit()
