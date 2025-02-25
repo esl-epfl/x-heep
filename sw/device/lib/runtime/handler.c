@@ -98,7 +98,7 @@ __attribute__((weak)) void handler_lsu_fault(void) {
 }
 
 __attribute__((weak)) void handler_ecall(void) {
-  //printf("Environment call encountered\n");
+  _writestr("Environment call encountered\n");
   while (1) {
   }
 }
