@@ -83,38 +83,6 @@ vector_table:
 	j __no_irq_handler
 	// 64-32 : not connected on Ibex
 	j verification_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
 
 /* this is fixed to 0x8000, used for PULP_SECURE=0. We redirect this entry to the
 new vector table (which is at mtvec) */
