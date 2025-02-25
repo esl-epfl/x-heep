@@ -18,6 +18,8 @@
 extern "C" {
 #endif
 
+#define NCO_WIDTH 16
+
 /**
  * Initialization parameters for UART.
  *

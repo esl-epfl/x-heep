@@ -18,8 +18,6 @@ extern "C" {
 
 #include "uart_regs.h"  // Generated.
 
-#define NCO_WIDTH 16
-
 //#ifdef __cplusplus
 static_assert((1UL << NCO_WIDTH) - 1 == UART_CTRL_NCO_MASK, "Bad value for NCO_WIDTH");
 //#else
