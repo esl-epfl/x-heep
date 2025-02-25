@@ -244,6 +244,7 @@ def parse_section_to_segment(readelf_output):
                 segment_index += 1
     return mapping
 
+
 if not is_readelf_available():
     print("readelf not available. Will not print the memory utilization report.")
     quit()
