@@ -36,29 +36,6 @@ Always-on peripheral subsystem domain
 
 The always-on peripheral subsystem includes all IPs we want to keep on for the entire time. We custom-designed the SoC controller, the boot ROM, the power manager, the fast interrupt controller and the DMA in order to meet our needs and requirements. The remaining peripheral IPs, i.e., a general-purpose timer, a universal asynchronous receiver transmitter (UART), 2 SPIs and 8 GPIOs, come from important open-source projects. No power-gating strategy is applied to this domain.
 
-
-ASIC implementation
-^^^^^^^^^^^^^^^^^^^
-
-The following image shows the block diagram of an ASIC implementation (``HEEPocrates``) of X-HEEP that we used to extract the power values for our energy model.
-
-.. image:: /images/asic.svg
-
-In addition to the already mentioned peripherals, we added a pad ring, a pad controller, a frequency-locked loop (FLL), and an MCU controller. Then, we synthesised and placed and routed the design with ``TSMC 65nm CMOS technology`` and two flavours of cells: low-voltage threshold (LVT) and high-voltage threshold (HVT). The former is high-performance but high-power, while the latter is low-power but low-performance.
-
-We simulated our design with dedicated test applications storing the switching activity file. Then, we performed a detailed power analysis to extract the leakage and average dynamic power of each IP in the architecture. These values are stored in two CSV files, called ``TSMC_65nm_LVT_20MHz.csv`` and ``TSMC_65nm_HVT_20MHz.csv``, located in the folder ``~/x_heep/sw/riscv/pwr_val``.
-
-.. warning::
-
-   We have not been able to open-source the power values (leakage and dynamic) of the memory banks we used in our design due to licence reasons. These values are set to zero in the CSV power files, but feel free to add the values of your own memories, if you have any. Anyway, our team is working to provide power values of open-source memories!
-
-.. note::
-
-   We extended our ASIC version, adding a course-grained reconfigurable array (CGRA) accelerator and an in-memory computing (IMC) accelerator, and then, we realized our first X-HEEP-based silicon chip, called HEEPpocrates. The chip targets ultra-low-power healthcare applications and is fabricated with TSMC 65nm CMOS technology. Soon, we will be able to perform power measurements on the physical chip and update our energy model with much more accurate real-world power values!
-
-.. image:: /images/tapeout.png
-
-
 Index
 ^^^^^
 
@@ -71,3 +48,4 @@ Index
    /Extending/index
    /Testing/index
    /Peripherals/index
+   /ASIC/index
