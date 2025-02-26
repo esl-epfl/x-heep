@@ -22,7 +22,7 @@ Following you find ASIC implementations that uses X-HEEP.
 
 
 `HEEPocrates`, taped out in November 2022, is based on X-HEEP and features the CV32E2 CPU, 256KB of memory (organized into eight 32KB banks), and peripherals including a DMA, two SPI interfaces, an I2C interface, GPIOs, a UART, and JTAG.
-It has been used to integrate the [OpenEdgeCGRA](https://github.com/esl-epfl/OpenEdgeCGRA) and the [Blade]((https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8988198) in-memory-computing macro.
+It has been used to integrate the [OpenEdgeCGRA](https://github.com/esl-epfl/OpenEdgeCGRA) and the [Blade](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8988198) in-memory-computing macro.
 Clock generation is handled by a frequency-locked loop (FLL) from the [PULP project](https://pulp-platform.org/index.html).
 
 Implemented in `TSMC 65nm LP CMOS` technology using low-voltage threshold (LVT) cells, HEEPocrates targets ultra-low-power healthcare applications, which often have diverse data size, performance, and energy requirements. To address this, HEEPocrates employs fine-grained power domains, enabling precise control over which components are active and which are powered off.
