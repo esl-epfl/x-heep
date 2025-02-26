@@ -33,9 +33,9 @@ In fact, within this list you can also find implementations made by other univer
 It uses X-HEEP configures with the `cv32e2` CPU, 256kB of memory organized in 8 banks of 32kB, peripherals as one DMA, two SPI, one I2C, 
 one UART, and ...
 
-It has been tapeout in November 2022 using the X-HEEP commit ().
+It has been tapeout in November 2022.
 
-It has been used to integrate the CGRA available here() and the in-memory-computing macro described here.
+It has been used to integrate the [CGRA](https://github.com/esl-epfl/OpenEdgeCGRA) and the [Blade](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8988198) in-memory-computing macro.
 In addition, for the clock generation it leverages the frequency-locked loop (FLL) from the [PULP project](https://pulp-platform.org/index.html).
 
 ``HEEPocrates`` is implemented in ``TSMC 65nm LP CMOS`` technology using low-voltage threshold (LVT) cells.
@@ -64,7 +64,15 @@ For more information about the `HEEPocrates`, check this [paper](https://arxiv.o
 }
 ```
 
-Other resources using `HEEPocrates` (silicon implementation, FPGA, or simulation results) are:
+Other resources that leverages `HEEPocrates` (silicon implementation, FPGA, or simulation results) are:
+
+- [HEEPocrates: An Ultra-Low-Power RISC-V Microcontroller for Edge-Computing Healthcare Applications](https://infoscience.epfl.ch/entities/publication/16ef81ae-dfa1-46fc-8059-73d8ba850fd2)
+
+- [FEMU: An Open-Source RISC-V Emulation Platform for the Exploration of Accelerator-based Edge Applications](https://infoscience.epfl.ch/server/api/core/bitstreams/6f71b055-1cde-45b9-8153-456ee6702045/content)
+
+- [Energy-Efficient Frequency Selection Method for Bio-Signal Acquisition in AI/ML Wearables](https://dl.acm.org/doi/pdf/10.1145/3665314.3670815)
+
+- [VersaSens: An Extendable Multimodal Platform for Next-Generation Edge-AI Wearables](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10669834)
 
 
 ## HEEPnosis
@@ -78,9 +86,9 @@ Other resources using `HEEPocrates` (silicon implementation, FPGA, or simulation
 
 It uses X-HEEP configures with the `cv32e2` CPU, 128kB of memory organized in 2 banks of 32kB in the contiguos memory space, and 2 banks of 32kB in the interleaved memory space. It has peripherals such as two DMAs, one SPI, one I2C, one UART, and ...
 
-It has been tapeout in February 2024 using the X-HEEP commit ().
+It has been tapeout in February 2024.
 
-It has been used to integrate the Near-Memory macros `caesar` described here(), `maxwell` described here (), and the `wukong` peripheral described here.
+It has been used to integrate the Near-Memory macros [caesar](https://arxiv.org/pdf/2406.14263) and [maxwell](https://infoscience.epfl.ch/entities/publication/308a11b1-45dc-4bdf-ba04-b7ca35a03bad), and the [wukong](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10682670) peripheral.
 In addition, it contains several testing IPs implemented in different `logic-suppression` style and transistor flavours.
 For the clock generation, it leverages the FLL from the [PULP project](https://pulp-platform.org/index.html) ref.
 
@@ -89,6 +97,6 @@ For the clock generation, it leverages the FLL from the [PULP project](https://p
 The chip is used mainly to validate the functionality and efficiency of full-custom blocks designed with `logic-suppression` style, 
 as well as to validate the efficiency and functionality of near-memory macros.
 
-There are no references yet about this chip.
-
 This chip has been sponsored by [Swisschip](https://swisschips.ethz.ch/).
+
+There are no references yet about this chip as it hasn't been tested yet.
