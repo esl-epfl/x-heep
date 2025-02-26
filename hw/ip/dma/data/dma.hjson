@@ -304,23 +304,24 @@
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for window done interrupt" }
       ]
-    },
-    { name:     "HW_FIFO_MODE_SIGN_EXT",
+    }
+    { name:     "HW_FIFO_MODE_SIGN_EXT"
       desc:     '''In HW_FIFO_MODE, is the input data to be sign extended before sending it to the hw read fifo?
-                    (The input of the hw read fifo is on 32 bits, which could be wider than the src data type)''',
-      swaccess: "rw",
-      hwaccess: "hro",
-      resval:        0,
+                    (The input of the hw read fifo is on 32 bits, which could be wider than the src data type)'''
+      swaccess: "rw"
+      hwaccess: "hro"
+      resval:        0
       
       fields: [
-        { bits: "0", name: "HW_FIFO_SIGNED", 
-          desc: "Extend the sign to 32 bits",
+        { bits: "0"
+          name: "HW_FIFO_SIGNED"
+          desc: "Extend the sign to 32 bits"
           enum: [
-            { value: "0", name: "NO_EXTEND", desc: "Does not extend the sign"},
-            { value: "1", name: "EXTEND", desc: "Extends the sign"},
+            { value: "0", name: "NO_EXTEND", desc: "Does not extend the sign"}
+            { value: "1", name: "EXTEND", desc: "Extends the sign"}
           ]
         }
       ]
-    },
+    }
   ]
 }
