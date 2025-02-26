@@ -64,12 +64,12 @@ Other resources that leverages `HEEPocrates` (silicon implementation, FPGA, or s
 
 <p  align="center">Figure 2: HEEPnosis Test Chip layout in GF 22nm FDX </p>
 
-`HEEPnosis`, taped out in February 2024, utilizes X-HEEP configured with the CV32E2 CPU, 128KB of memory split into four 32KB banks: two contiguous and two interleaved. Peripherals include two DMAs, an SPI interface, GPIOs, a UART, and JTAG.
+`HEEPnosis`, taped out in February 2025, utilizes X-HEEP configured with the CV32E2 CPU, 128KB of memory split into four 32KB banks: two contiguous and two interleaved. Peripherals include two DMAs, an SPI interface, GPIOs, a UART, and JTAG.
 
 This chip integrates the Near-Memory macros [Caesar](https://arxiv.org/pdf/2406.14263) and [Maxwell](https://infoscience.epfl.ch/entities/publication/308a11b1-45dc-4bdf-ba04-b7ca35a03bad), as well as the [Wukong](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10682670) peripheral. It also incorporates several test IPs implemented using various `logic-suppression` styles and transistor flavors. An FLL from the [PULP project](https://pulp-platform.org/index.html) provides clock generation.
 
 HEEPnosis is implemented in `GF 22nm FDX` technology using a mix of LVT, HVT, and UHVT cells. Its primary purpose is to validate the functionality and efficiency of full-custom blocks designed with logic suppression, as well as to verify the performance and functionality of the integrated near-memory macros.
 
-This chip has been sponsored by [Swisschip](https://swisschips.ethz.ch/).
+This chip has been sponsored by [SwissChips](https://swisschips.ethz.ch/).
 
 There are no references yet about this chip as it hasn't been tested yet.
