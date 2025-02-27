@@ -23,8 +23,8 @@
 #define WRITE_SPI_SLAVE_REG_0   0x11    // Used to specify the amount of dummy cycles
 #define WRITE_SPI_SLAVE_REG_1   0x20    // To store the 8 LSBs of the wrap length
 #define WRITE_SPI_SLAVE_REG_2   0x30    // To store the 8 MSBs of the wrap length
-#define READ_SPI_SLAVE_CMD      0xB     // Command the SPI slave to READ from memory and send data out
-#define WRITE_SPI_SLAVE_CMD     0x2     // Command the SPI slave to receive data and WRITE it to memory
+#define SPI_SLAVE_CMD_READ      0xB     // Command the SPI slave to READ from memory and send data out
+#define SPI_SLAVE_CMD_WRITE     0x2     // Command the SPI slave to receive data and WRITE it to memory
 
 
 /** Enum for SPI operation status flags. */
@@ -44,6 +44,10 @@ typedef enum {
 spi_flags_e spi_host_init(spi_host_t* host);
 spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* write_addr, uint8_t* read_ptr, uint16_t length_B);
 uint16_t spi_slave_request_read( spi_host_t* host, uint8_t* read_address, uint16_t length_B, uint8_t dummy_cycles );
+void spi_slave_send_dummy_cycles( spi_host_t* host, uint8_t dummy_cycles );
+void spi_slave_send_wrap_length( spi_host_t* host,uint16_t length_w );
+void spi_slave_send_dir( spi_host_t* host, uint8_t dir );
+void spi_slave_send_address( spi_host_t* host, uint8_t* address );
 void spi_copy_words( spi_host_t* host, uint32_t* write_ptr, uint16_t words);
 uint32_t spi_copy_word( spi_host_t* host);
 uint8_t spi_copy_byte(spi_host_t* host, uint8_t index);
