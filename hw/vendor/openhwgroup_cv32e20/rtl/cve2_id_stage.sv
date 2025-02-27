@@ -265,8 +265,6 @@ module cve2_id_stage #(
 
   // CV-X-IF
   logic stall_coproc;
-  logic coproc_done;
-
 
   ///////////////
   // ID-EX FSM //
@@ -285,6 +283,10 @@ module cve2_id_stage #(
 
   // CV-X-IF
   if (XInterface) begin: gen_xif
+
+    logic coproc_done;
+    assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : (illegal_insn_dec ? coproc_done : ex_valid_i);
+
     assign coproc_done = (x_issue_valid_o & x_issue_ready_i & ~x_issue_resp_i.writeback) | (x_result_valid_i & x_result_i.we);
 
     // Issue Interface
@@ -312,7 +314,8 @@ module cve2_id_stage #(
     logic          unused_x_result_valid;
     x_result_t     unused_x_result;
 
-    assign coproc_done = 1'b0;
+
+    assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : ex_valid_i;
 
     // Issue Interface
     assign x_issue_valid_o      = 1'b0;
@@ -833,8 +836,6 @@ module cve2_id_stage #(
   // Used by RVFI to know when to capture register read data
   // Used by ALU to access RS3 if ternary instruction.
   assign instr_first_cycle_id_o = instr_first_cycle;
-
-  assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : (illegal_insn_dec ? coproc_done : ex_valid_i);
 
   assign data_req_allowed = instr_first_cycle;
 
