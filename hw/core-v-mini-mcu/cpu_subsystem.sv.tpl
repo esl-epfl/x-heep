@@ -59,7 +59,7 @@ module cpu_subsystem
 
   if (CPU_TYPE == cv32e20) begin : gen_cv32e20
 
-    cve2_top #(
+    cve2_xif_wrapper #(
         .DmHaltAddr(DM_HALTADDRESS),
 % if cve2_rv32e:
         .RV32E(${cve2_rv32e}),
@@ -74,7 +74,6 @@ module cpu_subsystem
         .rst_ni(rst_ni),
 
         .test_en_i(1'b0),
-        .ram_cfg_i('0),
 
         .hart_id_i  (32'h0),
         .boot_addr_i(BOOT_ADDR),
@@ -84,7 +83,6 @@ module cpu_subsystem
         .instr_rdata_i (core_instr_resp_i.rdata),
         .instr_gnt_i   (core_instr_resp_i.gnt),
         .instr_rvalid_i(core_instr_resp_i.rvalid),
-        .instr_err_i   (1'b0),
 
         .data_addr_o  (core_data_req_o.addr),
         .data_wdata_o (core_data_req_o.wdata),
@@ -94,27 +92,45 @@ module cpu_subsystem
         .data_rdata_i (core_data_resp_i.rdata),
         .data_gnt_i   (core_data_resp_i.gnt),
         .data_rvalid_i(core_data_resp_i.rvalid),
-        .data_err_i   (1'b0),
 
         .irq_software_i(irq_i[3]),
         .irq_timer_i   (irq_i[7]),
         .irq_external_i(irq_i[11]),
         .irq_fast_i    (irq_i[31:16]),
-        .irq_nm_i      (1'b0),
 
         .debug_req_i (debug_req_i),
-        .crash_dump_o(),
 
-        .x_issue_valid_o(),
-        .x_issue_ready_i(),
-        .x_issue_req_o(),
-        .x_issue_resp_i(),
-        .x_register_o(),
-        .x_commit_valid_o(),
-        .x_commit_o(),
-        .x_result_valid_i(),
-        .x_result_ready_o(),
-        .x_result_i(),
+        // CORE-V-XIF
+        // Compressed interface
+        .x_compressed_valid_o(xif_compressed_if.compressed_valid),
+        .x_compressed_ready_i(xif_compressed_if.compressed_ready),
+        .x_compressed_req_o  (xif_compressed_if.compressed_req),
+        .x_compressed_resp_i (xif_compressed_if.compressed_resp),
+
+        // Issue Interface
+        .x_issue_valid_o(xif_issue_if.issue_valid),
+        .x_issue_ready_i(xif_issue_if.issue_ready),
+        .x_issue_req_o  (xif_issue_if.issue_req),
+        .x_issue_resp_i (xif_issue_if.issue_resp),
+
+        // Commit Interface
+        .x_commit_valid_o(xif_commit_if.commit_valid),
+        .x_commit_o(xif_commit_if.commit),
+
+        // Memory Request/Response Interface
+        .x_mem_valid_i(xif_mem_if.mem_valid),
+        .x_mem_ready_o(xif_mem_if.mem_ready),
+        .x_mem_req_i  (xif_mem_if.mem_req),
+        .x_mem_resp_o (xif_mem_if.mem_resp),
+
+        // Memory Result Interface
+        .x_mem_result_valid_o(xif_mem_result_if.mem_result_valid),
+        .x_mem_result_o(xif_mem_result_if.mem_result),
+
+        // Result Interface
+        .x_result_valid_i(xif_result_if.result_valid),
+        .x_result_ready_o(xif_result_if.result_ready),
+        .x_result_i(xif_result_if.result),
 
         .fetch_enable_i(fetch_enable),
 
