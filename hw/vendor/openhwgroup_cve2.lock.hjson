@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/synthara/cve2.git
-    rev: 1c879966d9b1502d2f64bfbf323bd375a3998650
+    url: https://github.com/openhwgroup/cve2.git
+    rev: 2814470132e84b53075f64bbc9fc38b1579f8937
   }
 }
