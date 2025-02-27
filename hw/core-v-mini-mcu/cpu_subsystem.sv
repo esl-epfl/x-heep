@@ -61,7 +61,8 @@ module cpu_subsystem
 
     cve2_top #(
         .DmHaltAddr(DM_HALTADDRESS),
-        .DmExceptionAddr('0)
+        .DmExceptionAddr('0),
+        .XInterface(X_EXT)
     ) cv32e20_i (
         .clk_i (clk_i),
         .rst_ni(rst_ni),
@@ -97,6 +98,17 @@ module cpu_subsystem
 
         .debug_req_i (debug_req_i),
         .crash_dump_o(),
+
+        .x_issue_valid_o(),
+        .x_issue_ready_i(),
+        .x_issue_req_o(),
+        .x_issue_resp_i(),
+        .x_register_o(),
+        .x_commit_valid_o(),
+        .x_commit_o(),
+        .x_result_valid_i(),
+        .x_result_ready_o(),
+        .x_result_i(),
 
         .fetch_enable_i(fetch_enable),
 
