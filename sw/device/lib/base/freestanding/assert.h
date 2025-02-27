@@ -32,12 +32,10 @@
 #define assert(do_not_use) \
   static_assert(false, "do not use assert(); use CHECK() instead")
 #else
-    #include <stdio.h>
     #define assert(expression) \
         do { \
             if (!(expression)) { \
-                printf("Assertion failed: %s, file %s, line %d\n", \
-                        #expression, __FILE__, __LINE__); \
+                _writestr("Assertion failed\n"); \
                 while(1); \
             } \
         } while (0)
