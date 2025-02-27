@@ -16,7 +16,7 @@ module cve2_xif_wrapper
     parameter rv32m_e      RV32M            = RV32MFast,
     parameter int unsigned DmHaltAddr       = 32'h1A110800,
     parameter int unsigned DmExceptionAddr  = 32'h1A110808,
-    parameter bit          XInterface       = 1'b0
+    parameter              XInterface       = 1'b0
 ) (
     // Clock and Reset
     input logic clk_i,
@@ -172,7 +172,7 @@ module cve2_xif_wrapper
       .RV32M(RV32M),
       .DmHaltAddr(DmHaltAddr),
       .DmExceptionAddr(DmExceptionAddr),
-      .XInterface(XInterface)
+      .XInterface(XInterface != '0)
   ) u_cve2_top (
       .clk_i,
       .rst_ni,
