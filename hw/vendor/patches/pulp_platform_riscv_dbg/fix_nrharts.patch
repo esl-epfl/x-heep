@@ -1,8 +1,8 @@
 diff --git a/src/dm_csrs.sv b/src/dm_csrs.sv
-index 59d1c90..2338028 100644
+index a945a70..c97dd18 100644
 --- a/src/dm_csrs.sv
 +++ b/src/dm_csrs.sv
-@@ -547,7 +547,7 @@ module dm_csrs #(
+@@ -550,7 +550,7 @@ module dm_csrs #(
      if (!dmcontrol_q.resumereq && dmcontrol_d.resumereq) begin
        clear_resumeack_o = 1'b1;
      end
@@ -10,9 +10,9 @@ index 59d1c90..2338028 100644
 +    if (dmcontrol_q.resumereq && resumeack_i[selected_hart]) begin
        dmcontrol_d.resumereq = 1'b0;
      end
-     // static values for dcsr
+     // WARL behavior of hartsel, depending on NrHarts.
 diff --git a/src/dm_mem.sv b/src/dm_mem.sv
-index 9ff3c86..8f97bec 100755
+index 9ff3c86..3255af3 100755
 --- a/src/dm_mem.sv
 +++ b/src/dm_mem.sv
 @@ -535,8 +535,8 @@ module dm_mem #(
@@ -21,8 +21,8 @@ index 9ff3c86..8f97bec 100755
      if (!rst_ni) begin
 -      halted_q   <= 1'b0;
 -      resuming_q <= 1'b0;
-+        halted_q   <= '0;
-+        resuming_q <= '0;
++      halted_q   <= '0;
++      resuming_q <= '0;
      end else begin
        halted_q   <= SelectableHarts & halted_d;
        resuming_q <= SelectableHarts & resuming_d;

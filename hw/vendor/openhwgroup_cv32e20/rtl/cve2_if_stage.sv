@@ -1,5 +1,6 @@
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
+// Copyright 2025 OpenHW Group.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -12,10 +13,7 @@
 
 `include "prim_assert.sv"
 
-module cve2_if_stage import cve2_pkg::*; #(
-  parameter int unsigned DmHaltAddr        = 32'h1A110800,
-  parameter int unsigned DmExceptionAddr   = 32'h1A110808
-) (
+module cve2_if_stage import cve2_pkg::*; (
   input  logic                         clk_i,
   input  logic                         rst_ni,
 
@@ -67,6 +65,10 @@ module cve2_if_stage import cve2_pkg::*; #(
                                                                 // the debug request
   input  logic [31:0]                 csr_mtvec_i,              // base PC to jump to on exception
   output logic                        csr_mtvec_init_o,         // tell CS regfile to init mtvec
+
+  // debug signals
+  input logic [31:0]                  dm_halt_addr_i,           // default 32'h1A110800
+  input logic [31:0]                  dm_exception_addr_i,      // default 32'h1A110808
 
   // pipeline stall
   input  logic                        id_in_ready_i,            // ID stage is ready for new instr
@@ -123,8 +125,8 @@ module cve2_if_stage import cve2_pkg::*; #(
     unique case (exc_pc_mux_i)
       EXC_PC_EXC:     exc_pc = { csr_mtvec_i[31:8], 8'h00              };
       EXC_PC_IRQ:     exc_pc = { csr_mtvec_i[31:8], irq_id[5:0], 2'b00 };
-      EXC_PC_DBD:     exc_pc = DmHaltAddr;
-      EXC_PC_DBG_EXC: exc_pc = DmExceptionAddr;
+      EXC_PC_DBD:     exc_pc = dm_halt_addr_i;
+      EXC_PC_DBG_EXC: exc_pc = dm_exception_addr_i;
       default:        exc_pc = { csr_mtvec_i[31:8], 8'h00              };
     endcase
   end

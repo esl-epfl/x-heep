@@ -1,4 +1,5 @@
 // Copyright lowRISC contributors.
+// Copyright 2025 OpenHW Group.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -7,12 +8,10 @@
  */
 
 module cve2_top_tracing import cve2_pkg::*; #(
-  parameter int unsigned MHPMCounterNum   = 0,
+  parameter int unsigned MHPMCounterNum   = 10,
   parameter int unsigned MHPMCounterWidth = 40,
   parameter bit          RV32E            = 1'b0,
-  parameter rv32m_e      RV32M            = RV32MFast,
-  parameter int unsigned DmHaltAddr       = 32'h1A110800,
-  parameter int unsigned DmExceptionAddr  = 32'h1A110808
+  parameter rv32m_e      RV32M            = RV32MFast
 ) (
   // Clock and Reset
   input  logic                         clk_i,
@@ -53,6 +52,8 @@ module cve2_top_tracing import cve2_pkg::*; #(
 
   // Debug Interface
   input  logic                         debug_req_i,
+  input  logic [31:0]                  dm_halt_addr_i,
+  input  logic [31:0]                  dm_exception_addr_i,
   output crash_dump_t                  crash_dump_o,
 
   // CPU Control Signals
@@ -110,9 +111,7 @@ module cve2_top_tracing import cve2_pkg::*; #(
     .MHPMCounterNum   ( MHPMCounterNum   ),
     .MHPMCounterWidth ( MHPMCounterWidth ),
     .RV32E            ( RV32E            ),
-    .RV32M            ( RV32M            ),
-    .DmHaltAddr       ( DmHaltAddr       ),
-    .DmExceptionAddr  ( DmExceptionAddr  )
+    .RV32M            ( RV32M            )
   ) u_cve2_top (
     .clk_i,
     .rst_ni,
@@ -147,6 +146,8 @@ module cve2_top_tracing import cve2_pkg::*; #(
     .irq_nm_i,
 
     .debug_req_i,
+    .dm_halt_addr_i,
+    .dm_exception_addr_i,
     .crash_dump_o,
 
     .rvfi_valid,

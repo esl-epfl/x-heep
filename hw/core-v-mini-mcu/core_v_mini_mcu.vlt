@@ -30,3 +30,4 @@ lint_off -rule WIDTH -file "*/ao_peripheral_subsystem.sv" -match "Input port con
 lint_off -rule UNDRIVEN -file "*ip/power_manager/rtl/power_manager.sv" -match "Signal is not driven: 'external_ram_banks_set_retentive*'"
 lint_off -rule UNDRIVEN -file "*ip/power_manager/rtl/power_manager.sv" -match "Signal is not driven: 'external_subsystem_clkgate_en*'"
 lint_off -rule UNUSED -file "*vendor/pulp_platform_register_interface/src/reg_mux.sv" -match "*"
+lint_off -rule WIDTH -file "*/system_xbar.sv" -match "Operator ADD expects*"

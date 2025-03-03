@@ -10,21 +10,19 @@
 `include "prim_assert.sv"
 
 /**
- * Top level module of the ibex RISC-V core
+ * Top level module of the CVE2 RISC-V core
  */
 module cve2_core import cve2_pkg::*; #(
   parameter bit          PMPEnable         = 1'b0,
   parameter int unsigned PMPGranularity    = 0,
   parameter int unsigned PMPNumRegions     = 4,
-  parameter int unsigned MHPMCounterNum    = 0,
+  parameter int unsigned MHPMCounterNum    = 10,
   parameter int unsigned MHPMCounterWidth  = 40,
   parameter bit          RV32E             = 1'b0,
   parameter rv32m_e      RV32M             = RV32MFast,
   parameter rv32b_e      RV32B             = RV32BNone,
   parameter bit          DbgTriggerEn      = 1'b0,
-  parameter int unsigned DbgHwBreakNum     = 1,
-  parameter int unsigned DmHaltAddr        = 32'h1A110800,
-  parameter int unsigned DmExceptionAddr   = 32'h1A110808
+  parameter int unsigned DbgHwBreakNum     = 1
 ) (
   // Clock and Reset
   input  logic                         clk_i,
@@ -64,6 +62,8 @@ module cve2_core import cve2_pkg::*; #(
 
   // Debug Interface
   input  logic                         debug_req_i,
+  input  logic [31:0]                  dm_halt_addr_i,
+  input  logic [31:0]                  dm_exception_addr_i,
   output crash_dump_t                  crash_dump_o,
   // SEC_CM: EXCEPTION.CTRL_FLOW.LOCAL_ESC
   // SEC_CM: EXCEPTION.CTRL_FLOW.GLOBAL_ESC
@@ -284,10 +284,7 @@ module cve2_core import cve2_pkg::*; #(
   // IF stage //
   //////////////
 
-  cve2_if_stage #(
-    .DmHaltAddr       (DmHaltAddr),
-    .DmExceptionAddr  (DmExceptionAddr)
-  ) if_stage_i (
+  cve2_if_stage if_stage_i (
     .clk_i (clk_i),
     .rst_ni(rst_ni),
 
@@ -333,6 +330,10 @@ module cve2_core import cve2_pkg::*; #(
     .csr_mtvec_i     (csr_mtvec),  // trap-vector base address
     .csr_mtvec_init_o(csr_mtvec_init),
 
+    // debug signals
+    .dm_halt_addr_i       (dm_halt_addr_i),
+    .dm_exception_addr_i  (dm_exception_addr_i),
+
     // pipeline stalls
     .id_in_ready_i(id_in_ready),
 
@@ -343,7 +344,7 @@ module cve2_core import cve2_pkg::*; #(
   // available
   assign perf_iside_wait = id_in_ready & ~instr_valid_id;
 
-  // For non secure Ibex only the bottom bit of fetch enable is considered
+  // For non secure CVE2 only the bottom bit of fetch enable is considered
   assign instr_req_gated = instr_req_int;
 
   //////////////
@@ -824,7 +825,9 @@ module cve2_core import cve2_pkg::*; #(
   logic [31:0] rvfi_stage_insn      [RVFI_STAGES];
   logic        rvfi_stage_trap      [RVFI_STAGES];
   logic        rvfi_stage_halt      [RVFI_STAGES];
-  logic        rvfi_stage_intr      [RVFI_STAGES];
+  logic [3:0]  rvfi_stage_dbg       [RVFI_STAGES];
+  logic        rvfi_stage_dbg_mode  [RVFI_STAGES];
+  logic [15:0] rvfi_stage_intr      [RVFI_STAGES];
   logic [ 1:0] rvfi_stage_mode      [RVFI_STAGES];
   logic [ 1:0] rvfi_stage_ixl       [RVFI_STAGES];
   logic [ 4:0] rvfi_stage_rs1_addr  [RVFI_STAGES];
@@ -876,14 +879,20 @@ module cve2_core import cve2_pkg::*; #(
   logic        rvfi_trap_id;
   logic [63:0] rvfi_stage_order_d;
   logic        rvfi_id_done;
+  logic [3:0]  rvfi_dbg;
+  logic        rvfi_dbg_mode;
 
   logic            new_debug_req;
   logic            new_nmi;
   logic            new_irq;
   cve2_pkg::irqs_t captured_mip;
+  logic            captured_irq;
   logic            captured_nmi;
   logic            captured_debug_req;
   logic            captured_valid;
+
+  logic [3:0]      captured_debug_cause;
+  logic            captured_debug_valid;
 
   // RVFI extension for co-simulation support
   // debug_req and MIP captured at IF -> ID transition so one extra stage
@@ -919,6 +928,32 @@ module cve2_core import cve2_pkg::*; #(
   assign rvfi_mem_wmask = rvfi_stage_mem_wmask[RVFI_STAGES-1];
   assign rvfi_mem_rdata = rvfi_stage_mem_rdata[RVFI_STAGES-1];
   assign rvfi_mem_wdata = rvfi_stage_mem_wdata[RVFI_STAGES-1];
+
+  assign rvfi_instr_if.rvfi_valid     = rvfi_stage_valid    [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_order     = rvfi_stage_order    [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_insn      = rvfi_stage_insn     [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_trap      = rvfi_stage_trap     [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_halt      = rvfi_stage_halt     [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_dbg       = rvfi_stage_dbg      [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_dbg_mode  = rvfi_stage_dbg_mode [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_intr      = rvfi_stage_intr     [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_mode      = rvfi_stage_mode     [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_ixl       = rvfi_stage_ixl      [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_rs1_addr  = rvfi_stage_rs1_addr [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_rs2_addr  = rvfi_stage_rs2_addr [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_rs3_addr  = rvfi_stage_rs3_addr [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_rs1_rdata = rvfi_stage_rs1_rdata[RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_rs2_rdata = rvfi_stage_rs2_rdata[RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_rs3_rdata = rvfi_stage_rs3_rdata[RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_rd1_addr   = rvfi_stage_rd_addr  [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_rd1_wdata  = rvfi_stage_rd_wdata [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_pc_rdata  = rvfi_stage_pc_rdata [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_pc_wdata  = rvfi_stage_pc_wdata [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_mem_addr  = rvfi_stage_mem_addr [RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_mem_rmask = rvfi_stage_mem_rmask[RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_mem_wmask = rvfi_stage_mem_wmask[RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_mem_rdata = rvfi_stage_mem_rdata[RVFI_STAGES-1];
+  assign rvfi_instr_if.rvfi_mem_wdata = rvfi_stage_mem_wdata[RVFI_STAGES-1];
 
   assign rvfi_rd_addr_wb  = rf_waddr_wb;
   assign rvfi_rd_wdata_wb = rf_we_wb ? rf_wdata_wb : rf_wdata_lsu;
@@ -960,7 +995,7 @@ module cve2_core import cve2_pkg::*; #(
 
   assign rvfi_stage_order_d = rvfi_stage_order[0] + 64'd1;
 
-  // For interrupts and debug Ibex will take the relevant trap as soon as whatever instruction in ID
+  // For interrupts and debug CVE2 will take the relevant trap as soon as whatever instruction in ID
   // finishes or immediately if the ID stage is empty. The rvfi_ext interface provides the DV
   // environment with information about the irq/debug_req/nmi state that applies to a particular
   // instruction.
@@ -989,21 +1024,30 @@ module cve2_core import cve2_pkg::*; #(
     if (!rst_ni) begin
       captured_valid     <= 1'b0;
       captured_mip       <= '0;
+      captured_irq       <= '0;
       captured_nmi       <= 1'b0;
       captured_debug_req <= 1'b0;
+      captured_debug_cause <= 1'b0;
     end else  begin
       // Capture when ID stage has emptied out and something occurs that will cause a trap and we
       // haven't yet captured
       if (~instr_valid_id & (new_debug_req | new_irq | new_nmi) & ~captured_valid) begin
         captured_valid     <= 1'b1;
         captured_nmi       <= irq_nm_i;
+        captured_irq       <= new_irq | new_nmi;
         captured_mip       <= cs_registers_i.mip;
         captured_debug_req <= debug_req_i;
+      end
+
+      if (debug_csr_save) begin
+        captured_debug_valid <= 1'b1;
+        captured_debug_cause <= debug_cause;
       end
 
       // Capture cleared out as soon as a new instruction appears in ID
       if (if_stage_i.instr_valid_id_d) begin
         captured_valid <= 1'b0;
+        captured_debug_valid <= 1'b0;
       end
     end
   end
@@ -1020,14 +1064,19 @@ module cve2_core import cve2_pkg::*; #(
       rvfi_ext_stage_nmi[0]       <= '0;
       rvfi_ext_stage_debug_req[0] <= '0;
     end else if (if_stage_i.instr_valid_id_d & if_stage_i.instr_new_id_d) begin
+      automatic logic ext_debug_req = instr_valid_id | ~captured_valid ? debug_req_i : captured_debug_req;
+
       rvfi_ext_stage_mip[0]       <= instr_valid_id | ~captured_valid ? cs_registers_i.mip :
                                                                         captured_mip;
       rvfi_ext_stage_nmi[0]       <= instr_valid_id | ~captured_valid ? irq_nm_i :
                                                                         captured_nmi;
-      rvfi_ext_stage_debug_req[0] <= instr_valid_id | ~captured_valid ? debug_req_i        :
-                                                                        captured_debug_req;
+      rvfi_ext_stage_debug_req[0] <= ext_debug_req;
+
     end
+      rvfi_dbg <= (captured_debug_valid) ? captured_debug_cause : 0;
   end
+
+  assign rvfi_dbg_mode = debug_mode;
 
   for (genvar i = 0; i < RVFI_STAGES; i = i + 1) begin : g_rvfi_stages
     always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -1063,11 +1112,20 @@ module cve2_core import cve2_pkg::*; #(
         rvfi_stage_valid[i] <= rvfi_stage_valid_d[i];
 
         if (i == 0) begin
-          if (rvfi_id_done) begin
+          if (rvfi_stage_valid_d[i]) begin
             rvfi_stage_halt[i]      <= '0;
             // TODO: Sort this out for writeback stage
             rvfi_stage_trap[i]            <= rvfi_trap_id;
-            rvfi_stage_intr[i]            <= rvfi_intr_d;
+            if (rvfi_intr_d) begin
+                if (captured_irq) begin
+                    rvfi_stage_intr[i] <= { cs_registers_i.mcause_q[5:0], 3'b101};
+                end else begin
+                    rvfi_stage_intr[i] <= { cs_registers_i.mcause_q[5:0], 3'b011};
+                end
+            end
+            else
+                rvfi_stage_intr[i] <= 'b000;
+
             rvfi_stage_order[i]           <= rvfi_stage_order_d;
             rvfi_stage_insn[i]            <= rvfi_insn_id;
             rvfi_stage_mode[i]            <= {priv_mode_id};
@@ -1091,6 +1149,8 @@ module cve2_core import cve2_pkg::*; #(
             rvfi_ext_stage_nmi[i+1]       <= rvfi_ext_stage_nmi[i];
             rvfi_ext_stage_debug_req[i+1] <= rvfi_ext_stage_debug_req[i];
             rvfi_ext_stage_mcycle[i]      <= cs_registers_i.mcycle_counter_i.counter_val_o;
+            rvfi_stage_dbg[i]             <= rvfi_dbg;
+            rvfi_stage_dbg_mode[i]        <= rvfi_dbg_mode;
           end
           else begin
             rvfi_stage_trap[i]            <= 0;
