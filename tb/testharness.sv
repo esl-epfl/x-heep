@@ -305,13 +305,11 @@ module testharness #(
       .hw_fifo_req_t(hw_fifo_pkg::hw_fifo_req_t),
       .hw_fifo_resp_t(hw_fifo_pkg::hw_fifo_resp_t)
   ) d_level_xing_blk_i (
-      .clk_i (clk_i),
+      .clk_i(clk_i),
       .rst_ni(rst_ni),
-
       .reg_req_i(ext_periph_slv_req[testharness_pkg::DLC_IDX]),
       .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::DLC_IDX]),
-
-      .hw_fifo_req_i (hw_fifo_req),
+      .hw_fifo_req_i(hw_fifo_req),
       .hw_fifo_resp_o(hw_fifo_resp)
   );
 
