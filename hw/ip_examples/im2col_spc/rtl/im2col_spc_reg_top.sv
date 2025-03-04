@@ -101,12 +101,12 @@ module im2col_spc_reg_top #(
   logic [15:0] n_patches_h_qs;
   logic [15:0] n_patches_h_wd;
   logic n_patches_h_we;
-  logic [7:0] adpt_pad_right_qs;
-  logic [7:0] adpt_pad_right_wd;
-  logic adpt_pad_right_we;
-  logic [7:0] adpt_pad_bottom_qs;
-  logic [7:0] adpt_pad_bottom_wd;
-  logic adpt_pad_bottom_we;
+  logic [7:0] last_patch_h_qs;
+  logic [7:0] last_patch_h_wd;
+  logic last_patch_h_we;
+  logic [7:0] last_patch_w_qs;
+  logic [7:0] last_patch_w_wd;
+  logic last_patch_w_we;
   logic [3:0] log_strides_d1_qs;
   logic [3:0] log_strides_d1_wd;
   logic log_strides_d1_we;
@@ -446,19 +446,19 @@ module im2col_spc_reg_top #(
   );
 
 
-  // R[adpt_pad_right]: V(False)
+  // R[last_patch_h]: V(False)
 
   prim_subreg #(
       .DW      (8),
       .SWACCESS("RW"),
       .RESVAL  (8'h0)
-  ) u_adpt_pad_right (
+  ) u_last_patch_h (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(adpt_pad_right_we),
-      .wd(adpt_pad_right_wd),
+      .we(last_patch_h_we),
+      .wd(last_patch_h_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -466,26 +466,26 @@ module im2col_spc_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.adpt_pad_right.q),
+      .q (reg2hw.last_patch_h.q),
 
       // to register interface (read)
-      .qs(adpt_pad_right_qs)
+      .qs(last_patch_h_qs)
   );
 
 
-  // R[adpt_pad_bottom]: V(False)
+  // R[last_patch_w]: V(False)
 
   prim_subreg #(
       .DW      (8),
       .SWACCESS("RW"),
       .RESVAL  (8'h0)
-  ) u_adpt_pad_bottom (
+  ) u_last_patch_w (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(adpt_pad_bottom_we),
-      .wd(adpt_pad_bottom_wd),
+      .we(last_patch_w_we),
+      .wd(last_patch_w_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -493,10 +493,10 @@ module im2col_spc_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.adpt_pad_bottom.q),
+      .q (reg2hw.last_patch_w.q),
 
       // to register interface (read)
-      .qs(adpt_pad_bottom_qs)
+      .qs(last_patch_w_qs)
   );
 
 
@@ -872,8 +872,8 @@ module im2col_spc_reg_top #(
     addr_hit[8] = (reg_addr == IM2COL_SPC_CH_COL_OFFSET);
     addr_hit[9] = (reg_addr == IM2COL_SPC_N_PATCHES_W_OFFSET);
     addr_hit[10] = (reg_addr == IM2COL_SPC_N_PATCHES_H_OFFSET);
-    addr_hit[11] = (reg_addr == IM2COL_SPC_ADPT_PAD_RIGHT_OFFSET);
-    addr_hit[12] = (reg_addr == IM2COL_SPC_ADPT_PAD_BOTTOM_OFFSET);
+    addr_hit[11] = (reg_addr == IM2COL_SPC_LAST_PATCH_H_OFFSET);
+    addr_hit[12] = (reg_addr == IM2COL_SPC_LAST_PATCH_W_OFFSET);
     addr_hit[13] = (reg_addr == IM2COL_SPC_LOG_STRIDES_D1_OFFSET);
     addr_hit[14] = (reg_addr == IM2COL_SPC_LOG_STRIDES_D2_OFFSET);
     addr_hit[15] = (reg_addr == IM2COL_SPC_STATUS_OFFSET);
@@ -955,11 +955,11 @@ module im2col_spc_reg_top #(
   assign n_patches_h_we = addr_hit[10] & reg_we & !reg_error;
   assign n_patches_h_wd = reg_wdata[15:0];
 
-  assign adpt_pad_right_we = addr_hit[11] & reg_we & !reg_error;
-  assign adpt_pad_right_wd = reg_wdata[7:0];
+  assign last_patch_h_we = addr_hit[11] & reg_we & !reg_error;
+  assign last_patch_h_wd = reg_wdata[7:0];
 
-  assign adpt_pad_bottom_we = addr_hit[12] & reg_we & !reg_error;
-  assign adpt_pad_bottom_wd = reg_wdata[7:0];
+  assign last_patch_w_we = addr_hit[12] & reg_we & !reg_error;
+  assign last_patch_w_wd = reg_wdata[7:0];
 
   assign log_strides_d1_we = addr_hit[13] & reg_we & !reg_error;
   assign log_strides_d1_wd = reg_wdata[3:0];
@@ -1050,11 +1050,11 @@ module im2col_spc_reg_top #(
       end
 
       addr_hit[11]: begin
-        reg_rdata_next[7:0] = adpt_pad_right_qs;
+        reg_rdata_next[7:0] = last_patch_h_qs;
       end
 
       addr_hit[12]: begin
-        reg_rdata_next[7:0] = adpt_pad_bottom_qs;
+        reg_rdata_next[7:0] = last_patch_w_qs;
       end
 
       addr_hit[13]: begin
