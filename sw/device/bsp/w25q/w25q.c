@@ -24,6 +24,10 @@
 * @brief  Source file of the W25Q-family flash memory driver.
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
 /****************************************************************************/
 /**                                                                        **/
 /*                             MODULES USED                                 */
@@ -289,7 +293,7 @@ w25q_error_codes_t w25q128jw_read(uint32_t addr, void *data, uint32_t length) {
         if (status != FLASH_OK) return status;
     } else {
         // Wait DMA to be free
-        while(!dma_is_ready());
+        while(!dma_is_ready(0));
         status = w25q128jw_read_quad_dma(addr, data, length);
         if (status != FLASH_OK) return status;
     }
@@ -308,7 +312,7 @@ w25q_error_codes_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, u
         status = erase_and_write(addr, data, length);
     } else {
         // Wait DMA to be free
-        while(!dma_is_ready());
+        while(!dma_is_ready(0));
         status = w25q128jw_write_quad_dma(addr, data, length);
     }
 
@@ -437,19 +441,19 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
 }
 
 
+w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_wait_init_dma, uint8_t no_sanity_checks) {
 
-w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
-    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+    if (!no_sanity_checks)  if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     /*
      * SET UP DMA
     */
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_rx = (uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
 
     // Init DMA, the integrated DMA is used (peri == NULL)
-    dma_init(NULL);
+    if(!no_wait_init_dma)    dma_init(NULL);
 
     // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
     #ifndef USE_SPI_FLASH
@@ -460,11 +464,9 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
 
     // Set up DMA source target
     static dma_target_t tgt_src = {
-        .inc_du = 0, // Target is peripheral, no increment
+        .inc_d1_du = 0, // Target is peripheral, no increment
         .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
-    // Size is in data units (words in this case)
-    tgt_src.size_du = length>>2;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
     // Trigger to control the data flow
@@ -472,7 +474,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
 
     // Set up DMA destination target
     static dma_target_t tgt_dst = {
-        .inc_du = 1, // Increment by 1 data unit (word)
+        .inc_d1_du = 1, // Increment by 1 data unit (word)
         .type = DMA_DATA_TYPE_WORD, // Data type is byte
         .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
     };
@@ -484,8 +486,11 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
         .dst = &tgt_dst,
         .end = DMA_TRANS_END_POLLING,
     };
+    // Size is in data units (words in this case)
+    trans.size_d1_du = length>>2;
 
     // Validate, load and launch DMA transaction
+
     dma_config_flags_t res;
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     res = dma_load_transaction(&trans);
@@ -519,17 +524,114 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     spi_wait_for_ready(spi);
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready());
+    if(!no_wait_init_dma) while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
         uint32_t last_word = 0;
-        spi_read_word(spi, &last_word);
+
+        spi_read_word((spi_host_t *)spi, &last_word);
+    #ifdef __cplusplus
+        memcpy(static_cast<uint8_t*>(data) + length - (length % 4), &last_word, length % 4);
+    #else
         memcpy(&data[length - length%4], &last_word, length%4);
+    #endif
     }
 
     return FLASH_OK;
 }
+w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, uint32_t length) {
+
+    // Sanity checks
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+
+    // Take into account the extra bytes (if any)
+    if (length % 4 != 0) {
+        //only multiple of 4 bytes are supported in this function
+        return FLASH_ERROR;
+    }
+
+    /*
+     * SET UP DMA
+    */
+    // SPI and SPI_FLASH are the same IP so same register map
+    uint32_t *fifo_ptr_rx = (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
+
+    // Init DMA, the integrated DMA is used (peri == NULL)
+    dma_init(NULL);
+
+    // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
+    #ifndef USE_SPI_FLASH
+        uint8_t slot = DMA_TRIG_SLOT_SPI_RX;
+    #else
+        uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
+    #endif
+
+    // Set up DMA source target
+    static dma_target_t tgt_src = {
+        .inc_d1_du = 0, // Target is peripheral, no increment
+        .type = DMA_DATA_TYPE_WORD, // Data type is word
+    };
+    // Target is SPI RX FIFO
+    tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
+    // Trigger to control the data flow
+    tgt_src.trig = slot;
+
+    // Set up DMA destination target
+    static dma_target_t tgt_dst = {
+        .inc_d1_du = 1, // Increment by 1 data unit (word)
+        .type = DMA_DATA_TYPE_WORD, // Data type is byte
+        .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
+    };
+    tgt_dst.ptr = (uint8_t*)data; // Target is the data buffer
+
+    // Set up DMA transaction
+    static dma_trans_t trans = {
+        .src = &tgt_src,
+        .dst = &tgt_dst,
+        .end = DMA_TRANS_END_INTR, //so that you can wait for interrupt
+    };
+    // Size is in data units (words in this case)
+    trans.size_d1_du = length>>2;
+    // Validate, load and launch DMA transaction
+    dma_config_flags_t res;
+    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_load_transaction(&trans);
+    res = dma_launch(&trans);
+
+    // Address + Read command
+    uint32_t read_byte_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_RD);
+    // Load command to TX FIFO
+    spi_write_word(spi, read_byte_cmd);
+    spi_wait_for_ready(spi);
+
+    // Set up segment parameters -> send command and address
+    const uint32_t cmd_read_1 = spi_create_command((spi_command_t){
+        .len        = 3,                 // 4 Bytes
+        .csaat      = true,              // Command not finished
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
+    });
+    // Load segment parameters to COMMAND register
+    spi_set_command(spi, cmd_read_1);
+    spi_wait_for_ready(spi);
+
+    // Set up segment parameters -> read length bytes
+    const uint32_t cmd_read_2 = spi_create_command((spi_command_t){
+        .len        = length-1,          // len bytes
+        .csaat      = false,             // End command
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_RX_ONLY      // Read only
+    });
+    spi_set_command(spi, cmd_read_2);
+    spi_wait_for_ready(spi);
+
+    // Wait for DMA to finish transaction outside this function, the DMA generates also an interrupt
+    // However, you need to enable the interrupt in the INT controllers, and CPU
+
+    return FLASH_OK;
+}
+
 
 w25q_error_codes_t w25q128jw_write_standard_dma(uint32_t addr, void *data, uint32_t length) {
     // Call the wrapper with quad = 0, dma = 1
@@ -549,7 +651,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* d
         uint32_t sector_start_addr = current_addr & 0xfffff000;
 
         // Read the full sector and save it into RAM
-        status = w25q128jw_read_standard_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_read_standard_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE, 0, 0);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
@@ -787,7 +889,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
      * SET UP DMA
     */
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_rx = (uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
 
     // Init DMA, the integrated DMA is used (peri == NULL)
     dma_init(NULL);
@@ -801,11 +903,9 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
 
     // Set up DMA source target
     static dma_target_t tgt_src = {
-        .inc_du = 0, // Target is peripheral, no increment
+        .inc_d1_du = 0, // Target is peripheral, no increment
         .type = DMA_DATA_TYPE_WORD, // Data type is byte
     };
-    // Size is in data units (words in this case)
-    tgt_src.size_du = length>>2;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
     // Trigger to control the data flow
@@ -813,7 +913,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
 
     // Set up DMA destination target
     static dma_target_t tgt_dst = {
-        .inc_du = 1, // Increment by 1 data unit (word)
+        .inc_d1_du = 1, // Increment by 1 data unit (word)
         .type = DMA_DATA_TYPE_WORD, // Data type is byte
         .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
     };
@@ -825,6 +925,8 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
         .dst = &tgt_dst,
         .end = DMA_TRANS_END_POLLING,
     };
+    // Size is in data units (words in this case)
+    trans.size_d1_du = length>>2;
 
     // Validate, load and launch DMA transaction
     dma_config_flags_t res;
@@ -833,28 +935,163 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
     res = dma_launch(&trans);
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready());
+    while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
         uint32_t last_word = 0;
-        spi_read_word(spi, &last_word);
+      
+        spi_read_word((spi_host_t *)spi, &last_word);
+
+    #ifdef __cplusplus
+        memcpy(static_cast<uint8_t*>(data) + length - (length % 4), &last_word, length % 4);
+    #else
         memcpy(&data[length - length%4], &last_word, length%4);
+    #endif
+     
     }
 
     return FLASH_OK;
 }
 
+w25q_error_codes_t w25q128jw_read_quad_dma_async(uint32_t addr, void *data, uint32_t length) {
+    // Sanity checks
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+
+    // Send quad read command at standard speed
+    uint32_t cmd_read_quadIO = FC_RDQIO;
+    spi_write_word(spi, cmd_read_quadIO);
+    const uint32_t cmd_read = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
+        .csaat      = true,              // Command not finished
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
+    });
+    spi_set_command(spi, cmd_read);
+    spi_wait_for_ready(spi);
+
+    /*
+     * Send address at quad speed.
+     * Last byte is Fxh (here FFh) required by W25Q128JW
+    */
+    uint32_t read_byte_cmd = (REVERT_24b_ADDR(addr) | (0xFF << 24));
+    spi_write_word(spi, read_byte_cmd);
+    const uint32_t cmd_address = spi_create_command((spi_command_t){
+        .len        = 3,                // 3 Byte
+        .csaat      = true,             // Command not finished
+        .speed      = SPI_SPEED_QUAD,    // Quad speed
+        .direction  = SPI_DIR_TX_ONLY     // Write only
+    });
+    spi_set_command(spi, cmd_address);
+    spi_wait_for_ready(spi);
+
+    // Quad read requires dummy clocks
+    const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
+        #ifndef TARGET_SIM
+        .len        = DUMMY_CLOCKS_FAST_READ_QUAD_IO-1, // W25Q128JW flash needs 4 dummy cycles
+        #else
+        .len        = DUMMY_CLOCKS_SIM-1, // SPI flash simulation model needs 8 dummy cycles
+        #endif
+        .csaat      = true,              // Command not finished
+        .speed      = SPI_SPEED_QUAD,     // Quad speed
+        .direction  = SPI_DIR_DUMMY       // Dummy
+    });
+    spi_set_command(spi, dummy_clocks_cmd);
+    spi_wait_for_ready(spi);
+
+    // Read back the requested data at quad speed
+    const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
+        .len        = length-1,        // length bytes
+        .csaat      = false,           // End command
+        .speed      = SPI_SPEED_QUAD,   // Quad speed
+        .direction  = SPI_DIR_RX_ONLY    // Read only
+    });
+    spi_set_command(spi, cmd_read_rx);
+    spi_wait_for_ready(spi);
+
+    /* COMMAND FINISHED */
+
+    /*
+     * SET UP DMA
+    */
+    // SPI and SPI_FLASH are the same IP so same register map
+    uint32_t *fifo_ptr_rx = (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
+
+    // Init DMA, the integrated DMA is used (peri == NULL)
+    dma_init(NULL);
+
+    // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
+    #ifndef USE_SPI_FLASH
+        uint8_t slot = DMA_TRIG_SLOT_SPI_RX;
+    #else
+        uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
+    #endif
+
+    // Set up DMA source target
+    static dma_target_t tgt_src = {
+        .inc_d1_du = 0, // Target is peripheral, no increment
+        .type = DMA_DATA_TYPE_WORD, // Data type is byte
+    };
+    // Target is SPI RX FIFO
+    tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
+    // Trigger to control the data flow
+    tgt_src.trig = slot;
+
+    // Set up DMA destination target
+    static dma_target_t tgt_dst = {
+        .inc_d1_du = 1, // Increment by 1 data unit (word)
+        .type = DMA_DATA_TYPE_WORD, // Data type is byte
+        .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
+    };
+    tgt_dst.ptr = (uint8_t*)data; // Target is the data buffer
+
+    // Set up DMA transaction
+    static dma_trans_t trans = {
+        .src = &tgt_src,
+        .dst = &tgt_dst,
+        .end = DMA_TRANS_END_POLLING,
+    };
+    // Size is in data units (words in this case)
+    trans.size_d1_du = length>>2;
+
+    // Validate, load and launch DMA transaction
+    dma_config_flags_t res;
+    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_load_transaction(&trans);
+    res = dma_launch(&trans);
+
+    return FLASH_OK;
+}
+
+void w25q128jw_wait_quad_dma_async(void *data, uint32_t length){
+    // Wait for DMA to finish transaction
+    while(!dma_is_ready(0));
+
+    // Take into account the extra bytes (if any)
+    if (length % 4 != 0) {
+        uint32_t last_word = 0;
+      
+        spi_read_word((spi_host_t *)spi, &last_word);
+
+    #ifdef __cplusplus
+        memcpy(static_cast<uint8_t*>(data) + length - (length % 4), &last_word, length % 4);
+    #else
+        memcpy(&data[length - length%4], &last_word, length%4);
+    #endif
+     
+    }
+}
+
 w25q_error_codes_t w25q128jw_write_quad_dma(uint32_t addr, void *data, uint32_t length) {
     // Call the wrapper with quad = 1, dma = 1
-    return page_write_wrapper(addr, data, length, 1, 1);
+    return page_write_wrapper(addr, (uint8_t *)data, length, 1, 1);
 }
 
 w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void *data, uint32_t length) {
 
     uint32_t remaining_length = length;
     uint32_t current_addr = addr;
-    uint8_t *current_data = data;
+    uint8_t *current_data = (uint8_t *)data;
 
     w25q_error_codes_t status;
 
@@ -1353,7 +1590,7 @@ static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t leng
 
 static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_tx = (uintptr_t)spi + SPI_HOST_TXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_tx = (uint32_t *)((uintptr_t)spi + SPI_HOST_TXDATA_REG_OFFSET);
 
     // Init DMA, the integrated DMA is used (peri == NULL)
     dma_init(NULL);
@@ -1367,11 +1604,9 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
 
     // Set up DMA source target
     static dma_target_t tgt_src = {
-        .inc_du = 1, // Increment by 1 data unit (word)
+        .inc_d1_du = 1, // Increment by 1 data unit (word)
         .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
-    // Size is in data units (words in this case)
-    tgt_src.size_du = length>>2;
     // Target is data buffer
     tgt_src.ptr = data;
     // Reads from memory
@@ -1379,7 +1614,7 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
 
     // Set up DMA destination target
     static dma_target_t tgt_dst = {
-        .inc_du = 0, // It's a peripheral, no increment
+        .inc_d1_du = 0, // It's a peripheral, no increment
         .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
     tgt_dst.trig = slot;
@@ -1393,6 +1628,8 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
         .win_du = 0,
         .end = DMA_TRANS_END_POLLING,
     };
+    // Size is in data units (words in this case)
+    trans.size_d1_du = length>>2;
 
     // Validate, load and launch DMA transaction
     dma_config_flags_t res;
@@ -1404,7 +1641,7 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
     if (res != DMA_CONFIG_OK) return FLASH_ERROR_DMA;
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready());
+    while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
@@ -1443,7 +1680,9 @@ static w25q_error_codes_t w25q128jw_sanity_checks(uint32_t addr, uint8_t *data, 
 
     return FLASH_OK; // Success
 }
-
+#ifdef __cplusplus
+} // extern "C"
+#endif  // __cplusplus
 /****************************************************************************/
 /**                                                                        **/
 /*                                 EOF                                      */

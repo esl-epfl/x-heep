@@ -5,3 +5,5 @@
 `verilator_config
 
 lint_off -rule UNOPTFLAT -file "*/hw/simulation/pad_cell_*.sv" -match "Signal unoptimizable*"
+lint_off -rule UNUSED -file "*/hw/simulation/sram_wrapper.sv" -match "Signal is not used: 'pwrgate_ni*"
+lint_off -rule UNDRIVEN -file "*/hw/simulation/sram_wrapper.sv" -match "Signal is not driven: 'pwrgate_ack_no*"

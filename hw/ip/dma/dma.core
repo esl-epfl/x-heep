@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: "x-heep:ip:dma"
-description: "core-v-mini-mcu dma peripheral"
+description: "core-v-mini-mcu dma channel"
 
 # Copyright 2021 OpenHW Group
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
@@ -14,6 +14,10 @@ filesets:
     files:
     - rtl/dma_reg_pkg.sv
     - rtl/dma_reg_top.sv
+    - rtl/dma_padding_fsm.sv
+    - rtl/dma_obiread_fsm.sv
+    - rtl/dma_obiread_addr_fsm.sv
+    - rtl/dma_obiwrite_fsm.sv
     - rtl/dma.sv
     file_type: systemVerilogSource
 

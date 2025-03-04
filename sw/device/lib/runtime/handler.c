@@ -2,6 +2,10 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
 #include "handler.h"
 #include "csr.h"
 #include "stdasm.h"
@@ -110,3 +114,7 @@ __attribute__((weak)) void handler_ecall(void) {
   while (1) {
   }
 }
+#ifdef __cplusplus
+}
+#endif  // __cplusplus
+

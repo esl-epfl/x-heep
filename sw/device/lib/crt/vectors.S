@@ -126,39 +126,13 @@ new vector table (which is at mtvec) */
 
 .section .text.vecs
 /* exception handling */
+.globl __no_irq_handler
 __no_irq_handler:
 	la a0, no_exception_handler_msg
 	jal ra, puts
 	j __no_irq_handler
 
-
-sw_irq_handler:
-	csrr t0, mcause
-	slli t0, t0, 1  /* shift off the high bit */
-	srli t0, t0, 1
-	li t1, 2
-	beq t0, t1, handle_illegal_insn
-	li t1, 11
-	beq t0, t1, handle_ecall
-	li t1, 3
-	beq t0, t1, handle_ebreak
-	j handle_unknown
-
-handle_ecall:
-	la a0, ecall_msg
-	jal ra, puts
-	j end_handler
-
-handle_ebreak:
-	la a0, ebreak_msg
-	jal ra, puts
-	j end_handler
-
-handle_illegal_insn:
-	la a0, illegal_insn_msg
-	jal ra, puts
-	j end_handler
-
+.globl handle_unknown
 handle_unknown:
 	la a0, unknown_msg
 	jal ra, puts

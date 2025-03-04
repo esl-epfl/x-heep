@@ -20,9 +20,9 @@
 #define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 
 #define TEST_DATA_SIZE 16
-#define TEST_DATA_LARGE 1024
+#define TEST_DATA_LARGE 256
 #define TRANSACTIONS_N 3         // Only possible to perform one transaction at a time, others should be blocked
-#define TEST_WINDOW_SIZE_DU 1024 // if put at <=71 the isr is too slow to react to the interrupt
+#define TEST_WINDOW_SIZE_DU 256 // if put at <=71 the isr is too slow to react to the interrupt
 
 #if TEST_DATA_LARGE < 2 * TEST_DATA_SIZE
 #errors("TEST_DATA_LARGE must be at least 2*TEST_DATA_SIZE")
@@ -63,10 +63,10 @@ dma_data_type_t C_type_2_dma_type(int C_type)
 }
 
 #define WAIT_DMA                              \
-    while (!dma_is_ready())                   \
+    while (!dma_is_ready(0))                   \
     {                                         \
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8); \
-        if (dma_is_ready() == 0)              \
+        if (dma_is_ready(0) == 0)              \
         {                                     \
             wait_for_interrupt();             \
         }                                     \
@@ -106,41 +106,40 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     {                                                                                       \
         if (src[i] != dst[i])                                                               \
         {                                                                                   \
-            PRINTF("[%d] Expected: %x Got : %x\n", i, src[i], dst[i]);                      \
+            PRINTF("[%d] Expected: %x Got : %x\n\r", i, src[i], dst[i]);                      \
             errors++;                                                                       \
         }                                                                                   \
     }                                                                                       \
     if (errors != 0)                                                                        \
     {                                                                                       \
-        PRINTF("DMA failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b); \
+        PRINTF("DMA failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du); \
         return EXIT_FAILURE;                                                                \
     }
 
 #define INIT_TEST(signed, data_size, dma_src_type, dma_dst_type) \
     tgt_src.ptr = (uint8_t *)src;                                \
-    tgt_src.inc_du = 1;                                          \
+    tgt_src.inc_d1_du = 1;                                          \
     tgt_src.inc_d2_du = 0;                                       \
-    tgt_src.size_du = data_size;                                 \
     tgt_src.trig = DMA_TRIG_MEMORY;                              \
     tgt_src.type = dma_src_type;                                 \
     tgt_src.env = NULL;                                          \
     tgt_dst.ptr = (uint8_t *)dst;                                \
-    tgt_dst.inc_du = 1;                                          \
+    tgt_dst.inc_d1_du = 1;                                          \
     tgt_dst.inc_d2_du = 0;                                       \
-    tgt_dst.size_du = data_size;                                 \
     tgt_dst.trig = DMA_TRIG_MEMORY;                              \
     tgt_dst.type = dma_dst_type;                                 \
     tgt_dst.env = NULL;                                          \
     trans.src = &tgt_src;                                        \
     trans.dst = &tgt_dst;                                        \
     trans.src_addr = &tgt_addr;                                  \
-    trans.src_type = dma_dst_type;                               \
+    trans.src_type = dma_src_type;                               \
     trans.dst_type = dma_dst_type;                               \
+    trans.size_d1_du = data_size;                                \
     trans.mode = DMA_TRANS_MODE_SINGLE;                          \
     trans.win_du = 0;                                            \
     trans.sign_ext = signed;                                     \
     trans.end = DMA_TRANS_END_INTR;                              \
-    trans.dim = DMA_DIM_CONF_1D;
+    trans.dim = DMA_DIM_CONF_1D;                                 \
 
 #define TEST(C_src_type, C_dst_type, test_size, sign_extend)                                                         \
     PRINT_TEST(sign_extend, test_size, C_type_2_dma_type(sizeof(C_src_type)), C_type_2_dma_type(sizeof(C_dst_type))) \
@@ -207,7 +206,7 @@ int32_t errors = 0;
 int8_t cycles = 0;
 
 // INTERRUPT HANDLERS
-void dma_intr_handler_trans_done(void)
+void dma_intr_handler_trans_done(uint8_t channel)
 {
     cycles++;
 }
@@ -216,9 +215,8 @@ void dma_intr_handler_trans_done(void)
 
 int32_t window_intr_flag;
 
-void dma_intr_handler_window_done(void)
-{
-    window_intr_flag++;
+void dma_intr_handler_window_done(uint8_t channel) {
+    window_intr_flag ++;
 }
 
 uint8_t dma_window_ratio_warning_threshold()
@@ -227,6 +225,8 @@ uint8_t dma_window_ratio_warning_threshold()
 }
 
 #endif // TEST_WINDOW
+
+dma_trans_t trans;
 
 int main(int argc, char *argv[])
 {
@@ -247,11 +247,9 @@ int main(int argc, char *argv[])
     dma_target_t tgt_dst;
     dma_target_t tgt_addr = {
         .ptr = (uint8_t *)test_addr_4B_PTR,
-        .inc_du = 1,
-        .size_du = TEST_DATA_SIZE,
+        .inc_d1_du = 1,
         .trig = DMA_TRIG_MEMORY,
     };
-    dma_trans_t trans;
 
 #ifdef TEST_SINGLE_MODE
 
@@ -265,20 +263,19 @@ int main(int argc, char *argv[])
 
     // Initialize the DMA for the next tests
     tgt_src.ptr = (uint8_t *)test_data_4B;
-    tgt_src.inc_du = 1;
-    tgt_src.size_du = TEST_DATA_SIZE;
+    tgt_src.inc_d1_du = 1;
     tgt_src.trig = DMA_TRIG_MEMORY;
     tgt_src.type = DMA_DATA_TYPE_WORD;
 
     tgt_dst.ptr = (uint8_t *)copied_data_4B;
-    tgt_dst.inc_du = 1;
-    tgt_dst.size_du = TEST_DATA_LARGE;
+    tgt_dst.inc_d1_du = 1;
     tgt_dst.trig = DMA_TRIG_MEMORY;
     tgt_dst.type = DMA_DATA_TYPE_WORD;
 
     trans.src = &tgt_src;
     trans.dst = &tgt_dst;
     trans.src_addr = &tgt_addr;
+    trans.size_d1_du = TEST_DATA_SIZE;
     trans.src_type = DMA_DATA_TYPE_WORD;
     trans.dst_type = DMA_DATA_TYPE_WORD;
     trans.mode = DMA_TRANS_MODE_SINGLE;
@@ -306,7 +303,7 @@ int main(int argc, char *argv[])
 
     PRINTF(">> Finished transaction. \n\r");
 
-    for (uint32_t i = 0; i < trans.size_b >> 2; i++)
+    for (uint32_t i = 0; i < trans.size_d1_du; i++)
     {
         if (copied_data_4B[i * 2] != test_data_4B[i])
         {
@@ -321,11 +318,10 @@ int main(int argc, char *argv[])
     }
     else
     {
-        PRINTF("DMA address mode failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b);
+        PRINTF("DMA address mode failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du);
         return EXIT_FAILURE;
     }
 
-    trans.mode = DMA_TRANS_MODE_SINGLE;
 
 #endif // TEST_ADDRESS_MODE
 
@@ -362,7 +358,7 @@ int main(int argc, char *argv[])
 
     PRINTF(">> Finished transaction. \n\r");
 
-    for (uint32_t i = 0; i < trans.size_b >> 2; i++)
+    for (uint32_t i = 0; i < trans.size_d1_du; i++)
     {
         if (ext_copied_data_4B[i * 2] != test_data_4B[i])
         {
@@ -377,7 +373,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        PRINTF("DMA address mode in external memory failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b);
+        PRINTF("DMA address mode in external memory failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du);
         return EXIT_FAILURE;
     }
 
@@ -400,12 +396,10 @@ int main(int argc, char *argv[])
     }
 
     tgt_src.ptr = (uint8_t *)test_data_large;
-    tgt_src.size_du = TEST_DATA_LARGE;
-    tgt_dst.size_du = TEST_DATA_LARGE;
+    trans.size_d1_du = TEST_DATA_LARGE;
+    trans.mode = DMA_TRANS_MODE_SINGLE;
 
-    // trans.end = DMA_TRANS_END_INTR_WAIT; // This option makes no sense, because the launch is blocking the program until the trans finishes.
     trans.end = DMA_TRANS_END_INTR;
-    // trans.end = DMA_TRANS_END_POLLING;
 
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
     PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ? "Ok!" : "Error!");
@@ -424,8 +418,7 @@ int main(int argc, char *argv[])
     {
         while (cycles < consecutive_trans)
         {
-            while (!dma_is_ready())
-                ;
+            while (!dma_is_ready(0));
             cycles++;
         }
     }
@@ -478,7 +471,7 @@ int main(int argc, char *argv[])
     }
 
     tgt_src.ptr = (uint8_t *)test_data_large;
-    tgt_src.size_du = TEST_DATA_LARGE;
+    trans.size_d1_du = TEST_DATA_LARGE;
 
     tgt_src.type = DMA_DATA_TYPE_WORD;
     tgt_dst.type = DMA_DATA_TYPE_WORD;
@@ -490,16 +483,15 @@ int main(int argc, char *argv[])
 
     if (trans.end == DMA_TRANS_END_POLLING)
     { // There will be no interrupts whatsoever!
-        while (!dma_is_ready())
-            ;
+        while (!dma_is_ready(0));
         PRINTF("?\n\r");
     }
     else
     {
-        while (!dma_is_ready())
+        while (!dma_is_ready(0))
         {
             wait_for_interrupt();
-            PRINTF("i\n\r");
+            PRINTF("i\n\r");//@ToDo: is this a debugging?
         }
     }
 

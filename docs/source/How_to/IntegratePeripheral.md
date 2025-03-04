@@ -13,8 +13,9 @@ This document features:
  - How to access the peripheral via software
  - How to run a simulation
 
-> **Note**
-> This document is a stub. You can contribute by detailing the implementation of other peripheral interfaces you encounter.
+```{note}
+This document is a stub. You can contribute by detailing the implementation of other peripheral interfaces you encounter.
+```
 
 ## Where to place the peripherals description files
 
@@ -56,16 +57,17 @@ The `<peripheral>.sh` file is a script file that is used to build the peripheral
 
 The `<peripheral>.vlt` is a waiver file. By default, warnings make the simulation compilation fail. When a warning message is proven not to affect the robustness of the peripheral, a waiver can be added to this file in order to ignore the warning and resume the simulation compilation.
 
-## How to interface the peripheral with the _x-heep_ platform
+## How to interface the peripheral with X-HEEP
 
 1. A `<peripheral>.hjson` file must be created (see `hw/ip/pdm2pcm/data/pdm2pcm.hjson` for an example). See below for more details.
 
 2. A `<peripheral>.core` file must be created (see `hw/ip/pdm2pcm/pdm2pcm.core` for an example). Dependencies must be declared under `depend:` and peripheral description files must be declared under `files:`.
 
-3. A `<peripheral>.sh` file must be created. It can be adapted from the example given in `OpenTitanIP.md#modified-generator`:
+3. A `<peripheral>.sh` file must be created. It can be adapted from the example given in [Generate OpenTitan IPs](OpenTitanIP.md#modified-generator).
 
-> **Warning**
-> When a file has a template (another file that has the same name but with a `.tpl` extension), this file is auto-generated. Therefore, do only edit the template file. Otherwise, the modifications will be overriden at the platform generation.
+```{warning}
+When a file has a template (another file that has the same name but with a `.tpl` extension), this file is auto-generated. Therefore, do only edit the template file. Otherwise, the modifications will be overriden at the platform generation.
+```
 
 4. In case of modification of the GPIOs usage, the `hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv` must be adapted.
 

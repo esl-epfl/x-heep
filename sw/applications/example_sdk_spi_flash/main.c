@@ -30,13 +30,13 @@
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+#elif TARGET_IS_FPGA && PRINTF_IN_FPGA
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
 #endif
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
     #define USE_SPI_FLASH
 #endif
 

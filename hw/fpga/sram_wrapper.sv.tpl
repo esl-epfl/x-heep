@@ -22,10 +22,16 @@ module sram_wrapper #(
     input logic [AddrWidth-1:0] addr_i,
     input logic [31:0] wdata_i,
     input logic [3:0] be_i,
-    input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive_ni,
+    // power manager signals that goes to the ASIC macros
+    input logic pwrgate_ni,
+    output logic pwrgate_ack_no,
+    input logic set_retentive_ni,
     // output ports
     output logic [31:0] rdata_o
 );
+
+assign pwrgate_ack_no = pwrgate_ni;
+
 <%el = ""%>
 % for num_words in xheep.iter_bank_numwords():
   ${el}if (NumWords == 32'd${num_words}) begin

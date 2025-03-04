@@ -1,8 +1,8 @@
 # Generate OpenTitan IPs
 
-These are ips cloned from OpenTitan.
+These are IPs cloned from OpenTitan.
 Via the `regtool` application, OpenTitan generates `rtl`, `header` files and more.
-Please referes to its documentation available at: https://docs.opentitan.org/doc/rm/register_tool/
+Please refer to its documentation available at: <https://opentitan.org/book/util/reggen/index.html>
 
 e.g.
 
@@ -16,9 +16,10 @@ cd hw/vendor/lowrisc_opentitan/hw/ip/uart
 ## Modified Generator
 
 OpenTitan generates peripherals that are compliant to the TUL bus as for example the `UART` used above.
-However, in this project we also rely on https://github.com/pulp-platform/register_interface
-to generate a different (lighter) bus interface for new made peripheral as the `ip` to control the SoC called `soc_ctrl`. The register_interface repository contains an OpenTitan
-version that has been patched to cope with the register interface instead of the TUL one.
+However, in this project we also rely on [PULP's register interface](https://github.com/pulp-platform/register_interface)
+to generate a different (lighter) bus interface for new made peripheral as the `ip` to control the SoC
+called `soc_ctrl`. The register_interface repository contains an OpenTitan version that has been patched
+to cope with the register interface instead of the TUL one.
 
 ### Generate the soc_ctrl IP
 

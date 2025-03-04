@@ -5,12 +5,7 @@
 #define SIZE_IN_D2 25
 #define DMA_DATA_TYPE DMA_DATA_TYPE_WORD
 
-/* Change the input datatype depending on the DMA_DATA_TYPE
- * The test data has been generated using byte as datatype, so it's possible to use both uint8_t, uint16_t and uint32_t
- */
-typedef uint32_t dma_input_data_type;
-
-dma_input_data_type test_data[SIZE_IN_D1 * SIZE_IN_D2] = {
+uint32_t test_data[SIZE_IN_D1 * SIZE_IN_D2] = {
     93 ,178 ,28 ,23 ,5 ,231 ,211 ,236 ,45 ,196 ,55 ,124 ,113 ,188 ,36 ,43 ,147 ,111 ,254 ,126 ,145 ,83 ,77 ,7 ,126,
     92 ,179 ,157 ,41 ,64 ,7 ,105 ,93 ,176 ,196 ,171 ,42 ,251 ,175 ,120 ,63 ,134 ,56 ,233 ,0 ,189 ,133 ,71 ,226 ,9,
     252 ,214 ,243 ,177 ,205 ,75 ,100 ,165 ,160 ,42 ,112 ,71 ,238 ,208 ,62 ,1 ,113 ,87 ,116 ,212 ,107 ,165 ,214 ,239 ,151,

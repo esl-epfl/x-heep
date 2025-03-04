@@ -16,6 +16,7 @@
 package core_v_mini_mcu_pkg;
 
   import addr_map_rule_pkg::*;
+  import power_manager_pkg::*;
 
   typedef enum logic [1:0] {
     cv32e40p,
@@ -37,11 +38,11 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] CORE_INSTR_IDX = 0;
   localparam logic [31:0] CORE_DATA_IDX = 1;
   localparam logic [31:0] DEBUG_MASTER_IDX = 2;
-  localparam logic [31:0] DMA_READ_CH0_IDX = 3;
-  localparam logic [31:0] DMA_WRITE_CH0_IDX = 4;
-  localparam logic [31:0] DMA_ADDR_CH0_IDX = 5;
+  localparam logic [31:0] DMA_READ_P0_IDX = 3;
+  localparam logic [31:0] DMA_WRITE_P0_IDX = 4;
+  localparam logic [31:0] DMA_ADDR_P0_IDX = 5;
 
-  localparam SYSTEM_XBAR_NMASTER = 6;
+  localparam SYSTEM_XBAR_NMASTER = ${3 + int(num_dma_master_ports)*3};
 
   // Internal slave memory map and index
   // -----------------------------------
@@ -137,7 +138,15 @@ package core_v_mini_mcu_pkg;
   // always-on peripherals
   // ---------------------
   localparam AO_PERIPHERALS = ${ao_peripherals_count};
-
+  localparam DMA_CH_NUM = ${dma_ch_count};
+  localparam DMA_CH_SIZE = 32'h${dma_ch_size};
+  localparam DMA_NUM_MASTER_PORTS = ${num_dma_master_ports};
+% if int(num_dma_master_ports) > 1:
+  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma_xbar_masters_array[::-1]}};
+% else:
+  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma_xbar_masters_array}};
+% endif
+  
 % for peripheral, addr in ao_peripherals.items():
   localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};
   localparam logic [31:0] ${peripheral.upper()}_SIZE = 32'h${addr["length"]};
@@ -145,6 +154,7 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] ${peripheral.upper()}_IDX = 32'd${loop.index};
   
 % endfor
+
   localparam addr_map_rule_t [AO_PERIPHERALS-1:0] AO_PERIPHERALS_ADDR_RULES = '{
 % for peripheral, addr in ao_peripherals.items():
       '{ idx: ${peripheral.upper()}_IDX, start_addr: ${peripheral.upper()}_START_ADDRESS, end_addr: ${peripheral.upper()}_END_ADDRESS }${"," if not loop.last else ""}
@@ -152,6 +162,23 @@ package core_v_mini_mcu_pkg;
   };
 
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
+
+  // Relative DMA channels addresses
+% for i in range(int(dma_ch_count)):
+  localparam logic [7:0] DMA_CH${i}_START_ADDRESS = 8'h${hex(int(ao_peripherals["dma"]["ch_length"], 16)*(i) >> 8)[2:]};
+  localparam logic [7:0] DMA_CH${i}_SIZE = 8'h${hex(int(ao_peripherals["dma"]["ch_length"], 16) >> 8)[2:]};
+  localparam logic [7:0] DMA_CH${i}_END_ADDRESS = DMA_CH${i}_START_ADDRESS + DMA_CH${i}_SIZE;
+  localparam logic [7:0] DMA_CH${i}_IDX = 8'd${i};
+
+% endfor
+
+  localparam addr_map_rule_8bit_t [DMA_CH_NUM-1:0] DMA_ADDR_RULES = '{
+  % for i in range(int(dma_ch_count)):
+      '{ idx: DMA_CH${i}_IDX, start_addr: DMA_CH${i}_START_ADDRESS, end_addr: DMA_CH${i}_END_ADDRESS }${"," if not loop.last else ""}
+% endfor
+  };
+  
+  localparam int unsigned DMA_CH_PORT_SEL_WIDTH = DMA_CH_NUM > 1 ? $clog2(DMA_CH_NUM) : 32'd1;
 
 ######################################################################
 ## Automatically add all peripherals listed

@@ -24,14 +24,14 @@ class BColors:
 
 # Define parameters for the test_apps.py script
 SIMULATOR = "verilator"
-SIM_TIMEOUT_S = 120
+SIM_TIMEOUT_S = 600
 LINKER = "on_chip"
 COMPILER = "gcc"
 
 # Blacklist of apps to skip
 blacklist = [
     "example_spi_read",
-    "example_spi_host_dma_power_gate",
+    "example_spidma_powergate",
     "example_spi_write",
 ]
 

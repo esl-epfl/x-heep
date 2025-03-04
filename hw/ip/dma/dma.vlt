@@ -7,8 +7,13 @@
 lint_off -rule DECLFILENAME -file "*/dma_reg_top.sv"
 
 lint_off -rule WIDTH -file "*/rtl/dma_reg_top.sv" -match "Operator ASSIGNW expects *"
+lint_off -rule WIDTH -file "*/rtl/dma.sv" -match "Operator ASSIGNW expects *"
  
 lint_off -rule UNUSED -file "*/rtl/dma.sv" -match "Signal is not used: 'data_out_rvalid'"
 lint_off -rule UNUSED -file "*/rtl/dma.sv" -match "Signal is not used: 'data_out_rdata'"
 
+lint_off -rule UNUSED -file "*/rtl/dma_obiread_fsm.sv" -match "Bits of signal are not used: *"
+lint_off -rule UNUSED -file "*/rtl/dma_obiwrite_fsm.sv" -match "Bits of signal are not used: *"
+lint_off -rule UNUSED -file "*/rtl/dma_obiread_addr_fsm.sv" -match "Bits of signal are not used: *"
+lint_off -rule UNUSED -file "*/rtl/dma_padding_fsm.sv" -match "Bits of signal are not used: *"
 lint_off -rule UNUSED -file "*/rtl/dma.sv" -match "Bits of signal are not used: *"

@@ -34,7 +34,7 @@
 #include "i2s_structs.h"
 
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
 #define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      16
 #define I2S_CLK_DIV           8
@@ -104,7 +104,7 @@ void handler_irq_i2s(uint32_t id) {
 }
 
 #ifdef USE_DMA
-void dma_intr_handler_trans_done(void)
+void dma_intr_handler_trans_done(uint8_t channel)
 {
     dma_intr_flag = 1;
 }
@@ -128,18 +128,18 @@ void setup()
      // -- DMA CONFIGURATION --
 
     tgt_src.ptr        = I2S_RX_DATA_ADDRESS;
-    tgt_src.inc_du     = 0;
+    tgt_src.inc_d1_du     = 0;
     tgt_src.trig       = DMA_TRIG_SLOT_I2S;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
-    tgt_src.size_du    = AUDIO_DATA_NUM;
 
     tgt_dst.ptr        = audio_data_0;
-    tgt_dst.inc_du     = 1;
+    tgt_dst.inc_d1_du     = 1;
     tgt_dst.trig       = DMA_TRIG_MEMORY;
     tgt_dst.type       = DMA_DATA_TYPE_WORD;
 
     trans.src        = &tgt_src;
     trans.dst        = &tgt_dst;
+    trans.size_d1_du    = AUDIO_DATA_NUM;
     trans.end        = DMA_TRANS_END_INTR;
 
     dma_config_flags_t res;
@@ -173,7 +173,7 @@ void setup()
 int main(int argc, char *argv[]) {
     bool success = true;
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
     for (uint32_t i = 0; i < 0x10000; i++) asm volatile("nop");
 #endif
     PRINTF("I2S DEMO\r\n\r");
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
 
     //PRINTF("Setup done!\r\n\r");
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_IS_FPGA
 
 
     for (uint32_t i = 0; i < I2S_WAIT_CYCLES; i++) asm volatile("nop");

@@ -19,12 +19,22 @@
     }
 
     { name:     "RESTORE_ADDRESS",
-      desc:     "Restore xddress value",
+      desc:     "Restore address value",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "RESTORE_XDDRESS", desc: "Restore xddress Reg, used by BOOTROM" }
+        { bits: "31:0", name: "RESTORE_ADDRESS", desc: "Restore address Reg, used by BOOTROM" }
+      ]
+    }
+
+    { name:     "GLOBAL_POINTER",
+      desc:     "Global Pointer value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "GLOBAL_POINTER", desc: "Global Reg, used by power manager HAL" }
       ]
     }
 
@@ -213,6 +223,17 @@
       ]
     }
 
+% for channel in range(int(dma_ch_count)):
+    { name:     "DMA_CH${channel}_CLK_GATE",
+      desc:     "Clock-gates the DMA CH${channel}",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "DMA_CH${channel}_CLK_GATE", desc: "Clock-gates the DMA CH${channel}" }
+      ]
+    }
+% endfor
 
 % for bank in xheep.iter_ram_banks():
     { name:     "RAM_${bank.name()}_CLK_GATE",

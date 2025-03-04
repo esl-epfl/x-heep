@@ -109,8 +109,8 @@ create_power_switch switch_PD_MEM_BANK_${bank.name()} <%text>\</%text>
     -domain             PD_MEM_BANK_${bank.name()} <%text>\</%text>
     -input_supply_port  {sw_in     VDD} <%text>\</%text>
     -output_supply_port {sw_out    VDD_MEM_BANK_${bank.name()}} <%text>\</%text>
-    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switch_no[${bank.name()}]} <%text>\</%text>
-    -ack_port           {sw_ack    memory_subsystem_banks_powergate_switch_ack_ni[${bank.name()}]} <%text>\</%text>
+    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switch_n[${bank.name()}]} <%text>\</%text>
+    -ack_port           {sw_ack    memory_subsystem_i.ram${bank.name()}_i.pwrgate_ack_no} <%text>\</%text>
     -on_state           {on_state  sw_in {sw_ctrl}} <%text>\</%text>
     -off_state          {off_state {!sw_ctrl}}
 
@@ -152,7 +152,7 @@ set_isolation mem_bank_${bank.name()}_iso <%text>\</%text>
     -isolation_signal memory_subsystem_banks_powergate_iso_n[${bank.name()}] <%text>\</%text>
     -isolation_sense low <%text>\</%text>
     -clamp_value 0 <%text>\</%text>
-    -applies_to outputs <%text>\</%text>
+    -elements {memory_subsystem_i/ram${bank.name()}_i/rdata_o} <%text>\</%text>
     -name_prefix cpu_iso_cell <%text>\</%text>
     -location parent
 

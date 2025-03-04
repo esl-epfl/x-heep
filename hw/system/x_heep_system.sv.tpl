@@ -11,7 +11,9 @@ module x_heep_system
     parameter ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0,
     parameter X_EXT = 0,  // eXtension interface in cv32e40x
+    parameter AO_SPC_NUM = 0,
     //do not touch these parameters
+    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 1 : AO_SPC_NUM,
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
@@ -29,13 +31,16 @@ module x_heep_system
     input  obi_resp_t ext_core_data_resp_i,
     output obi_req_t  ext_debug_master_req_o,
     input  obi_resp_t ext_debug_master_resp_i,
-    output obi_req_t  ext_dma_read_ch0_req_o,
-    input  obi_resp_t ext_dma_read_ch0_resp_i,
-    output obi_req_t  ext_dma_write_ch0_req_o,
-    input  obi_resp_t ext_dma_write_ch0_resp_i,
-    output obi_req_t  ext_dma_addr_ch0_req_o,
-    input  obi_resp_t ext_dma_addr_ch0_resp_i,
+    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_req_o,
+    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_resp_i,
+    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_req_o,
+    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_resp_i,
+    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
+    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i,
 
+    input reg_req_t  [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_req_i,
+    output reg_rsp_t [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_resp_o,
+    
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
@@ -48,8 +53,9 @@ module x_heep_system
 
     output logic [31:0] exit_value_o,
 
-    input logic ext_dma_slot_tx_i,
-    input logic ext_dma_slot_rx_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
 
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
@@ -59,6 +65,9 @@ module x_heep_system
     if_xif.cpu_mem_result xif_mem_result_if,
     if_xif.cpu_result     xif_result_if,
 
+    // External SPC interface
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
+
 % for pad in total_pad_list:
 ${pad.x_heep_system_interface}
 % endfor
@@ -66,13 +75,22 @@ ${pad.x_heep_system_interface}
 
   import core_v_mini_mcu_pkg::*;
 
+
+  localparam EXT_HARTS = 0;
+
+  //do not touch these parameter
+  localparam EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS;
+
+
+  logic [EXT_HARTS_RND-1:0] ext_debug_req;
+  logic ext_cpu_subsystem_rst_n;
+  logic ext_debug_reset_n;
+
   // PM signals
   logic cpu_subsystem_powergate_switch_n;
   logic cpu_subsystem_powergate_switch_ack_n;
   logic peripheral_subsystem_powergate_switch_n;
   logic peripheral_subsystem_powergate_switch_ack_n;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_n;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_n;
 
   // PAD controller
   reg_req_t pad_req;
@@ -91,12 +109,19 @@ ${pad.x_heep_system_interface}
 ${pad.internal_signals}
 % endfor
 
+`ifdef FPGA_SYNTHESIS
+  assign cpu_subsystem_powergate_switch_ack_n = cpu_subsystem_powergate_switch_n;
+  assign peripheral_subsystem_powergate_switch_ack_n = peripheral_subsystem_powergate_switch_n;
+`endif
+
   core_v_mini_mcu #(
     .COREV_PULP(COREV_PULP),
     .FPU(FPU),
     .ZFINX(ZFINX),
     .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
-    .X_EXT(X_EXT)
+    .X_EXT(X_EXT),
+    .AO_SPC_NUM(AO_SPC_NUM),
+    .EXT_HARTS(EXT_HARTS)
   ) core_v_mini_mcu_i (
 
     .rst_ni(rst_ngen),
@@ -114,35 +139,40 @@ ${pad.core_v_mini_mcu_bonding}
     .pad_resp_i(pad_resp),
     .ext_xbar_master_req_i,
     .ext_xbar_master_resp_o,
+    .ext_ao_peripheral_slave_req_i(ext_ao_peripheral_req_i),
+    .ext_ao_peripheral_slave_resp_o(ext_ao_peripheral_resp_o),
     .ext_core_instr_req_o,
     .ext_core_instr_resp_i,
     .ext_core_data_req_o,
     .ext_core_data_resp_i,
     .ext_debug_master_req_o,
     .ext_debug_master_resp_i,
-    .ext_dma_read_ch0_req_o,
-    .ext_dma_read_ch0_resp_i,
-    .ext_dma_write_ch0_req_o,
-    .ext_dma_write_ch0_resp_i,
-    .ext_dma_addr_ch0_req_o,
-    .ext_dma_addr_ch0_resp_i,
+    .ext_dma_read_req_o,
+    .ext_dma_read_resp_i,
+    .ext_dma_write_req_o,
+    .ext_dma_write_resp_i,
+    .ext_dma_addr_req_o,
+    .ext_dma_addr_resp_i,
+    .ext_dma_stop_i,
     .ext_peripheral_slave_req_o,
     .ext_peripheral_slave_resp_i,
+    .ext_debug_req_o(ext_debug_req),
+    .ext_debug_reset_no(ext_debug_reset_n),
     .cpu_subsystem_powergate_switch_no(cpu_subsystem_powergate_switch_n),
     .cpu_subsystem_powergate_switch_ack_ni(cpu_subsystem_powergate_switch_ack_n),
     .peripheral_subsystem_powergate_switch_no(peripheral_subsystem_powergate_switch_n),
     .peripheral_subsystem_powergate_switch_ack_ni(peripheral_subsystem_powergate_switch_ack_n),
-    .memory_subsystem_banks_powergate_switch_no(memory_subsystem_banks_powergate_switch_n),
-    .memory_subsystem_banks_powergate_switch_ack_ni(memory_subsystem_banks_powergate_switch_ack_n),
     .external_subsystem_powergate_switch_no,
     .external_subsystem_powergate_switch_ack_ni,
     .external_subsystem_powergate_iso_no,
     .external_subsystem_rst_no,
+    .ext_cpu_subsystem_rst_no(ext_cpu_subsystem_rst_n),
     .external_ram_banks_set_retentive_no,
     .external_subsystem_clkgate_en_no,
     .exit_value_o,
     .ext_dma_slot_tx_i,
-    .ext_dma_slot_rx_i
+    .ext_dma_slot_rx_i,
+    .dma_done_o
   );
 
   pad_ring pad_ring_i (

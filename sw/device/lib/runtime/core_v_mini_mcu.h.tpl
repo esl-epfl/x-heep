@@ -14,6 +14,12 @@ extern "C" {
 #define HAS_MEMORY_BANKS_IL
 % endif
 
+% for bank in xheep.iter_ram_banks():
+#define RAM${bank.name()}_START_ADDRESS 0x${f'{bank.start_address():08X}'}
+#define RAM${bank.name()}_END_ADDRESS 0x${f'{bank.end_address():08X}'}
+% endfor
+
+
 #define EXTERNAL_DOMAINS ${external_domains}
 
 #define DEBUG_START_ADDRESS 0x${debug_start_address}
@@ -32,6 +38,10 @@ extern "C" {
 #define ${name.upper()}_IDX ${loop.index}
 
 %endfor
+
+#define DMA_CH_NUM ${dma_ch_count}
+#define DMA_CH_SIZE 0x${dma_ch_size}
+#define DMA_NUM_MASTER_PORTS ${num_dma_master_ports}
 
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}

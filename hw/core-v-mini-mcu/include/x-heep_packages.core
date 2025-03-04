@@ -13,6 +13,7 @@ filesets:
     - addr_map_rule_pkg.sv
     - obi_pkg.sv
     - reg_pkg.sv
+    - power_manager_pkg.sv
     - core_v_mini_mcu_pkg.sv
     file_type: systemVerilogSource
 
