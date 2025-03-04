@@ -7,9 +7,7 @@
 // Date: 17/02/2025
 // Description: Digital Level Crossing Block
 
-module dlc
-  import d_level_xing_blk_pkg::*;
-#(
+module dlc #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter type hw_fifo_req_t = logic,
@@ -54,9 +52,10 @@ module dlc
   logic [7:0] reg_dlvl_bits_q;  // number of bits for the delta levels in the output data
   logic [7:0] reg_dt_bits_q;  // number of bits for the delta time output data
   logic [15:0] reg_mask_dlvl_q;  // mask for delta levels
-  logic [7:0] reg_mask_dt_q;  // mask for delta time
+  logic [15:0] reg_mask_dt_q;  // mask for delta time
   logic reg_dlvl_signed_q;  // if '1' delta levels are in 2s complement, else sign|abs_value
   logic reg_output_format_q;  // output format of the data
+  logic reg_read_write_q;  // base response push on read/write data
 
   // ------------------------- Level Crossing Logic
 
@@ -66,10 +65,10 @@ module dlc
 
   // ------------------------- Sample Skip Counter
 
-  logic [7:0] skip_cnt;  // skip counter for the number of samples that have been skipped
+  logic [15:0] skip_cnt;  // skip counter for the number of samples that have been skipped
   logic skip_cnt_en;  // skip counter enable signal
   logic skip_cnt_rst;  // skip counter reset signal
-  logic [7:0] dt_out;  // delta time actual output
+  logic [15:0] dt_out;  // delta time actual output
 
   // ------------------------- Delta Levels Management
 
@@ -83,9 +82,9 @@ module dlc
   logic check_end_ovf;  // '1' if overflow data must not be sent anymore
   logic dir;  // direction of the delta levels
   logic dir_reg;  // direction register
-  logic [15:0] dir_ext;  // direction extended on 16 bits
+  logic [16:0] dir_ext;  // direction extended on 16 bits
   logic dir_out;  // dir actual output
-  logic [15:0] dlvl_dir_out;  // combined delta levels and direction output
+  logic [16:0] dlvl_dir_out;  // combined delta levels and direction output
 
 
 
@@ -204,9 +203,11 @@ module dlc
         end else if (reg_req_i.addr[7:0] == 8'h10) begin
           reg_output_format_q <= reg_req_i.wdata[0];
         end else if (reg_req_i.addr[7:0] == 8'h14) begin
-          reg_mask_dlvl_q[7:0] <= reg_req_i.wdata[7:0];
+          reg_mask_dlvl_q[15:0] <= reg_req_i.wdata[15:0];
         end else if (reg_req_i.addr[7:0] == 8'h18) begin
-          reg_mask_dt_q <= reg_req_i.wdata[7:0];
+          reg_mask_dt_q <= reg_req_i.wdata[15:0];
+        end else if (reg_req_i.addr[7:0] == 8'h1c) begin
+          reg_read_write_q <= reg_req_i.wdata[0];
         end
       end
     end
@@ -231,7 +232,9 @@ module dlc
       end else if (reg_req_i.addr[7:0] == 8'h14) begin
         reg_rsp_o.rdata[15:0] = reg_mask_dlvl_q;
       end else if (reg_req_i.addr[7:0] == 8'h18) begin
-        reg_rsp_o.rdata[7:0] = reg_mask_dt_q;
+        reg_rsp_o.rdata[15:0] = reg_mask_dt_q;
+      end else if (reg_req_i.addr[7:0] == 8'h1c) begin
+        reg_rsp_o.rdata[0] = reg_read_write_q;
       end else begin
         reg_rsp_o.error = 1'b1;
       end
@@ -264,7 +267,7 @@ module dlc
     This signal is used to make the downcounter inside the DMA decrement
     even if the data is not actually pushed into the hw write fifo.
   */
-  assign hw_fifo_resp_o.push = valid;
+  assign hw_fifo_resp_o.push = reg_read_write_q ? valid : hw_w_fifo_push;
 
   // Push to HW Write FIFO
   always_comb begin
@@ -343,10 +346,10 @@ module dlc
   // Sample Skip Counter
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (~rst_ni) begin
-      skip_cnt <= '0;
+      skip_cnt <= 16'd0;
     end else begin
       if (skip_cnt_rst == 1'b1) begin
-        skip_cnt <= '0;
+        skip_cnt <= 16'd1;
       end else if (skip_cnt_en == 1'b1) begin
         skip_cnt <= skip_cnt + 1;
       end else begin
@@ -406,7 +409,7 @@ module dlc
       If the overflow down counter is less than 0, the remainder must be sent and then stop.
     */
     ovf_dwn_cnt_n = $signed(ovf_dwn_cnt_op1) - $signed(reg_mask_dlvl_q);
-    check_end_ovf = ovf_dwn_cnt_n[15] == 1'b1;
+    check_end_ovf = hw_w_fifo_full ? '0 : (ovf_dwn_cnt_n[15] == 1'b1 || ovf_dwn_cnt_n == 16'h0);
   end
 
   /*
@@ -472,16 +475,16 @@ module dlc
   // Delta levels and direction output construction
   // direction must be shift left by reg_dlvl_bits_q and then combined with the delta levels
   always_comb begin
-    dir_ext[15:1] = '0;
-    dir_ext[0] = dir_out;
-    dlvl_dir_out = (reg_dlvl_signed_q) ? (dlvl_out) : ((dir_ext << reg_dlvl_bits_q) | dlvl_out);
+    dir_ext[16:1] = (reg_dlvl_signed_q) ? {1'b0, dt_out[15:1]} : dt_out[15:0];
+    dir_ext[0] = (reg_dlvl_signed_q) ? dt_out[0] : dir_out;
+    dlvl_dir_out = (dir_ext << reg_dlvl_bits_q) | {1'b0, dlvl_out};
   end
 
   // ------------------------- Write Fifo Input Data Construction
 
-  assign hw_w_fifo_data_in[3:0]   = dlvl_dir_out[3:0];
-  assign hw_w_fifo_data_in[7:4]   = (reg_output_format_q) ? (dlvl_dir_out[7:4]) : (dt_out[3:0]);
-  assign hw_w_fifo_data_in[11:8]  = (reg_output_format_q) ? (dt_out[3:0]) : ('0);
-  assign hw_w_fifo_data_in[15:12] = (reg_output_format_q) ? (dt_out[7:4]) : ('0);
-
+  //assign hw_w_fifo_data_in[3:0]   = dlvl_dir_out[3:0];
+  //assign hw_w_fifo_data_in[7:4]   = (reg_output_format_q) ? (dlvl_dir_out[7:4]) : (dt_out[3:0]);
+  //assign hw_w_fifo_data_in[11:8]  = (reg_output_format_q) ? (dt_out[3:0]) : ('0);
+  //assign hw_w_fifo_data_in[15:12] = (reg_output_format_q) ? (dt_out[7:4]) : ('0);
+  assign hw_w_fifo_data_in = dlvl_dir_out[15:0];
 endmodule
