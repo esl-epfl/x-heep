@@ -34,13 +34,7 @@ The docker setup has certain limitations. For example, the following are not sup
 
 ### 1. OS requirements
 
-To use `X-HEEP`, first make sure you have the following apt packages, or install them as:
-
-```bash
-sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf make cmake flex bison libexpat-dev gawk tree xterm python3-venv python3-dev
-```
-
-In general, have a look at the [Install required software](https://opentitan.org/guides/getting_started/index.html) section of the OpenTitan documentation.
+To use `X-HEEP`, first make sure to have a look at the [Check system requirements](https://opentitan.org/book/doc/getting_started/index.html) section of the OpenTitan documentation.
 
 ### 2. Python
 
@@ -50,7 +44,7 @@ Choose between `2.a` or `2.b` to setup your enviroment.
 
 #### 2.a Miniconda
 
-Install [Miniconda](https://docs.anaconda.com/miniconda/install/#quick-command-line-install) python 3.8 version by downloading an older version and selecting the latest `py38` version [here](https://repo.anaconda.com/miniconda/). Then, create the Conda enviroment:
+Install [Miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions) python 3.8 version by downloading an older version and selecting the latest `py38` version [here](https://repo.anaconda.com/miniconda/). Then, create the Conda enviroment from inside the x-heep folder:
 
 ```bash
 make conda
@@ -78,6 +72,13 @@ source .venv/bin/activate
 
 ### 3. Install the RISC-V Compiler:
 
+The RISC-V Compiler require the [following package](https://github.com/riscv-collab/riscv-gnu-toolchain) to be installed. On Ubuntu they can be installed by the following command :
+
+```bash
+sudo apt install autoconf automake autotools-dev curl python3 python3-pip python3-tomli libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev ninja-build git cmake libglib2.0-dev libslirp-dev
+```
+The Github page contains instructions for others linux distribution.
+
 ```
 git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
 cd riscv-gnu-toolchain
@@ -104,7 +105,29 @@ cmake --build . --target install
 
 ### 4. Install Verilator:
 
-Note that Verilator 4.210 will not build with GCC 12.0 or later, so it will need to be built with an older toolchain.
+Verilator require the [following package](https://verilator.org/guide/latest/install.html) to be installed. On Ubuntu they can be installed by the following command :
+
+```bash
+sudo apt install git help2man perl python3 make g++
+```
+
+The following package are nice to have but are not critical. Any error occuring can be safely ignored :
+
+```bash
+sudo apt install libfl2 libfl-dev zlibc zlib1g zlib1g-dev
+```
+
+The rest of the package are optionnal but should be installed for good performance :
+
+```bash
+sudo apt install ccache mold libgoogle-perftools-dev numactl
+```
+
+The [documentation](https://verilator.org/guide/latest/install.html) page contains instructions for others linux distribution. 
+
+Note : Verilator 4.210 will not build with GCC 12.0 or later, so it will need to be built with an older toolchain.
+
+To proceed with the installation, use the following command :
 
 ```
 export VERILATOR_VERSION=4.210
