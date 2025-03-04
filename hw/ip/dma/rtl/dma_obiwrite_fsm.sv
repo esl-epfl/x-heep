@@ -254,7 +254,7 @@ module dma_obiwrite_fsm
     data_out_wdata[23:16] = data_to_write[23:16];
     data_out_wdata[31:24] = data_to_write[31:24];
 
-    if (address_mode == 1'b0 && hw_fifo_mode_i == 1'b0) begin
+    if (address_mode == 1'b0) begin
       case (write_ptr_reg[1:0])
         2'b00: begin
           if (sign_extend) begin
