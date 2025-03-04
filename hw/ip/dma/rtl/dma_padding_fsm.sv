@@ -274,17 +274,23 @@ module dma_padding_fsm
                                 | (dma_conf_1d == 1'b1 && |dma_cnt_d1 == 1'b0 && dma_padding_fsm_on_i == 1'b1));
 
   /* Padding FSM conditions assignments */
-  assign idle_to_top_ex = {|reg2hw.pad_top.q == 1'b1 && dma_padding_fsm_on_i == 1'b1};
+  assign idle_to_top_ex = {
+    |reg2hw.pad_top.q == 1'b1 && dma_padding_fsm_on_i == 1'b1 
+    && !(dma_cnt_d1 == 1 && dma_cnt_d2 == 1 && !({1'h0, reg2hw.size_d1.q} == 1 && {1'h0, reg2hw.size_d2.q} == 1))
+  };
   assign idle_to_left_ex = {
-    |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b1 && dma_padding_fsm_on_i == 1'b1
+    |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b1 && dma_padding_fsm_on_i == 1'b1 
+    && !(dma_cnt_d1 == 1 && dma_cnt_d2 == 1 && !({1'h0, reg2hw.size_d1.q} == 1 && {1'h0, reg2hw.size_d2.q} == 1))
   };
   assign idle_to_right_ex = {
     write_fifo_push_o == 1'b1 && |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 
                       && dma_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + 1)
+    && !(dma_cnt_d1 == 1 && dma_cnt_d2 == 1 && !({1'h0, reg2hw.size_d1.q} == 1 && {1'h0, reg2hw.size_d2.q} == 1))
   };
   assign idle_to_bottom_ex = {
     write_fifo_push_o == 1'b1 && |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 
                       && dma_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1
+    && !(dma_cnt_d1 == 1 && dma_cnt_d2 == 1 && !({1'h0, reg2hw.size_d1.q} == 1 && {1'h0, reg2hw.size_d2.q} == 1))
   };
   assign top_ex_to_top_dn = {
     write_fifo_push_o == 1'b1 && dma_cnt_d2 == ( {1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1 && |reg2hw.pad_left.q == 1'b0
