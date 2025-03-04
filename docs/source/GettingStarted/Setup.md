@@ -72,12 +72,13 @@ source .venv/bin/activate
 
 ### 3. Install the RISC-V Compiler:
 
-The RISC-V Compiler require the [following package](https://github.com/riscv-collab/riscv-gnu-toolchain) to be installed. On Ubuntu they can be installed by the following command :
+The RISC-V compiler requires the [following packages](https://github.com/riscv-collab/riscv-gnu-toolchain) to be installed. On Ubuntu they can be installed by the following command:
 
 ```bash
 sudo apt install autoconf automake autotools-dev curl python3 python3-pip python3-tomli libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev ninja-build git cmake libglib2.0-dev libslirp-dev
 ```
-The Github page contains instructions for others linux distribution.
+
+The Github page contains instructions for other linux distributions.
 
 ```
 git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
@@ -105,29 +106,31 @@ cmake --build . --target install
 
 ### 4. Install Verilator:
 
-Verilator require the [following package](https://verilator.org/guide/latest/install.html) to be installed. On Ubuntu they can be installed by the following command :
+Verilator requires the [following packages](https://verilator.org/guide/latest/install.html) to be installed. On Ubuntu they can be installed by the following command:
 
 ```bash
 sudo apt install git help2man perl python3 make g++
 ```
 
-The following package are nice to have but are not critical. Any error occuring can be safely ignored :
+The following packages are nice to have but are not critical. Any error occuring can be safely ignored:
 
 ```bash
 sudo apt install libfl2 libfl-dev zlibc zlib1g zlib1g-dev
 ```
 
-The rest of the package are optionnal but should be installed for good performance :
+The rest of the packages are optionnal but should be installed for good performance:
 
 ```bash
 sudo apt install ccache mold libgoogle-perftools-dev numactl
 ```
 
-The [documentation](https://verilator.org/guide/latest/install.html) page contains instructions for others linux distribution. 
+The [documentation](https://verilator.org/guide/latest/install.html) page contains instructions for other linux distributions. 
 
-Note : Verilator 4.210 will not build with GCC 12.0 or later, so it will need to be built with an older toolchain.
+```{warning}
+Verilator 4.210 will not build with GCC 12.0 or later, so it will need to be built with an older toolchain.
+```
 
-To proceed with the installation, use the following command :
+To proceed with the installation, use the following command:
 
 ```
 export VERILATOR_VERSION=4.210
