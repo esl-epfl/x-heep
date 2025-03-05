@@ -1,5 +1,6 @@
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
+// Copyright 2025 OpenHW Group.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -10,15 +11,13 @@
 `include "prim_assert.sv"
 
 /**
- * Top level module of the ibex RISC-V core
+ * Top level module of the CVE2 RISC-V core
  */
 module cve2_top import cve2_pkg::*; #(
-  parameter int unsigned MHPMCounterNum   = 0,
+  parameter int unsigned MHPMCounterNum   = 10,
   parameter int unsigned MHPMCounterWidth = 40,
   parameter bit          RV32E            = 1'b0,
-  parameter rv32m_e      RV32M            = RV32MFast,
-  parameter int unsigned DmHaltAddr       = 32'h1A110800,
-  parameter int unsigned DmExceptionAddr  = 32'h1A110808
+  parameter rv32m_e      RV32M            = RV32MFast
 ) (
   // Clock and Reset
   input  logic                         clk_i,
@@ -58,6 +57,8 @@ module cve2_top import cve2_pkg::*; #(
 
   // Debug Interface
   input  logic                         debug_req_i,
+  input  logic [31:0]                  dm_halt_addr_i,
+  input  logic [31:0]                  dm_exception_addr_i,
   output crash_dump_t                  crash_dump_o,
 
   // RISC-V Formal Interface
@@ -107,7 +108,7 @@ module cve2_top import cve2_pkg::*; #(
   localparam int unsigned PMPNumRegions    = 4;
 
   // Trigger support
-  localparam bit          DbgTriggerEn     = 1'b1;
+  localparam bit          DbgTriggerEn     = 1'b1; // DEBUG_TRIGGER_EN in CVE4
   localparam int unsigned DbgHwBreakNum    = 1;
 
   // Bit manipulation extension
@@ -159,9 +160,7 @@ module cve2_top import cve2_pkg::*; #(
     .RV32M            (RV32M),
     .RV32B            (RV32B),
     .DbgTriggerEn     (DbgTriggerEn),
-    .DbgHwBreakNum    (DbgHwBreakNum),
-    .DmHaltAddr       (DmHaltAddr),
-    .DmExceptionAddr  (DmExceptionAddr)
+    .DbgHwBreakNum    (DbgHwBreakNum)
   ) u_cve2_core (
     .clk_i(clk),
     .rst_ni,
@@ -195,6 +194,8 @@ module cve2_top import cve2_pkg::*; #(
     .irq_pending_o(irq_pending),
 
     .debug_req_i,
+    .dm_halt_addr_i,
+    .dm_exception_addr_i,
     .crash_dump_o,
 
 `ifdef RVFI
