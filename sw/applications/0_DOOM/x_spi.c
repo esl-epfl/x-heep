@@ -3,7 +3,8 @@
 #include "x-heep.h"
 #include "w25q128jw.h"
 
-spi_host_t spi_flash;
+spi_host_t *spi_flash_device;
+
 
 //private function declarations
 void X_test_read();
@@ -11,9 +12,9 @@ void X_test_read();
 //public function definitions
 void X_init_spi()
 {
-    spi_flash.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    //spi_flash_device->base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
     
-    w25q128jw_init(spi_flash);
+    w25q128jw_init(spi_flash_device);
     PRINTF("X_SPI: init flash complete\n");
     PRINTF("X_SPI: Testing read\n");
     X_test_read(); //-> This function doesn't work. But it needs to work for the program to work !!!

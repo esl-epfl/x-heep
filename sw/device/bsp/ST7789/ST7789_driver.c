@@ -7,9 +7,10 @@
 
 #include "core_v_mini_mcu.h"
 
+
 //#define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
     
-spi_host_t ST7789_spi_LCD;
+spi_host_t *ST7789_spi_LCD;
 
 /*
  * Private function definitions
@@ -61,7 +62,7 @@ void ST7789_gpio_init(void)
 
 uint8_t ST7789_spi_init(){
 
-    ST7789_spi_LCD.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    //ST7789_spi_LCD.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
         // Enable SPI host device
     spi_set_enable(&ST7789_spi_LCD, true);
 
@@ -146,7 +147,7 @@ uint8_t ST7789_display_init(void)
 }
 
 
-spi_host_t  ST7789_get_spi_host(void)
+spi_host_t* ST7789_get_spi_host(void)
 {
     return ST7789_spi_LCD;
 }
@@ -199,8 +200,8 @@ void ST7789_spi_write_command(uint8_t command)
     const uint32_t cmd = spi_create_command((spi_command_t){
         .len        = 0,                 // 4 Bytes
         .csaat      = false,              // Command not finished
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
     // Load segment parameters to COMMAND register
     spi_set_command(&ST7789_spi_LCD, cmd);
@@ -216,8 +217,8 @@ void ST7789_spi_write_data(uint8_t data)
     const uint32_t cmd = spi_create_command((spi_command_t){
         .len        = 0,                 // 4 Bytes
         .csaat      = false,              // Command not finished
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
     // Load segment parameters to COMMAND register
     spi_set_command(&ST7789_spi_LCD, cmd);
@@ -235,8 +236,8 @@ void ST7789_spi_write_data_2B(uint16_t data)
     const uint32_t cmd_read_1 = spi_create_command((spi_command_t){
         .len        = 1,                 // 4 Bytes
         .csaat      = false,              // Command not finished
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
     // Load segment parameters to COMMAND register
     spi_set_command(&ST7789_spi_LCD, cmd_read_1);
