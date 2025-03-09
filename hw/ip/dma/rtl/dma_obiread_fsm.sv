@@ -22,10 +22,13 @@ module dma_obiread_fsm
     input logic read_fifo_full_i,
     input logic read_fifo_alm_full_i,
     input logic wait_for_rx_i,
+
+    input logic hw_r_fifo_full_i,
+    input logic hw_fifo_mode_i,
+
     input logic data_in_gnt_i,
     input logic data_in_rvalid_i,
     input logic [31:0] data_in_rdata_i,
-
     output logic [31:0] fifo_input_o,
     output logic data_in_req_o,
     output logic data_in_we_o,
@@ -46,6 +49,13 @@ module dma_obiread_fsm
 
   /* Registers */
   dma_reg2hw_t reg2hw;
+
+  typedef enum logic [1:0] {
+    DMA_DATA_TYPE_WORD,
+    DMA_DATA_TYPE_HALF_WORD,
+    DMA_DATA_TYPE_BYTE,
+    DMA_DATA_TYPE_BYTE_
+  } dma_data_type_t;
 
   enum logic {
     DMA_READ_FSM_IDLE,
@@ -84,6 +94,9 @@ module dma_obiread_fsm
 
   /* FIFO signals */
   logic [31:0] fifo_input;
+
+  dma_data_type_t src_data_type;
+  logic hw_fifo_sign_extend;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -219,7 +232,7 @@ module dma_obiread_fsm
             end else begin
               dma_read_fsm_n_state = DMA_READ_FSM_ON;
               // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
+              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0 && (~(hw_r_fifo_full_i && hw_fifo_mode_i))) begin
                 data_in_req  = 1'b1;
                 data_in_we   = 1'b0;
                 data_in_be   = 4'b1111;  // always read all bytes
@@ -234,7 +247,7 @@ module dma_obiread_fsm
               // The read operation is the same in both cases
               dma_read_fsm_n_state = DMA_READ_FSM_ON;
               // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
+              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0 && (~(hw_r_fifo_full_i && hw_fifo_mode_i))) begin
                 data_in_req  = 1'b1;
                 data_in_we   = 1'b0;
                 data_in_be   = 4'b1111;  // always read all bytes
@@ -272,22 +285,65 @@ module dma_obiread_fsm
     fifo_input[23:16] = data_in_rdata[23:16];
     fifo_input[31:24] = data_in_rdata[31:24];
 
-    case (read_ptr_valid_reg[1:0])
-      2'b00: ;
-      2'b01: fifo_input[7:0] = data_in_rdata[15:8];
+    /*
+      In case of hw fifo mode, depending on the source data type, the input data to the hw read fifo
+      could be also a half word or a byte, which could also be signed extended before being written into the hw read fifo.
+    */
 
-      2'b10: begin
-        fifo_input[7:0]  = data_in_rdata[23:16];
-        fifo_input[15:8] = data_in_rdata[31:24];
-      end
+    if (hw_fifo_mode_i) begin
 
-      2'b11: fifo_input[7:0] = data_in_rdata[31:24];
-    endcase
+      case (read_ptr_valid_reg[1:0])
+        2'b00: begin
+          case (src_data_type)
+            DMA_DATA_TYPE_BYTE:
+            fifo_input[31:8] = (hw_fifo_sign_extend) ? {24{data_in_rdata[7]}} : {24{1'b0}};
+            DMA_DATA_TYPE_HALF_WORD:
+            fifo_input[31:16] = (hw_fifo_sign_extend) ? {16{data_in_rdata[15]}} : {16{1'b0}};
+            default: ;
+          endcase
+        end
+        2'b01: begin
+          fifo_input[31:8] = (hw_fifo_sign_extend) ? {24{data_in_rdata[15]}} : {24{1'b0}};
+          fifo_input[7:0]  = data_in_rdata[15:8];
+        end
+        2'b10: begin
+          case (src_data_type)
+            DMA_DATA_TYPE_BYTE: begin
+              fifo_input[31:8] = (hw_fifo_sign_extend) ? {24{data_in_rdata[23]}} : {24{1'b0}};
+              fifo_input[7:0]  = data_in_rdata[23:16];
+            end
+            DMA_DATA_TYPE_HALF_WORD: begin
+              fifo_input[31:16] = (hw_fifo_sign_extend) ? {16{data_in_rdata[31]}} : {16{1'b0}};
+              fifo_input[15:0]  = data_in_rdata[31:16];
+            end
+            default: ;
+          endcase
+        end
+        2'b11: begin
+          fifo_input[31:8] = (hw_fifo_sign_extend) ? {24{data_in_rdata[31]}} : {24{1'b0}};
+          fifo_input[7:0]  = data_in_rdata[31:24];
+        end
+      endcase
+
+    end else begin
+      case (read_ptr_valid_reg[1:0])
+        2'b00: ;
+        2'b01: fifo_input[7:0] = data_in_rdata[15:8];
+
+        2'b10: begin
+          fifo_input[7:0]  = data_in_rdata[23:16];
+          fifo_input[15:8] = data_in_rdata[31:24];
+        end
+
+        2'b11: fifo_input[7:0] = data_in_rdata[31:24];
+      endcase
+    end
   end
 
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Signal assignments */
+  assign hw_fifo_sign_extend = reg2hw.hw_fifo_mode_sign_ext.q;
 
   /* Renaming */
   assign reg2hw = reg2hw_i;
@@ -308,6 +364,6 @@ module dma_obiread_fsm
   assign data_in_rvalid = data_in_rvalid_i;
   assign data_in_rdata = data_in_rdata_i;
   assign fifo_input_o = fifo_input;
-
+  assign src_data_type = dma_data_type_t'(reg2hw.src_data_type.q);
 
 endmodule
