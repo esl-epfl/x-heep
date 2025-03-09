@@ -1,0 +1,14 @@
+// Copyright 2024 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+{
+  name: "pulp_platform_obi_spi_slave",
+  target_dir: "pulp_platform_obi_spi_slave",
+
+  upstream: {
+    url: "https://github.com/esl-epfl/obi_spi_slave.git",
+    rev: "59d1c50f137fb1216df7fe29364ff0f8a3e42079",
+  },
+
+
+}
