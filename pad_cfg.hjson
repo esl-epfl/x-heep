@@ -1,11 +1,11 @@
 // Copyright 2020 ETH Zurich and University of Bologna.
-// Solderpad Hardware License Version 0.51 see LICENSE for details.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 // Derived from Occamy: https://github.com/pulp-platform/snitch/blob/master/hw/system/occamy/src/occamy_cfg.hjson
 //
 // Pad configuration for core-v-mini-mcu. Read by mcu_gen.py.
-// 
-// For detailed documentation and usage instructions please refer to docs/source/Configuration/PadConfiguration.md
+//
+// For detailed documentation and usage instructions, please refer to docs/source/Configuration/PadConfiguration.md
 
 {
 
