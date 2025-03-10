@@ -16,7 +16,10 @@ Following you find ASIC implementations that uses X-HEEP.
 
 ``HEEPocrates`` is the first silicon implementation of X-HEEP made by us, i.e. the [ESL](https://www.epfl.ch/labs/esl/) Lab of EPFL.
 
-![HEEPocrates](/images/chips/heepocrates.png)
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/esl-epfl/x-heep/refs/heads/main/docs/source/images/chips/heepocrates.png" />
+</p>
 
 <p  align="center">Figure 1: HEEPocrates Test Chip layout in TSMC 65nm LP </p>
 
@@ -60,7 +63,9 @@ Other resources that leverages `HEEPocrates` (silicon implementation, FPGA, or s
 ``HEEPnosis`` is the second silicon implementation of X-HEEP, made by a collaboration between the ESL lab and the 
 [TCL](https://www.epfl.ch/labs/tcl/) lab of EPFL.
 
-![HEEPnosis](/images/chips/heepnosis.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/esl-epfl/x-heep/refs/heads/main/docs/source/images/chips/heepnosis.png" />
+</p>
 
 <p  align="center">Figure 2: HEEPnosis Test Chip layout in GF 22nm FDX </p>
 
