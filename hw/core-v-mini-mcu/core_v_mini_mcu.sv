@@ -480,10 +480,10 @@ module core_v_mini_mcu
   assign memory_subsystem_clkgate_en_n[2] = memory_subsystem_pwr_ctrl_out[2].clkgate_en_n;
 
   for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin
-    assign external_subsystem_powergate_switch_no[i]        = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
+    assign external_subsystem_powergate_switch_no[i] = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
     assign external_subsystem_powergate_iso_no[i] = external_subsystem_pwr_ctrl_out[i].isogate_en_n;
     assign external_subsystem_rst_no[i] = external_subsystem_pwr_ctrl_out[i].rst_n;
-    assign external_ram_banks_set_retentive_no[i]           = external_subsystem_pwr_ctrl_out[i].retentive_en_n;
+    assign external_ram_banks_set_retentive_no[i] = external_subsystem_pwr_ctrl_out[i].retentive_en_n;
     assign external_subsystem_clkgate_en_no[i] = external_subsystem_pwr_ctrl_out[i].clkgate_en_n;
     assign external_subsystem_pwr_ctrl_in[i].pwrgate_ack_n = external_subsystem_powergate_switch_ack_ni[i];
   end
