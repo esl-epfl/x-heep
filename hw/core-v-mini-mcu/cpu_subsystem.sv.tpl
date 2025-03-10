@@ -60,13 +60,14 @@ module cpu_subsystem
   if (CPU_TYPE == cv32e20) begin : gen_cv32e20
 
     cve2_top #(
+        .DmHaltAddr(DM_HALTADDRESS),
 % if cve2_rv32e:
         .RV32E(${cve2_rv32e}),
 % endif
 % if cve2_rv32m:
         .RV32M(${cve2_rv32m}),
 % endif
-        .MHPMCounterNum('0)
+        .DmExceptionAddr('0)
     ) cv32e20_i (
         .clk_i (clk_i),
         .rst_ni(rst_ni),
@@ -101,8 +102,6 @@ module cpu_subsystem
         .irq_nm_i      (1'b0),
 
         .debug_req_i (debug_req_i),
-        .dm_exception_addr_i(32'h0),
-        .dm_halt_addr_i(DM_HALTADDRESS),
         .crash_dump_o(),
 
         .fetch_enable_i(fetch_enable),

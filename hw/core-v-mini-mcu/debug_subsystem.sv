@@ -31,7 +31,6 @@ module debug_subsystem
 
   logic [NRHARTS-1:0]    unavailable;
   dm::hartinfo_t [NRHARTS-1:0] hartinfo;
-  logic dmi_rst_n;
 
   always_comb begin
     for (int i = 0; i < NRHARTS; i++) begin
@@ -67,7 +66,7 @@ module debug_subsystem
       .dmi_resp_i      (dmi_resp),
       .dmi_resp_ready_o(dmi_resp_ready),
       .dmi_resp_valid_i(dmi_resp_valid),
-      .dmi_rst_no      (dmi_rst_n),
+      .dmi_rst_no      (),
       .tck_i           (jtag_tck_i),
       .tms_i           (jtag_tms_i),
       .trst_ni         (jtag_trst_ni),
@@ -110,7 +109,7 @@ module debug_subsystem
       .master_other_err_i(1'b0),
       .master_rdata_i    (debug_master_resp_i.rdata),
 
-      .dmi_rst_ni      (dmi_rst_n),
+      .dmi_rst_ni      (rst_ni),
       .dmi_req_valid_i (dmi_req_valid),
       .dmi_req_ready_o (dmi_req_ready),
       .dmi_req_i       (dmi_req),
