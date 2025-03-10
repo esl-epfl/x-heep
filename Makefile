@@ -76,9 +76,11 @@ FLASHREAD_ADDR ?= 0x0
 FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
 FLASHREAD_BYTES ?= 256
 
+FLASHWIRTE_BYTES_DOOM_WAD = 0x800000
 
 #binary to store in flash memory
 FLASHWRITE_FILE ?= $(mkfile_path)/sw/build/main.hex
+FLASHDOOM_WAD_FILE = $(mkfile_path)/sw/applications/0_DOOM/doomWad.hex
 
 #max address in the hex file, used to program the flash
 ifeq ($(wildcard $(FLASHWRITE_FILE)),)
@@ -287,6 +289,10 @@ flash-readid:
 flash-prog:
 	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
 	./iceprog -a $(FLASHWRITE_BYTES) -d i:0x0403:0x6011 -I B $(FLASHWRITE_FILE);
+
+flash-prog-doom: flash-prog
+	cd sw/vendor/yosyshq_icestorm/iceprog; \
+	./iceprog -a $(FLASHWIRTE_BYTES_DOOM_WAD) -d i:0x0403:0x6011 -o 1M -I B $(FLASHDOOM_WAD_FILE);
 
 ## Read the EPFL_Programmer flash
 flash-read:
