@@ -115,6 +115,8 @@ module testharness #(
   obi_resp_t heep_core_data_resp;
   obi_req_t heep_debug_master_req;
   obi_resp_t heep_debug_master_resp;
+  obi_req_t heep_spi_slave_req;
+  obi_resp_t heep_spi_slave_resp;
   obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_req;
   obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_resp;
   obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_req;
@@ -275,6 +277,8 @@ module testharness #(
       .ext_core_data_resp_i(heep_core_data_resp),
       .ext_debug_master_req_o(heep_debug_master_req),
       .ext_debug_master_resp_i(heep_debug_master_resp),
+      .ext_spi_slave_req_o(heep_spi_slave_req),
+      .ext_spi_slave_resp_i(heep_spi_slave_resp),
       .ext_dma_read_req_o(heep_dma_read_req),
       .ext_dma_read_resp_i(heep_dma_read_resp),
       .ext_dma_write_req_o(heep_dma_write_req),
@@ -317,6 +321,8 @@ module testharness #(
       .heep_core_data_resp_o   (heep_core_data_resp),
       .heep_debug_master_req_i (heep_debug_master_req),
       .heep_debug_master_resp_o(heep_debug_master_resp),
+      .heep_spi_slave_req_i    (heep_spi_slave_req),
+      .heep_spi_slave_resp_o   (heep_spi_slave_resp),
       .heep_dma_read_req_i     (heep_dma_read_req),
       .heep_dma_read_resp_o    (heep_dma_read_resp),
       .heep_dma_write_req_i    (heep_dma_write_req),
