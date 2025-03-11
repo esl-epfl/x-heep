@@ -315,8 +315,8 @@ gdb_connect:
 test:
 	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson
 	$(RM) test/*.log
-	python3 test/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps.log
-	@echo "You can also find the output in test/test_apps.log"
+	python3 test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
+	@echo "You can also find the output in test/test_apps/test_apps.log"
 
 ## @section Cleaning commands
 

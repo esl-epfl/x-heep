@@ -15,7 +15,7 @@ All tests must be successful before PRs can be merged.
 
 ## Simulation script
 
-Additionally, the testing script (`test/test_apps.py`) can be used to perform local tests. For quick
+Additionally, the testing script (`test/test_apps/test_apps.py`) can be used to perform local tests. For quick
 debugging, you can check the global variables in the script such as the `BLACKLIST` and `WHITELIST`.
 
 You can run it with the following command:
@@ -24,7 +24,7 @@ You can run it with the following command:
 make test
 ```
 
-This will output the results in the terminal and in the `test/test_apps.log` file.
+This will output the results in the terminal and in the `test/test_apps/test_apps.log` file.
 
 Additionally, you can check only the compilation of the applications with the following command:
 
