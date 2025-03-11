@@ -312,6 +312,7 @@ gdb_connect:
 ## @section Testing
 
 ## Run the tests for X-HEEP. Cleans and rebuilds all the project.
+.PHONY: test
 test:
 	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson
 	$(RM) test/*.log
