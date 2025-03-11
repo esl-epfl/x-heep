@@ -6,7 +6,5 @@
 
 // Add your code here
 void X_init_spi();
-void X_spi_read(uint32_t address, uint32_t *data, uint32_t len);
-
 
 #endif // X_SPI_H
