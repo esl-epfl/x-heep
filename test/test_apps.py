@@ -28,7 +28,8 @@ ERROR_PATTERN_DICT = {
 
 # Whitelist of apps. Has priority over the blacklist.
 # Useful if you only want to test certain apps
-WHITELIST = []
+WHITELIST = [
+]
 
 # Blacklist of apps to skip
 BLACKLIST = [
@@ -384,6 +385,13 @@ def print_results(
 
 
 def main():
+    """
+    Compiles and runs all the apps in X-HEEP.
+
+    If the --compile-only flag is set, it only compiles the apps.
+    The script outputs the results of the tests.
+    It exits with error if any app failed to compile or run. 
+    """
     parser = argparse.ArgumentParser(description="Test script")
     parser.add_argument(
         "--compile-only", action="store_true", help="Only compile the applications"

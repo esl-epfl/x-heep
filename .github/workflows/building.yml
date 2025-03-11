@@ -27,4 +27,4 @@ jobs:
           # The MCU is generated with various memory banks to avoid example code not fitting.
           make mcu-gen X_HEEP_CFG=configs/ci.hjson
 
-          python3 .github/workflows/test-apps/test_apps.py --compile-only
+          python3 test/test_apps.py --compile-only
