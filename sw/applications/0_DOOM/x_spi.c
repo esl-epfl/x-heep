@@ -1,5 +1,7 @@
 #include "x_spi.h"
 
+//new version using sdk to read flash
+
 #include <stdlib.h>
 
 #include "x-heep.h"
@@ -9,11 +11,9 @@
 #include "csr.h"
 #include "csr_registers.h"
 
-//new version using sdk to read flash
-
 // =========================== VARS & DEFS ==================================
 // Flash w25q128jw SPI commands
-#define FC_RD      0x03 /** Read Data */
+#define FC_RD      0x03 //Read Data 
 
 #define START_ADDRESS 0
 #define READ_LEN 4                      // Amount words to read
@@ -46,13 +46,21 @@ void X_init_spi()
     const uint32_t mask = 1 << FIC_FLASH_MEIE;
     CSR_SET_BITS(CSR_REG_MIE, mask);
 
+    X_test_read();
+}
+
+void X_spi_read(uint32_t address, uint32_t *data, uint32_t len)
+{
+    if (!flash_read(&spi_flash, address, data, 4*len)) return EXIT_FAILURE;   
+}
+
+void X_test_read()
+{
     uint32_t rxbuffer[READ_LEN] = {0};
-
-    if (!flash_read(&spi_flash, START_ADDRESS, rxbuffer, 4*READ_LEN)) return EXIT_FAILURE;
-
+    X_spi_read(WAD_START_ADDRESS, rxbuffer, READ_LEN);
     for (int i = 0; i < READ_LEN; i++)
     {
-        PRINTF("0x%08X: %08X\n", START_ADDRESS+4*i, rxbuffer[i]);
+        PRINTF("0x%08X: %08X\n", WAD_START_ADDRESS+4*i, rxbuffer[i]);
     }
 }
 
@@ -75,12 +83,14 @@ bool flash_read(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uint32_t len) {
     return true;
 }
 
-
 //old version 
+
 /*
 
-spi_host_t *spi_flash_device;
+#include "x-heep.h"
+#include "w25q128jw.h"
 
+spi_host_t *spi_flash_device;
 
 //private function declarations
 void X_test_read();
@@ -112,5 +122,4 @@ void X_test_read()
     X_spi_read(0, data, 4);
     PRINTF("Data at WAD start address: %x %x %x %x\n", data[0], data[1], data[2], data[3]);
 }
-
 */
