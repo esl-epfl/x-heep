@@ -35,6 +35,7 @@ BLACKLIST = [
     "example_spi_read",
     "example_spidma_powergate",
     "example_spi_write",
+    "example_dma_subaddressing",
 ]
 
 # Blacklist of apps to skip with verilator
