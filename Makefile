@@ -312,7 +312,7 @@ gdb_connect:
 ## @section Testing
 
 ## Run the tests for X-HEEP. Cleans and rebuilds all the project.
-test: clean-all
+test:
 	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson
 	$(RM) test/*.log
 	python3 test/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps.log
