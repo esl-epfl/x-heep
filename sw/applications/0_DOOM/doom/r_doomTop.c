@@ -1111,7 +1111,7 @@ void R_ExecuteSetViewSize (void)
 
 void R_Init (void)
 {
-    R_InitData ();
+    R_InitData (); //problem starts here 
     R_InitPointToAngle ();
     R_InitTables ();
     // viewwidth / viewheight / detailLevel are set by the defaults

@@ -1483,7 +1483,7 @@ void D_DoomMain (void)
 
     // Find main IWAD file and load it.
     if (no_sdcard) {
-        iwadfile = "doom.wad";
+        iwadfile = "doom.wad"; //probably not compatible with x-heep 
     }
     else {
         iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);
@@ -1500,7 +1500,7 @@ void D_DoomMain (void)
     // modifiedgame = false; // NRFD-TODO: modified game / PWAD?
 
     DEH_printf("W_Init: Init WADfiles.\n");
-    D_AddFile(iwadfile);
+    D_AddFile(iwadfile); 
     numiwadlumps = numlumps;
 
     PRINTF("W_CheckCorrectIWAD\n");
@@ -1924,7 +1924,7 @@ void D_DoomMain (void)
     M_Init ();
 
     DEH_printf("R_Init: Init DOOM refresh daemon\n");
-    R_Init ();
+    R_Init (); //Problem starts here 
 
     DEH_printf("\nP_Init: Init Playloop state.\n");
     P_Init ();
