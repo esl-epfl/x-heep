@@ -71,6 +71,10 @@ SIM_ARGS += $(if $(MAX_SIM_TIME),+max_sim_time=$(MAX_SIM_TIME))
 # Timeout for simulation, default 120
 TIMEOUT ?= 120
 
+# Testing flags
+# Optional TEST_FLAGS options are '--compile-only'
+TEST_FLAGS=
+
 # Flash read address for testing, in hexadecimal format 0x0000
 FLASHREAD_ADDR ?= 0x0
 FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
@@ -177,10 +181,6 @@ app-list:
 	@echo "Note: Applications outside the X-HEEP sw/applications directory will not be listed."
 	tree sw/applications/
 
-## Compile all the apps present in the repo
-app-compile-all:
-	bash util/test_all.sh nosim $(LINKER) $(COMPILER) $(TIMEOUT)
-
 ## @section Simulation
 
 ## Verilator simulation with C++
@@ -249,10 +249,6 @@ run-app-verilator: app
 	echo '<end of uart0.log>'; \
 	cd ../../..;
 
-## Simulate all the apps present in the repo
-app-simulate-all:
-	bash util/test_all.sh $(LINKER) $(COMPILER) $(TIMEOUT) $(SIMULATOR)
-
 ## @section Vivado
 
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado
@@ -312,6 +308,16 @@ openOCD_bscan:
 ## Start GDB
 gdb_connect:
 	$(MAKE) -C sw gdb_connect
+
+## @section Testing
+
+## Run the tests for X-HEEP. Cleans and rebuilds all the project.
+.PHONY: test
+test:
+	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson
+	$(RM) test/*.log
+	python3 test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
+	@echo "You can also find the output in test/test_apps/test_apps.log"
 
 ## @section Cleaning commands
 
