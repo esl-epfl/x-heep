@@ -82,6 +82,12 @@ so the application will fail (you will read from the wrong address).
 #define PRINTF(...)
 #endif
 
+#if TARGET_SIM
+#define SYNC_LOGIC(x) ~x
+#else
+#define SYNC_LOGIC(x) x
+#endif
+
 #define GPIO_LD5_R  11
 #define GPIO_LD5_B  12
 #define GPIO_LD5_G  13
@@ -150,12 +156,12 @@ int main(){
     // Read the synq GPIO to know if you are master
     gpio_read( GPIO_SYNQ, &synq );
 
-    if( synq ){ // If synq == 1, you will be master. 
+    if( SYNC_LOGIC(synq) ){ // If synq == 1, you will be master. 
 
         // Write 0 on that GPIO to notify to the slave that the master
         // has been assigned. 
         gpio_set_mode( GPIO_SYNQ, GpioModeOutPushPull );
-        gpio_write(GPIO_SYNQ, false);
+        gpio_write(GPIO_SYNQ, SYNC_LOGIC(false));
 
         // Declare dominance
         PRINTF("Look at me. I am the captain now.\n\r");
@@ -166,7 +172,9 @@ int main(){
         // Enable the timer interrupts to go to sleep between packets. 
         enable_timer_interrupt();
         // Wait a second for the slave to turn on
+        #if !TARGET_SIM
         timer_wait_us(1000000);
+        #endif
 
         // Initilize the SPI host IP
         if( spi_host_init(spi_host1)!= SPI_FLAG_SUCCESS) return EXIT_FAILURE;
@@ -181,7 +189,9 @@ int main(){
             spi_slave_request_read(spi_host1,&((uint32_t*)buffer_read_from)[i*chunk_w],  chunk_w*4, DUMMY_CYCLES );
             spi_wait_for_rx_watermark(spi_host1);
             spi_copy_words( spi_host1, &((uint32_t*)buffer_read_to)[i*chunk_w],  chunk_w );
+            #if !TARGET_SIM
             timer_wait_us(250000);
+            #endif
             gpio_toggle(GPIO_LD5_G);
         }
 
