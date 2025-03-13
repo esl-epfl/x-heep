@@ -138,6 +138,8 @@ module xilinx_core_v_mini_mcu_wrapper
       .ext_core_data_resp_i('0),
       .ext_debug_master_req_o(),
       .ext_debug_master_resp_i('0),
+      .ext_spi_slave_req_o(),
+      .ext_spi_slave_resp_i('0),
       .ext_dma_read_req_o(),
       .ext_dma_read_resp_i('0),
       .ext_dma_write_req_o(),
