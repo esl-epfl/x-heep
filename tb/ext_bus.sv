@@ -34,13 +34,16 @@ module ext_bus #(
     input  obi_pkg::obi_req_t  heep_debug_master_req_i,
     output obi_pkg::obi_resp_t heep_debug_master_resp_o,
 
-    input  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_req_i ,
+    input  obi_pkg::obi_req_t  heep_spi_slave_req_i,
+    output obi_pkg::obi_resp_t heep_spi_slave_resp_o,
+
+    input obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_req_i,
     output obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_resp_o,
 
-    input  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_req_i,
+    input obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_req_i,
     output obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_resp_o,
 
-    input  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_req_i ,
+    input obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_req_i,
     output obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_resp_o,
 
     // External master ports
@@ -80,7 +83,7 @@ module ext_bus #(
   assign master_req[CORE_INSTR_IDX] = heep_core_instr_req_i;
   assign master_req[CORE_DATA_IDX] = heep_core_data_req_i;
   assign master_req[DEBUG_MASTER_IDX] = heep_debug_master_req_i;
-
+  assign master_req[SPI_SLAVE_IDX] = heep_spi_slave_req_i;
   generate
     for (
         genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++
@@ -101,7 +104,7 @@ module ext_bus #(
   assign heep_core_instr_resp_o = master_resp[CORE_INSTR_IDX];
   assign heep_core_data_resp_o = master_resp[CORE_DATA_IDX];
   assign heep_debug_master_resp_o = master_resp[DEBUG_MASTER_IDX];
-
+  assign heep_spi_slave_resp_o = master_resp[SPI_SLAVE_IDX];
   generate
     for (
         genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++

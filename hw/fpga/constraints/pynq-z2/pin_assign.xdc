@@ -2,6 +2,9 @@
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+# For pinout of the PYNQ-Z2 please refer to 
+# https://us1.discourse-cdn.com/flex019/uploads/pynq1/original/2X/5/5b969c46185b0799d848915df3762fce368bf55d.png
+
 # Clock signal
 set_property -dict {PACKAGE_PIN H16 IOSTANDARD LVCMOS33} [get_ports clk_i]
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets jtag_tck_i_IBUF]
@@ -69,10 +72,17 @@ set_property -dict {PACKAGE_PIN V10 IOSTANDARD LVCMOS33} [get_ports {gpio_io[7]}
 set_property -dict {PACKAGE_PIN V8 IOSTANDARD LVCMOS33} [get_ports {gpio_io[8]}] ; # rpi_gpio_tri_io[2]
 set_property -dict {PACKAGE_PIN U8 IOSTANDARD LVCMOS33} [get_ports {gpio_io[9]}] ; # rpi_gpio_tri_io[14]
 set_property -dict {PACKAGE_PIN V7 IOSTANDARD LVCMOS33} [get_ports {gpio_io[10]}] ; # rpi_gpio_tri_io[19]
-set_property -dict {PACKAGE_PIN U7 IOSTANDARD LVCMOS33} [get_ports {gpio_io[11]}] ; # rpi_gpio_tri_io[9]
-set_property -dict {PACKAGE_PIN V6 IOSTANDARD LVCMOS33} [get_ports {gpio_io[12]}] ; # rpi_gpio_tri_io[6]
-set_property -dict {PACKAGE_PIN U13 IOSTANDARD LVCMOS33} [get_ports {gpio_io[13]}] ; # arduino_gpio_tri_io[2]
-set_property -dict {PACKAGE_PIN V13 IOSTANDARD LVCMOS33} [get_ports {gpio_io[14]}] ; # arduino_gpio_tri_io[3]
+
+# Tri-color LEDs for TARGET_PYNQ_Z2
+set_property -dict {PACKAGE_PIN M15 IOSTANDARD LVCMOS33} [get_ports {gpio_io[11]}] ; # rgbleds_6bits_tri_o[5]
+set_property -dict {PACKAGE_PIN G14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[12]}] ; # rgbled_6bits_tri_o[3]
+set_property -dict {PACKAGE_PIN L14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[13]}] ; # rgbleds_6bits_tri_o[4]
+
+# SPI SLAVE
+set_property -dict {PACKAGE_PIN U7 IOSTANDARD LVCMOS33} [get_ports {spi_slave_sck_io}] ; # rpi_gpio_tri_io[9]
+set_property -dict {PACKAGE_PIN V6 IOSTANDARD LVCMOS33} [get_ports {spi_slave_cs_io}] ; # rpi_gpio_tri_io[6]
+set_property -dict {PACKAGE_PIN U13 IOSTANDARD LVCMOS33} [get_ports {spi_slave_miso_io}] ; # arduino_gpio_tri_io[2]
+set_property -dict {PACKAGE_PIN V13 IOSTANDARD LVCMOS33} [get_ports {spi_slave_mosi_io}] ; # arduino_gpio_tri_io[3]
 
 # PDM2PCM
 set_property -dict {PACKAGE_PIN Y9 IOSTANDARD LVCMOS33} [get_ports {pdm2pcm_clk_io}] ; # rpi_gpio_tri_io[13]
@@ -92,7 +102,3 @@ set_property -dict {PACKAGE_PIN V18 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[
 set_property -dict {PACKAGE_PIN T16 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[2]}] ; # arduino_gpio_tri_io[10]
 set_property -dict {PACKAGE_PIN R17 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[3]}] ; # arduino_gpio_tri_io[11]
 
-# Tri-color LEDs for TARGET_PYNQ_Z2
-set_property -dict {PACKAGE_PIN M15 IOSTANDARD LVCMOS33} [get_ports {gpio_io[15]}] ; # rgbleds_6bits_tri_o[5]
-set_property -dict {PACKAGE_PIN G14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[16]}] ; # rgbled_6bits_tri_o[3]
-set_property -dict {PACKAGE_PIN L14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[17]}] ; # rgbleds_6bits_tri_o[4]
