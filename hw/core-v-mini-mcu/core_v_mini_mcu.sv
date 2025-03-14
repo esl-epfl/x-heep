@@ -102,22 +102,6 @@ module core_v_mini_mcu
     input  logic gpio_13_i,
     output logic gpio_13_oe_o,
 
-    output logic gpio_14_o,
-    input  logic gpio_14_i,
-    output logic gpio_14_oe_o,
-
-    output logic gpio_15_o,
-    input  logic gpio_15_i,
-    output logic gpio_15_oe_o,
-
-    output logic gpio_16_o,
-    input  logic gpio_16_i,
-    output logic gpio_16_oe_o,
-
-    output logic gpio_17_o,
-    input  logic gpio_17_i,
-    output logic gpio_17_oe_o,
-
     output logic spi_flash_sck_o,
     input  logic spi_flash_sck_i,
     output logic spi_flash_sck_oe_o,
@@ -173,6 +157,34 @@ module core_v_mini_mcu
     output logic spi_sd_3_o,
     input  logic spi_sd_3_i,
     output logic spi_sd_3_oe_o,
+
+    output logic spi_slave_sck_o,
+    input  logic spi_slave_sck_i,
+    output logic spi_slave_sck_oe_o,
+    output logic gpio_14_o,
+    input  logic gpio_14_i,
+    output logic gpio_14_oe_o,
+
+    output logic spi_slave_cs_o,
+    input  logic spi_slave_cs_i,
+    output logic spi_slave_cs_oe_o,
+    output logic gpio_15_o,
+    input  logic gpio_15_i,
+    output logic gpio_15_oe_o,
+
+    output logic spi_slave_miso_o,
+    input  logic spi_slave_miso_i,
+    output logic spi_slave_miso_oe_o,
+    output logic gpio_16_o,
+    input  logic gpio_16_i,
+    output logic gpio_16_oe_o,
+
+    output logic spi_slave_mosi_o,
+    input  logic spi_slave_mosi_i,
+    output logic spi_slave_mosi_oe_o,
+    output logic gpio_17_o,
+    input  logic gpio_17_i,
+    output logic gpio_17_oe_o,
 
     output logic pdm2pcm_pdm_o,
     input  logic pdm2pcm_pdm_i,
@@ -386,6 +398,10 @@ module core_v_mini_mcu
   obi_req_t peripheral_slave_req;
   obi_resp_t peripheral_slave_resp;
 
+  //OBI SPI slave
+  obi_req_t spi_slave_req;
+  obi_resp_t spi_slave_resp;
+
   // signals to debug unit
   logic debug_core_req;
   logic debug_reset_n;
@@ -462,6 +478,90 @@ module core_v_mini_mcu
   assign memory_subsystem_banks_powergate_iso_n[1] = memory_subsystem_pwr_ctrl_out[1].isogate_en_n;
   assign memory_subsystem_banks_set_retentive_n[1] = memory_subsystem_pwr_ctrl_out[1].retentive_en_n;
   assign memory_subsystem_clkgate_en_n[1] = memory_subsystem_pwr_ctrl_out[1].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[2] = memory_subsystem_pwr_ctrl_out[2].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[2].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[2];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[2] = memory_subsystem_pwr_ctrl_out[2].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[2] = memory_subsystem_pwr_ctrl_out[2].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[2] = memory_subsystem_pwr_ctrl_out[2].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[3] = memory_subsystem_pwr_ctrl_out[3].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[3].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[3];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[3] = memory_subsystem_pwr_ctrl_out[3].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[3] = memory_subsystem_pwr_ctrl_out[3].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[3] = memory_subsystem_pwr_ctrl_out[3].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[4] = memory_subsystem_pwr_ctrl_out[4].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[4].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[4];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[4] = memory_subsystem_pwr_ctrl_out[4].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[4] = memory_subsystem_pwr_ctrl_out[4].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[4] = memory_subsystem_pwr_ctrl_out[4].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[5] = memory_subsystem_pwr_ctrl_out[5].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[5].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[5];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[5] = memory_subsystem_pwr_ctrl_out[5].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[5] = memory_subsystem_pwr_ctrl_out[5].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[5] = memory_subsystem_pwr_ctrl_out[5].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[6] = memory_subsystem_pwr_ctrl_out[6].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[6].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[6];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[6] = memory_subsystem_pwr_ctrl_out[6].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[6] = memory_subsystem_pwr_ctrl_out[6].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[6] = memory_subsystem_pwr_ctrl_out[6].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[7] = memory_subsystem_pwr_ctrl_out[7].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[7].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[7];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[7] = memory_subsystem_pwr_ctrl_out[7].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[7] = memory_subsystem_pwr_ctrl_out[7].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[7] = memory_subsystem_pwr_ctrl_out[7].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[8] = memory_subsystem_pwr_ctrl_out[8].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[8].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[8];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[8] = memory_subsystem_pwr_ctrl_out[8].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[8] = memory_subsystem_pwr_ctrl_out[8].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[8] = memory_subsystem_pwr_ctrl_out[8].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[9] = memory_subsystem_pwr_ctrl_out[9].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[9].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[9];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[9] = memory_subsystem_pwr_ctrl_out[9].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[9] = memory_subsystem_pwr_ctrl_out[9].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[9] = memory_subsystem_pwr_ctrl_out[9].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[10] = memory_subsystem_pwr_ctrl_out[10].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[10].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[10];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[10] = memory_subsystem_pwr_ctrl_out[10].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[10] = memory_subsystem_pwr_ctrl_out[10].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[10] = memory_subsystem_pwr_ctrl_out[10].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[11] = memory_subsystem_pwr_ctrl_out[11].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[11].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[11];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[11] = memory_subsystem_pwr_ctrl_out[11].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[11] = memory_subsystem_pwr_ctrl_out[11].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[11] = memory_subsystem_pwr_ctrl_out[11].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[12] = memory_subsystem_pwr_ctrl_out[12].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[12].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[12];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[12] = memory_subsystem_pwr_ctrl_out[12].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[12] = memory_subsystem_pwr_ctrl_out[12].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[12] = memory_subsystem_pwr_ctrl_out[12].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[13] = memory_subsystem_pwr_ctrl_out[13].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[13].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[13];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[13] = memory_subsystem_pwr_ctrl_out[13].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[13] = memory_subsystem_pwr_ctrl_out[13].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[13] = memory_subsystem_pwr_ctrl_out[13].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[14] = memory_subsystem_pwr_ctrl_out[14].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[14].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[14];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[14] = memory_subsystem_pwr_ctrl_out[14].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[14] = memory_subsystem_pwr_ctrl_out[14].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[14] = memory_subsystem_pwr_ctrl_out[14].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[15] = memory_subsystem_pwr_ctrl_out[15].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[15].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[15];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[15] = memory_subsystem_pwr_ctrl_out[15].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[15] = memory_subsystem_pwr_ctrl_out[15].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[15] = memory_subsystem_pwr_ctrl_out[15].clkgate_en_n;
 
   for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin
     assign external_subsystem_powergate_switch_no[i]        = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
@@ -607,7 +707,9 @@ module core_v_mini_mcu
       .ext_dma_write_req_o(ext_dma_write_req_o),
       .ext_dma_write_resp_i(ext_dma_write_resp_i),
       .ext_dma_addr_req_o(ext_dma_addr_req_o),
-      .ext_dma_addr_resp_i(ext_dma_addr_resp_i)
+      .ext_dma_addr_resp_i(ext_dma_addr_resp_i),
+      .spi_slave_req_i(spi_slave_req),
+      .spi_slave_resp_o(spi_slave_resp)
   );
 
   memory_subsystem #(
@@ -697,7 +799,21 @@ module core_v_mini_mcu
       .ext_dma_slot_tx_i,
       .ext_dma_slot_rx_i,
       .ext_dma_stop_i,
-      .dma_done_o
+      .dma_done_o,
+      .spi_slave_sck_o(spi_slave_sck_o),
+      .spi_slave_sck_i(spi_slave_sck_i),
+      .spi_slave_sck_oe_o(spi_slave_sck_oe_o),
+      .spi_slave_cs_o(spi_slave_cs_o),
+      .spi_slave_cs_i(spi_slave_cs_i),
+      .spi_slave_cs_oe_o(spi_slave_cs_oe_o),
+      .spi_slave_miso_o(spi_slave_miso_o),
+      .spi_slave_miso_i(spi_slave_miso_i),
+      .spi_slave_miso_oe_o(spi_slave_miso_oe_o),
+      .spi_slave_mosi_o(spi_slave_mosi_o),
+      .spi_slave_mosi_i(spi_slave_mosi_i),
+      .spi_slave_mosi_oe_o(spi_slave_mosi_oe_o),
+      .spi_slave_req_o(spi_slave_req),
+      .spi_slave_resp_i(spi_slave_resp)
   );
 
   peripheral_subsystem peripheral_subsystem_i (

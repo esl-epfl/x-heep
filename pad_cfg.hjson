@@ -63,8 +63,8 @@
             type: output
         }
         gpio: {
-            num: 18
-            num_offset: 0 # first gpio is gpio0
+            num: 14,
+            num_offset: 0, #first gpio is gpio0
             type: inout
         }
         spi_flash_sck: {
@@ -90,8 +90,55 @@
         spi_sd: {
             num: 4
             type: inout
-        }
-
+        },
+        spi_slave_sck: {
+            num: 1,
+            type: inout
+            mux: {
+                spi_slave_sck: {
+                    type: inout
+                },
+                gpio_14: {
+                    type: inout
+                }
+            }
+        },
+        spi_slave_cs: {
+            num: 1,
+            type: inout
+            mux: {
+                spi_slave_cs: {
+                    type: inout
+                },
+                gpio_15: {
+                    type: inout
+                }
+            }
+        },
+        spi_slave_miso: {
+            num: 1,
+            type: inout
+            mux: {
+                spi_slave_miso: {
+                    type: inout
+                },
+                gpio_16: {
+                    type: inout
+                }
+            }
+        },
+        spi_slave_mosi: {
+            num: 1,
+            type: inout
+            mux: {
+                spi_slave_mosi: {
+                    type: inout
+                },
+                gpio_17: {
+                    type: inout
+                }
+            }
+        },
         pdm2pcm_pdm: {
             num: 1
             type: inout
