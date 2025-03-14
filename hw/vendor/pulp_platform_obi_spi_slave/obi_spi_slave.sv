@@ -11,8 +11,7 @@
 module obi_spi_slave #(
 
     parameter OBI_ADDR_WIDTH = 32,
-    parameter OBI_DATA_WIDTH = 32,
-    parameter DUMMY_CYCLES   = 32
+    parameter OBI_DATA_WIDTH = 32
 ) (
     //input  logic test_mode,
     input  logic spi_sclk,
@@ -38,6 +37,8 @@ module obi_spi_slave #(
     input logic [OBI_DATA_WIDTH-1:0] obi_master_r_data
 );
 
+  localparam DUMMY_CYCLES = 32;
+
   logic [               7:0] rx_counter;
   logic                      rx_counter_upd;
   logic [              31:0] rx_data;
@@ -55,9 +56,7 @@ module obi_spi_slave #(
 
   logic [              31:0] ctrl_data_rx;
   logic                      ctrl_data_rx_valid;
-  logic                      ctrl_data_rx_ready;
   logic [              31:0] ctrl_data_tx;
-  logic                      ctrl_data_tx_valid;
   logic                      ctrl_data_tx_ready;
 
   logic [              31:0] fifo_data_rx;
@@ -100,7 +99,7 @@ module obi_spi_slave #(
   );
 
   spi_slave_controller #(
-      .DUMMY_CYCLES(DUMMY_CYCLES)
+    .DUMMY_CYCLES(DUMMY_CYCLES)
   ) u_slave_sm (
       .sclk              (spi_sclk),
       .sys_rstn          (obi_aresetn),
@@ -125,14 +124,13 @@ module obi_spi_slave #(
   );
 
   spi_slave_dc_fifo #(
-      .DATA_WIDTH  (32),
-      .BUFFER_DEPTH(8)
+      .DATA_WIDTH  (32)
   ) u_dcfifo_rx (
       .clk_a  (spi_sclk),
       .rstn_a (obi_aresetn),
       .data_a (ctrl_data_rx),
       .valid_a(ctrl_data_rx_valid),
-      .ready_a(ctrl_data_rx_ready),
+      .ready_a(),
       .clk_b  (obi_aclk),
       .rstn_b (obi_aresetn),
       .data_b (fifo_data_rx),
@@ -141,8 +139,7 @@ module obi_spi_slave #(
   );
 
   spi_slave_dc_fifo #(
-      .DATA_WIDTH  (32),
-      .BUFFER_DEPTH(8)
+      .DATA_WIDTH  (32)
   ) u_dcfifo_tx (
       .clk_a  (obi_aclk),
       .rstn_a (obi_aresetn),
@@ -152,7 +149,7 @@ module obi_spi_slave #(
       .clk_b  (spi_sclk),
       .rstn_b (obi_aresetn),
       .data_b (ctrl_data_tx),
-      .valid_b(ctrl_data_tx_valid),
+      .valid_b(),
       .ready_b(ctrl_data_tx_ready)
   );
 
