@@ -311,6 +311,7 @@ openOCD_bscan:
 gdb_connect:
 	$(MAKE) -C sw gdb_connect
 
+
 ## @section Testing
 
 ## Run the tests for X-HEEP. Cleans and rebuilds all the project.
