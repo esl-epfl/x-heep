@@ -79,10 +79,10 @@ set_property -dict {PACKAGE_PIN M17 IOSTANDARD LVCMOS33} [get_ports {gpio_io[3]}
 set_property -dict {PACKAGE_PIN P18 IOSTANDARD LVCMOS33} [get_ports {gpio_io[4]}]; #IO_L9N_T1_DQS_D13_14 Sch=btnd
 
 ##7 segment display
-set_property -dict { PACKAGE_PIN T10 IOSTANDARD LVCMOS33} [get_ports { gpio_io[11] }];
-set_property -dict { PACKAGE_PIN R10 IOSTANDARD LVCMOS33} [get_ports { gpio_io[12] }];
-set_property -dict { PACKAGE_PIN K16 IOSTANDARD LVCMOS33} [get_ports { gpio_io[13] }];
-set_property -dict { PACKAGE_PIN K13 IOSTANDARD LVCMOS33} [get_ports { gpio_io[14] }];
+set_property -dict { PACKAGE_PIN T10 IOSTANDARD LVCMOS33} [get_ports { spi_slave_sck_io }];
+set_property -dict { PACKAGE_PIN R10 IOSTANDARD LVCMOS33} [get_ports { spi_slave_cs_io }];
+set_property -dict { PACKAGE_PIN K16 IOSTANDARD LVCMOS33} [get_ports { spi_slave_miso_io }];
+set_property -dict { PACKAGE_PIN K13 IOSTANDARD LVCMOS33} [get_ports { spi_slave_mosi_io }];
 set_property -dict { PACKAGE_PIN P15 IOSTANDARD LVCMOS33} [get_ports { pdm2pcm_clk_io }];
 set_property -dict { PACKAGE_PIN T11 IOSTANDARD LVCMOS33} [get_ports { pdm2pcm_pdm_io }];
 set_property -dict { PACKAGE_PIN L18 IOSTANDARD LVCMOS33} [get_ports { i2s_sck_io }];
