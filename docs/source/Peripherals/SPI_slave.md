@@ -6,7 +6,9 @@ The SPI slave peripheral offers external devices read and write access to the me
 
 the Serial Peripheral Interface (SPI) allows to connect a master device to one or more slave devices. They all share a group of three wires, namely Master-Input,Slave-Output (MISO), Master-Output-Slave-Input (MOSI), and SPI-clock (SCK). The master device will control the communication through the wires by sending commands to the slaves through the MOSI and providing a clock signal (SCK) for them to answer. Slaves need to adjust to the timing imposed by the master: the start and end of commands and packets is given by the count of cycles of SCK. To allow for more than one slave, an extra wire per slave called Chip Select (CS) is needed for the master to inform which slave should listen/answer.  
 
-> ⚠️ The SPI slave peripheral cannot be commanded from software. It is purely an interface to the outside world. It will only receive instructions from the one master interface that connects to it.  
+```{warning}
+The SPI slave peripheral cannot be commanded from software. It is purely an interface to the outside world. It will only receive instructions from the one master interface that connects to it.  
+```
 
 This documentation corresponds to the SPI slave IP of X-HEEP. For the SPI master IP please refer to [the SPI documentation](./SPI.md). 
 
@@ -36,7 +38,9 @@ This amount is stored in the `REG_0` of the SPI slave IP and is set by seding a 
 |----------|----------|
 | `DUMMY_CYCLES` | `0x11` |
 
-> ❗If this command is not sent, the default value is used: 32 cycles. 
+```{info}
+If this command is not sent, the default value is used: 32 cycles. 
+```
 
 ### Directionality
 
@@ -88,9 +92,9 @@ The commands should be sent in a specific order, and there are hard constraints 
 
 ## Examples and SDK
 
-An SDK is provided in [spi_sdk](./../../../sw/device/lib/sdk/spi_slave/), yet... **this is not an SDK for the SPI slave IP!**. This IP is not controlled by software. The SDK provided is a series of functions to control the SPI slave **from the SPI Host IP**. You can use these functions as in the [example_spi_slave](../../../sw/applications/example_spi_slave/) to command the SPI slave from the SPI Host. Note that this example is a nonsense, there is no point in doing this in real life! 
+An SDK is provided in [spi_sdk](https://github.com/esl-epfl/x-heep/tree/main/sw/device/lib/sdk/spi_slave), yet... **this is not an SDK for the SPI slave IP!**. This IP is not controlled by software. The SDK provided is a series of functions to control the SPI slave **from the SPI Host IP**. You can use these functions as in the [example_spi_slave](https://github.com/esl-epfl/x-heep/tree/main/sw/applications/example_spi_slave/) to command the SPI slave from the SPI Host. Note that this example is a nonsense, there is no point in doing this in real life! 
 This is interesting only in simulation to test the behavior of both peripherals. 
 
-A more interesting example is available in [demo_spi_master_slave](../../../sw/applications/demo_spi_master_slave/), where two FPGAs are used to exchange data from the SPI Host of one to the SPI slave of another. 
+A more interesting example is available in [demo_spi_master_slave](https://github.com/esl-epfl/x-heep/tree/main/sw/applications/demo_spi_master_slave/), where two FPGAs are used to exchange data from the SPI Host of one to the SPI slave of another. 
 If you want to read from X-HEEP's memory using the SPI slave, we recommend you follow this demo. 
 
