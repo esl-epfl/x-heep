@@ -396,10 +396,14 @@ def main():
     parser.add_argument(
         "--compile-only", action="store_true", help="Only compile the applications"
     )
+    parser.add_argument(
+        "--compiler", type=str, help="Compiler to use (gcc or clang) - default both gcc and clang", default=""
+    )
     args = parser.parse_args()
 
     # Get a list with all the applications we want to test
     app_list = get_apps("sw/applications")
+    compiler_list = [args.compiler] if args.compiler else COMPILERS
 
     if not args.compile_only:
         for simulator in SIMULATORS:
@@ -411,7 +415,7 @@ def main():
         if not in_list(an_app.name, BLACKLIST):
             # Compile the app with every compiler, leaving gcc for last
             #   so the simulation is done with gcc
-            for compiler in [c for c in COMPILERS if c != "gcc"]:
+            for compiler in [c for c in compiler_list if c != "gcc"]:
                 if in_list(an_app.name, CLANG_BLACKLIST) and compiler == "clang":
                     print(
                         BColors.WARNING
