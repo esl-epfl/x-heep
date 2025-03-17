@@ -73,3 +73,17 @@ HEEPnosis is implemented in `GF 22nm FDX` technology using a mix of LVT, HVT, an
 This chip has been sponsored by [SwissChips](https://swisschips.ethz.ch/).
 
 There are no references yet about this chip as it hasn't been tested yet.
+
+## X-TRELA
+
+`X-TRELA` is the third sillicon implementation of X-HEEP, developed by the [CEI](https://www.cei.upm.es/) lab of the Universidad Politécnica de Madrid (UPM), Spain.
+
+![X-TRELA](/images/chips/xtrela.png)
+
+<p  align="center">Figure 3: X-TRELA Test Chip layout in TSMC 65nm LP </p>
+
+The chip was taped out in February 2025. The chosen X-HEEP configuration for this SoC includes a CV32E40P CPU, an NtoM bus topology, and 256 KB of memory distributed across four contiguous and four interleaved banks of 32 KB each. Peripherals include a DMA, SPI interfaces, an I2C interface, GPIOs, a UART, and JTAG. `X-TRELA` integrates a [STReaming ELAstic Coarse-Grained Reconfigurable Architecture (CGRA)](https://github.com/des-cei/strela) of 32-bit 4x4 Processing Elements, supporting dataflow data- and control-oriented applications. For more information about this hardware accelerator, check this [preprint paper](https://arxiv.org/pdf/2404.12503).
+
+The design uses LVT cells, slim digital IOs, and CUP bondpads, and memory macros sourced from ARM. This is the first tape out of CEI-UPM, employing a single power domain to simplify the ASIC flow.
+
+This chip has been funded by the [A-IQ Ready](https://www.aiqready.eu/) project, supported by the Spanish Government MICIU/AEI 10.13039/501100011033 (PCI2022-135077-2) and the European Union NextGenerationEU/PRTR (101096658).
