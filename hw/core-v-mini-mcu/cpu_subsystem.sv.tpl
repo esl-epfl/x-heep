@@ -60,14 +60,12 @@ module cpu_subsystem
   if (CPU_TYPE == cv32e20) begin : gen_cv32e20
 
     cve2_xif_wrapper #(
-        .DmHaltAddr(DM_HALTADDRESS),
 % if cve2_rv32e:
         .RV32E(${cve2_rv32e}),
 % endif
 % if cve2_rv32m:
         .RV32M(${cve2_rv32m}),
 % endif
-        .DmExceptionAddr('0),
         .XInterface(X_EXT)
     ) cv32e20_i (
         .clk_i (clk_i),
@@ -77,6 +75,8 @@ module cpu_subsystem
 
         .hart_id_i  (32'h0),
         .boot_addr_i(BOOT_ADDR),
+        .dm_exception_addr_i(32'h0),
+        .dm_halt_addr_i(DM_HALTADDRESS),
 
         .instr_addr_o  (core_instr_req_o.addr),
         .instr_req_o   (core_instr_req_o.req),
@@ -98,7 +98,8 @@ module cpu_subsystem
         .irq_external_i(irq_i[11]),
         .irq_fast_i    (irq_i[31:16]),
 
-        .debug_req_i (debug_req_i),
+        .debug_req_i(debug_req_i),
+        .debug_halted_o(),
 
         // CORE-V-XIF
         // Compressed interface

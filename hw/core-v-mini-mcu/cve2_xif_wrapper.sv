@@ -14,8 +14,6 @@ module cve2_xif_wrapper
     parameter int unsigned MHPMCounterWidth = 40,
     parameter bit          RV32E            = 1'b0,
     parameter rv32m_e      RV32M            = RV32MFast,
-    parameter int unsigned DmHaltAddr       = 32'h1A110800,
-    parameter int unsigned DmExceptionAddr  = 32'h1A110808,
     parameter              XInterface       = 1'b0
 ) (
     // Clock and Reset
@@ -91,7 +89,10 @@ module cve2_xif_wrapper
     input logic [15:0] irq_fast_i,
 
     // Debug Interface
-    input logic debug_req_i,
+    input  logic        debug_req_i,
+    output logic        debug_halted_o,
+    input  logic [31:0] dm_halt_addr_i,
+    input  logic [31:0] dm_exception_addr_i,
 
     // CPU Control Signals
     input  logic fetch_enable_i,
@@ -170,8 +171,6 @@ module cve2_xif_wrapper
       .MHPMCounterWidth(MHPMCounterWidth),
       .RV32E(RV32E),
       .RV32M(RV32M),
-      .DmHaltAddr(DmHaltAddr),
-      .DmExceptionAddr(DmExceptionAddr),
       .XInterface(XInterface != '0)
   ) u_cve2_top (
       .clk_i,
@@ -225,6 +224,9 @@ module cve2_xif_wrapper
       .irq_nm_i(1'b0),
 
       .debug_req_i,
+      .debug_halted_o,
+      .dm_halt_addr_i,
+      .dm_exception_addr_i,
       .crash_dump_o(),
 
       .fetch_enable_i,

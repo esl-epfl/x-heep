@@ -10,21 +10,19 @@
 `include "prim_assert.sv"
 
 /**
- * Top level module of the ibex RISC-V core
+ * Top level module of the CVE2 RISC-V core
  */
 module cve2_core import cve2_pkg::*; #(
   parameter bit          PMPEnable         = 1'b0,
   parameter int unsigned PMPGranularity    = 0,
   parameter int unsigned PMPNumRegions     = 4,
-  parameter int unsigned MHPMCounterNum    = 0,
+  parameter int unsigned MHPMCounterNum    = 10,
   parameter int unsigned MHPMCounterWidth  = 40,
   parameter bit          RV32E             = 1'b0,
   parameter rv32m_e      RV32M             = RV32MFast,
   parameter rv32b_e      RV32B             = RV32BNone,
   parameter bit          DbgTriggerEn      = 1'b0,
   parameter int unsigned DbgHwBreakNum     = 1,
-  parameter int unsigned DmHaltAddr        = 32'h1A110800,
-  parameter int unsigned DmExceptionAddr   = 32'h1A110808,
   parameter bit          XInterface        = 1'b0
 ) (
   // Clock and Reset
@@ -84,6 +82,9 @@ module cve2_core import cve2_pkg::*; #(
 
   // Debug Interface
   input  logic                         debug_req_i,
+  output logic                         debug_halted_o,
+  input  logic [31:0]                  dm_halt_addr_i,
+  input  logic [31:0]                  dm_exception_addr_i,
   output crash_dump_t                  crash_dump_o,
   // SEC_CM: EXCEPTION.CTRL_FLOW.LOCAL_ESC
   // SEC_CM: EXCEPTION.CTRL_FLOW.GLOBAL_ESC
@@ -304,10 +305,7 @@ module cve2_core import cve2_pkg::*; #(
   // IF stage //
   //////////////
 
-  cve2_if_stage #(
-    .DmHaltAddr       (DmHaltAddr),
-    .DmExceptionAddr  (DmExceptionAddr)
-  ) if_stage_i (
+  cve2_if_stage if_stage_i (
     .clk_i (clk_i),
     .rst_ni(rst_ni),
 
@@ -353,6 +351,10 @@ module cve2_core import cve2_pkg::*; #(
     .csr_mtvec_i     (csr_mtvec),  // trap-vector base address
     .csr_mtvec_init_o(csr_mtvec_init),
 
+    // debug signals
+    .dm_halt_addr_i       (dm_halt_addr_i),
+    .dm_exception_addr_i  (dm_exception_addr_i),
+
     // pipeline stalls
     .id_in_ready_i(id_in_ready),
 
@@ -363,7 +365,7 @@ module cve2_core import cve2_pkg::*; #(
   // available
   assign perf_iside_wait = id_in_ready & ~instr_valid_id;
 
-  // For non secure Ibex only the bottom bit of fetch enable is considered
+  // For non secure CVE2 only the bottom bit of fetch enable is considered
   assign instr_req_gated = instr_req_int;
 
   //////////////
@@ -650,6 +652,11 @@ module cve2_core import cve2_pkg::*; #(
   assign crash_dump_o.last_data_addr = lsu_addr_last;
   assign crash_dump_o.exception_addr = csr_mepc;
 
+  ///////////////////////
+  // Debug output      //
+  ///////////////////////
+
+  assign debug_halted_o = debug_mode;
 
   // Explict INC_ASSERT block to avoid unused signal lint warnings were asserts are not included
   `ifdef INC_ASSERT
@@ -1034,7 +1041,7 @@ module cve2_core import cve2_pkg::*; #(
 
   assign rvfi_stage_order_d = rvfi_stage_order[0] + 64'd1;
 
-  // For interrupts and debug Ibex will take the relevant trap as soon as whatever instruction in ID
+  // For interrupts and debug CVE2 will take the relevant trap as soon as whatever instruction in ID
   // finishes or immediately if the ID stage is empty. The rvfi_ext interface provides the DV
   // environment with information about the irq/debug_req/nmi state that applies to a particular
   // instruction.
