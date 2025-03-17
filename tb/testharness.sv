@@ -126,6 +126,9 @@ module testharness #(
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_rsp;
 
+  hw_fifo_pkg::hw_fifo_req_t hw_fifo_req;
+  hw_fifo_pkg::hw_fifo_resp_t hw_fifo_resp;
+
   reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
   reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
 
@@ -278,6 +281,8 @@ module testharness #(
       .ext_dma_write_resp_i(heep_dma_write_resp),
       .ext_dma_addr_req_o(heep_dma_addr_req),
       .ext_dma_addr_resp_i(heep_dma_addr_resp),
+      .hw_fifo_req_o(hw_fifo_req),
+      .hw_fifo_resp_i(hw_fifo_resp),
       .ext_ao_peripheral_req_i(ext_ao_peripheral_req),
       .ext_ao_peripheral_resp_o(ext_ao_peripheral_resp),
       .ext_peripheral_slave_req_o(periph_slave_req),
@@ -493,6 +498,8 @@ module testharness #(
           .dma_read_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER0_IDX]),
           .dma_write_req_o(ext_master_req[testharness_pkg::EXT_MASTER1_IDX]),
           .dma_write_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER1_IDX]),
+          .hw_fifo_req_o(),
+          .hw_fifo_resp_i(),
           .dma_addr_req_o(),
           .dma_addr_resp_i('0),
           .trigger_slot_i('0),
