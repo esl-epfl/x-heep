@@ -20,6 +20,17 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 
 The program should terminate with value 0.
 
+Also, you can try the FPU-like coprocessor with a CV-X-IF extended cve2 using the Zfinx extensions (i.e. the Floating-Point register-file is actually the same as the General-Purpose register-file).
+First, you need the OpenHW Group CORE-V Compiler, then:
+
+```
+make mcu-gen
+make verilator-sim FUSESOC_PARAM="--X_EXT=1 --ZFINX=1"
+make app PROJECT=example_matfadd COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_zfinx
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
+./Vtestharness +firmware=../../../sw/build/main.hex
+```
+
 To learn how to extend X-HEEP you can read the guides in this section.
 
 ```{toctree}

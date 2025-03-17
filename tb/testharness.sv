@@ -7,13 +7,13 @@ import UPF::*;
 `endif
 
 module testharness #(
-    parameter COREV_PULP                  = 0,
-    parameter FPU                         = 0,
-    parameter ZFINX                       = 1,
-    parameter X_EXT                       = 0,         // eXtension interface in cv32e40x
-    parameter JTAG_DPI                    = 0,
-    parameter USE_EXTERNAL_DEVICE_EXAMPLE = 1,
-    parameter CLK_FREQUENCY               = 'd100_000  //KHz
+    parameter bit COREV_PULP                  = 0,
+    parameter bit FPU                         = 0,
+    parameter bit ZFINX                       = 1,
+    parameter bit X_EXT                       = 0,         // eXtension interface in cv32e40x
+    parameter bit JTAG_DPI                    = 0,
+    parameter bit USE_EXTERNAL_DEVICE_EXAMPLE = 1,
+    parameter CLK_FREQUENCY                   = 'd100_000  //KHz
 ) (
     inout wire clk_i,
     inout wire rst_ni,
@@ -177,7 +177,6 @@ module testharness #(
     $display("%t: the parameter FPU is %x", $time, FPU);
     $display("%t: the parameter ZFINX is %x", $time, ZFINX);
     $display("%t: the parameter X_EXT is %x", $time, X_EXT);
-    $display("%t: the parameter ZFINX is %x", $time, ZFINX);
     $display("%t: the parameter JTAG_DPI is %x", $time, JTAG_DPI);
     $display("%t: the parameter EXT_DOMAINS is %x", $time, core_v_mini_mcu_pkg::EXTERNAL_DOMAINS);
     $display("%t: the parameter USE_EXTERNAL_DEVICE_EXAMPLE is %x", $time,
@@ -643,7 +642,7 @@ module testharness #(
       );
 `endif
 
-      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || core_v_mini_mcu_pkg::CpuType == cv32e20) && X_EXT != 0) begin: gen_fpu_ss_wrapper
+      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || (ZFINX && core_v_mini_mcu_pkg::CpuType == cv32e20)) && X_EXT != 0) begin: gen_fpu_ss_wrapper
         fpu_ss_wrapper #(
             .PULP_ZFINX(ZFINX),
             .INPUT_BUFFER_DEPTH(1),
