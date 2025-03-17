@@ -147,15 +147,13 @@ __attribute__((always_inline)) void select_gpio_domain(gpio_pin_number_t pin)
 /**                                                                        **/
 /****************************************************************************/
 
-gpio_result_t gpio_assign_irq_handler( uint32_t intr_id,
-                                       void *handler() )
+gpio_result_t gpio_assign_irq_handler(uint32_t intr_id, void (*handler)(void))
 {
-  if( intr_id >= GPIO_INTR_START && intr_id <= GPIO_INTR_END )
-  {
-    gpio_handlers[ intr_id - GPIO_INTR_START ] = (void (*)(void))handler;
-    return GpioOk;
-  }
-  return GpioError;
+if (intr_id >= GPIO_INTR_START && intr_id <= GPIO_INTR_END) {
+gpio_handlers[intr_id - GPIO_INTR_START] = handler;
+return GpioOk;
+}
+return GpioError;
 }
 
 void gpio_reset_handlers_list( )

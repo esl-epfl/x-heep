@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
+#include "utils.h"
 
 #define BUFF_LEN 100
 

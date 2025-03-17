@@ -278,8 +278,8 @@ int main()
                     );
                     
         /* Pointer set up */
-        dma_peri(i)->SRC_PTR = &test_data[0];
-        dma_peri(i)->DST_PTR = copied_data_2D_DMA[i];
+        dma_peri(i)->SRC_PTR = (uint32_t)&test_data[0];
+        dma_peri(i)->DST_PTR = (uint32_t)copied_data_2D_DMA[i];
 
         /* Dimensionality configuration */
         write_register( 0x1,
