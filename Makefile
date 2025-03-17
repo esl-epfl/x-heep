@@ -301,7 +301,7 @@ flash-erase:
 
 ## Run openOCD w/ EPFL_Programmer
 openOCD_epflp:
-	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg;
+	xterm -e openocd -f ./tb/core-v-mini-mcu-esl-programmer.cfg;
 
 ## Run openOCD w/ BSCAN of the Pynq-Z2 board
 openOCD_bscan:
