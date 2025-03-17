@@ -67,7 +67,7 @@ module cpu_subsystem
 
         .test_en_i(1'b0),
 
-        .hart_id_i  (32'h0),
+        .hart_id_i(32'h0),
         .boot_addr_i(BOOT_ADDR),
         .dm_exception_addr_i(32'h0),
         .dm_halt_addr_i(DM_HALTADDRESS),
