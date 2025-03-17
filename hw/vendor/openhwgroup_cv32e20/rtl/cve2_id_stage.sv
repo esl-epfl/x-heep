@@ -418,12 +418,19 @@ module cve2_id_stage #(
 
   // Register file write data mux
   always_comb begin : rf_wdata_id_mux
-    unique case (rf_wdata_sel)
-      RF_WD_EX:     rf_wdata_id_o   = result_ex_i;
-      RF_WD_CSR:    rf_wdata_id_o   = csr_rdata_i;
-      RF_WD_COPROC: rf_wdata_id_o   = x_result_i.data;
-      default:      rf_wdata_id_o   = result_ex_i;
-    endcase
+    if (XInterface)
+      unique case (rf_wdata_sel)
+        RF_WD_EX:     rf_wdata_id_o   = result_ex_i;
+        RF_WD_CSR:    rf_wdata_id_o   = csr_rdata_i;
+        RF_WD_COPROC: rf_wdata_id_o   = x_result_i.data;
+        default:      rf_wdata_id_o   = result_ex_i;
+      endcase
+    else
+      unique case (rf_wdata_sel)
+        RF_WD_EX:     rf_wdata_id_o   = result_ex_i;
+        RF_WD_CSR:    rf_wdata_id_o   = csr_rdata_i;
+        default:      rf_wdata_id_o   = result_ex_i;
+      endcase
   end
 
   /////////////
@@ -711,7 +718,6 @@ module cve2_id_stage #(
     stall_branch            = 1'b0;
     stall_alu               = 1'b0;
     stall_coproc            = 1'b0;
-    stall_coproc            = 1'b0;
     branch_set_raw_d        = 1'b0;
     jump_set_raw            = 1'b0;
     perf_branch_o           = 1'b0;
@@ -800,7 +806,7 @@ module cve2_id_stage #(
             stall_multdiv   = multdiv_en_dec;
             stall_branch    = branch_in_dec;
             stall_jump      = jump_in_dec;
-            stall_coproc    = illegal_insn_dec;
+            stall_coproc    = XInterface & illegal_insn_dec;
           end
         end
 
