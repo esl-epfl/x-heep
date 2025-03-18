@@ -72,7 +72,7 @@ bool flash_read(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uint32_t len) {
     // Flash uses Big Endian, CPU Little Endian, hence swap bytes
     uint32_t read_byte_cmd = ((bitfield_byteswap32(addr & 0x00ffffff)) | FC_RD);
 
-    PRINTF("Blocking Reading %4i Bytes at 0x%08X\n", len, addr);
+    //PRINTF("Blocking Reading %4i Bytes at 0x%08X\n", len, addr);
 
     // Start transaction
     spi_codes_e error = spi_execute(spi, segments, 2, &read_byte_cmd, dest_buff);

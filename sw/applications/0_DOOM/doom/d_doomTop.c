@@ -78,6 +78,7 @@
 
 
 #include "d_doomTop.h"
+#include "x_spi.h"
 
 //#include "n_fs.h"
 //#include "n_rjoy.h"
@@ -1299,7 +1300,7 @@ void D_DoomMain (void)
     int numiwadlumps;
 
 
-    I_AtExit(D_Endoom, false);
+    I_AtExit(D_Endoom, false); //Useless 
 
     // print banner
 
@@ -1400,7 +1401,7 @@ void D_DoomMain (void)
 
     devparm = M_CheckParm ("-devparm");
 
-    I_DisplayFPSDots(devparm);
+    I_DisplayFPSDots(devparm); //Useless
 
 /* NRFD-TODO:
 
@@ -1433,7 +1434,7 @@ void D_DoomMain (void)
     {
         // Auto-detect the configuration dir.
 
-        M_SetConfigDir(NULL);
+        M_SetConfigDir(NULL); //useless
     }
 
     //!
@@ -1469,25 +1470,33 @@ void D_DoomMain (void)
    
     // init subsystems
     DEH_printf("V_Init: allocate screens.\n");
-    V_Init ();
+    V_Init (); //useless 
     
 
     // Load configuration files before initialising other subsystems.
     DEH_printf("M_LoadDefaults: Load system defaults.\n");
-    M_SetConfigFilenames("default.cfg", DOOM_PROGRAM_PREFIX "doom.cfg");
+    M_SetConfigFilenames("default.cfg", DOOM_PROGRAM_PREFIX "doom.cfg"); //Useless
     D_BindVariables();
     M_LoadDefaults();
 
     // Save configuration at exit.
-    I_AtExit(M_SaveDefaults, false);
+    I_AtExit(M_SaveDefaults, false); //useless
 
+    if (no_sdcard) {
+        iwadfile = "doom.wad";
+    } else {
+        iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);
+    }
+    
+/* X-heep comment : original version 
     // Find main IWAD file and load it.
     if (no_sdcard) {
-        iwadfile = "doom.wad"; //probably not compatible with x-heep 
+        iwadfile = "doom.wad";  
     }
     else {
         iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);
     }
+*/    
 
     // None found?
 

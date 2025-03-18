@@ -73,8 +73,10 @@ extern int no_sdcard; //NRFD-NOTE: from main.c
 
 // Location of each lump on disk.
 #define MAX_NUMLUMPS 1300
-lumpinfo_t lumpinfo[MAX_NUMLUMPS];
+//lumpinfo_t lumpinfo[MAX_NUMLUMPS];
 unsigned short numlumps = 0;
+
+uint32_t filelumps_base; 
 
 filelump_t *filelumps;
 
@@ -83,6 +85,7 @@ static lumpindex_t *lumphash = NULL;
 
 //X-HEEP COMMENT: N_FILE wad_file;
 int first_lump_pos;
+
 
 /*
 int debugLumpCount = 0;
@@ -132,10 +135,36 @@ unsigned int W_LumpNameHash(const char *s)
 
 wad_file_t *W_AddFile (char *filename)
 {
+    wadinfo_t header; 
+    wad_file_t *wad_file_data;
+
+    uint32_t infotable_addr = WAD_START_ADDRESS + sizeof(header.identification) + sizeof(header.numlumps); 
+    X_spi_read(infotable_addr, (uint32_t *)&first_lump_pos, sizeof(int));
+    filelumps_base = WAD_START_ADDRESS + LONG(first_lump_pos); 
+
+    int add;
+    uint32_t numlumps_addr = WAD_START_ADDRESS + sizeof(header.identification); 
+    X_spi_read(numlumps_addr, (uint32_t *)&add, sizeof(int));
+    numlumps +=  LONG(add);
+
+    long file_size = 4196366;
+    //wad_file_data = Z_Malloc(sizeof(wad_file_t), PU_STATIC, 0);
+    /*if (!wad_file_data)
+    {
+        I_Error("W_AddFile: Allocation failure\n");
+    }
+    */
+    wad_file_data->path = filename;
+    wad_file_data->length = file_size;
+    
+    return wad_file_data;
+        
+    /* X_HEEP COMMENT : old version 
     wad_file_t *wad_file_data;
     wad_file_data->path = "doom.wad";
     wad_file_data->length = 4196366*2;
     return wad_file_data;
+    */
 
     /* X_HEEP COMMENT
     wadinfo_t header;
@@ -386,15 +415,31 @@ wad_file_t *W_AddFile (char *filename)
         reloadlumps = filelumps;
     }
     */
+}
 
-    return wad_file_data;
+void W_GetLumpInfo(int lump, filelump_t *out_lump)
+{
+    if (lump < 0 || lump >= numlumps)
+    {
+        I_Error("W_GetLumpInfo: Invalid lump index %d\n", lump);
+    }
+
+    uint32_t lump_addr = filelumps_base + lump * sizeof(filelump_t);
+
+    X_spi_read(lump_addr, (uint32_t *)out_lump, sizeof(filelump_t) / 4);
+
+    // Convert fields from little-endian if needed
+    out_lump->filepos = LONG(out_lump->filepos);
+    out_lump->size = LONG(out_lump->size);
 }
 
 
 void *W_LumpDataPointer(lumpindex_t lump)
 {
     //return N_qspi_data_pointer(LONG(filelumps[lump].filepos));
-    return WAD_START_ADDRESS + filelumps[lump].filepos;
+    filelump_t lump_to_get;
+    W_GetLumpInfo(lump, &lump_to_get);
+    return WAD_START_ADDRESS + LONG(lump_to_get.filepos);
 }
 
 //
@@ -436,15 +481,18 @@ lumpindex_t W_CheckNumForName(const char* name)
     }
     else*/
     {
+        filelump_t lump;
+        printf("Searching for: %s \n", name);
         // We don't have a hash table generate yet. Linear search :-(
         //
         // scan backwards so patch lump files take precedence
-
         for (i = numlumps - 1; i >= 0; --i)
         {
-            if (!strncasecmp(filelumps[i].name, name, 8))
+            W_GetLumpInfo(i, &lump);
+            if (!strncasecmp(lump.name, name, 8))
             // if (!strncasecmp(lumpinfo[i].name, name, 8))
             {
+                printf("Found: %s \n", name);
                 return i;
             }
         }
@@ -465,9 +513,15 @@ lumpindex_t W_GetNumForName(const char* name)
 
     i = W_CheckNumForName (name);
 
+    printf("W_GetNumForName: Got index %d\n", i);
+
     if (i < 0)
     {
         I_Error ("W_GetNumForName: %s not found!", name);
+    }
+    else 
+    {
+        printf("W_GetNumForName: %s found!\n", name);
     }
  
     return i;
@@ -475,7 +529,9 @@ lumpindex_t W_GetNumForName(const char* name)
 
 char *W_LumpName(lumpindex_t lump)
 {
-    return filelumps[lump].name;
+    filelump_t lump_to_get;
+    W_GetLumpInfo(lump, &lump_to_get);
+    return lump_to_get.name;
 }
 
 //
@@ -490,7 +546,9 @@ int W_LumpLength(lumpindex_t lump)
     }
 
     // return lumpinfo[lump].size;
-    return LONG(filelumps[lump].size);
+    filelump_t lump_to_get;
+    W_GetLumpInfo(lump, &lump_to_get);
+    return LONG(lump_to_get.size);
 }
 
 
@@ -507,7 +565,7 @@ void W_ReadLump(lumpindex_t lump, void *dest)
         I_Error ("W_ReadLump: %i >= numlumps", lump);
     }
 
-    X_spi_read(WAD_START_ADDRESS + lumpinfo[lump].position, dest, lumpinfo[lump].size);
+    //X_spi_read(WAD_START_ADDRESS + lumpinfo[lump].position, dest, lumpinfo[lump].size);
 
 
     // lumpinfo_t *l;
