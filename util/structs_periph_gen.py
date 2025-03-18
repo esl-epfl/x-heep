@@ -1,14 +1,15 @@
 import hjson
 import structs_gen
+import x_heep_gen.load_config
+import x_heep_gen.peripherals
+import argparse
+import os
 
 # Path to the dma file
 dma_file_path = "./sw/device/lib/drivers/dma/dma_structs.h" 
 
 # Path to the header_structs template
 template_path = "./sw/device/lib/drivers/template.tpl"
-
-# hjson file from which the peripherals info are taken
-mcu_cfg_file = "./mcu_cfg.hjson"
 
 # path in which the structs header files are generated, has to be formatted with
 # the name of the peripheral
@@ -36,11 +37,21 @@ def add_peripheral(name, path):
     When it encounters one with the "path" field, it adds it to the 
     lists
 """
-def scan_peripherals(json_list):
+def scan_peripherals_hjson(json_list):
     for p in json_list:
         for field in json_list[p]:
             if(field == 'path'):
                 add_peripheral(p, json_list[p]["path"])
+
+def scan_peripherals_python(peripherals):
+    """
+    It loops over the peripherals and adds the ones with a configuration path
+
+    :param peripherals: The peripherals to scan, list of Peripheral objects
+    """
+    for p in peripherals:
+        if isinstance(p, x_heep_gen.peripherals.DataConfiguration):
+            add_peripheral(p.get_name(), p.get_configpath())
 
 
 def format_dma_channels(file_path, new_string):
@@ -69,17 +80,49 @@ def format_dma_channels(file_path, new_string):
 
 if __name__ == "__main__":
 
-    # Open the json file adn takes the data
-    with open(mcu_cfg_file) as f:
-        data = hjson.load(f)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--cfg_peripherals",
+                        metavar="file",
+                        type=str,
+                        required=False,
+                        help="X-Heep general configuration, if not provided, the default value ./mcu_cfg.hjson will be used")
+    
+    args = parser.parse_args()
 
-    # Get the info relative to the various peripherals
-    ao_peripherals = data["ao_peripherals"]
-    peripherals = data["peripherals"]
+    # hjson file from which the peripherals info are taken
+    if args.cfg_peripherals != None:
+        mcu_cfg_file = str(args.cfg_peripherals)
+    else:
+        print("Warning: No configuration file provided, using default value ./mcu_cfg.hjson")
+        mcu_cfg_file = "./mcu_cfg.hjson" # default value
 
-    # loops through the peripherals and add the useful ones
-    scan_peripherals(ao_peripherals)
-    scan_peripherals(peripherals)
+    if not os.path.exists(mcu_cfg_file):
+        exit(f"Error: Configuration file {mcu_cfg_file} not found")
+
+    if mcu_cfg_file.endswith(".py"):
+        x_heep = x_heep_gen.load_config.load_cfg_script_file(mcu_cfg_file)
+
+        ao_peripherals = x_heep.get_ao_peripherals()
+        peripherals = x_heep.get_peripherals()
+
+        scan_peripherals_python(ao_peripherals)
+        scan_peripherals_python(peripherals)
+
+    elif mcu_cfg_file.endswith(".hjson"):
+        # Open the json file adn takes the data
+        with open(str(mcu_cfg_file)) as f:
+            data = hjson.load(f)
+
+        # Get the info relative to the various peripherals
+        ao_peripherals = data["ao_peripherals"]
+        peripherals = data["peripherals"]
+
+        # loops through the peripherals and add the useful ones
+        scan_peripherals_hjson(ao_peripherals)
+        scan_peripherals_hjson(peripherals)
+    
+    else :
+        exit("Error: Invalid configuration file, only .hjson and .py are supported")
 
     # Call the generation script, once for every peripheral
     for i in range(len(JSON_FILES)):
