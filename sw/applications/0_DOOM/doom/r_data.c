@@ -391,29 +391,37 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
         generate_buffer[i] = 251; // PINK, use as transparent is masked textures
     }
 
-    int patchcount = SHORT(mtex->patchcount);
+    maptexture_t temp; 
+    X_spi_read(mtex, &temp, sizeof(temp)/4); 
+    int patchcount = SHORT(temp.patchcount);
     for (i=0; i<patchcount; i++)
     {
         int          x;
         int          x1;
         int          x2;
         mappatch_t*  mpatch        = &mtex->patches[i];
-        short        patch_num     = SHORT(mpatch->patch);
-        int          originy       = SHORT(mpatch->originy);
+        mappatch_t   temp2; 
+        X_spi_read(mpatch, &temp2, sizeof(temp2)/4); 
+        short        patch_num     = SHORT(temp2.patch);
+        int          originy       = SHORT(temp2.originy);
         char*        patch_name    = patch_names + patch_num * 8;
+        char temp_patch_name[8]; 
+        X_spi_read(patch_name, &temp_patch_name, sizeof(temp_patch_name)/4);
         // int          patch_lump    = W_CheckNumForName(patch_name);
-        patch_t*     realpatch     = W_CacheLumpName(patch_name, PU_CACHE); //W_CacheLumpNum (patch_lump, PU_CACHE);
-        int          columnofs[256];
 
+        patch_t*     realpatch     = W_CacheLumpName(temp_patch_name, PU_CACHE); //W_CacheLumpNum (patch_lump, PU_CACHE);
+        
+        int          columnofs[256];
         // PRINTF("        %.8s(%d)\n", patch_name, patch_num);
 
         // int *patch_columnofs = realpatch->columnofs;
         // NOTE: Having some trouble with reliable reading of this data from QSPI
-        memcpy(columnofs, realpatch->columnofs, 256*sizeof(int));
+        patch_t temp3;
+        X_spi_read(realpatch, &temp3, sizeof(temp3)/4); 
+        memcpy(columnofs, temp3.columnofs, 256*sizeof(int));
 
-        x1 = SHORT(mpatch->originx);
-        x2 = x1 + SHORT(realpatch->width);
-
+        x1 = SHORT(temp2.originx);
+        x2 = x1 + SHORT(temp3.width);
         if (x1<0)
             x = 0;
         else
@@ -421,7 +429,7 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
 
         if (x2 > width)
             x2 = width;
-
+        
         for ( ; x<x2 ; x++)
         {
             column_t*       firstcol;
@@ -434,13 +442,15 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
             int colofs = columnofs[col_num]; // LONG(...)
             firstcol = (column_t *)((byte *)realpatch + colofs);
             column_t* col_ptr = firstcol;
-
-            while (col_ptr->topdelta != 0xff)
-            {
-                int col_length = col_ptr->length;
+            column_t temp_column_t; 
+            X_spi_read(col_ptr, &temp_column_t, sizeof(temp_column_t));
+            while (temp_column_t.topdelta != 0xff)
+            { 
+                int col_length = temp_column_t.length;
                 byte* source = (byte *)col_ptr + 3;
                 int count = col_length;
-                int position = originy + col_ptr->topdelta;
+                int position = originy + temp_column_t.topdelta;
+                
                 if (position < 0)
                 {
                     count += position;
@@ -452,13 +462,16 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
 
 
                 if (count > 0) {
-                    memcpy (dest_col + position, source, count);
+                    byte source_temp; 
+                    X_spi_read(source, &source_temp, sizeof(source_temp)); 
+                    memcpy (dest_col + position, source_temp, count);
                 }
+                
                 col_ptr = (column_t *)((byte*)(col_ptr)  + col_length + 4);
+                X_spi_read(col_ptr, &temp_column_t, sizeof(temp_column_t)); 
             }
         }
-    }
-
+    } 
     if (generate_to_flash) {
         /* X-HEEP COMMENT
          * X-HEEP TODO: SPI WRITE
@@ -885,7 +898,7 @@ void R_InitTextures (void)
 
         // mpatch = &mtexture->patches[0];
 
-        R_GenerateComposite_N(i, texture, patch_names);
+        R_GenerateComposite_N(i, texture, patch_names); //work from here ! 
 
         /*
         texture->patches = patch;
@@ -923,12 +936,12 @@ void R_InitTextures (void)
     */
     
     // Create translation table for global animation.
-    texturetranslation = Z_Malloc ((numtextures+1)*sizeof(*texturetranslation), PU_STATIC, 0);
+    //texturetranslation = Z_Malloc ((numtextures+1)*sizeof(*texturetranslation), PU_STATIC, 0);
     
     for (i=0 ; i<numtextures ; i++)
         texturetranslation[i] = i;
 
-    GenerateTextureHashTable();
+    GenerateTextureHashTable(); 
 }
 
 
@@ -938,9 +951,10 @@ void R_InitTextures (void)
 //
 void R_InitFlats (void)
 {
-    int             i;
-
+    int             i; 
+    printf("oui\n");
     firstflat = W_GetNumForName (DEH_String("F_START")) + 1;
+    printf("non\n"); 
     lastflat = W_GetNumForName (DEH_String("F_END")) - 1;
     numflats = lastflat - firstflat + 1;
 
@@ -1044,7 +1058,7 @@ void R_InitColormaps (void)
 //
 void R_InitData (void)
 {
-    R_InitTextures ();
+    R_InitTextures (); 
     R_InitFlats ();
     R_InitSpriteLumps ();
     R_InitColormaps ();

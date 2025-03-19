@@ -426,7 +426,7 @@ void W_GetLumpInfo(int lump, filelump_t *out_lump)
 
     uint32_t lump_addr = filelumps_base + lump * sizeof(filelump_t);
 
-    X_spi_read(lump_addr, (uint32_t *)out_lump, sizeof(filelump_t) / 4);
+    X_spi_read(lump_addr, (uint32_t *)out_lump, sizeof(filelump_t)/4);
 
     // Convert fields from little-endian if needed
     out_lump->filepos = LONG(out_lump->filepos);
@@ -457,6 +457,7 @@ int W_NumLumps (void)
 
 lumpindex_t W_CheckNumForName(const char* name)
 {
+    printf("In W_CheckNumForName\n");
     lumpindex_t i;
 
     // Do we have a hash table yet?
@@ -482,11 +483,19 @@ lumpindex_t W_CheckNumForName(const char* name)
     else*/
     {
         filelump_t lump;
+        int counter = 0; 
         // We don't have a hash table generate yet. Linear search :-(
         //
         // scan backwards so patch lump files take precedence
+        printf("Start the loop\n");
         for (i = numlumps - 1; i >= 0; --i)
         {
+            counter++;
+            if (counter >= 325)
+            {
+                printf("In loop for more than 325 cycles");
+                counter = 0; 
+            }
             W_GetLumpInfo(i, &lump);
             if (!strncasecmp(lump.name, name, 8))
             // if (!strncasecmp(lumpinfo[i].name, name, 8))
@@ -494,6 +503,7 @@ lumpindex_t W_CheckNumForName(const char* name)
                 return i;
             }
         }
+        printf("Finished the loop\n"); 
     }
 
     // TFB. Not found.
@@ -507,13 +517,16 @@ lumpindex_t W_CheckNumForName(const char* name)
 //
 lumpindex_t W_GetNumForName(const char* name)
 {
+    printf("In W_GetNumForName\n");
     lumpindex_t i;
 
+
     i = W_CheckNumForName (name);
+    printf("In W_GetNumForName, finished W_CheckNumForName\n");
 
     if (i < 0)
     {
-        I_Error ("W_GetNumForName: %s not found!", name);
+        I_Error ("W_GetNumForName: %s not found!\n", name);
     }
     else 
     {
