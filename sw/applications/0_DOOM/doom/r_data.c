@@ -216,13 +216,17 @@ lighttable_t*         colormaps;
 
 int R_TextureWidth(texture_t *tex)
 {
-    return SHORT(tex->wad_texture->width);
+    maptexture_t temp; 
+    X_spi_read(tex->wad_texture, &temp, sizeof(temp)/4);
+    return SHORT(temp.width);
     // return tex->width*4;
 }
 
 int R_TextureHeight(texture_t *tex)
 {
-    return SHORT(tex->wad_texture->height);
+    maptexture_t temp; 
+    X_spi_read(tex->wad_texture, &temp, sizeof(temp)/4);
+    return SHORT(temp.height);
     // return tex->height*4;
 }
 
@@ -703,8 +707,10 @@ void R_InitTextures (void)
     
     // Load the patch names from pnames.lmp.
     name[8] = 0;
-    names = W_CacheLumpName (DEH_String("PNAMES"), PU_STATIC); //problem starts here 
-    nummappatches = LONG ( *((int *)names) ); //gets stuck here 
+    names = W_CacheLumpName (DEH_String("PNAMES"), PU_STATIC);  
+    X_spi_read(names, &nummappatches, sizeof(nummappatches)/4); 
+    nummappatches = LONG(nummappatches);  
+    
     patch_names = names + 4;
     // NRFD-TODO: Avoid malloc
     
@@ -716,19 +722,20 @@ void R_InitTextures (void)
     //     patchlookup[i] = W_CheckNumForName(name);
     // }
     W_ReleaseLumpName(DEH_String("PNAMES"));
-    printf("oui\n");
     // Load the map texture definitions from textures.lmp.
     // The data is contained in one or two lumps,
     //  TEXTURE1 for shareware, plus TEXTURE2 for commercial.
     maptex = maptex1 = W_CacheLumpName (DEH_String("TEXTURE1"), PU_STATIC);
-    numtextures1 = LONG(*maptex);
+    X_spi_read(maptex, &numtextures1, sizeof(numtextures1)); 
+    numtextures1 = LONG(numtextures1);
     maxoff = maxoff1 = W_LumpLength (W_GetNumForName (DEH_String("TEXTURE1")));
     directory = maptex+1;
         
     if (W_CheckNumForName (DEH_String("TEXTURE2")) != -1)
     {
         maptex2 = W_CacheLumpName (DEH_String("TEXTURE2"), PU_STATIC);
-        numtextures2 = LONG(*maptex2);
+        X_spi_read(maptex2, &numtextures2, sizeof(numtextures2)); 
+        numtextures2 = LONG(numtextures2);
         maxoff2 = W_LumpLength (W_GetNumForName (DEH_String("TEXTURE2")));
     }
     else
@@ -788,35 +795,41 @@ void R_InitTextures (void)
             maxoff = maxoff2;
             directory = maptex+1;
         }
-            
-        offset = LONG(*directory);
+    
+        X_spi_read(directory, &offset, sizeof(offset)/4);
+        offset = LONG(offset);
 
         if (offset > maxoff)
             I_Error ("R_InitTextures: bad texture directory");
         
+    
         mtexture = (maptexture_t *) ( (byte *)maptex + offset);
-
-        texture = &textures[i];
         
+        texture = &textures[i];
         // memcpy (texture->name, mtexture->name, sizeof(texture->name));
         // R_SetTextureWidth(texture, SHORT(mtexture->width));
         // R_SetTextureHeight(texture, SHORT(mtexture->height));
         // texture->patchcount = SHORT(mtexture->patchcount);
 
+
         texture->wad_texture = mtexture;
         texture->composite = 0;
-        patchcount = SHORT(mtexture->patchcount);
-        width = SHORT(mtexture->width);
-        height = SHORT(mtexture->height);
+
+        maptexture_t temp; 
+        X_spi_read(mtexture, &temp, sizeof(temp)/4);
+        char tempname[8];
+        memcpy(tempname, temp.name, 8);
+        patchcount = SHORT(temp.patchcount);
+        width = SHORT(temp.width);
+        height = SHORT(temp.height);
 
         texture_columns_size += R_TextureWidth(texture);
         // if (patchcount > 1) {
-            texture_storage_size += R_TextureWidth(texture)*R_TextureHeight(texture);
+        texture_storage_size += R_TextureWidth(texture)*R_TextureHeight(texture);
         // }
         texture_patches_count += patchcount;
-
         PRINTF("Texture %d %.8s: width = %d, height = %d, patchcount = %d\n", 
-            i, mtexture->name, width, height, patchcount);
+            i, tempname, width, height, patchcount);
 
         /* NRFD-NOTE: Moved to texture_t
         texturecolumnlump[i] = Z_Malloc (texture->width*sizeof(**texturecolumnlump), PU_STATIC,0);
@@ -848,7 +861,7 @@ void R_InitTextures (void)
 
     patch = texture_patches;
 
-    R_GenerateInit(texture_storage_size);
+    R_GenerateInit(texture_storage_size); //X-HEEP COMMENT : concerns buttons have not looked into this yet 
 
     for (i=0 ; i<numtextures ; i++, directory++) {
 
@@ -860,12 +873,13 @@ void R_InitTextures (void)
             directory = maptex+1;
         }
         
-        offset = LONG(*directory);
+        X_spi_read(directory, &offset, sizeof(offset)/4);
+        offset = LONG(offset);
 
         if (offset > maxoff)
             I_Error ("R_InitTextures: bad texture directory");
         
-        mtexture = (maptexture_t *) ( (byte *)maptex + offset);
+        mtexture = (maptexture_t *) ((byte *)maptex + offset);
 
         texture = &textures[i];
 

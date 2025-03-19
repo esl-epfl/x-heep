@@ -139,12 +139,12 @@ wad_file_t *W_AddFile (char *filename)
     wad_file_t *wad_file_data;
 
     uint32_t infotable_addr = WAD_START_ADDRESS + sizeof(header.identification) + sizeof(header.numlumps); 
-    X_spi_read(infotable_addr, (uint32_t *)&first_lump_pos, sizeof(int));
+    X_spi_read(infotable_addr, (uint32_t *)&first_lump_pos, sizeof(int)/4);
     filelumps_base = WAD_START_ADDRESS + LONG(first_lump_pos); 
 
     int add;
     uint32_t numlumps_addr = WAD_START_ADDRESS + sizeof(header.identification); 
-    X_spi_read(numlumps_addr, (uint32_t *)&add, sizeof(int));
+    X_spi_read(numlumps_addr, (uint32_t *)&add, sizeof(int)/4);
     numlumps +=  LONG(add);
 
     long file_size = 4196366;
@@ -482,7 +482,6 @@ lumpindex_t W_CheckNumForName(const char* name)
     else*/
     {
         filelump_t lump;
-        printf("Searching for: %s \n", name);
         // We don't have a hash table generate yet. Linear search :-(
         //
         // scan backwards so patch lump files take precedence
@@ -492,7 +491,6 @@ lumpindex_t W_CheckNumForName(const char* name)
             if (!strncasecmp(lump.name, name, 8))
             // if (!strncasecmp(lumpinfo[i].name, name, 8))
             {
-                printf("Found: %s \n", name);
                 return i;
             }
         }
@@ -512,8 +510,6 @@ lumpindex_t W_GetNumForName(const char* name)
     lumpindex_t i;
 
     i = W_CheckNumForName (name);
-
-    printf("W_GetNumForName: Got index %d\n", i);
 
     if (i < 0)
     {
