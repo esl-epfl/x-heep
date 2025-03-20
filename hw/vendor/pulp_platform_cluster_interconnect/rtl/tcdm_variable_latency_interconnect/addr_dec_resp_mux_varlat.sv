@@ -88,14 +88,27 @@ end else begin : gen_several_outputs
   always_comb begin : p_addr_dec
     req_o = '0;
     valid_inflight_d = valid_inflight_q;
+    gnt_o = AggregateGnt == 1 ? |gnt_i : gnt_i[add_i];
     if (~valid_inflight_q) begin
       req_o[add_i]     = req_i;
       valid_inflight_d = req_i & gnt_o;
     end else begin
       //we gate req_i in case there are inflights operation
+      //however, as the gnt_o could be one, the master could change the address
+      //thus if gnt_o is 1, we need to store the address be we etc from the obi master
+      //and propose it to the slave as soon as we get back the valid
+      //as this is not currently supported, we need the SLAVE to take care of not sending the GNT if they do not get a 
+      //request -- this creates unwanted timing pressure that requires the bus to be rewritten to take 
+      //care about the above scenario
+      //also, this may creates out-of-order responses as the first request may target a slow slave 
+      //which is slow in returning the rvalid, the second req could target another slave that is fast
+      //thus the rvalid would return and wrongly assigned to the first obi
+      //this is also why the slave gnt should be 1 only upon request
       req_o = '0;
+      gnt_o = '0;
       if(vld_o) begin
         valid_inflight_d = 1'b0;
+        gnt_o = AggregateGnt == 1 ? |gnt_i : gnt_i[add_i];
         if(req_i) begin
           req_o[add_i] = req_i;
           valid_inflight_d = req_i & gnt_o;
@@ -106,8 +119,6 @@ end else begin : gen_several_outputs
 
   // connect data outputs
   assign data_o = {NumOut{data_i}};
-
-  assign gnt_o = AggregateGnt == 1 ? |gnt_i : gnt_i[add_i];
 
   logic [$clog2(NumOut)-1:0] bank_sel_d, bank_sel_q;
 

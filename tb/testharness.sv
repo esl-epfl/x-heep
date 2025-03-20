@@ -446,18 +446,6 @@ module testharness #(
     if (USE_EXTERNAL_DEVICE_EXAMPLE) begin : gen_USE_EXTERNAL_DEVICE_EXAMPLE
 
 `ifndef SIM_SYSTEMC
-      obi_pkg::obi_req_t  slave_fifoout_req;
-      obi_pkg::obi_resp_t slave_fifoout_resp;
-
-      //this FIFO makes the slow memory even more slower in terms of latency
-      obi_fifo obi_fifo_i (
-          .clk_i,
-          .rst_ni,
-          .producer_req_i (slow_ram_slave_req),
-          .producer_resp_o(slow_ram_slave_resp),
-          .consumer_req_o (slave_fifoout_req),
-          .consumer_resp_i(slave_fifoout_resp)
-      );
 
       // External xbar slave memory example
       slow_memory #(
@@ -466,15 +454,15 @@ module testharness #(
       ) slow_ram_i (
           .clk_i,
           .rst_ni,
-          .req_i(slave_fifoout_req.req),
-          .we_i(slave_fifoout_req.we),
-          .addr_i(slave_fifoout_req.addr[15:2]),
-          .wdata_i(slave_fifoout_req.wdata),
-          .be_i(slave_fifoout_req.be),
+          .req_i(slow_ram_slave_req.req),
+          .we_i(slow_ram_slave_req.we),
+          .addr_i(slow_ram_slave_req.addr[15:2]),
+          .wdata_i(slow_ram_slave_req.wdata),
+          .be_i(slow_ram_slave_req.be),
           // output ports
-          .gnt_o(slave_fifoout_resp.gnt),
-          .rdata_o(slave_fifoout_resp.rdata),
-          .rvalid_o(slave_fifoout_resp.rvalid)
+          .gnt_o(slow_ram_slave_resp.gnt),
+          .rdata_o(slow_ram_slave_resp.rdata),
+          .rvalid_o(slow_ram_slave_resp.rvalid)
       );
 `endif
 

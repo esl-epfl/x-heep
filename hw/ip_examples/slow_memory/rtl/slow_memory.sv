@@ -52,6 +52,7 @@ module slow_memory #(
   slow_memory_fsm_e state_q, state_n;
 
   int random1, random2;
+  logic random3;
 
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_
     if (~rst_ni) begin
@@ -66,6 +67,7 @@ module slow_memory #(
     end else begin
       random1 <= $random();
       random2 <= $random();
+      random3 <= ($random() % 2) != 0;
       counter_q <= counter_n;
       rvalid_q <= rvalid_n;
       state_q <= state_n;
@@ -98,21 +100,33 @@ module slow_memory #(
 
       READY: begin
         rvalid_n = 1'b0;
+        gnt_o = random1[0];
         if (req_i) begin
-          gnt_o = random1[0];
           if (gnt_o) begin
-            state_n     = WAIT_RVALID;
-            counter_n   = random2[4:0] + 1;
-            mem_req_n   = req_i;
-            mem_we_n    = we_i;
-            mem_addr_n  = addr_i;
-            mem_wdata_n = wdata_i;
-            mem_be_n    = be_i;
+            counter_n = random3 ? random2[4:0] : '0;
+            if (counter_n == 0) begin
+              mem_req   = req_i;
+              mem_we    = we_i;
+              mem_addr  = addr_i;
+              mem_wdata = wdata_i;
+              mem_be    = be_i;
+              rvalid_n  = 1'b1;
+            end else begin
+              mem_req_n   = req_i;
+              mem_we_n    = we_i;
+              mem_addr_n  = addr_i;
+              mem_wdata_n = wdata_i;
+              mem_be_n    = be_i;
+              state_n     = WAIT_RVALID;
+            end
           end
         end
       end
 
       WAIT_RVALID: begin
+        //in principle we could get another request, but in practice the bus is gating the req until rvalid returns
+        //however, we cannot leave gnt_o = 1 if we did not return the valid as the current bus does not support it
+        gnt_o = 1'b1;
         if (counter_q == 1) begin
           mem_req = mem_req_q;
           mem_we = mem_we_q;
