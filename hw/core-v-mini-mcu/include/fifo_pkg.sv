@@ -5,21 +5,22 @@
 // File: hw_fifo_pkg.sv
 // Author: Alessio Naclerio
 // Date: 17/02/2025
-// Description: Package for HW FIFO MODE dma interface.
+// Description: Package for FIFOs in the DMA subsystem
 
 package hw_fifo_pkg;
 
   typedef struct packed {
     logic pop;
     logic push;
+    logic flush;
     logic [31:0] data;
-  } hw_fifo_req_t;
+  } fifo_req_t;
 
   typedef struct packed {
     logic empty;
     logic full;
-    logic push;
+    logic alm_full;
     logic [31:0] data;
-  } hw_fifo_resp_t;
+  } fifo_resp_t;
 
 endpackage

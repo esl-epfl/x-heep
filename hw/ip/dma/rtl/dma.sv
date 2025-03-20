@@ -437,7 +437,6 @@ module dma #(
       .data_o(hw_fifo_req_o.data)
   );
 
-
   /* Hardware Write Fifo Interface Controller */
   hw_w_fifo_ctrl hw_w_fifo_ctrl_i (
       .hw_fifo_mode_i(hw_fifo_mode),
@@ -660,19 +659,19 @@ module dma #(
 
             read_fifo_pop = subaddr_read_fifo_pop;
 
-            if (subaddr_read_fifo_pop == 4'b0000) begin
-              write_fifo_input = '0;
-              write_fifo_push  = 1'b0;
+            // if (subaddr_read_fifo_pop == 4'b0000) begin
+            //   write_fifo_input = '0;
+            //   write_fifo_push  = 1'b0;
             end else if (subaddr_read_fifo_pop == 4'b1100) begin
               write_fifo_input = {{16{1'b0}}, pad_write_fifo_input[31:16]};
               write_fifo_push  = 1'b1;
             end else if (subaddr_read_fifo_pop == 4'b0011) begin
               write_fifo_input = {{16{1'b0}}, pad_write_fifo_input[15:0]};
               write_fifo_push  = 1'b1;
-            end else begin
-              write_fifo_input = pad_write_fifo_input;
-              write_fifo_push  = pad_write_fifo_push;
-            end
+            // end else begin
+            //   write_fifo_input = pad_write_fifo_input;
+            //   write_fifo_push  = pad_write_fifo_push;
+            // end
 
           end
 
