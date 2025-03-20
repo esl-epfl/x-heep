@@ -14,7 +14,7 @@
 // Description: address decoder and response mux for full crossbar.
 
 module addr_dec_resp_mux_varlat #(
-    parameter int unsigned AggregateGnt  = 1,
+    parameter int unsigned AggregateGnt  = 0,
     parameter int unsigned NumOut        = 32,
     parameter int unsigned ReqDataWidth  = 32,
     parameter int unsigned RespDataWidth = 32,
