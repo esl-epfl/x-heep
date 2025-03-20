@@ -98,7 +98,7 @@ module ext_xbar #(
 
       //Crossbar instantiation
       xbar_varlat #(
-          .AggregateGnt(1),
+          .AggregateGnt(0),
           .NumIn(XBAR_NMASTER),
           .NumOut(XBAR_NSLAVE),
           .ReqDataWidth(REQ_AGG_DATA_WIDTH),

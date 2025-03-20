@@ -79,7 +79,7 @@ module xbar_varlat_n_to_one #(
 
   // Instantiate crossbar
   xbar_varlat #(
-      .AggregateGnt(32'd1),  // all the masters from X-HEEP do not aggregate multiple masters
+      .AggregateGnt(32'd0),  // all the masters from X-HEEP do not aggregate multiple masters
       .NumIn(XBAR_NMASTER),
       .NumOut(32'd1),
       .ReqDataWidth(ReqDataWidth),

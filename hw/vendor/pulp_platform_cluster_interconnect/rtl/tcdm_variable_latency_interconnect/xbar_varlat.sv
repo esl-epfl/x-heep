@@ -14,7 +14,7 @@
 // Description: Full crossbar, implemented as logarithmic interconnect.
 
 module xbar_varlat #(
-  parameter int unsigned AggregateGnt    = 1,    // aggregate gnt, i.e. gnt_o = |gnt_i see (*) for examples
+  parameter int unsigned AggregateGnt    = 0,    // aggregate gnt, i.e. gnt_o = |gnt_i see (*) for examples
   parameter int unsigned NumIn           = 4,    // number of requestors
   parameter int unsigned NumOut          = 4,    // number of targets
   parameter int unsigned ReqDataWidth    = 32,   // word width of data
