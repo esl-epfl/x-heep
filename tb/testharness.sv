@@ -310,7 +310,7 @@ module testharness #(
       .clk_i                   (clk_i),
       .rst_ni                  (rst_ni),
       .addr_map_i              (EXT_XBAR_ADDR_RULES),
-      .default_idx_i           (SLOW_MEMORY_IDX[LOG_EXT_XBAR_NSLAVE-1:0]),
+      .default_idx_i           (SLOW_MEMORY0_IDX[LOG_EXT_XBAR_NSLAVE-1:0]),
       .heep_core_instr_req_i   (heep_core_instr_req),
       .heep_core_instr_resp_o  (heep_core_instr_resp),
       .heep_core_data_req_i    (heep_core_data_req),
@@ -416,13 +416,19 @@ module testharness #(
   assign jtag_tdo_o     = !JTAG_DPI ? mux_jtag_tdo : '0;
 
   // External xbar slave example port
-  obi_req_t  slow_ram_slave_req;
-  obi_resp_t slow_ram_slave_resp;
+  obi_req_t  [EXT_XBAR_NSLAVE-1:0] slow_ram_slave_req;
+  obi_resp_t [EXT_XBAR_NSLAVE-1:0] slow_ram_slave_resp;
 
 `ifndef SIM_SYSTEMC
 
-  assign slow_ram_slave_req              = ext_slave_req[SLOW_MEMORY_IDX];
-  assign ext_slave_resp[SLOW_MEMORY_IDX] = slow_ram_slave_resp;
+  assign slow_ram_slave_req[SLOW_MEMORY0_IDX] = ext_slave_req[SLOW_MEMORY0_IDX];
+  assign ext_slave_resp[SLOW_MEMORY0_IDX]     = slow_ram_slave_resp[SLOW_MEMORY0_IDX];
+
+  assign slow_ram_slave_req[SLOW_MEMORY1_IDX] = ext_slave_req[SLOW_MEMORY1_IDX];
+  assign ext_slave_resp[SLOW_MEMORY1_IDX]     = slow_ram_slave_resp[SLOW_MEMORY1_IDX];
+
+
+
 `else
 
   obi_req_t  ext_systemc_req;
@@ -451,19 +457,38 @@ module testharness #(
       slow_memory #(
           .NumWords (8192),
           .DataWidth(32'd32)
-      ) slow_ram_i (
+      ) slow_ram0_i (
           .clk_i,
           .rst_ni,
-          .req_i(slow_ram_slave_req.req),
-          .we_i(slow_ram_slave_req.we),
-          .addr_i(slow_ram_slave_req.addr[15:2]),
-          .wdata_i(slow_ram_slave_req.wdata),
-          .be_i(slow_ram_slave_req.be),
+          .req_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].req),
+          .we_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].we),
+          .addr_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].addr[15:2]),
+          .wdata_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].wdata),
+          .be_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].be),
           // output ports
-          .gnt_o(slow_ram_slave_resp.gnt),
-          .rdata_o(slow_ram_slave_resp.rdata),
-          .rvalid_o(slow_ram_slave_resp.rvalid)
+          .gnt_o(slow_ram_slave_resp[SLOW_MEMORY0_IDX].gnt),
+          .rdata_o(slow_ram_slave_resp[SLOW_MEMORY0_IDX].rdata),
+          .rvalid_o(slow_ram_slave_resp[SLOW_MEMORY0_IDX].rvalid)
       );
+
+      slow_memory #(
+          .NumWords (8192),
+          .DataWidth(32'd32)
+      ) slow_ram1_i (
+          .clk_i,
+          .rst_ni,
+          .req_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].req),
+          .we_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].we),
+          .addr_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].addr[15:2]),
+          .wdata_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].wdata),
+          .be_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].be),
+          // output ports
+          .gnt_o(slow_ram_slave_resp[SLOW_MEMORY1_IDX].gnt),
+          .rdata_o(slow_ram_slave_resp[SLOW_MEMORY1_IDX].rdata),
+          .rvalid_o(slow_ram_slave_resp[SLOW_MEMORY1_IDX].rvalid)
+      );
+
+
 `endif
 
       parameter DMA_TRIGGER_SLOT_NUM = 4;

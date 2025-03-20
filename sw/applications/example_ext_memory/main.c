@@ -135,8 +135,12 @@ int main(int argc, char *argv[])
         }
     }
 
+#if defined(TARGET_SIM)
+
+    //ADD here DMA tests
 
 
+#endif
 
     return errors;
 
