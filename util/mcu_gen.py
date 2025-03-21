@@ -19,6 +19,7 @@ from mako.template import Template
 import collections
 from math import log2
 import x_heep_gen.load_config
+import x_heep_gen.peripherals # TODO : Should be added or should there be a way to get peripheral information through x_heep_gen.system ?
 from x_heep_gen.system import BusType
 import math
 
@@ -601,11 +602,7 @@ def main():
     if  external_domains > 32:
         exit("external_domains must be less than 32 instead of " + str(external_domains))
 
-
-
     xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)), config_override)
-
-
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
@@ -613,14 +610,17 @@ def main():
 
     debug_size_address = string2int(obj['debug']['length'])
 
-    ao_peripheral_start_address = string2int(obj['ao_peripherals']['address'])
-    if int(ao_peripheral_start_address, 16) < int('10000', 16):
+    if xheep.are_peripherals_configured() :
+        ao_peripheral_start_address = xheep.get_ao_peripherals_base_address()
+        ao_peripheral_size_address = xheep.get_ao_peripherals_length()
+    else :
+        ao_peripheral_start_address = int(string2int(obj['ao_peripherals']['address']), 16)
+        ao_peripheral_size_address = int(string2int(obj['ao_peripherals']['length']), 16)
+    
+    if ao_peripheral_start_address < int('10000', 16):
         exit("always on peripheral start address must be greater than 0x10000")
 
-    ao_peripheral_size_address = string2int(obj['ao_peripherals']['length'])
-
-
-    def extract_peripherals(peripherals):
+    def extract_peripherals(peripherals): # TODO : Remove when peripherals configured only through python config() (are_peripherals_configured removed)
         result = {}
         for name, info in peripherals.items():
             if isinstance(info, dict):
@@ -635,16 +635,16 @@ def main():
         return result
 
 
-    def discard_path(peripherals):
+    def discard_path(peripherals): # TODO : Remove when peripherals configured only through python config() (are_peripherals_configured removed)
         new = {}
         for k,v in peripherals.items():
             if isinstance(v, dict):
-                new[k] = {key:val for key,val in v.items() if key != "path"}
+                new[k] = {key:val for key,val in v.items() if key not in ("path")}
             else:
                 new[k] = v
         return new
 
-    def len_extracted_peripherals(peripherals):
+    def len_extracted_peripherals(peripherals): # TODO : Remove when peripherals configured only through python config() (are_peripherals_configured removed)
         len_ep = 0
         for name, info in peripherals.items():
             if isinstance(info, dict):
@@ -652,61 +652,107 @@ def main():
                     len_ep += 1
         return len_ep
 
-    ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
-    ao_peripherals_count = len(ao_peripherals)
-    dma_ch_count = ao_peripherals["dma"]["num_channels"]
+    if xheep.are_peripherals_configured() :
+        ao_peripherals = xheep.get_ao_peripherals() # Paths still in peripherals
+        ao_peripherals_count = len(ao_peripherals)
+        dma = xheep.get_dma()
+        dma_ch_count = dma.get_num_channels()
+        dma_ch_size = dma.get_ch_length()
+        # Number of master ports for the dma subsystem
+        num_dma_master_ports = dma.get_num_master_ports()
+        # Number of masters for each slave of the DMA NtoM xbar
+        num_dma_xbar_channels_per_master_port = dma.get_num_channels_per_master_port()
+    else :
+        ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
+        ao_peripherals_count = len(ao_peripherals)
+        dma_ch_count = int(ao_peripherals["dma"]["num_channels"])
+        dma_ch_size = int(ao_peripherals["dma"]["ch_length"])
+        # Number of master ports for the dma subsystem
+        num_dma_master_ports = int(ao_peripherals["dma"]["num_master_ports"])
+        # Number of masters for each slave of the DMA NtoM xbar
+        num_dma_xbar_channels_per_master_port = int(ao_peripherals["dma"]["num_channels_per_master_port"])
 
-    if int(dma_ch_count, 16) > int('256', 16) or int(dma_ch_count, 16) == 0:
+    if dma_ch_count > 256 or dma_ch_count == 0:
         exit("Number of DMA channels has to be between 0 and 256, excluded")
 
-    dma_ch_size = ao_peripherals["dma"]["ch_length"]
-
-    # Number of master ports for the dma subsystem
-    num_dma_master_ports = ao_peripherals["dma"]["num_master_ports"]
-    if int(num_dma_master_ports, 16) > int(dma_ch_count, 16) or int(num_dma_master_ports, 16) == 0:
+    if num_dma_master_ports > dma_ch_count or num_dma_master_ports == 0:
         exit("Number of DMA master ports has to be between 0 and " + str(dma_ch_count) + ", 0 excluded")
 
-    # Number of masters for each slave of the DMA NtoM xbar
-    num_dma_xbar_channels_per_master_port = ao_peripherals["dma"]["num_channels_per_master_port"]
-    if (int(num_dma_xbar_channels_per_master_port, 16) > int(dma_ch_count, 16) and int(dma_ch_count, 16) != 1) or int(num_dma_xbar_channels_per_master_port, 16) == 0:
+    if (num_dma_xbar_channels_per_master_port > dma_ch_count and dma_ch_count != 1) or num_dma_xbar_channels_per_master_port == 0:
         exit("Number of DMA channels per system bus master ports has to be between 0 and " + str(dma_ch_count) + ", excluded")
 
-    if (int(num_dma_master_ports) > 1):
+    if (num_dma_master_ports > 1):
         # Computation of full_masters_xbars
-        temp_full_masters_xbars = math.floor(int(dma_ch_count) / int(num_dma_xbar_channels_per_master_port))
-        if temp_full_masters_xbars < int(num_dma_master_ports) and temp_full_masters_xbars * int(num_dma_xbar_channels_per_master_port) == int(dma_ch_count):
+        temp_full_masters_xbars = math.floor(dma_ch_count / num_dma_xbar_channels_per_master_port)
+        if temp_full_masters_xbars < num_dma_master_ports and temp_full_masters_xbars * num_dma_xbar_channels_per_master_port == dma_ch_count:
             full_masters_xbars = temp_full_masters_xbars - 1
         else:
             full_masters_xbars = temp_full_masters_xbars
-        last = int(num_dma_xbar_channels_per_master_port) * full_masters_xbars
+        last = num_dma_xbar_channels_per_master_port * full_masters_xbars
 
         # Array initialization
-        array_xbar_gen = [0] * int(num_dma_master_ports)
+        array_xbar_gen = [0] * num_dma_master_ports
 
         # Computation of the number of xbar channels for each master port
-        for i in range(int(num_dma_master_ports)):
+        for i in range(num_dma_master_ports):
             if i < full_masters_xbars:
-                array_xbar_gen[i] = int(num_dma_xbar_channels_per_master_port)
+                array_xbar_gen[i] = num_dma_xbar_channels_per_master_port
             else:
-                array_xbar_gen[i] = min(int(dma_ch_count) - last, int(dma_ch_count) - last - (int(num_dma_master_ports) - i - 1))
+                array_xbar_gen[i] = min(dma_ch_count - last, dma_ch_count - last - (num_dma_master_ports - i - 1))
                 last = last + array_xbar_gen[i]
 
-        if (sum(array_xbar_gen) != int(dma_ch_count) or 0 in array_xbar_gen):
+        if (sum(array_xbar_gen) != dma_ch_count or 0 in array_xbar_gen):
             exit("Error in the DMA xbar generation: wrong parameters")
         
         dma_xbar_array = ", ".join(map(str, array_xbar_gen))
     else:
-        if (int(num_dma_xbar_channels_per_master_port) != int(dma_ch_count)):
+        if (num_dma_xbar_channels_per_master_port != dma_ch_count):
             exit("With 1 master port, the number of DMA channels per master port has to be equal to the number of DMA channels")
         dma_xbar_array = "default: 1"
 
-    peripheral_start_address = string2int(obj['peripherals']['address'])
-    if int(peripheral_start_address, 16) < int('10000', 16):
+    if xheep.are_peripherals_configured() :
+        peripheral_start_address = xheep.get_optional_peripherals_base_address()
+        peripheral_size_address = xheep.get_optional_peripherals_length()
+        peripherals = xheep.get_optional_peripherals() # Paths still in peripherals
+        peripherals_count = len(peripherals)
+    else :
+        peripheral_start_address = int(string2int(obj['peripherals']['address']), 16)
+        peripheral_size_address = int(string2int(obj['peripherals']['length']), 16)
+        peripherals = extract_peripherals(discard_path(obj['peripherals']))
+        peripherals_count = len(peripherals)
+
+    if peripheral_start_address < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
 
-    peripheral_size_address = string2int(obj['peripherals']['length'])
-    peripherals = extract_peripherals(discard_path(obj['peripherals']))
-    peripherals_count = len(peripherals)
+    # For simplicity between python config and hjson config, formating peripherals to list of dictionaries instead of list of Peripherals
+    def format_peripherals_to_dicts(peripherals):
+        format = {}
+        
+        for p in peripherals:
+            description = {
+                "offset": f"{p.get_address() & 0xFFFFFFFF:08X}", # Converts int to its hexadecimal representation on 8 digits
+                "length": f"{p.get_length() & 0xFFFFFFFF:08X}"
+                # Doesn't add path since it's filtered out with hjson config version
+            }
+
+            # Adding DMA specific information
+            if (isinstance(p, x_heep_gen.peripherals.DMA)):
+                description["ch_length"] = hex(p.get_ch_length()).split('x')[1] # Converts int to its hexadecimal representation (minimal number of digits)
+                description["num_channels"] = hex(p.get_num_channels()).split('x')[1] 
+                description["num_master_ports"] = hex(p.get_num_master_ports()).split('x')[1]
+                description["num_channels_per_master_port"] = hex(p.get_num_channels_per_master_port()).split('x')[1]
+
+            # Adding is_included to the description if the peripheral is an OnOffPeripheral
+            if (isinstance(p, x_heep_gen.peripherals.OnOffPeripheral)):
+                description["is_included"] = "yes"
+        
+            format[p.get_name().value] = description
+
+        return format
+    
+    if xheep.are_peripherals_configured() :
+        ao_peripherals = format_peripherals_to_dicts(ao_peripherals)
+        peripherals = format_peripherals_to_dicts(peripherals)
 
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
@@ -1125,6 +1171,8 @@ def main():
         "max_total_pad_mux_bitlengh"       : max_total_pad_mux_bitlengh,
         "pads_attributes"                  : pads_attributes,
     }
+
+    print(kwargs)
 
     ###########
     # Package #
