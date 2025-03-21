@@ -36,10 +36,6 @@
     #define PRINTF(...)
 #endif
 
-#ifdef TARGET_IS_FPGA
-    #define USE_SPI_FLASH
-#endif
-
 // =========================== VARS & DEFS ==================================
 
 // 1 to print the modified data at the end of program 0 to disable
@@ -120,11 +116,7 @@ int main(int argc, char *argv[]) {
     spi_slave_t slave = SPI_SLAVE(0, FLASH_MAX_FREQ);
 
     // Initialize the spi device that is CONNECTED to the flash with our slave
-    #ifdef USE_SPI_FLASH
     spi_t spi = spi_init(SPI_IDX_FLASH, slave);
-    #else
-    spi_t spi = spi_init(SPI_IDX_HOST, slave);
-    #endif
 
     // Check if initialization succeeded
     if (!spi.init) {
@@ -147,11 +139,8 @@ int main(int argc, char *argv[]) {
     if (!flash_read_non_blocking(&spi, SECT_ADDRESS, sect_data, SECT_LEN)) 
         return EXIT_FAILURE;
 
-    // No need to erase if on simulation
-    #ifdef USE_SPI_FLASH
     // Erase that sector
     if (!flash_erase_sector(&spi, START_ADDRESS)) return EXIT_FAILURE;
-    #endif
 
     // Copy the data to overwrite
     memcpy(&sect_data[START_ADDRESS - SECT_ADDRESS], flash_original_1024B, READ_WRITE_LEN * 4);
