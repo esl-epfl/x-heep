@@ -10,6 +10,8 @@
  */
 #include <stdint.h>
 #include "spi_host.h"
+//ADDED
+#include "spi_sdk.h"
 
 
 //extern  spi_host_t ST7789_spi_LCD; 
@@ -24,21 +26,24 @@
  */
 
 //Public Test function definitions
-void        ST7789_gpio_init(void);
-uint8_t     ST7789_spi_init();
-uint8_t     ST7789_display_init(void);
-spi_host_t* ST7789_get_spi_host(void);
+void        ST7789_gpio_init();
+//ADDED
+uint8_t     ST7789_spi_init(spi_t* spi);
+uint8_t     ST7789_display_init(spi_t* spi);
+spi_host_t* ST7789_get_spi_host(spi_t* spi);
+//NEW
+void flash_wait(spi_t* spi);
 
-void        ST7789_spi_write_command(uint8_t command);
-void        ST7789_spi_write_data(uint8_t data);
-void        ST7789_spi_write_data_2B(uint16_t data);
+void        ST7789_spi_write_command(spi_t* spi,uint8_t command);
+void        ST7789_spi_write_data(spi_t* spi,uint8_t data);
+void        ST7789_spi_write_data_2B(spi_t* spi,uint16_t data);
 
-void        ST7789_set_adress_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
-uint32_t    ST7789_test_write_pixel(uint16_t x, uint16_t y, uint16_t color);
-void        ST7789_test_write_multi_unicolor(uint16_t color, uint32_t num);
-void        ST7789_test_fill_screen(uint16_t color);
-void        ST7789_fill_picture(uint16_t* colors);
-void        ST7789_test_fill_picture_with_shift(uint16_t* colors, uint8_t verticalShift, uint8_t horizontalShift);
+void        ST7789_set_adress_window(spi_t* spi,uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+uint32_t    ST7789_test_write_pixel(spi_t* spi,uint16_t x, uint16_t y, uint16_t color);
+void        ST7789_test_write_multi_unicolor(spi_t* spi,uint16_t color, uint32_t num);
+void        ST7789_test_fill_screen(spi_t* spi,uint16_t color);
+void        ST7789_fill_picture(spi_t* spi,uint16_t* colors);
+void        ST7789_test_fill_picture_with_shift(spi_t* spi,uint16_t* colors, uint8_t verticalShift, uint8_t horizontalShift);
 
 void        ST7789_milli_delay(int n_milli_seconds);
 
@@ -65,6 +70,8 @@ void        ST7789_milli_delay(int n_milli_seconds);
 #define GPIO_SPI_RST 13 //AR2
 
 // ST7789 commands
+//ADDED
+#define START_ADDRESS  ((FLASH_MEM_SIZE / 2) + 256)
 
 #define ST7789_TFTWIDTH 	240
 #define ST7789_TFTHEIGHT 	240
