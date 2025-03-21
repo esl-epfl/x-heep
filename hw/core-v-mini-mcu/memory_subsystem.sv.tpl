@@ -58,7 +58,7 @@ module memory_subsystem
       end
     end
 
-    assign ram_resp_o[i].gnt = ram_req_i[i].req;
+    assign ram_resp_o[i].gnt = 1'b1;
     assign ram_resp_o[i].rvalid = ram_valid_q[i];
   end
 
