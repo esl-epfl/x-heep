@@ -353,16 +353,17 @@ void R_GenerateInit(int texture_storage_size)
     generate_to_flash = X_ButtonState(1);
 
     generate_buffer = (byte*)I_VideoBuffers;
-    //store_loc = N_qspi_alloc_block();
+    store_loc = X_spi_alloc_sector();
     PRINTF("R_GenerateInit: %d %d\n", store_loc, generate_to_flash);
-
-    /* X-HEEP COMMENT
-    for (int ofs=0; ofs<texture_storage_size; ofs+=N_QSPI_BLOCK_SIZE) {
+    
+    
+    for (int ofs=0; ofs<texture_storage_size; ofs+=SECT_LEN) {
         if (generate_to_flash) {
-            N_qspi_erase_block(store_loc+ofs);
+            X_spi_erase_sector(store_loc+ofs);
         }
-        N_qspi_alloc_block();
-    } X-HEEP COMMENT END */
+        X_spi_alloc_sector();
+    } 
+    
 }
 
 
@@ -405,7 +406,7 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
         short        patch_num     = SHORT(temp2.patch);
         int          originy       = SHORT(temp2.originy);
         char*        patch_name    = patch_names + patch_num * 8;
-        char temp_patch_name[8]; 
+        char temp_patch_name[8] = {0}; 
         X_spi_read(patch_name, &temp_patch_name, sizeof(temp_patch_name)/4);
         // int          patch_lump    = W_CheckNumForName(patch_name);
 
@@ -477,6 +478,8 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
          * X-HEEP TODO: SPI WRITE
         N_qspi_write(texture_loc, generate_buffer, texture_size);
         */
+       X_spi_write(texture_loc, generate_buffer, texture_size);
+       
     }
 }
 
@@ -874,7 +877,7 @@ void R_InitTextures (void)
 
     patch = texture_patches;
 
-    R_GenerateInit(texture_storage_size); //X-HEEP COMMENT : concerns buttons have not looked into this yet 
+    R_GenerateInit(texture_storage_size); //X-HEEP COMMENT : have not looked into the buttons yet 
 
     for (i=0 ; i<numtextures ; i++, directory++) {
 
@@ -898,7 +901,7 @@ void R_InitTextures (void)
 
         // mpatch = &mtexture->patches[0];
 
-        R_GenerateComposite_N(i, texture, patch_names); //work from here ! 
+        R_GenerateComposite_N(i, texture, patch_names); 
 
         /*
         texture->patches = patch;
@@ -952,8 +955,8 @@ void R_InitTextures (void)
 void R_InitFlats (void)
 {
     int             i; 
-    printf("oui\n");
-    firstflat = W_GetNumForName (DEH_String("F_START")) + 1;
+    printf("In R_InitFlats\n");
+    firstflat = W_GetNumForName(DEH_String("F_START")) + 1;
     printf("non\n"); 
     lastflat = W_GetNumForName (DEH_String("F_END")) - 1;
     numflats = lastflat - firstflat + 1;

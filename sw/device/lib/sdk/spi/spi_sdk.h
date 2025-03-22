@@ -466,7 +466,7 @@ spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer,
  */
 spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments, 
                         uint32_t segments_len, const uint32_t* src_buffer, 
-                        uint32_t* dest_buffer);
+                        uint32_t* dest_buffer, bool print);
 
 /**
  * @brief Executes a TX command. This is Non-Blocking, the function will return 

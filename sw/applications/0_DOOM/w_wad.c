@@ -417,8 +417,13 @@ wad_file_t *W_AddFile (char *filename)
     */
 }
 
-void W_GetLumpInfo(int lump, filelump_t *out_lump)
+void W_GetLumpInfo(int lump, filelump_t *out_lump, const char* name)
 {
+    if(name == DEH_String("F_START"))
+    {
+        printf("In W_GetLumpInfo\n"); 
+    }
+
     if (lump < 0 || lump >= numlumps)
     {
         I_Error("W_GetLumpInfo: Invalid lump index %d\n", lump);
@@ -426,9 +431,19 @@ void W_GetLumpInfo(int lump, filelump_t *out_lump)
 
     uint32_t lump_addr = filelumps_base + lump * sizeof(filelump_t);
 
+    if(name == DEH_String("F_START"))
+    {
+        printf("In W_GetLumpInfo before X_spi_read\n"); 
+        printf("lump_addr : %i\n", lump_addr); 
+    }
     X_spi_read(lump_addr, (uint32_t *)out_lump, sizeof(filelump_t)/4);
 
-    // Convert fields from little-endian if needed
+    if(name == DEH_String("F_START"))
+    {
+        printf("In W_GetLumpInfo after X_spi_read\n"); 
+    }
+
+    // Convert fields from little-endian
     out_lump->filepos = LONG(out_lump->filepos);
     out_lump->size = LONG(out_lump->size);
 }
@@ -438,7 +453,7 @@ void *W_LumpDataPointer(lumpindex_t lump)
 {
     //return N_qspi_data_pointer(LONG(filelumps[lump].filepos));
     filelump_t lump_to_get;
-    W_GetLumpInfo(lump, &lump_to_get);
+    W_GetLumpInfo(lump, &lump_to_get, 0);
     return WAD_START_ADDRESS + LONG(lump_to_get.filepos);
 }
 
@@ -457,7 +472,7 @@ int W_NumLumps (void)
 
 lumpindex_t W_CheckNumForName(const char* name)
 {
-    printf("In W_CheckNumForName\n");
+    //printf("In W_CheckNumForName\n");
     lumpindex_t i;
 
     // Do we have a hash table yet?
@@ -483,27 +498,41 @@ lumpindex_t W_CheckNumForName(const char* name)
     else*/
     {
         filelump_t lump;
-        int counter = 0; 
         // We don't have a hash table generate yet. Linear search :-(
         //
         // scan backwards so patch lump files take precedence
-        printf("Start the loop\n");
+        if(name == DEH_String("F_START"))
+        {
+            printf("Start the loop\n"); 
+            printf("numlumps : %i\n", numlumps);
+        }
         for (i = numlumps - 1; i >= 0; --i)
         {
+            /*
             counter++;
             if (counter >= 325)
             {
                 printf("In loop for more than 325 cycles");
                 counter = 0; 
             }
-            W_GetLumpInfo(i, &lump);
+            */
+            if(name == DEH_String("F_START"))
+            {
+                printf("i : %i\n",i);
+                printf("&lump : %i\n",&lump);  
+            } 
+            W_GetLumpInfo(i, &lump, name);
+            if(name == DEH_String("F_START"))
+            {
+                printf("I finished W_GetLumpInfo\n"); 
+            } 
             if (!strncasecmp(lump.name, name, 8))
             // if (!strncasecmp(lumpinfo[i].name, name, 8))
             {
                 return i;
             }
         }
-        printf("Finished the loop\n"); 
+        //printf("Finished the loop\n"); 
     }
 
     // TFB. Not found.
@@ -517,12 +546,12 @@ lumpindex_t W_CheckNumForName(const char* name)
 //
 lumpindex_t W_GetNumForName(const char* name)
 {
-    printf("In W_GetNumForName\n");
+    //printf("In W_GetNumForName\n");
     lumpindex_t i;
 
 
     i = W_CheckNumForName (name);
-    printf("In W_GetNumForName, finished W_CheckNumForName\n");
+    //printf("In W_GetNumForName, finished W_CheckNumForName\n");
 
     if (i < 0)
     {
@@ -539,7 +568,7 @@ lumpindex_t W_GetNumForName(const char* name)
 char *W_LumpName(lumpindex_t lump)
 {
     filelump_t lump_to_get;
-    W_GetLumpInfo(lump, &lump_to_get);
+    W_GetLumpInfo(lump, &lump_to_get, 0);
     return lump_to_get.name;
 }
 
@@ -556,7 +585,7 @@ int W_LumpLength(lumpindex_t lump)
 
     // return lumpinfo[lump].size;
     filelump_t lump_to_get;
-    W_GetLumpInfo(lump, &lump_to_get);
+    W_GetLumpInfo(lump, &lump_to_get, 0);
     return LONG(lump_to_get.size);
 }
 

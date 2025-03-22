@@ -255,7 +255,7 @@ bool spi_empty_rx(spi_peripheral_t* peri);
  * @param error_cb The callback to be called if a Hardware error occurs
  */
 void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn, 
-                spi_callbacks_t callbacks);
+                spi_callbacks_t callbacks, bool print);
 
 /**
  * @brief Issues a command segment and increments counter (post inc.).
@@ -549,7 +549,7 @@ spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len)
 
     // Launch the transaction. All data has been verified, launch doesn't check 
     // anything. No callbacks since function is blocking.
-    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
+    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS, false);
 
     spi_wait_transaction_done(&peripherals[spi->idx]);
     // while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
@@ -572,7 +572,7 @@ spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len)
 
     // Launch the transaction. All data has been verified, launch doesn't check 
     // anything. No callbacks since function is blocking.
-    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
+    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS, false);
 
     spi_wait_transaction_done(&peripherals[spi->idx]);
     // while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
@@ -596,7 +596,7 @@ spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer,
 
     // Launch the transaction. All data has been verified, launch doesn't check 
     // anything. No callbacks since function is blocking.
-    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
+    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS, false);
 
     spi_wait_transaction_done(&peripherals[spi->idx]);
     // while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
@@ -606,8 +606,13 @@ spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer,
 
 spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments, 
                         uint32_t segments_len, const uint32_t* src_buffer, 
-                        uint32_t* dest_buffer) 
+                        uint32_t* dest_buffer, bool print) 
 {
+    if (print == true)
+    {
+        printf("In spi_execute\n"); 
+    }
+
     // Make validity checks and set the slave at hardware level
     spi_codes_e error = spi_prepare_transfer(spi);
     if (error) return error;
@@ -621,12 +626,27 @@ spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments,
     if (!spi_validate_segments(txn.segments, txn.seglen, &txn.txlen, &txn.rxlen)) 
         return SPI_CODE_SEGMENT_INVAL;
 
+    if (print == true)
+    {
+        printf("In spi_execute, before launch\n"); 
+    }
+
     // Launch the transaction. All data has been verified, launch doesn't check 
     // anything. No callbacks since function is blocking.
-    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
+    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS, print); //error here 
+
+    if (print == true)
+    {
+        printf("In spi_execute, after launch\n"); 
+    }
 
     spi_wait_transaction_done(&peripherals[spi->idx]);
     // while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
+
+    if (print == true)
+    {
+        printf("In spi_execute, transaction done\n"); 
+    }
 
     return SPI_CODE_OK;
 }
@@ -647,7 +667,7 @@ spi_codes_e spi_transmit_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t len
 
     // Launch the transaction. All data has been verified, launch doesn't check 
     // anything. Here user callbacks are used because non-blocking function.
-    spi_launch(&peripherals[spi->idx], spi, txn, callbacks);
+    spi_launch(&peripherals[spi->idx], spi, txn, callbacks,false);
 
     return SPI_CODE_OK;
 }
@@ -668,7 +688,7 @@ spi_codes_e spi_receive_nb(spi_t* spi, uint32_t* dest_buffer, uint32_t len,
 
     // Launch the transaction. All data has been verified, launch doesn't check 
     // anything. Here user callbacks are used because non-blocking function.
-    spi_launch(&peripherals[spi->idx], spi, txn, callbacks);
+    spi_launch(&peripherals[spi->idx], spi, txn, callbacks,false);
 
     return SPI_CODE_OK;
 }
@@ -690,7 +710,7 @@ spi_codes_e spi_transceive_nb(spi_t* spi, const uint32_t* src_buffer,
 
     // Launch the transaction. All data has been verified, launch doesn't check 
     // anything. Here user callbacks are used because non-blocking function.
-    spi_launch(&peripherals[spi->idx], spi, txn, callbacks);
+    spi_launch(&peripherals[spi->idx], spi, txn, callbacks,false);
 
     return SPI_CODE_OK;
 }
@@ -714,7 +734,7 @@ spi_codes_e spi_execute_nb(spi_t* spi, const spi_segment_t* segments,
 
     // Launch the transaction. All data has been verified, launch doesn't check 
     // anything. Here user callbacks are used because non-blocking function.
-    spi_launch(&peripherals[spi->idx], spi, txn, callbacks);
+    spi_launch(&peripherals[spi->idx], spi, txn, callbacks,false);
 
     return SPI_CODE_OK;
 }
@@ -883,7 +903,7 @@ bool spi_empty_rx(spi_peripheral_t* peri)
 }
 
 void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn, 
-                spi_callbacks_t callbacks) 
+                spi_callbacks_t callbacks, bool print) 
 {
     // All checks have been made, therefore there can't be any error here.
     // This also means that we can safely set the state since we know we will
@@ -901,10 +921,25 @@ void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn,
     spi_set_events_enabled(peri->instance, TRIGGERING_EVENTS, true);
     spi_enable_evt_intr   (peri->instance, true);
 
+    if (print == true)
+    {
+        printf("In spi_launch, before wait\n"); 
+    }
+
     // Wait for the SPI peripheral to be ready before writing a command segment.
     spi_wait_for_ready(peri->instance);
+
+    if (print == true)
+    {
+        printf("In spi_launch, after wait\n"); 
+    }
     // Write command segment. This immediately triggers the SPI peripheral into action.
-    spi_issue_next_seg(peri);
+    spi_issue_next_seg(peri); //error here 
+
+    if (print == true)
+    {
+        printf("In spi_launch, after spi_issue_next_seg\n"); 
+    }
 }
 
 void spi_wait_transaction_done(spi_peripheral_t* peri) 
