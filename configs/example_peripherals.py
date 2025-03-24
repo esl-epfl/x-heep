@@ -2,8 +2,9 @@ from x_heep_gen.linker_section import LinkerSection
 from x_heep_gen.system import XHeep, BusType
 from x_heep_gen.peripherals import *
 
+
 def config():
-    system = XHeep(BusType.NtoM, auto_peripherals=True)
+    system = XHeep(BusType.NtoM)
     system.add_ram_banks([32] * 2)
     system.add_ram_banks_il(2, 64, "data_interleaved")
 
@@ -11,8 +12,9 @@ def config():
     system.add_linker_section(LinkerSection("data", 0x00000C800, None))
 
     # Peripherals
+    system.configure_peripherals()
     # Only one input, offset of the peripheral in peripheral domain
-    rv_plic = RV_plic(0x00000000)   
+    rv_plic = RV_plic(0x00000000)
     spi_host = SPI_host(0x00010000)
     gpio = GPIO(0x00020000)
     i2c = I2C(0x00030000)
@@ -30,7 +32,7 @@ def config():
     system.add_peripheral(pdm2pcm)
     system.add_peripheral(i2s)
 
-    system.remove_peripheral(pdm2pcm) # Not included in mcu_cfg.hjson
+    system.remove_peripheral(pdm2pcm)  # Not included in mcu_cfg.hjson
 
     # Here the system is build,
     # The missing gaps are filled, like the missing end address of the data section.
