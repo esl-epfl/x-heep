@@ -61,11 +61,6 @@ void X_init_spi()
 
 void X_spi_read(uint32_t address, uint32_t *data, uint32_t len)
 {
-    if (address == 5244926)
-    {
-        printf("In X_spi_read"); 
-    }
-
     if (!flash_read(&spi_flash, address, data, 4*len))
     {
         PRINTF("\nFailed to read flash\n");
@@ -118,13 +113,6 @@ void X_spi_write_sector(uint32_t address, uint32_t* sect_data)
 } 
 
 bool flash_read(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uint32_t len) {
-    bool print = false; 
-    
-    if (addr == 5244926)
-    {
-        printf("In flash_read"); 
-    }
-   
     // Transaction segments
     spi_segment_t segments[2] = { SPI_SEG_TX(4), SPI_SEG_RX(len) };
 
@@ -134,19 +122,8 @@ bool flash_read(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uint32_t len) {
 
     // PRINTF("Blocking Reading %4i Bytes at 0x%08X\n", len, addr);
 
-    if (addr == 5244926)
-    {
-        PRINTF("Blocking Reading %4i Bytes at 0x%08X\n", len, addr);
-        print = true; 
-    }
-
     // Start transaction
-    spi_codes_e error = spi_execute(spi, segments, 2, &read_byte_cmd, dest_buff, print); //problem starts here 
-
-    if (addr == 5244926)
-    {
-        PRINTF("error %i\n", error); 
-    }
+    spi_codes_e error = spi_execute(spi, segments, 2, &read_byte_cmd, dest_buff);  
 
     if (error) {
         PRINTF("FAILED! Error Code: %i\n", error);
@@ -202,7 +179,7 @@ bool flash_write_sector(spi_t* spi, uint32_t addr, uint32_t* src_buff) {
         // Start transaction
         // Note that since segments are only TX we could have used spi_transmit
         // instead of spi_execute, but both work perfectly fine
-        spi_codes_e error = spi_execute(spi, segments, 2, wbuff, NULL, false);
+        spi_codes_e error = spi_execute(spi, segments, 2, wbuff, NULL);
         if (error) {
             PRINTF("FAILED! Error Code: %i\n", error);
             return false;
@@ -244,7 +221,7 @@ void flash_wait(spi_t* spi) {
     bool busy = true;
     while (busy)
     {
-        spi_execute(spi, segments, 2, &cmd, &resp, false);
+        spi_execute(spi, segments, 2, &cmd, &resp);
         busy = resp & 0x01;
     }
 }

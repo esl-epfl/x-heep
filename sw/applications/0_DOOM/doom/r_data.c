@@ -941,9 +941,10 @@ void R_InitTextures (void)
     // Create translation table for global animation.
     //texturetranslation = Z_Malloc ((numtextures+1)*sizeof(*texturetranslation), PU_STATIC, 0);
     
+    /*
     for (i=0 ; i<numtextures ; i++)
         texturetranslation[i] = i;
-
+    */
     GenerateTextureHashTable(); 
 }
 
@@ -956,8 +957,7 @@ void R_InitFlats (void)
 {
     int             i; 
     printf("In R_InitFlats\n");
-    firstflat = W_GetNumForName(DEH_String("F_START")) + 1;
-    printf("non\n"); 
+    firstflat = W_GetNumForName(DEH_String("F_START")) + 1; 
     lastflat = W_GetNumForName (DEH_String("F_END")) - 1;
     numflats = lastflat - firstflat + 1;
 
@@ -966,10 +966,11 @@ void R_InitFlats (void)
         
     // Create translation table for global animation.
     // NRFD-TODO? flattranslation could be bytes if we used offset from firstflat 
-    flattranslation = Z_Malloc ((numflats+1)*sizeof(*flattranslation), PU_STATIC, 0);
+    //flattranslation = Z_Malloc ((numflats+1)*sizeof(*flattranslation), PU_STATIC, 0);
     
-    for (i=0 ; i<numflats ; i++)
+    /*for (i=0 ; i<numflats ; i++)
         flattranslation[i] = i;
+    */
 }
 
 
@@ -1061,8 +1062,8 @@ void R_InitColormaps (void)
 //
 void R_InitData (void)
 {
-    R_InitTextures (); 
-    R_InitFlats ();
+    R_InitTextures ();  
+    R_InitFlats (); 
     R_InitSpriteLumps ();
     R_InitColormaps ();
 }
