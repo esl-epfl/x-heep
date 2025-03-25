@@ -29,7 +29,7 @@ The following is an example repository folder structure.
 
 ## Adding a CV-X-IF coprocessor
 
-We recomend using the [vendor](https://opentitan.org/book/util/doc/vendor.html) tool as used inside X-HEEP, although you could modify it to use git submodules.
+We recomend using the [vendor](https://opentitan.org/book/util/doc/vendor.html) tool as [used inside X-HEEP](../GettingStarted/UnderstandingTools.md#vendor), although you could modify it to use git submodules.
 
 - Create a new top-level repository (`BASE`) and vendorize both your `CV-X-IF` compliant coprocessor and X-HEEP. For X-HEEP, create inside your top-level repository's base directory (`BASE`) a `hw/vendor` directory containing a file named `esl_epfl_x_heep.vendor.hjson`:
 
@@ -61,7 +61,8 @@ We recomend using the [vendor](https://opentitan.org/book/util/doc/vendor.html) 
 ```
 </details><br>
 
-The `main` branch can be replaced with an specific commit. This is the recommended operation to prevent accidental updates to an incompatible version.
+The `main` branch in `rev:` can be replaced with a specific commit. This is the recommended operation
+to prevent accidental updates to an incompatible repository commit.
 
 In a directory `BASE/util` add the [vendor python script](https://github.com/lowRISC/opentitan/blob/master/util/vendor.py).
 
