@@ -8,7 +8,7 @@ package testharness_pkg;
   import core_v_mini_mcu_pkg::*;
 
   localparam EXT_XBAR_NMASTER = 4;
-  localparam EXT_XBAR_NSLAVE = 1;
+  localparam EXT_XBAR_NSLAVE = 2;
 
   //master idx
   localparam logic [31:0] EXT_MASTER0_IDX = 0;
@@ -16,15 +16,21 @@ package testharness_pkg;
   localparam logic [31:0] EXT_MASTER2_IDX = 2;
   localparam logic [31:0] EXT_MASTER3_IDX = 3;
 
-  //slave mmap and idx
+  //slave mmap and idx of slow memory interleaved
   localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS;
-  localparam logic [31:0] SLOW_MEMORY_SIZE = 32'h200;
+  localparam logic [31:0] SLOW_MEMORY_SIZE = 32'h400;
   localparam logic [31:0] SLOW_MEMORY_END_ADDRESS = SLOW_MEMORY_START_ADDRESS + SLOW_MEMORY_SIZE;
-  localparam logic [31:0] SLOW_MEMORY_IDX = 32'd0;
+  localparam logic [31:0] SLOW_MEMORY0_IDX = 32'd0;
+  localparam logic [31:0] SLOW_MEMORY1_IDX = 32'd1;
 
   localparam addr_map_rule_t [EXT_XBAR_NSLAVE-1:0] EXT_XBAR_ADDR_RULES = '{
       '{
-          idx: SLOW_MEMORY_IDX,
+          idx: SLOW_MEMORY0_IDX,
+          start_addr: SLOW_MEMORY_START_ADDRESS,
+          end_addr: SLOW_MEMORY_END_ADDRESS
+      },
+      '{
+          idx: SLOW_MEMORY1_IDX,
           start_addr: SLOW_MEMORY_START_ADDRESS,
           end_addr: SLOW_MEMORY_END_ADDRESS
       }
