@@ -115,6 +115,8 @@ module testharness #(
   obi_resp_t heep_core_data_resp;
   obi_req_t heep_debug_master_req;
   obi_resp_t heep_debug_master_resp;
+  obi_req_t heep_spi_slave_req;
+  obi_resp_t heep_spi_slave_resp;
   obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_req;
   obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_resp;
   obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_req;
@@ -227,10 +229,10 @@ module testharness #(
       .gpio_11_io(gpio[11]),
       .gpio_12_io(gpio[12]),
       .gpio_13_io(gpio[13]),
-      .gpio_14_io(gpio[14]),
-      .gpio_15_io(gpio[15]),
-      .gpio_16_io(gpio[16]),
-      .gpio_17_io(gpio[17]),
+      .spi_slave_sck_io(spi_sck),
+      .spi_slave_cs_io(spi_csb[0]),
+      .spi_slave_miso_io(spi_sd_io[1]),
+      .spi_slave_mosi_io(spi_sd_io[0]),
       .spi_flash_sck_io(spi_flash_sck),
       .spi_flash_cs_0_io(spi_flash_csb[0]),
       .spi_flash_cs_1_io(spi_flash_csb[1]),
@@ -275,6 +277,8 @@ module testharness #(
       .ext_core_data_resp_i(heep_core_data_resp),
       .ext_debug_master_req_o(heep_debug_master_req),
       .ext_debug_master_resp_i(heep_debug_master_resp),
+      .ext_spi_slave_req_o(heep_spi_slave_req),
+      .ext_spi_slave_resp_i(heep_spi_slave_resp),
       .ext_dma_read_req_o(heep_dma_read_req),
       .ext_dma_read_resp_i(heep_dma_read_resp),
       .ext_dma_write_req_o(heep_dma_write_req),
@@ -317,6 +321,8 @@ module testharness #(
       .heep_core_data_resp_o   (heep_core_data_resp),
       .heep_debug_master_req_i (heep_debug_master_req),
       .heep_debug_master_resp_o(heep_debug_master_resp),
+      .heep_spi_slave_req_i    (heep_spi_slave_req),
+      .heep_spi_slave_resp_o   (heep_spi_slave_resp),
       .heep_dma_read_req_i     (heep_dma_read_req),
       .heep_dma_read_resp_o    (heep_dma_read_resp),
       .heep_dma_write_req_i    (heep_dma_write_req),
@@ -631,17 +637,6 @@ module testharness #(
       );
 `endif
 
-`ifndef VERILATOR
-      // Flash used as an example device with an SPI interface
-      spiflash flash_device_i (
-          .csb(spi_csb[0]),
-          .clk(spi_sck),
-          .io0(spi_sd_io[0]),  // MOSI
-          .io1(spi_sd_io[1]),  // MISO
-          .io2(spi_sd_io[2]),
-          .io3(spi_sd_io[3])
-      );
-`endif
 
       if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px) && X_EXT != 0) begin: gen_fpu_ss_wrapper
         fpu_ss_wrapper #(

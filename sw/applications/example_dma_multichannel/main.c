@@ -143,11 +143,6 @@
     #define PRINTF(...)
 #endif
 
-/* FPGA SPI board selection */
-#if !TARGET_SIM
-    #define USE_SPI_FLASH
-#endif
-
 /* QuestaSim macro to enable test 4, by default is disabled */
 //#define SIM_QUESTASIM
 
@@ -1095,11 +1090,7 @@ int main()
 
     /* Pick the correct spi device based on simulation type */
     spi_host_t *spi;
-    #ifndef USE_SPI_FLASH
-    spi = spi_host1;
-    #else
     spi = spi_flash;
-    #endif
 
     /* Init SPI host and SPI<->Flash bridge parameters */
     if (w25q128jw_init(spi) != FLASH_OK)

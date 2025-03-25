@@ -1819,12 +1819,7 @@ void SPI_setup(){
 
   /* Pick the correct spi device based on simulation type */
   spi_host_t *spi;
-
-  #ifndef USE_SPI_FLASH
-  spi = spi_host1;
-  #else
   spi = spi_flash;
-  #endif
 
   /* Init SPI host and SPI<->Flash bridge parameters */
   if (w25q128jw_init(spi) != FLASH_OK)
