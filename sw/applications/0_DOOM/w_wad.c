@@ -515,11 +515,11 @@ lumpindex_t W_GetNumForName(const char* name)
     {
         I_Error ("W_GetNumForName: %s not found!\n", name);
     }
-    else 
+    /*else 
     {
         printf("W_GetNumForName: %s found!\n", name);
     }
- 
+    */ 
     return i;
 }
 

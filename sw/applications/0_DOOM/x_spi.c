@@ -29,7 +29,7 @@
 #define WAD_LENGTH  0x800000
 
 spi_t spi_flash;
-uint32_t next_loc = WAD_START_ADDRESS + WAD_LENGTH;  
+uint32_t next_loc = WAD_START_ADDRESS + WAD_LENGTH + 1024;  
 
 // ====================== PROTOTYPES ======================
 bool flash_read(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uint32_t len); 
@@ -83,6 +83,7 @@ void X_spi_erase_sector(uint32_t addr)
     if (!flash_erase_sector(&spi_flash, addr)) return EXIT_FAILURE;
 }
 
+//This has not been tested yet ! 
 void X_spi_write(uint32_t loc, void* buffer, uint32_t size)
 {
     uint8_t* buffer_ptr = (uint8_t*)buffer;

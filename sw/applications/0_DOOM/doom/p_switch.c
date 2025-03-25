@@ -116,13 +116,15 @@ void P_InitSwitchList(void)
             episode = 1;
             break;
     }
+    printf("In P_InitSwitchList after switch\n");
 
     slindex = 0;
 
     for (i = 0; i < arrlen(alphSwitchList); i++)
-    {
+    {   
         if (alphSwitchList[i].episode <= episode)
         {
+           
             switchlist[slindex++] =
                 R_TextureNumForName(DEH_String(alphSwitchList[i].name1));
             switchlist[slindex++] =
@@ -130,6 +132,7 @@ void P_InitSwitchList(void)
         }
     }
 
+    printf("In P_InitSwitchList after for loop\n");
     numswitches = slindex / 2;
     switchlist[slindex] = -1;
 }

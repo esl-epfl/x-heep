@@ -146,22 +146,29 @@ struct  __attribute__((packed)) texture_s
     // texpatch_t  *patches;
 };
 
+/****************************************************************************/
+/**                                                                        **/
+/*                            GLOBAL VARIABLES                              */
+/**                                                                        **/
+/****************************************************************************/
 
 
-int                   firstflat;
-int                   lastflat;
+ 
+int                   firstflat; //Contains the lump index of the first flat 
+int                   lastflat;  //Contains the lump index of the last flat
 int                   numflats;
 
-int                   firstpatch;
-int                   lastpatch;
+int                   firstpatch; 
+int                   lastpatch;  
 int                   numpatches;
 
-int                   firstspritelump;
-int                   lastspritelump;
+int                   firstspritelump; //Contains the lump index of the first sprite lump
+int                   lastspritelump;  //Contains the lump index of the last sprite lump 
 int                   numspritelumps;
 
 int                   numtextures;
-texture_t             textures[MAX_TEXTURES];
+
+texture_t             textures[MAX_TEXTURES]; //Aray containing all the textures under the texture_t type textures[i]->wad_texture is an adress in flash and thus must be read using X_spi_read()
 char*                 textures_names;
 texpatch_t*           texture_patches;
 // texture_t**           textures_hashtable; // NRFD-EXCLUDE hashtable
@@ -183,7 +190,7 @@ short*                  texturetranslation;
 // fixed_t*              spriteoffset;
 // fixed_t*              spritetopoffset;
 
-lighttable_t*         colormaps;
+lighttable_t*         colormaps; //This is an adress in flash, must be read using X_spi_read()
 
 
 //
@@ -939,12 +946,31 @@ void R_InitTextures (void)
     */
     
     // Create translation table for global animation.
+
+    //X-HEEP Comment  
     //texturetranslation = Z_Malloc ((numtextures+1)*sizeof(*texturetranslation), PU_STATIC, 0);
-    
     /*
     for (i=0 ; i<numtextures ; i++)
         texturetranslation[i] = i;
     */
+
+
+    /*X-HEEP TODO : write texturetranslation to flash 
+    short texturetranslationbuffer[numtextures];
+    for (i=0 ; i<numtextures ; i++)
+    {
+        texturetranslationbuffer[i] = i;
+    }
+
+    texturetranslation = X_spi_alloc_sector();
+    
+    for (int ofs=0; ofs<(numtextures+1)*sizeof(*texturetranslation); ofs+=SECT_LEN) {
+        X_spi_erase_sector(texturetranslation+ofs);
+        X_spi_alloc_sector();
+    }  
+    X_spi_write(texturetranslation, &texturetranslationbuffer, sizeof(texturetranslationbuffer));      
+    */
+
     GenerateTextureHashTable(); 
 }
 
@@ -966,11 +992,14 @@ void R_InitFlats (void)
         
     // Create translation table for global animation.
     // NRFD-TODO? flattranslation could be bytes if we used offset from firstflat 
-    //flattranslation = Z_Malloc ((numflats+1)*sizeof(*flattranslation), PU_STATIC, 0);
     
+    //X-HEEP comment 
+    //flattranslation = Z_Malloc ((numflats+1)*sizeof(*flattranslation), PU_STATIC, 0);
     /*for (i=0 ; i<numflats ; i++)
         flattranslation[i] = i;
     */
+
+     /*X-HEEP TODO : write flattranslation to flash */
 }
 
 
@@ -1041,15 +1070,16 @@ void R_InitColormaps (void)
     //  256 byte align tables.
     lump = W_GetNumForName(DEH_String("COLORMAP"));
 
-    // NRFD-TODO?
-    // colormaps = W_CacheLumpNum(lump, PU_STATIC);
+    colormaps = W_CacheLumpNum(lump, PU_STATIC);
 
     int length = W_LumpLength(lump);
     PRINTF("R_InitColormaps: length = %d\n", length);
 
+    //X-HEEP comment 
+    /*
     colormaps = Z_Malloc(length, PU_STATIC, 0);
     W_ReadLump(lump, colormaps);
-
+    */
 }
 
 
@@ -1109,10 +1139,14 @@ int     R_CheckTextureNumForName (const char *name)
 
     // NRFD-NOTE: Slower but requires less memory. Potential for optimization
     // PRINTF("Checking %.7s\n", name);
+    maptexture_t temptexture; 
+    char tempname[8];
     for (int i=0; i<numtextures; i++) {
         texture = &textures[i];
         // PRINTF("  %d: %.8s\n", i, texture->name);
-        if (!strncasecmp (texture->wad_texture->name, name, 8) ) {
+        X_spi_read(texture->wad_texture, &temptexture, sizeof(temptexture)/4);
+        memcpy(tempname, temptexture.name, sizeof(temptexture.name));
+        if (!strncasecmp (tempname, name, 8) ) {
             return i;
         }
     }
@@ -1147,13 +1181,18 @@ int     R_TextureNumForName (const char* name)
         
     i = R_CheckTextureNumForName (name);
 
+
     if (i==-1)
     {
         I_Error ("R_TextureNumForName: %s not found",
              name);
     }
-    if (i>256) {
+    else if (i>256) {
         I_Error("R_TextureNumForName: Only 256 textures supported");
+    }
+    else 
+    {
+        printf("R_TextureNumForName: %s found!\n", name);
     }
     return i;
 }

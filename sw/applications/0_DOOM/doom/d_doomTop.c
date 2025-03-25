@@ -1374,7 +1374,7 @@ void D_DoomMain (void)
     // Disable monsters.
     //
         
-    nomonsters = M_CheckParm ("-nomonsters");
+    nomonsters = M_CheckParm ("-nomonsters"); //useless
 
     //!
     // @vanilla
@@ -1382,7 +1382,7 @@ void D_DoomMain (void)
     // Monsters respawn after being killed.
     //
 
-    respawnparm = M_CheckParm ("-respawn");
+    respawnparm = M_CheckParm ("-respawn"); //useless
 
     //!
     // @vanilla
@@ -1390,7 +1390,7 @@ void D_DoomMain (void)
     // Monsters move faster.
     //
 
-    fastparm = M_CheckParm ("-fast");
+    fastparm = M_CheckParm ("-fast"); //useless
 
     //! 
     // @vanilla
@@ -1399,7 +1399,7 @@ void D_DoomMain (void)
     // directory.
     //
 
-    devparm = M_CheckParm ("-devparm");
+    devparm = M_CheckParm ("-devparm");//useless
 
     I_DisplayFPSDots(devparm); //Useless
 
@@ -1933,7 +1933,7 @@ void D_DoomMain (void)
     M_Init ();
 
     DEH_printf("R_Init: Init DOOM refresh daemon\n");
-    R_Init (); //Problem starts here 
+    R_Init ();  
 
     DEH_printf("\nP_Init: Init Playloop state.\n");
     P_Init ();
