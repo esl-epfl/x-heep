@@ -93,17 +93,19 @@ int main(int argc, char *argv[]) {
     spi_slave_t slave = SPI_SLAVE(0, FLASH_MAX_FREQ);
 
     // Initialize the spi device that is CONNECTED to the flash with our slave
-    #ifdef USE_SPI_FLASH
-    spi_t spi = spi_init(SPI_IDX_FLASH, slave);
-    #else
+    //#ifdef USE_SPI_FLASH
+    //spi_t spi = spi_init(SPI_IDX_FLASH, slave);
+    //#else
     spi_t spi = spi_init(SPI_IDX_HOST, slave);
-    #endif
+    //#endif
 
     // Check if initialization succeeded
     if (!spi.init) {
         PRINTF("\nFailed to initialize spi\n");
         return EXIT_FAILURE;
     }
+    //spi_set_enable(&spi, true);  // ✅ ENABLE SPI after init
+
 
     PRINTF("\nSPI initialized\n");
 
@@ -218,10 +220,10 @@ void display_init(spi_t* spi)
     printf("DISPLAY SPI INIT\n");
     
     ST7789_spi_init(spi);
-    printf("YEeeeeS\n");
+    printf("ST7789_spi_init\n");
     //PROGRAM CRASHES HERE
     ST7789_display_init(spi);
-    printf("YES\n");
+    printf("ST7789_display_init\n");
 
     //ST7789_test_fill_screen(0x8000);
 }

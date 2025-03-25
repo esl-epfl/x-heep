@@ -31,8 +31,6 @@ void        ST7789_gpio_init();
 uint8_t     ST7789_spi_init(spi_t* spi);
 uint8_t     ST7789_display_init(spi_t* spi);
 spi_host_t* ST7789_get_spi_host(spi_t* spi);
-//NEW
-void flash_wait(spi_t* spi);
 
 void        ST7789_spi_write_command(spi_t* spi,uint8_t command);
 void        ST7789_spi_write_data(spi_t* spi,uint8_t data);

@@ -46,7 +46,7 @@ static void ST7789_configure_spi(spi_t* spi) {
         .cpol       = 0
     });
 
-    spi_set_configopts(spi, 0, chip_cfg);
+    spi_set_configopts(&spi, 0, chip_cfg);
 }
 
  /*
@@ -63,28 +63,20 @@ void ST7789_gpio_init()
     gpio_config(cfg_out);
 }
 
-void flash_wait(spi_t* spi) {
-    // Response buffer
-    uint32_t resp;
-    // SPI Flash command
-    uint32_t cmd = FC_RSR1;
-    // Here we have to use segments and execute since our transaction is composed
-    // of a TX Only part and thereafter a RX Only
-    spi_segment_t segments[2] = {SPI_SEG_TX(1), SPI_SEG_RX(2)};
-    // Flash busy flag
-    bool busy = true;
-    while (busy)
-    {
-        spi_execute(spi, segments, 2, &cmd, &resp);
-        busy = resp & 0x01;
-    }
-}
+
+
 
 uint8_t ST7789_spi_init(spi_t* spi){
     //ST7789_spi_LCD.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
     // Enable SPI host device
-    spi_set_enable(spi, true);
-    //spi_set_enable(spi->instance, true);
+    printf("[INIT] Calling spi_set_enable(spi, true)...\n");
+    spi_return_flags_e flags = spi_set_enable(spi, true);
+    if (flags != SPI_FLAG_OK) {
+        printf("[ERROR] spi_set_enable failed: 0x%X\n", flags);
+    }
+
+    uint32_t ctrl = SPI_HW(spi)->CONTROL;
+    printf("[DEBUG] CONTROL after enable = 0x%08X\n", ctrl);
 
     // Enable SPI output
     spi_output_enable(spi, true);
@@ -181,7 +173,7 @@ spi_host_t* ST7789_get_spi_host(spi_t* spi)
 
 void ST7789_set_adress_window(spi_t* spi, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
     // Set column address with driver for screen ST7789V
-    ST7789_spi_write_command(spi, ST7789_CASET);
+    ST7789_spi_write_command(&spi, ST7789_CASET);
 
     //(x1<<8 | x1>>8)
     //spi_write_data(x1 >> 8);
@@ -214,69 +206,127 @@ void ST7789_set_adress_window(spi_t* spi, uint16_t x1, uint16_t y1, uint16_t x2,
 void ST7789_spi_write_command(spi_t* spi, uint8_t command)
 {
     gpio_write(GPIO_SPI_DC, DC_COMMAND);
+    spi_return_flags_e flags;
 
-    spi_write_word(spi, command);
+    flags =spi_write_word(spi, command);
+    if (flags != SPI_FLAG_OK) {
+        printf("FAILED TO WRITE WORD: 0x%X\n", flags);
+        return;
+    } else if (flags == SPI_FLAG_OK) {
+        printf("WRITE WORD SUCCESS\n");
+        
+    }
     ST7789_milli_delay(10);
     printf("INSIDE SPI WRITE");
     fflush(stdout);
     //PRINTF("SPI HOST ADDRESS = %x\n", ST7789_spi_LCD.base_addr);
     //PRINTF("SPI WRITE COMMAND = %x\n", command);
     //CRASHES HERE
-    //spi_wait_for_ready(spi);
-    //ST7789_milli_delay(10);
-    flash_wait(spi);
-
-    printf("AFTER WAIT FOR READY");
-    fflush(stdout);
+    
     // Set up segment parameters -> send command and address
     const uint32_t cmd = spi_create_command((spi_command_t){
-        .len        = 0,                 // 4 Bytes
+        .len        = 1,                 // 4 Bytes WAS SET TO 0 BEFORE
         .csaat      = false,             // Command not finished
         .speed      = SPI_SPEED_STANDARD, // Single speed
         .direction  = SPI_DIR_TX_ONLY     // Write only
     });
+    ST7789_milli_delay(500);
     // Load segment parameters to COMMAND register
-    printf("BEFORE SET COMMAND");
     fflush(stdout);
-    spi_set_command(spi, cmd);
+    spi_wait_for_idle(spi); 
+    printf("AFTER WAIT FOR IDLE\n");
+    uint32_t control = SPI_HW(spi)->CONTROL;
+    uint32_t status = SPI_HW(spi)->STATUS;
+    printf("[DEBUG] CONTROL = 0x%08X, STATUS = 0x%08X\n", control, status);
+    printf("[DEBUG] CMD_REG = 0x%08X\n", cmd);
+
+
+    flags=spi_set_command(spi, cmd);
+    
+    if (flags == SPI_FLAG_NULL_PTR) {
+        printf("[FAIL] spi_set_command: NULL pointer\n");
+        return;
+    } else if (flags & SPI_FLAG_SPEED_INVALID) {
+        printf("[FAIL] spi_set_command: Invalid speed/direction\n");
+        return;
+    } else if (flags & SPI_FLAG_NOT_READY) {
+        printf("[FAIL] spi_set_command: SPI not ready (timeout)\n");
+        return;
+    } else if (flags != SPI_FLAG_OK) {
+        printf("[FAIL] spi_set_command: Unknown error: 0x%X\n", flags);
+        return;
+    } else {
+        printf("[OK] spi_set_command succeeded\n");
+    }
+    flags=spi_wait_for_ready(spi);
+
+    printf("AFTER WAIT FOR READY");
+    fflush(stdout);
 }
+
 
 void ST7789_spi_write_data(spi_t* spi, uint8_t data)
 {
     gpio_write(GPIO_SPI_DC, DC_DATA);
-    spi_write_word(spi, data);
-    //spi_wait_for_ready(spi);
-    flash_wait(spi);
-    // Set up segment parameters -> send command and address
+
+    spi_return_flags_e flags = spi_write_word(spi, data);
+    if (flags != SPI_FLAG_OK) {
+        printf("FAILED TO WRITE DATA: 0x%X\n", flags);
+        return;
+    }
+
     const uint32_t cmd = spi_create_command((spi_command_t){
-        .len        = 0,                 // 4 Bytes
-        .csaat      = false,             // Command not finished
-        .speed      = SPI_SPEED_STANDARD, // Single speed
-        .direction  = SPI_DIR_TX_ONLY     // Write only
+        .len        = 1, // ✅ not 0!
+        .csaat      = false,
+        .speed      = SPI_SPEED_STANDARD,
+        .direction  = SPI_DIR_TX_ONLY
     });
-    // Load segment parameters to COMMAND register
-    spi_set_command(spi, cmd);
+
+    flags = spi_set_command(spi, cmd);
+    if (flags != SPI_FLAG_OK) {
+        printf("FAILED TO SET COMMAND (DATA): 0x%X\n", flags);
+        return;
+    }
+
+    flags = spi_wait_for_ready(spi);
+    if (flags != SPI_FLAG_OK) {
+        printf("DATA TRANSFER TIMED OUT: 0x%X\n", flags);
+    }
 }
+
 
 void ST7789_spi_write_data_2B(spi_t* spi, uint16_t data)
 {
     gpio_write(GPIO_SPI_DC, DC_DATA);
-    data = ((data >> 8 & 0x00FF) | (data << 8 & 0xFF00));
-    spi_write_word(spi, data);
-    //PRINTF("SPI WRITE DATA = %x\n", data);
 
-    //spi_wait_for_ready(spi);
-    flash_wait(spi);
-    // Set up segment parameters -> send command and address
-    const uint32_t cmd_read_1 = spi_create_command((spi_command_t){
-        .len        = 1,                 // 4 Bytes
-        .csaat      = false,             // Command not finished
-        .speed      = SPI_SPEED_STANDARD, // Single speed
-        .direction  = SPI_DIR_TX_ONLY     // Write only
+    // Swap endianness
+    data = (data >> 8) | (data << 8);
+
+    spi_return_flags_e flags = spi_write_word(spi, data);
+    if (flags != SPI_FLAG_OK) {
+        printf("FAILED TO WRITE 2B DATA: 0x%X\n", flags);
+        return;
+    }
+
+    const uint32_t cmd = spi_create_command((spi_command_t){
+        .len        = 1,
+        .csaat      = false,
+        .speed      = SPI_SPEED_STANDARD,
+        .direction  = SPI_DIR_TX_ONLY
     });
-    // Load segment parameters to COMMAND register
-    spi_set_command(spi, cmd_read_1);
+
+    flags = spi_set_command(spi, cmd);
+    if (flags != SPI_FLAG_OK) {
+        printf("FAILED TO SET COMMAND (2B DATA): 0x%X\n", flags);
+        return;
+    }
+
+    flags = spi_wait_for_ready(spi);
+    if (flags != SPI_FLAG_OK) {
+        printf("2B DATA TRANSFER TIMED OUT: 0x%X\n", flags);
+    }
 }
+
 
 uint32_t ST7789_test_write_pixel(spi_t* spi, uint16_t x, uint16_t y, uint16_t color) {
     ST7789_set_adress_window(spi, x, y, x+1, y+1);

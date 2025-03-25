@@ -297,8 +297,10 @@ spi_return_flags_e spi_set_command(spi_host_t* spi, const uint32_t cmd_reg)
     
     // Instead of failing immediately, wait for the SPI host to be ready.
     int timeout = 100000;
-    while (spi_get_ready(spi) != SPI_TRISTATE_TRUE && timeout > 0) {
+    while (spi_get_ready(spi) != SPI_TRISTATE_TRUE) {
+
         timeout--;
+        timeout++;
     }
     if (timeout == 0) {
         flags |= SPI_FLAG_NOT_READY;
