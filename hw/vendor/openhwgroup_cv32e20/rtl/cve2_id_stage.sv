@@ -216,10 +216,10 @@ module cve2_id_stage #(
 
   // Register file interface
 
-  rf_wd_sel_e  rf_wdata_sel;
-  logic        rf_we_dec, rf_we_raw;
-  logic        rf_ren_a, rf_ren_b;
-  logic        rf_ren_a_dec, rf_ren_b_dec;
+  logic [XInterface:0] rf_wdata_sel;
+  logic                rf_we_dec, rf_we_raw;
+  logic                rf_ren_a, rf_ren_b;
+  logic                rf_ren_a_dec, rf_ren_b_dec;
 
   // Read enables should only be asserted for valid and legal instructions
   assign rf_ren_a = instr_valid_i & ~instr_fetch_err_i & ~illegal_insn_o & rf_ren_a_dec;
@@ -418,19 +418,12 @@ module cve2_id_stage #(
 
   // Register file write data mux
   always_comb begin : rf_wdata_id_mux
-    if (XInterface)
-      unique case (rf_wdata_sel)
-        RF_WD_EX:     rf_wdata_id_o   = result_ex_i;
-        RF_WD_CSR:    rf_wdata_id_o   = csr_rdata_i;
-        RF_WD_COPROC: rf_wdata_id_o   = x_result_i.data;
-        default:      rf_wdata_id_o   = result_ex_i;
-      endcase
-    else
-      unique case (rf_wdata_sel)
-        RF_WD_EX:     rf_wdata_id_o   = result_ex_i;
-        RF_WD_CSR:    rf_wdata_id_o   = csr_rdata_i;
-        default:      rf_wdata_id_o   = result_ex_i;
-      endcase
+    unique case (rf_wdata_sel)
+      RF_WD_EX:     rf_wdata_id_o   = result_ex_i;
+      RF_WD_CSR:    rf_wdata_id_o   = csr_rdata_i;
+      RF_WD_COPROC: rf_wdata_id_o   = XInterface? x_result_i.data : result_ex_i;
+      default:      rf_wdata_id_o   = result_ex_i;
+    endcase
   end
 
   /////////////
@@ -826,7 +819,7 @@ module cve2_id_stage #(
   // Stall ID/EX stage for reason that relates to instruction in ID/EX, update assertion below if
   // modifying this.
   assign stall_id = stall_mem | stall_multdiv | stall_jump | stall_branch |
-                      stall_alu | stall_coproc;
+                      stall_alu | (XInterface & stall_coproc);
 
   // Generally illegal instructions have no reason to stall, however they must still stall waiting
   // for outstanding memory requests so exceptions related to them take priority over the illegal
@@ -902,10 +895,17 @@ module cve2_id_stage #(
       OP_A_FWD,
       OP_A_CURRPC,
       OP_A_IMM})
-  `ASSERT(IbexRegfileWdataSelValid, instr_valid_i |-> rf_wdata_sel inside {
-      RF_WD_EX,
-      RF_WD_CSR,
-      RF_WD_COPROC})
+  if (XInterface) begin: gen_asserts_xif
+    `ASSERT(IbexRegfileWdataSelValid, instr_valid_i |-> rf_wdata_sel inside {
+        RF_WD_EX,
+        RF_WD_CSR,
+        RF_WD_COPROC})
+  end 
+  else begin : no_gen_asserts_xif
+    `ASSERT(IbexRegfileWdataSelValid, instr_valid_i |-> rf_wdata_sel inside {
+        RF_WD_EX,
+        RF_WD_CSR})
+  end
   `ASSERT_KNOWN(IbexWbStateKnown, id_fsm_q)
 
   // Branch decision must be valid when jumping.

@@ -51,7 +51,7 @@ module cve2_decoder #(
   output logic [31:0]           zimm_rs1_type_o,
 
   // register file
-  output cve2_pkg::rf_wd_sel_e     rf_wdata_sel_o,   // RF write data selection
+  output logic [XInterface:0]      rf_wdata_sel_o,   // RF write data selection
   output logic                     rf_we_o,          // write enable for regfile
   output logic [4:0]               rf_raddr_a_o,
   output logic [4:0]               rf_raddr_b_o,
@@ -660,7 +660,7 @@ module cve2_decoder #(
     // insufficient privileges), or when accessing non-available registers in RV32E,
     // these cases are not handled here
     if (illegal_insn) begin
-      // rf_we           = 1'b0;
+      rf_we           &= XInterface;
       data_req_o      = 1'b0;
       data_we_o       = 1'b0;
       jump_in_dec_o   = 1'b0;

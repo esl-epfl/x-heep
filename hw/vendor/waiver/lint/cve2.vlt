@@ -13,3 +13,7 @@ lint_off -rule UNDRIVEN -file "*rtl/cve2_id_stage.sv" -match "Bits of signal are
 lint_off -rule UNDRIVEN -file "*rtl/cve2_id_stage.sv" -match "Bits of signal are not driven: 'x_register_o'[70:66]*"
 lint_off -rule UNDRIVEN -file "*rtl/cve2_id_stage.sv" -match "Bits of signal are not driven: 'x_commit_o'[5:1]*"
 lint_off -rule UNUSED -file "*rtl/cve2_id_stage.sv" -match "Bits of signal are not used: 'x_result_i'[42:38,5:1]*"
+lint_off -rule WIDTH -file "*rtl/cve2_decoder.sv" -match "Operator ASSIGN expects 2 bits on the Assign RHS, but Assign RHS's ENUMITEMREF 'RF_WD_EX' generates 32 bits*"
+lint_off -rule WIDTH -file "*rtl/cve2_decoder.sv" -match "Operator ASSIGN expects 2 bits on the Assign RHS, but Assign RHS's ENUMITEMREF 'RF_WD_CSR' generates 32 bits*"
+lint_off -rule WIDTH -file "*rtl/cve2_decoder.sv" -match "Operator ASSIGN expects 2 bits on the Assign RHS, but Assign RHS's ENUMITEMREF 'RF_WD_COPROC' generates 32 bits*"
+lint_off -rule WIDTH -file "*rtl/cve2_id_stage.sv" -match "Operator CASE expects 32 bits on the Case expression, but Case expression's VARREF 'rf_wdata_sel' generates 2 bits*"

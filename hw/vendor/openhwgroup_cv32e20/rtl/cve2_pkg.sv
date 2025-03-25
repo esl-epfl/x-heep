@@ -260,10 +260,10 @@ package cve2_pkg;
   } imm_b_sel_e;
 
   // Regfile write data selection
-  typedef enum logic[1:0] {
+  typedef enum {
     RF_WD_EX,
     RF_WD_CSR,
-    RF_WD_COPROC
+    RF_WD_COPROC // Only used when XInterface = 1
   } rf_wd_sel_e;
 
   //////////////

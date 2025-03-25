@@ -13,7 +13,7 @@ module testharness #(
     parameter bit X_EXT                       = 0,         // eXtension interface in cv32e40x
     parameter bit JTAG_DPI                    = 0,
     parameter bit USE_EXTERNAL_DEVICE_EXAMPLE = 1,
-    parameter CLK_FREQUENCY                   = 'd100_000  //KHz
+    parameter     CLK_FREQUENCY               = 'd100_000  //KHz
 ) (
     inout wire clk_i,
     inout wire rst_ni,
