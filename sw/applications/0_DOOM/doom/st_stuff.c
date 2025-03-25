@@ -1440,6 +1440,7 @@ void ST_Init (void)
 {
     PRINTF("ST_Init\n");
     ST_loadData();
-    st_backing_screen = (pixel_t *) Z_Malloc(ST_WIDTH * ST_HEIGHT * sizeof(*st_backing_screen), PU_STATIC, 0);
+    //X-HEEP comment 
+    //st_backing_screen = (pixel_t *) Z_Malloc(ST_WIDTH * ST_HEIGHT * sizeof(*st_backing_screen), PU_STATIC, 0);
 }
 

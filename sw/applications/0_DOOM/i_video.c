@@ -41,6 +41,7 @@
 
 #include "x_buttons.h"
 #include "x_display.h"
+#include "x_spi.h"
 //#include "n_uart.h"
 //#include "n_rjoy.h"
 
@@ -379,14 +380,19 @@ void I_SetPalette (byte *doompalette)
     // Convert Doom palette to FT810 palette
 
     // TODO: Do conversion right before transferring to save memory?
+    byte tempdoompalette; 
     for (i=0; i<256; ++i)
     {
         // Zero out the bottom two bits of each channel - the PC VGA
         // controller only supports 6 bits of accuracy.
+        X_spi_read(doompalette, &tempdoompalette, (sizeof(tempdoompalette)+3)/4); 
+        uint8_t r = gammatable[usegamma][tempdoompalette] & ~3;
+        X_spi_read(doompalette + 1, &tempdoompalette, (sizeof(tempdoompalette)+3)/4);
+        uint8_t g = gammatable[usegamma][tempdoompalette] & ~3;
+        X_spi_read(doompalette + 2, &tempdoompalette, (sizeof(tempdoompalette)+3)/4);
+        uint8_t b = gammatable[usegamma][tempdoompalette] & ~3;
+        doompalette += 3; 
 
-        uint8_t r = gammatable[usegamma][*doompalette++] & ~3;
-        uint8_t g = gammatable[usegamma][*doompalette++] & ~3;
-        uint8_t b = gammatable[usegamma][*doompalette++] & ~3;
         display_pal[i*4+0] = r;
         display_pal[i*4+1] = g;
         display_pal[i*4+2] = b;

@@ -368,7 +368,7 @@ static void EnableLoadingDisk(void)
         disk_lump_name = DEH_String("STDISK");
         V_EnableLoadingDisk(disk_lump_name,
                             SCREENWIDTH - LOADING_DISK_W,
-                            SCREENHEIGHT - LOADING_DISK_H);
+                            SCREENHEIGHT - LOADING_DISK_H); //useless
     }
 }
 
@@ -473,8 +473,8 @@ void D_DoomLoop (void)
     PRINTF("D_DoomLoop\n");
     main_loop_started = true;
 
-    I_SetWindowTitle(gamedescription);
-    I_GraphicsCheckCommandLine();
+    I_SetWindowTitle(gamedescription); //useless 
+    I_GraphicsCheckCommandLine(); //useless
     // I_SetGrabMouseCallback(D_GrabMouseCallback);
     I_InitGraphics();
     EnableLoadingDisk();

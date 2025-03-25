@@ -116,7 +116,6 @@ void P_InitSwitchList(void)
             episode = 1;
             break;
     }
-    printf("In P_InitSwitchList after switch\n");
 
     slindex = 0;
 
@@ -132,7 +131,6 @@ void P_InitSwitchList(void)
         }
     }
 
-    printf("In P_InitSwitchList after for loop\n");
     numswitches = slindex / 2;
     switchlist[slindex] = -1;
 }
