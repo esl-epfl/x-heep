@@ -417,7 +417,8 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
         X_spi_read(patch_name, &temp_patch_name, sizeof(temp_patch_name)/4);
         // int          patch_lump    = W_CheckNumForName(patch_name);
 
-        patch_t*     realpatch     = W_CacheLumpName(temp_patch_name, PU_CACHE); //W_CacheLumpNum (patch_lump, PU_CACHE);
+        patch_t*     realpatch     = W_CacheLumpName(temp_patch_name, PU_CACHE); // X-HEEP comment : realpatch is an adress in flash it must be read using X_spi_read
+        //W_CacheLumpNum (patch_lump, PU_CACHE);
         
         int          columnofs[256];
         // PRINTF("        %.8s(%d)\n", patch_name, patch_num);
@@ -449,6 +450,8 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
             }
             int colofs = columnofs[col_num]; // LONG(...)
             firstcol = (column_t *)((byte *)realpatch + colofs);
+            
+            
             column_t* col_ptr = firstcol;
             column_t temp_column_t; 
             X_spi_read(col_ptr, &temp_column_t, sizeof(temp_column_t));

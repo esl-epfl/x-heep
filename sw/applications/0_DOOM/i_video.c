@@ -371,7 +371,8 @@ void I_ReadScreen (pixel_t* scr)
 
 //
 // I_SetPalette
-//
+//// X-HEEP comment : doompalette is an adress in flash it must be read using X_spi_read
+
 void I_SetPalette (byte *doompalette)
 {
     int i;
@@ -380,17 +381,17 @@ void I_SetPalette (byte *doompalette)
     // Convert Doom palette to FT810 palette
 
     // TODO: Do conversion right before transferring to save memory?
-    byte tempdoompalette; 
+    uint32_t tempdoompalette; 
     for (i=0; i<256; ++i)
     {
         // Zero out the bottom two bits of each channel - the PC VGA
         // controller only supports 6 bits of accuracy.
-        X_spi_read(doompalette, &tempdoompalette, (sizeof(tempdoompalette)+3)/4); 
-        uint8_t r = gammatable[usegamma][tempdoompalette] & ~3;
-        X_spi_read(doompalette + 1, &tempdoompalette, (sizeof(tempdoompalette)+3)/4);
-        uint8_t g = gammatable[usegamma][tempdoompalette] & ~3;
-        X_spi_read(doompalette + 2, &tempdoompalette, (sizeof(tempdoompalette)+3)/4);
-        uint8_t b = gammatable[usegamma][tempdoompalette] & ~3;
+
+        X_spi_read(doompalette, &tempdoompalette, 1);
+
+        uint8_t r = gammatable[usegamma][(tempdoompalette >> 0)  & 0xFF] & ~3;
+        uint8_t g = gammatable[usegamma][(tempdoompalette >> 8)  & 0xFF] & ~3;
+        uint8_t b = gammatable[usegamma][(tempdoompalette >> 16) & 0xFF] & ~3;
         doompalette += 3; 
 
         display_pal[i*4+0] = r;

@@ -37,6 +37,7 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
+#include "x_spi.h"
 
 #include "doom_config.h"
 #ifdef HAVE_LIBPNG
@@ -137,20 +138,23 @@ void V_SetPatchClipCallback(vpatchclipfunc_t func)
 //
 // V_DrawPatch
 // Masks a column based masked pic to the screen. 
-//
+// X-HEEP comment : patch is an adress in flash it must be read using X_spi_read
 
 void V_DrawPatch(int x, int y, patch_t *patch)
 { 
     int count;
     int col;
-    volatile column_t *column;
+    volatile column_t *column; // X-HEEP comment : column is an adress in flash it must be read using X_spi_read
     pixel_t *desttop;
     pixel_t *dest;
-    byte *source;
+    byte *source; // X-HEEP comment : source is an adress in flash it must be read using X_spi_read
     int w, h;
 
-    y -= SHORT(patch->topoffset);
-    x -= SHORT(patch->leftoffset);
+    patch_t temppatch; 
+    X_spi_read(patch, &temppatch, sizeof(temppatch)/4); 
+
+    y -= SHORT(temppatch.topoffset);
+    x -= SHORT(temppatch.leftoffset);
 
     // haleyjd 08/28/10: Strife needs silent error checking here.
     if(patchclip_callback)
@@ -159,8 +163,8 @@ void V_DrawPatch(int x, int y, patch_t *patch)
             return;
     }
 
-    w = SHORT(patch->width);
-    h = SHORT(patch->height);
+    w = SHORT(temppatch.width);
+    h = SHORT(temppatch.height);
 
     N_ldbg("V_DrawPatch: %d x %d\n", w, h);
 
@@ -182,22 +186,31 @@ void V_DrawPatch(int x, int y, patch_t *patch)
 
     for ( ; col<w ; x++, col++, desttop++)
     {
-        column = (volatile column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+        column = (volatile column_t *)((byte *)patch + LONG(temppatch.columnofs[col]));
         I_SleepUS(1); // NRFD-TODO: remove?
+        column_t tempcolumn;
+        uint32_t temp_column_data;
+        uint32_t temp_source;
+        X_spi_read(column, &temp_column_data, 1);  
+        memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes  
 
         // step through the posts in a column
-        while (column->topdelta != 0xff)
+        while (tempcolumn.topdelta != 0xff)
         {
             source = (byte *)column + 3;
-            dest = desttop + column->topdelta*SCREENWIDTH;
-            count = column->length;
+            dest = desttop + tempcolumn.topdelta*SCREENWIDTH;
+            count = tempcolumn.length;
 
             while (count--)
             {
-                *dest = *source++;
+                X_spi_read(source, &temp_source, 1);
+                *dest = (uint8_t)temp_source; 
+                source += 1; 
                 dest += SCREENWIDTH;
             }
-            column = (column_t *)((byte *)column + column->length + 4);
+            column = (column_t *)((byte *)column + tempcolumn.length + 4);
+            X_spi_read(column, &temp_column_data, 1);  
+            memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes  
         }
     }
 }
