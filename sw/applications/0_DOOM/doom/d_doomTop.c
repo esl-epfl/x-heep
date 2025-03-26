@@ -1298,8 +1298,7 @@ void D_DoomMain (void)
     char file[256];
     char demolumpname[9];
     int numiwadlumps;
-
-    //printf("column_t size : %i\n", sizeof(column_t));  
+    
 
 
     I_AtExit(D_Endoom, false); //Useless 

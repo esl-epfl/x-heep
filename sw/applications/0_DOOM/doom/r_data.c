@@ -375,6 +375,7 @@ void R_GenerateInit(int texture_storage_size)
 
 
 
+//X-HEEP comment : patch_names is an adress in flash it must be read using X_spi_read
 
 void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
 {
@@ -407,12 +408,15 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
         int          x;
         int          x1;
         int          x2;
-        mappatch_t*  mpatch        = &mtex->patches[i];
+        mappatch_t*  mpatch        = &mtex->patches[i]; //X-HEEP comment : mpatch is an adress in flash it must be read using X_spi_read
         mappatch_t   temp2; 
-        X_spi_read(mpatch, &temp2, sizeof(temp2)/4); 
+        uint32_t temp2_data_buffer[3]; 
+        X_spi_read(mpatch, &temp2_data_buffer, 3);
+        memcpy(&temp2, &temp2_data_buffer, sizeof(mappatch_t));  // Copy only 10 bytes
+        
         short        patch_num     = SHORT(temp2.patch);
         int          originy       = SHORT(temp2.originy);
-        char*        patch_name    = patch_names + patch_num * 8;
+        char*        patch_name    = patch_names + patch_num * 8; //X-HEEP comment : patch_names is an adress in flash it must be read using X_spi_read
         char temp_patch_name[8] = {0}; 
         X_spi_read(patch_name, &temp_patch_name, sizeof(temp_patch_name)/4);
         // int          patch_lump    = W_CheckNumForName(patch_name);
@@ -441,7 +445,7 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
         
         for ( ; x<x2 ; x++)
         {
-            column_t*       firstcol;
+            column_t*       firstcol; // X-HEEP comment : firstcol is an adress in flash it must be read using X_spi_read
             byte* dest_col = generate_buffer + (height*x);
             int col_num = x-x1;
             // int colofs = LONG(patch_columnofs[col_num]);
@@ -450,15 +454,16 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
             }
             int colofs = columnofs[col_num]; // LONG(...)
             firstcol = (column_t *)((byte *)realpatch + colofs);
-            
-            
             column_t* col_ptr = firstcol;
             column_t temp_column_t; 
-            X_spi_read(col_ptr, &temp_column_t, sizeof(temp_column_t));
+            uint32_t temp_column_data;
+            uint32_t temp_source_data;
+            X_spi_read(col_ptr, &temp_column_data, 1);  
+            memcpy(&temp_column_t, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes 
             while (temp_column_t.topdelta != 0xff)
             { 
                 int col_length = temp_column_t.length;
-                byte* source = (byte *)col_ptr + 3;
+                byte* source = (byte *)col_ptr + 3; // X-HEEP comment : source is an adress in flash it must be read using X_spi_read
                 int count = col_length;
                 int position = originy + temp_column_t.topdelta;
                 
@@ -473,13 +478,14 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
 
 
                 if (count > 0) {
-                    byte source_temp; 
-                    X_spi_read(source, &source_temp, sizeof(source_temp)); 
-                    memcpy (dest_col + position, source_temp, count);
+                    X_spi_read(source, &temp_source_data, 1);
+                    byte source_temp = (uint8_t)temp_source_data; 
+                    memcpy (dest_col + position, &source_temp, count);
                 }
                 
                 col_ptr = (column_t *)((byte*)(col_ptr)  + col_length + 4);
-                X_spi_read(col_ptr, &temp_column_t, sizeof(temp_column_t)); 
+                X_spi_read(col_ptr, &temp_column_data, 1);  
+                memcpy(&temp_column_t, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes 
             }
         }
     } 
@@ -694,9 +700,10 @@ static void GenerateTextureHashTable(void)
 //
 void R_InitTextures (void)
 {
-    PRINTF("R_InitTextures\n");
+    PRINTF("R_InitTextures\n"); 
+    printf("maptexture_t size : %i\n", sizeof(mappatch_t));
 
-    maptexture_t*       mtexture;
+    maptexture_t*       mtexture; // X-HEEP comment : mtexture is an adress in flash it must be read using X_spi_read
     texture_t*          texture;
     mappatch_t*             mpatch;
     texpatch_t*             patch;
@@ -704,13 +711,13 @@ void R_InitTextures (void)
     int                 i;
     int                 j;
 
-    int*            maptex;
-    int*            maptex2;
-    int*            maptex1;
+    int*            maptex;   // X-HEEP comment : maptex is an adress in flash it must be read using X_spi_read
+    int*            maptex2;  // X-HEEP comment : maptex2 is an adress in flash it must be read using X_spi_read
+    int*            maptex1;  // X-HEEP comment : maptex1 is an adress in flash it must be read using X_spi_read
     
     char            name[9];
-    char*           names;
-    char*           patch_names;
+    char*           names; // X-HEEP comment : names is an adress in flash it must be read using X_spi_read
+    char*           patch_names; // X-HEEP comment : patch_names is an adress in flash it must be read using X_spi_read
     
     short*            patchlookup;
     
@@ -722,7 +729,7 @@ void R_InitTextures (void)
     int                 numtextures1;
     int                 numtextures2;
 
-    int*            directory;
+    int*            directory; // X-HEEP comment : maptex is an adress in flash it must be read using X_spi_read
     
     int                 temp1;
     int                 temp2;
@@ -752,7 +759,7 @@ void R_InitTextures (void)
     // The data is contained in one or two lumps,
     //  TEXTURE1 for shareware, plus TEXTURE2 for commercial.
     maptex = maptex1 = W_CacheLumpName (DEH_String("TEXTURE1"), PU_STATIC);
-    X_spi_read(maptex, &numtextures1, sizeof(numtextures1)); 
+    X_spi_read(maptex, &numtextures1, sizeof(numtextures1)/4); 
     numtextures1 = LONG(numtextures1);
     maxoff = maxoff1 = W_LumpLength (W_GetNumForName (DEH_String("TEXTURE1")));
     directory = maptex+1;

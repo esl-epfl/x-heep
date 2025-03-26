@@ -519,7 +519,8 @@ lumpindex_t W_GetNumForName(const char* name)
     {
         printf("W_GetNumForName: %s found!\n", name);
     }
-    */ 
+    */
+     
     return i;
 }
 
