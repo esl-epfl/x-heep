@@ -417,10 +417,10 @@ __attribute__((optimize("O0"))) void fic_irq_dma(void);
 /* @ToDo: Consider changing the "mask" parameter for a bitfield definition
 (see dma_regs.h) */
 static inline void write_register( uint32_t  p_val,
-                                  uint32_t  p_offset,
-                                  uint32_t  p_mask,
-                                  uint8_t   p_sel,
-                                  dma*      p_dma)
+                                   uint32_t  p_offset,
+                                   uint32_t  p_mask,
+                                   uint8_t   p_sel,
+                                   uint32_t* p_dma)
 {
     /*
      * The index is computed to avoid needing to access the structure
