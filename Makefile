@@ -45,7 +45,6 @@ X_HEEP_CFG  ?= configs/general.hjson
 PAD_CFG  	?= pad_cfg.hjson
 EXT_PAD_CFG ?=
 
-
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER ?= gcc
 
@@ -80,7 +79,6 @@ FLASHREAD_ADDR ?= 0x0
 FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
 FLASHREAD_BYTES ?= 256
 
-
 #binary to store in flash memory
 FLASHWRITE_FILE ?= $(mkfile_path)/sw/build/main.hex
 
@@ -96,6 +94,14 @@ else
 	BYTES_AFTER_MAX_HEX_ADDRESS := $(shell tac $(FLASHWRITE_FILE) | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
 	FLASHWRITE_BYTES := $(shell echo $$(( $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 )))
 endif
+
+#docker specific variables
+TAG 			  := latest
+GITHUB_REPOSITORY := vlsi-lab
+PROJECT_ID        := ghcr.io/$(GITHUB_REPOSITORY)
+IMAGE_NAME        := x-heep-toolchain
+LOCAL_FOLDER      := $(shell pwd)
+DOCKERFILE        := $(LOCAL_FOLDER)/util/dockerfile
 
 # Export variables to sub-makefiles
 export
@@ -318,6 +324,28 @@ test:
 	$(RM) test/*.log
 	python3 test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
 	@echo "You can also find the output in test/test_apps/test_apps.log"
+
+## @section docker
+
+## Build the docker image
+.PHONY: docker-build
+docker-build: environment.yml
+	docker build -t $(PROJECT_ID)/$(IMAGE_NAME):$(TAG) $(DOCKERFILE)
+
+## Push the docker image (you need write permission to the registry where you want to store it)
+.PHONY: docker-push
+docker-push:
+	docker push $(PROJECT_ID)/$(IMAGE_NAME):$(TAG)
+
+## Run the docker container
+.PHONY: docker-run
+docker-run:
+	docker run -v $(LOCAL_FOLDER):/workspace/x-heep -it --rm $(PROJECT_ID)/$(IMAGE_NAME):$(TAG)
+
+## Pull the docker image
+.PHONY: docker-pull
+docker-pull:
+	docker pull $(PROJECT_ID)/$(IMAGE_NAME):$(TAG)
 
 ## @section Cleaning commands
 
