@@ -34,6 +34,7 @@
 #include "st_stuff.h"
 #include "st_lib.h"
 #include "r_local.h"
+#include "x_spi.h"
 
 
 // in AM_map.c
@@ -46,7 +47,7 @@ extern boolean          automapactive;
 // Hack display negative frags.
 //  Loads and store the stminus lump.
 //
-patch_t*                sttminus;
+patch_t*                sttminus; // X-HEEP comment : sttminus is an adress in flash it must be read using X_spi_read
 
 void STlib_init(void)
 {
@@ -90,8 +91,11 @@ STlib_drawNum
     short               numdigits = n->width;
     short               num = *n->num;
     
-    short               w = SHORT(n->p[0]->width);
-    short               h = SHORT(n->p[0]->height);
+    patch_t n_temp; 
+    X_spi_read(n->p[0], &n_temp, sizeof(n_temp)/4); 
+
+    short               w = SHORT(n_temp.width);
+    short               h = SHORT(n_temp.height);
     short               x = n->x;
     
     int         neg;
@@ -212,16 +216,18 @@ STlib_updateMultIcon
     short                 x;
     short                 y;
 
+    patch_t p_temp; 
+    X_spi_read(mi->p[mi->oldinum], &p_temp, sizeof(p_temp)/4); 
     if (*mi->on
         && (mi->oldinum != *mi->inum || refresh)
         && (*mi->inum!=-1))
     {
         if (mi->oldinum != -1)
         {
-            x = mi->x - SHORT(mi->p[mi->oldinum]->leftoffset);
-            y = mi->y - SHORT(mi->p[mi->oldinum]->topoffset);
-            w = SHORT(mi->p[mi->oldinum]->width);
-            h = SHORT(mi->p[mi->oldinum]->height);
+            x = mi->x - SHORT(p_temp.leftoffset);
+            y = mi->y - SHORT(p_temp.topoffset);
+            w = SHORT(p_temp.width);
+            h = SHORT(p_temp.height);
 
             if (y - ST_Y < 0)
                 I_Error("updateMultIcon: y - ST_Y < 0");
@@ -267,10 +273,12 @@ STlib_updateBinIcon
     if (*bi->on
      && (bi->oldval != *bi->val || refresh))
     {
-        x = bi->x - SHORT(bi->p->leftoffset);
-        y = bi->y - SHORT(bi->p->topoffset);
-        w = SHORT(bi->p->width);
-        h = SHORT(bi->p->height);
+        patch_t p_temp; 
+        X_spi_read(bi->p, &p_temp, sizeof(p_temp)/4); 
+        x = bi->x - SHORT(p_temp.leftoffset);
+        y = bi->y - SHORT(p_temp.topoffset);
+        w = SHORT(p_temp.width);
+        h = SHORT(p_temp.height);
 
         if (y - ST_Y < 0)
             I_Error("updateBinIcon: y - ST_Y < 0");

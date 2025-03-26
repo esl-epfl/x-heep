@@ -36,6 +36,8 @@
 // State.
 #include "doomstat.h"
 
+#include"x_spi.h"
+
 
 // ?
 #define MAXWIDTH                        320
@@ -948,11 +950,11 @@ R_InitBuffer
 //
 void R_FillBackScreen (void) 
 { 
-    byte*       src;
+    byte*       src; // X-HEEP comment : src is an adress in flash it must be read using X_spi_read
     pixel_t*    dest;
     int         x;
     int         y; 
-    patch_t*    patch;
+    patch_t*    patch; // X-HEEP comment : patch is an adress in flash it must be read using X_spi_read
 
     // DOOM border patch.
     char       *name1 = DEH_String("FLOOR7_2");
@@ -996,13 +998,15 @@ void R_FillBackScreen (void)
     { 
         for (x=0 ; x<SCREENWIDTH/64 ; x++) 
         { 
-            memcpy (dest, src+((y&63)<<6), 64); 
+            X_spi_read(src+((y&63)<<6), dest, 64/4); 
+            //memcpy (dest, src+((y&63)<<6), 64); 
             dest += 64; 
         } 
 
         if (SCREENWIDTH&63) 
         { 
-            memcpy (dest, src+((y&63)<<6), SCREENWIDTH&63); 
+            X_spi_read(src+((y&63)<<6), dest, (SCREENWIDTH&63)/4); //X-HEEP comment : for now SCREENWIDTH&63 = 0 if this value changes check that it is a multiple of 4 
+            //memcpy (dest, src+((y&63)<<6), SCREENWIDTH&63); 
             dest += (SCREENWIDTH&63); 
         } 
     } 

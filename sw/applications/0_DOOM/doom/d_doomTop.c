@@ -1292,14 +1292,16 @@ static void G_CheckDemoStatusAtExit (void)
 //
 // D_DoomMain
 //
+
+#include "st_lib.h"
 void D_DoomMain (void)
 {
     int p;
     char file[256];
     char demolumpname[9];
     int numiwadlumps;
-    
 
+    //printf("sizeof st_number_t: %i\n", sizeof(st_number_t)); 
 
     I_AtExit(D_Endoom, false); //Useless 
 

@@ -701,7 +701,6 @@ static void GenerateTextureHashTable(void)
 void R_InitTextures (void)
 {
     PRINTF("R_InitTextures\n"); 
-    printf("maptexture_t size : %i\n", sizeof(mappatch_t));
 
     maptexture_t*       mtexture; // X-HEEP comment : mtexture is an adress in flash it must be read using X_spi_read
     texture_t*          texture;
