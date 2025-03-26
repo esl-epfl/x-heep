@@ -328,6 +328,7 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
     desttop = dest_screen + y * SCREENWIDTH + x;
 
     w = SHORT(patch->width);
+    uint32_t temp_data;
     for (; col < w; x++, col++, desttop++)
     {
         column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col]));
@@ -342,7 +343,8 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
 
             while (count--)
             {
-                *dest = tinttable[((*dest) << 8) + *source++];
+                X_spi_read(tinttable[((*dest) << 8) + *source++], &temp_data, 1); 
+                *dest = (uint8_t)temp_data;
                 dest += SCREENWIDTH;
             }
             column = (column_t *) ((byte *) column + column->length + 4);
@@ -377,6 +379,7 @@ void V_DrawXlaPatch(int x, int y, patch_t * patch)
     desttop = dest_screen + y * SCREENWIDTH + x;
 
     w = SHORT(patch->width);
+    uint32_t temp_data;
     for(; col < w; x++, col++, desttop++)
     {
         column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col]));
@@ -391,7 +394,8 @@ void V_DrawXlaPatch(int x, int y, patch_t * patch)
 
             while(count--)
             {
-                *dest = xlatab[*dest + ((*source) << 8)];
+                X_spi_read(xlatab[*dest + ((*source) << 8)], &temp_data, 1); 
+                *dest = (uint8_t)temp_data;
                 source++;
                 dest += SCREENWIDTH;
             }
@@ -429,6 +433,7 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
     desttop = dest_screen + y * SCREENWIDTH + x;
 
     w = SHORT(patch->width);
+    uint32_t temp_data;
     for (; col < w; x++, col++, desttop++)
     {
         column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col]));
@@ -443,7 +448,8 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
 
             while (count--)
             {
-                *dest = tinttable[((*dest) << 8) + *source++];
+                X_spi_read(tinttable[((*dest) << 8) + *source++], &temp_data, 1); 
+                *dest = (uint8_t)temp_data;
                 dest += SCREENWIDTH;
             }
             column = (column_t *) ((byte *) column + column->length + 4);
@@ -482,6 +488,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     desttop2 = dest_screen + (y + 2) * SCREENWIDTH + x + 2;
 
     w = SHORT(patch->width);
+    uint32_t temp_data;
     for (; col < w; x++, col++, desttop++, desttop2++)
     {
         column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col]));
@@ -497,7 +504,8 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 
             while (count--)
             {
-                *dest2 = tinttable[((*dest2) << 8)];
+                X_spi_read(tinttable[((*dest2) << 8)], &temp_data, 1); 
+                *dest = (uint8_t)temp_data;
                 dest2 += SCREENWIDTH;
                 *dest = *source++;
                 dest += SCREENWIDTH;

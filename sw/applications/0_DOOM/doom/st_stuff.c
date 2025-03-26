@@ -321,10 +321,10 @@ static patch_t*         shortnum[10]; // X-HEEP comment : The elements of shortn
 static patch_t*         keys[NUMCARDS]; // X-HEEP comment : The elements of keys are adresses in flash they must be read using X_spi_read
 
 // face status patches
-static patch_t*         faces[ST_NUMFACES]; //// X-HEEP comment : The elements of shortnum are adresses in flash they must be read using X_spi_read
+static patch_t*         faces[ST_NUMFACES]; // X-HEEP comment : The elements of shortnum are adresses in flash they must be read using X_spi_read
 
 // face background
-static patch_t*         faceback; //// X-HEEP comment : faceback is an adress in flash it must be read using X_spi_read
+static patch_t*         faceback; // X-HEEP comment : faceback is an adress in flash it must be read using X_spi_read
 
  // main bar right
 static patch_t*         armsbg;  // X-HEEP comment : armsbg is an adress in flash it must be read using X_spi_read
