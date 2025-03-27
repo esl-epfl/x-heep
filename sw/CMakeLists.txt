@@ -20,7 +20,6 @@ cmake_minimum_required(VERSION 3.15)
 # Include to fetch any vendorised repo (e.g. FreeRTOS)
 include(FetchContent)
 
-set(VERBOSE true)
 
 # Add some colors!
 if(NOT WIN32)
@@ -51,6 +50,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 # Set MAIN file
 SET(MAINFILE "main")
+
 
 #######################################################################
 #      FIND HEADER FILES TO BE INCLUDED
@@ -106,10 +106,11 @@ LIST(REMOVE_DUPLICATES h_dir_list_)
 # Add list to the directories to be included
 
 # Get all the folders to include when linking
-SET(INCLUDE_FOLDERS "-I /tools/riscv-llvm-comp/lib/clang/20/include/llvm_libc_wrappers/ \
+SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
+                     -I ${RISCV}/${COMPILER_PREFIX}elf/include/ \
                      -I ${ROOT_PROJECT} \
                      -I ${SOURCE_PATH} \
-					           ${dir_list_str}")
+					           ${dir_list_str}")                                      
 
 #######################################################################
 #      FIND SOURCE FILES TO BE INCLUDED
@@ -380,21 +381,14 @@ message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
 
 if (${COMPILER} MATCHES "clang")
      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
+                                          --gcc-toolchain=${RISCV} \
+                                          --sysroot=${RISCV}/${COMPILER_PREFIX}elf \
                                           -static \
                                           -mcmodel=medany \
                                           -fvisibility=hidden \
                                           -nostartfiles \
                                           -Wall \
                                           -Wno-unused-command-line-argument" )
-      # set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
-                                          # --gcc-toolchain=/home/tools/riscv-corev \
-                                          # --sysroot=/home/tools/riscv-corev/riscv32-corev-elf \
-                                          # -static \
-                                          # -mcmodel=medany \
-                                          # -fvisibility=hidden \
-                                          # -nostartfiles \
-                                          # -Wall \
-                                          # -Wno-unused-command-line-argument" )
 endif()
 
 # In case of wanting to create a library with those subdirectories
@@ -445,6 +439,7 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                              -static ${LINKED_FILES} \
                              -Wl,-Map=${MAINFILE}.map \
                              -Wl,--gc-sections \
+                             -L ${RISCV}/${COMPILER_PREFIX}elf/lib \
                              -lc -lm -lgcc -flto \
                              -fpermissive -fno-rtti -fno-exceptions -fno-threadsafe-statics \
                             -ffunction-sections -fdata-sections -specs=nano.specs")

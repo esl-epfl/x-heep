@@ -5,7 +5,7 @@ set( CMAKE_SYSTEM_PROCESSOR     $ENV{ARCH}
      CACHE STRING "Generate code for given RISC-V ISA string")
 set( CMAKE_EXECUTABLE_SUFFIX    ".elf")
 
-set(RISCV_GCC_COMPILER  /home/tools/riscv-corev/bin/riscv32-corev-elf-gcc)
+set(RISCV_GCC_COMPILER  $ENV{RISCV}/bin/$ENV{COMPILER_PREFIX}elf-gcc)
 set(RISCV_CLANG_COMPILER  $ENV{RISCV}/bin/clang)
 
 STRING(REGEX REPLACE "\-gcc$" "-" GCC_CROSS_COMPILE ${RISCV_GCC_COMPILER})
@@ -16,26 +16,26 @@ STRING(REGEX REPLACE "clang" "" CLANG_CROSS_COMPILE ${RISCV_CLANG_COMPILER})
 # the -nostartfiles option on the command line
 #CMAKE_FORCE_C_COMPILER( "${RISCV_TOOLCHAIN_BIN_PATH}/${CROSS_COMPILE}gcc${RISCV_TOOLCHAIN_BIN_EXT}" GNU )
 #CMAKE_FORCE_CXX_COMPILER( "${RISCV_TOOLCHAIN_BIN_PATH}/${CROSS_COMPILE}g++${RISCV_TOOLCHAIN_BIN_EXT}" GNU )
+
 if ($ENV{COMPILER} MATCHES "gcc")
+     set(CMAKE_ASM_COMPILER ${GCC_CROSS_COMPILE}gcc)
+     set(CMAKE_AR ${GCC_CROSS_COMPILE}ar)
+     set(CMAKE_ASM_COMPILER ${GCC_CROSS_COMPILE}gcc)
      set(CMAKE_C_COMPILER ${GCC_CROSS_COMPILE}gcc)
      set(CMAKE_CXX_COMPILER ${GCC_CROSS_COMPILE}g++)
-     set(CMAKE_OBJDUMP ${GCC_CROSS_COMPILE}objdump
-          CACHE FILEPATH "The toolchain objdump command " FORCE )
-      set(CMAKE_OBJCOPY ${GCC_CROSS_COMPILE}objcopy
-          CACHE FILEPATH "The toolchain objcopy command " FORCE )
-     set( CMAKE_LINKER ${RISCV_GCC_COMPILER})
 elseif ($ENV{COMPILER} MATCHES "clang")
-
-set(CMAKE_OBJDUMP ${CLANG_CROSS_COMPILE}llvm-objdump
-     CACHE FILEPATH "The toolchain objdump command " FORCE )
- set(CMAKE_OBJCOPY ${CLANG_CROSS_COMPILE}objcopy
-     CACHE FILEPATH "The toolchain objcopy command " FORCE )
-set( CMAKE_LINKER ${RISCV_CLANG_COMPILER})
-set(CMAKE_C_COMPILER ${CLANG_CROSS_COMPILE}clang)
+     set(CMAKE_ASM_COMPILER ${CLANG_CROSS_COMPILE}clang)
+     set(CMAKE_AR ${CLANG_CROSS_COMPILE}llvm-ar)
+     set(CMAKE_ASM_COMPILER ${CLANG_CROSS_COMPILE}clang)
+     set(CMAKE_C_COMPILER ${CLANG_CROSS_COMPILE}clang)
      set(CMAKE_CXX_COMPILER ${CLANG_CROSS_COMPILE}clang++)
 endif()
 
-
+set(CMAKE_OBJDUMP ${GCC_CROSS_COMPILE}objdump
+          CACHE FILEPATH "The toolchain objdump command " FORCE )
+set(CMAKE_OBJCOPY ${GCC_CROSS_COMPILE}objcopy
+          CACHE FILEPATH "The toolchain objcopy command " FORCE )
+set( CMAKE_LINKER ${RISCV_GCC_COMPILER})
 
 # We must set the OBJCOPY setting into cache so that it's available to the
 # whole project. Otherwise, this does not get set into the CACHE and therefore
@@ -44,12 +44,11 @@ endif()
 
 # Set the common build flags
 
-# Set the CMAKE C flags (which should also be used by the assembler!
+# Set the CMAKE C flags (which should also be used by the assembler!)
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g" )
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${CMAKE_SYSTEM_PROCESSOR}" )
 if ($ENV{COMPILER} MATCHES "clang")
-     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-command-line-argument --target=riscv32 " )
-     # set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-command-line-argument --target=riscv32 --gcc-toolchain=$ENV{RISCV} --sysroot=/home/tools/riscv-corev/riscv32-corev-elf" )
+     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-command-line-argument --target=riscv32 --gcc-toolchain=$ENV{RISCV} --sysroot=$ENV{RISCV}/$ENV{COMPILER_PREFIX}elf-gcc" )
 endif()
 
 set(CMAKE_C_COMPILER_WORKS TRUE)
