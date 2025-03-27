@@ -7,7 +7,7 @@ from enum import Enum
 
 class Peripheral(ABC):
     """
-    Basic description of a peripheral. These peripherals are not linked to a hjson file. This class cannot be instantiated.
+    Basic description of a peripheral. These peripherals are not linked to a hjson file, they only have a memory range. This class cannot be instantiated.
 
     :param int address: The virtual (in peripheral domain) memory address of the peripheral, the base address should be known by the creator of the class.
     :param int length: The size taken in memory by the peripheral
@@ -88,7 +88,9 @@ class PeripheralName(Enum):
 
 class DataConfiguration(ABC):
     """
-    Abstract class for adding configuration of a peripheral. This class cannot be instantiated.
+    Abstract class for adding a more sofisticated configuration to a peripheral, acts as an interface in Java. This class cannot be instantiated.
+
+    :param str config_path: The path to the hjson file that describes the peripheral (interface and registers).
     """
 
     _config_path: str
@@ -407,9 +409,7 @@ def minimal_config():
         PeripheralName.Ext_peripheral: Ext_peripheral(0x00070000),
         PeripheralName.Pad_control: Pad_control(0x00080000),
         PeripheralName.GPIO_ao: GPIO_ao(0x00090000),
-        PeripheralName.UART: UART(
-            0x000A0000
-        ),  # keeping last comma for automatization if ao_peripheral are added
+        PeripheralName.UART: UART(0x000A0000),
     }
 
 
@@ -428,7 +428,7 @@ def empty_config():
         PeripheralName.RV_timer: None,
         PeripheralName.SPI2: None,
         PeripheralName.PDM2PCM: None,
-        PeripheralName.I2S: None,  # keeping last comma for automatization if peripheral are added
+        PeripheralName.I2S: None,
     }
 
 
@@ -476,16 +476,16 @@ def peripheral_offset_compute(domain_length, peripherals):
 
     free_space = [[0, domain_length]]
 
-    nb_peripherals = (
+    num_peripherals_with_address = (
         0 if peripherals_with_address == None else len(peripherals_with_address)
     )
-    nb_peripherals = (
+    num_peripherals_without_address = (
         0 if peripherals_without_address == None else len(peripherals_without_address)
     )
 
     # Works because peripherals_with_address is sorted by address
     # Splits the last free space into two new lists, one before the peripheral and one after
-    for i in range(nb_peripherals):
+    for i in range(num_peripherals_with_address):
         # Removes last free space to split it
         last_free_space = free_space[-1]
         free_space.pop()
@@ -529,7 +529,7 @@ def peripheral_offset_compute(domain_length, peripherals):
             )
 
     # Place peripherals where in the first free space where they fit, works because peripherals_without_address is sorted by length in descending order
-    for i in range(nb_peripherals):
+    for i in range(num_peripherals_without_address):
         fit = False  # Check if the peripheral fits in the free space
         for j in range(len(free_space)):
             if (
