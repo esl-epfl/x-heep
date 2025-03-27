@@ -1,5 +1,4 @@
-ARG riscv_gcc=/tools/riscv-gcc
-ARG riscv_clang=/tools/riscv-clang
+ARG riscv=/tools/riscv
 ARG verilator_version=4.210
 ARG verible_version=v0.0-3858-g660d1664
 ARG clang_version=20.1.1
@@ -8,13 +7,11 @@ ARG clang_version=20.1.1
 FROM ubuntu:24.04 as builder
 
 # Import environment variables from global scope
-ARG riscv_gcc
-ARG riscv_clang
+ARG riscv
 ARG verilator_version
 ARG verible_version
 ARG clang_version
-ENV RISCV_GCC=${riscv_gcc}
-ENV RISCV_CLANG=${riscv_clang}
+ENV RISCV=${riscv}
 ENV VERILATOR_VERSION=${verilator_version}
 ENV VERIBLE_VERSION=${verible_version}
 ENV CLANG_VERSION=${clang_version}
@@ -31,15 +28,15 @@ RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y lcov \
 # Install GCC-RISC-V toolchain
 RUN mkdir -p /corev
 RUN wget -qO- https://buildbot.embecosm.com/job/corev-gcc-ubuntu2204/47/artifact/corev-openhw-gcc-ubuntu2204-20240530.tar.gz | tar -xz -C /corev
-RUN mkdir -p $RISCV_GCC
-RUN mv /corev/corev-openhw-gcc-ubuntu2204-20240530/* $RISCV_GCC/
+RUN mkdir -p $RISCV
+RUN mv /corev/corev-openhw-gcc-ubuntu2204-20240530/* $RISCV/
 RUN rm -rf /corev/corev-openhw-gcc-ubuntu2204-20240530
 
 # Install clang
 RUN git clone https://github.com/llvm/llvm-project.git /llvm-project
 RUN cd /llvm-project && git checkout llvmorg-$CLANG_VERSION && mkdir build 
-RUN cd /llvm-project/build && cmake -G Ninja -DCMAKE_BUILD_TYPE="Debug" -DBUILD_SHARED_LIBS=True -DLLVM_USE_SPLIT_DWARF=True -DCMAKE_INSTALL_PREFIX=$RISCV_CLANG -DLLVM_OPTIMIZED_TABLEGEN=True -DLLVM_BUILD_TESTS=False -DLLVM_DEFAULT_TARGET_TRIPLE="riscv32-corev-elf" -DLLVM_TARGETS_TO_BUILD="RISCV" -DLLVM_ENABLE_PROJECTS="clang" ../llvm
-RUN cd /llvm-project/build && cmake --build . --target install -j$(nproc)
+RUN cd /llvm-project/build && cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS="clang" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV -DLLVM_TARGETS_TO_BUILD="RISCV" -DLLVM_DEFAULT_TARGET_TRIPLE=riscv32-corev-elf ../llvm
+RUN cd /llvm-project/build && make -j$(nproc) && make install
 RUN rm -rf /llvm-project
 
 # Install Verilator
@@ -76,20 +73,17 @@ FROM busybox:1.35.0-uclibc as busybox
 # Pull distroless image
 FROM gcr.io/distroless/cc-debian12
 
-ARG riscv_gcc
-ARG riscv_clang
+ARG riscv
 ARG verilator_version
 ARG verible_version
 ARG clang_version
-ENV RISCV_GCC=${riscv_gcc}
-ENV RISCV_CLANG=${riscv_clang}
+ENV RISCV=${riscv}
 ENV VERILATOR_VERSION=${verilator_version}
 ENV VERIBLE_VERSION=${verible_version}
 ENV CLANG_VERSION=${clang_version}
 
 # Copy RISC-V toolchain from builder
-COPY --from=builder /tools/riscv_gcc /tools/riscv_gcc
-COPY --from=builder /tools/riscv_clang /tools/riscv_clang
+COPY --from=builder /tools/riscv /tools/riscv
 
 # Copy Verilator from builder
 COPY --from=builder /tools/verilator /tools/verilator
@@ -174,14 +168,13 @@ COPY --from=busybox /bin/find /bin/find
 COPY --from=busybox /bin/tr /bin/tr
 
 # Set PATH
-ENV PATH=/tools/verible/verible-${VERIBLE_VERSION}/bin:/tools/verilator/${VERILATOR_VERSION}/bin:/opt/conda/envs/core-v-mini-mcu/bin:/opt/conda/condabin:${RISCV_CLANG}/bin:${RISCV_GCC}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV PATH=/tools/verible/verible-${VERIBLE_VERSION}/bin:/tools/verilator/${VERILATOR_VERSION}/bin:/opt/conda/envs/core-v-mini-mcu/bin:/opt/conda/condabin:${RISCV}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # Select workdir
 WORKDIR /workspace/x-heep
 
 # Set conda environment
 RUN conda init bash && echo "conda activate core-v-mini-mcu" >> /root/.bashrc
-
 
 RUN echo "echo ' ' " >> /root/.bashrc
 RUN echo "echo '  ' " >> /root/.bashrc

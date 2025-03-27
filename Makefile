@@ -101,7 +101,7 @@ GITHUB_REPOSITORY := vlsi-lab
 PROJECT_ID        := ghcr.io/$(GITHUB_REPOSITORY)
 IMAGE_NAME        := x-heep-toolchain
 LOCAL_FOLDER      := $(shell pwd)
-DOCKERFILE        := $(LOCAL_FOLDER)/util/dockerfile
+UTIL_FOLDER       := $(LOCAL_FOLDER)/util
 
 # Export variables to sub-makefiles
 export
@@ -330,7 +330,7 @@ test:
 ## Build the docker image
 .PHONY: docker-build
 docker-build: environment.yml
-	docker build -t $(PROJECT_ID)/$(IMAGE_NAME):$(TAG) $(DOCKERFILE)
+	docker build -t $(PROJECT_ID)/$(IMAGE_NAME):$(TAG) $(UTIL_FOLDER)
 
 ## Push the docker image (you need write permission to the registry where you want to store it)
 .PHONY: docker-push
