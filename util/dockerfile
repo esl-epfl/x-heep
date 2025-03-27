@@ -121,6 +121,7 @@ COPY --from=builder /usr/bin/picocom /usr/bin/picocom
 COPY --from=builder /usr/bin/realpath /usr/bin/realpath
 COPY --from=builder /usr/bin/touch /usr/bin/touch
 COPY --from=builder /usr/bin/cp /usr/bin/cp
+COPY --from=builder /usr/bin/pwd /usr/bin/pwd
 COPY --from=builder /usr/bin/mv /usr/bin/mv
 COPY --from=builder /usr/bin/sort /usr/bin/sort
 COPY --from=builder /usr/bin/head /usr/bin/head
@@ -147,6 +148,7 @@ COPY --from=builder /usr/lib/x86_64-linux-gnu/perl/5.38 /usr/lib/x86_64-linux-gn
 COPY --from=builder /usr/lib/x86_64-linux-gnu/perl5/5.38 /usr/lib/x86_64-linux-gnu/perl5/5.38
 COPY --from=builder /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl-base
 COPY --from=builder /usr/lib /usr/lib
+COPY --from=builder /usr/libexec /usr/libexec
 
 # Copy perl binaries from builder
 COPY --from=builder /etc/perl /etc/perl
