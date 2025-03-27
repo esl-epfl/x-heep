@@ -62,7 +62,7 @@
 #define CSR_INTR_EN    0x08             // CPU Global interrupt enable
 
 // Hold sector data
-uint8_t sect_data[SECT_LEN];
+uint32_t sect_data[SECT_LEN/4];
 
 // Data to write
 uint32_t flash_original_1024B[PAGE_LEN] = {
