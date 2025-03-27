@@ -58,7 +58,7 @@ RUN /opt/conda/bin/conda init bash
 RUN rm Miniconda3-latest-Linux-x86_64.sh
 
 # Install conda environment
-COPY ../environment.yml .
+COPY environment.yml .
 RUN /opt/conda/bin/conda env create -f environment.yml
 RUN rm environment.yml
 

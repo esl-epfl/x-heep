@@ -330,6 +330,7 @@ test:
 ## Build the docker image
 .PHONY: docker-build
 docker-build: environment.yml
+	mv environment.yml $(UTIL_FOLDER)
 	docker build -t $(PROJECT_ID)/$(IMAGE_NAME):$(TAG) $(UTIL_FOLDER)
 
 ## Push the docker image (you need write permission to the registry where you want to store it)
