@@ -119,9 +119,9 @@ class BasePeripheral(Peripheral, ABC):
     """
 
 
-class OnOffPeripheral(Peripheral, ABC):
+class UserPeripheral(Peripheral, ABC):
     """
-    Abstract class representing optionnal peripherals. This class cannot be instantiated.
+    Abstract class representing user-configurable peripherals. This class cannot be instantiated.
     """
 
 
@@ -310,11 +310,11 @@ class UART(BasePeripheral, DataConfiguration):
 
 
 # ------------------------------------------------------------
-# On-Off Peripherals (optional peripherals)
+# User Peripherals (optional peripherals)
 # ------------------------------------------------------------
 
 
-class RV_plic(OnOffPeripheral, DataConfiguration):
+class RV_plic(UserPeripheral, DataConfiguration):
     """
     RISC-V Platform Level Interrupt Controller.
     """
@@ -323,7 +323,7 @@ class RV_plic(OnOffPeripheral, DataConfiguration):
     _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson"
 
 
-class SPI_host(OnOffPeripheral, DataConfiguration):
+class SPI_host(UserPeripheral, DataConfiguration):
     """
     Serial Peripheral Interface host controller.
     """
@@ -332,7 +332,7 @@ class SPI_host(OnOffPeripheral, DataConfiguration):
     _config_path = "./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson"
 
 
-class GPIO(OnOffPeripheral, DataConfiguration):
+class GPIO(UserPeripheral, DataConfiguration):
     """
     General Purpose Input/Output controller.
     """
@@ -341,7 +341,7 @@ class GPIO(OnOffPeripheral, DataConfiguration):
     _config_path = "./hw/vendor/pulp_platform_gpio/gpio_regs.hjson"
 
 
-class I2C(OnOffPeripheral, DataConfiguration):
+class I2C(UserPeripheral, DataConfiguration):
     """
     Inter-Integrated Circuit communication interface.
     """
@@ -350,7 +350,7 @@ class I2C(OnOffPeripheral, DataConfiguration):
     _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/i2c/data/i2c.hjson"
 
 
-class RV_timer(OnOffPeripheral, DataConfiguration):
+class RV_timer(UserPeripheral, DataConfiguration):
     """
     RISC-V timer peripheral.
     """
@@ -359,7 +359,7 @@ class RV_timer(OnOffPeripheral, DataConfiguration):
     _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/rv_timer/data/rv_timer.hjson"
 
 
-class SPI2(OnOffPeripheral):
+class SPI2(UserPeripheral):
     """
     Secondary Serial Peripheral Interface.
     """
@@ -367,7 +367,7 @@ class SPI2(OnOffPeripheral):
     _name = PeripheralName.SPI2
 
 
-class PDM2PCM(OnOffPeripheral, DataConfiguration):
+class PDM2PCM(UserPeripheral, DataConfiguration):
     """
     Pulse-density modulation to pulse-code modulation converter.
     """
@@ -376,7 +376,7 @@ class PDM2PCM(OnOffPeripheral, DataConfiguration):
     _config_path = "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
 
 
-class I2S(OnOffPeripheral, DataConfiguration):
+class I2S(UserPeripheral, DataConfiguration):
     """
     Inter-IC Sound interface.
     """
@@ -417,7 +417,7 @@ def empty_config():
     """
     Returns an empty configuration.
 
-    :return: The dictionary of all on off peripherals but not instiated.
+    :return: The dictionary of all user peripherals but not instiated.
     :rtype: dict[str, Peripheral]
     """
     return {

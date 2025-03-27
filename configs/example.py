@@ -1,5 +1,6 @@
 from x_heep_gen.linker_section import LinkerSection
 from x_heep_gen.system import XHeep, BusType
+from x_heep_gen.peripherals import *  # TODO : Remove *
 
 
 def config():

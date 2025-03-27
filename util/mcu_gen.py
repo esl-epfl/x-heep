@@ -1015,24 +1015,20 @@ def main():
         dma_xbar_array = "default: 1"
 
     if xheep.are_peripherals_configured():
-        on_off_peripheral_start_address = xheep.get_on_off_peripherals_base_address()
-        on_off_peripheral_size_address = xheep.get_on_off_peripherals_length()
-        on_off_peripherals = (
-            xheep.get_on_off_peripherals()
-        )  # Paths still in peripherals
-        on_off_peripherals_count = len(on_off_peripherals)
+        user_peripheral_start_address = xheep.get_user_peripherals_base_address()
+        user_peripheral_size_address = xheep.get_user_peripherals_length()
+        user_peripherals = xheep.get_user_peripherals()  # Paths still in peripherals
+        user_peripherals_count = len(user_peripherals)
     else:
-        on_off_peripheral_start_address = int(
+        user_peripheral_start_address = int(
             string2int(obj["peripherals"]["address"]), 16
         )
-        on_off_peripheral_size_address = int(
-            string2int(obj["peripherals"]["length"]), 16
-        )
-        on_off_peripherals = extract_peripherals(discard_path(obj["peripherals"]))
-        on_off_peripherals_count = len(on_off_peripherals)
+        user_peripheral_size_address = int(string2int(obj["peripherals"]["length"]), 16)
+        user_peripherals = extract_peripherals(discard_path(obj["peripherals"]))
+        user_peripherals_count = len(user_peripherals)
 
-    if on_off_peripheral_start_address < int("10000", 16):
-        exit("on-off peripheral start address must be greater than 0x10000")
+    if user_peripheral_start_address < int("10000", 16):
+        exit("user peripheral start address must be greater than 0x10000")
 
     # For simplicity between python config and hjson config, formating peripherals to list of dictionaries instead of list of Peripherals
     def format_peripherals_to_dicts(peripherals):
@@ -1058,8 +1054,8 @@ def main():
                     p.get_num_channels_per_master_port()
                 ).split("x")[1]
 
-            # Adding is_included to the description if the peripheral is an OnOffPeripheral
-            if isinstance(p, x_heep_gen.peripherals.OnOffPeripheral):
+            # Adding is_included to the description if the peripheral is a UserPeripheral
+            if isinstance(p, x_heep_gen.peripherals.UserPeripheral):
                 description["is_included"] = "yes"
 
             format[p.get_name().value] = description
@@ -1068,7 +1064,7 @@ def main():
 
     if xheep.are_peripherals_configured():
         base_peripherals = format_peripherals_to_dicts(base_peripherals)
-        on_off_peripherals = format_peripherals_to_dicts(on_off_peripherals)
+        user_peripherals = format_peripherals_to_dicts(user_peripherals)
 
     ext_slave_start_address = string2int(obj["ext_slaves"]["address"])
     ext_slave_size_address = string2int(obj["ext_slaves"]["length"])
@@ -1564,12 +1560,8 @@ def main():
     # Writes peripheral domains parameters into hexadecimal format (removing leading 0x and padding to have 8 bits)
     base_peripheral_start_address = f"{base_peripheral_start_address & 0xFFFFFFFF:08X}"
     base_peripheral_size_address = f"{base_peripheral_size_address & 0xFFFFFFFF:08X}"
-    on_off_peripheral_start_address = (
-        f"{on_off_peripheral_start_address & 0xFFFFFFFF:08X}"
-    )
-    on_off_peripheral_size_address = (
-        f"{on_off_peripheral_size_address & 0xFFFFFFFF:08X}"
-    )
+    user_peripheral_start_address = f"{user_peripheral_start_address & 0xFFFFFFFF:08X}"
+    user_peripheral_size_address = f"{user_peripheral_size_address & 0xFFFFFFFF:08X}"
 
     kwargs = {
         "xheep": xheep,
@@ -1588,10 +1580,10 @@ def main():
         "num_dma_master_ports": num_dma_master_ports,
         "num_dma_xbar_channels_per_master_port": num_dma_xbar_channels_per_master_port,
         "dma_xbar_masters_array": dma_xbar_array,
-        "peripheral_start_address": on_off_peripheral_start_address,
-        "peripheral_size_address": on_off_peripheral_size_address,
-        "peripherals": on_off_peripherals,
-        "peripherals_count": on_off_peripherals_count,
+        "peripheral_start_address": user_peripheral_start_address,
+        "peripheral_size_address": user_peripheral_size_address,
+        "peripherals": user_peripherals,
+        "peripherals_count": user_peripherals_count,
         "ext_slave_start_address": ext_slave_start_address,
         "ext_slave_size_address": ext_slave_size_address,
         "flash_mem_start_address": flash_mem_start_address,

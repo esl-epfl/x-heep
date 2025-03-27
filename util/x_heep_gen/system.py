@@ -4,7 +4,18 @@ from typing import Generator, Iterable, List, Optional, Set, Union
 from enum import Enum
 from .ram_bank import Bank, is_pow2, ILRamGroup
 from .linker_section import LinkerSection
-from .peripherals import *
+from .peripherals import (
+    Peripheral,
+    BasePeripheral,
+    UserPeripheral,
+    PeripheralName,
+    DMA,
+    DataConfiguration,
+    minimal_config,
+    empty_config,
+    get_peripheral_list,
+    peripheral_offset_compute,
+)
 import os
 
 
@@ -88,16 +99,14 @@ class XHeep:
 
         # Peripherals instantiation
         self._base_peripherals_base_address = 0x20000000
-        self._on_off_peripherals_base_address = 0x30000000
+        self._user_peripherals_base_address = 0x30000000
         self._base_peripherals = minimal_config()  # Adding mandatory peripherals
-        self._on_off_peripherals = (
-            empty_config()
-        )  # Adding on-off peripherals (all None)
+        self._user_peripherals = empty_config()  # Adding user peripherals (all None)
         self._base_peripherals_length = 0x00100000
-        self._on_off_peripherals_length = 0x00100000
+        self._user_peripherals_length = 0x00100000
         # self._base_peripherals_length = get_total_length(get_peripheral_list(self._base_peripherals))
-        # self._on_off_peripherals_length = get_total_length(get_peripheral_list(self._on_off_peripherals))
-        # Warning : _base_peripherals and _on_off_peripherals are dictionnaries of Peripheral name -> Peripheral object, not lists of Peripheral objects. To get the list of peripherals, use get_peripheral_list from peripherals.py
+        # self._user_peripherals_length = get_total_length(get_peripheral_list(self._user_peripherals))
+        # Warning : _base_peripherals and _user_peripherals are dictionnaries of Peripheral name -> Peripheral object, not lists of Peripheral objects. To get the list of peripherals, use get_peripheral_list from peripherals.py
 
     # This function is currently trivial, it can be extended to check if the peripherals are correctly configured.
     def are_peripherals_configured(self) -> bool:
@@ -295,12 +304,12 @@ class XHeep:
         :return: the list of peripherals.
         :rtype: Dict[PeripheralName, Peripheral]
         """
-        return self._base_peripherals + self._on_off_peripherals
+        return self._base_peripherals + self._user_peripherals
 
     def add_peripheral(self, peripheral: Peripheral):
         """
         :param Peripheral peripheral: The peripheral to add. If already added, overwrites the previous one.
-        :raise TypeError: if the peripheral is not an instance of OnOffPeripheral.
+        :raise TypeError: if the peripheral is not an instance of UserPeripheral.
         :return: The previous peripheral if it was already added, otherwise None.
         """
 
@@ -309,19 +318,19 @@ class XHeep:
 
         if isinstance(peripheral, BasePeripheral):
             raise TypeError("Base Peripherals are already added")
-        elif isinstance(peripheral, OnOffPeripheral):
+        elif isinstance(peripheral, UserPeripheral):
             # TODO : Handle memory mapping
-            if not (peripheral.get_name() in list(self._on_off_peripherals.keys())):
+            if not (peripheral.get_name() in list(self._user_peripherals.keys())):
                 raise TypeError(
                     f"Peripheral {peripheral.get_name()} not registered in possible peripherals"
                 )  # Debug case, should not happen
             else:
-                return_value = self._on_off_peripherals[peripheral.get_name()]
-                self._on_off_peripherals[peripheral.get_name()] = peripheral
+                return_value = self._user_peripherals[peripheral.get_name()]
+                self._user_peripherals[peripheral.get_name()] = peripheral
                 return return_value
         else:
             raise TypeError(
-                "Peripheral should be an instance of BasePeripheral or OnOffPeripheral"
+                "Peripheral should be an instance of BasePeripheral or UserPeripheral"
             )  # Debug case, should not happen
 
     def remove_peripheral(self, peripheral: Peripheral):
@@ -329,11 +338,11 @@ class XHeep:
         :param Peripheral peripheral: The peripheral to remove.
         :return: The previous peripheral if it was already added, otherwise None. Returns also None in case of non legal peripheral, or if trying to remove a always on peripheral.
         """
-        if isinstance(peripheral, OnOffPeripheral) and list(
-            self._on_off_peripherals.keys()
+        if isinstance(peripheral, UserPeripheral) and list(
+            self._user_peripherals.keys()
         ).__contains__(peripheral.get_name()):
-            return_value = self._on_off_peripherals[peripheral.get_name()]
-            self._on_off_peripherals[peripheral.get_name()] = None
+            return_value = self._user_peripherals[peripheral.get_name()]
+            self._user_peripherals[peripheral.get_name()] = None
             # TODO : Currently doesn't remove peripheral length form total length, should be added with memory mapping management
             return return_value
         else:
@@ -353,19 +362,19 @@ class XHeep:
         """
         return self._base_peripherals_length
 
-    def get_on_off_peripherals_base_address(self):
+    def get_user_peripherals_base_address(self):
         """
-        :return: the base address of the on-off peripherals.
+        :return: the base address of the user peripherals.
         :rtype: int
         """
-        return self._on_off_peripherals_base_address
+        return self._user_peripherals_base_address
 
-    def get_on_off_peripherals_length(self):
+    def get_user_peripherals_length(self):
         """
-        :return: the length of the on-off peripheral domain.
+        :return: the length of the user peripheral domain.
         :rtype: int
         """
-        return self._on_off_peripherals_length
+        return self._user_peripherals_length
 
     def get_base_peripherals(self):
         """
@@ -376,15 +385,13 @@ class XHeep:
             filter(lambda x: x is not None, get_peripheral_list(self._base_peripherals))
         )
 
-    def get_on_off_peripherals(self):
+    def get_user_peripherals(self):
         """
-        :return: the on-off peripherals.
-        :rtype: List[OnOffPeripheral]
+        :return: the user peripherals.
+        :rtype: List[UserPeripheral]
         """
         return list(
-            filter(
-                lambda x: x is not None, get_peripheral_list(self._on_off_peripherals)
-            )
+            filter(lambda x: x is not None, get_peripheral_list(self._user_peripherals))
         )
 
     def get_dma(self):
@@ -478,28 +485,28 @@ class XHeep:
                 ret = False
 
         # Check peripheral memory mappings
-        # Step 1 : Base_Peripheral domain and On_off_Peripheral domains should not overlap
+        # Step 1 : Base_Peripheral domain and User_Peripheral domains should not overlap
         if (
-            self._base_peripherals_base_address < self._on_off_peripherals_base_address
+            self._base_peripherals_base_address < self._user_peripherals_base_address
             and self._base_peripherals_base_address + self._base_peripherals_length
-            > self._on_off_peripherals_base_address
+            > self._user_peripherals_base_address
         ):
             print(
-                f"The base peripheral domain (ends at {self._base_peripherals_base_address + self._base_peripherals_length:#08X}) overflows over on-off peripheral domain (starts at {self._on_off_peripherals_base_address:#08X})."
+                f"The base peripheral domain (ends at {self._base_peripherals_base_address + self._base_peripherals_length:#08X}) overflows over user peripheral domain (starts at {self._user_peripherals_base_address:#08X})."
             )
             ret = False
         if (
-            self._on_off_peripherals_base_address < self._base_peripherals_base_address
-            and self._on_off_peripherals_base_address + self._on_off_peripherals_length
+            self._user_peripherals_base_address < self._base_peripherals_base_address
+            and self._user_peripherals_base_address + self._user_peripherals_length
             > self._base_peripherals_base_address
         ):
             print(
-                f"The on-off peripheral domain (ends at {self._on_off_peripherals_base_address + self._on_off_peripherals_length:#08X}) overflows over base peripheral domain (starts at {self._base_peripherals_base_address:#08X})."
+                f"The user peripheral domain (ends at {self._user_peripherals_base_address + self._user_peripherals_length:#08X}) overflows over base peripheral domain (starts at {self._base_peripherals_base_address:#08X})."
             )
             ret = False
-        if self._on_off_peripherals_base_address == self._base_peripherals_base_address:
+        if self._user_peripherals_base_address == self._base_peripherals_base_address:
             print(
-                f"The base peripheral domain and the on-off peripheral domain should not start at the same address (current addresses are {self._base_peripherals_base_address:#08X} and {self._on_off_peripherals_base_address:#08X})."
+                f"The base peripheral domain and the user peripheral domain should not start at the same address (current addresses are {self._base_peripherals_base_address:#08X} and {self._user_peripherals_base_address:#08X})."
             )
             ret = False
         if self._base_peripherals_base_address < 0x10000:  # from mcu_gen.py
@@ -554,13 +561,11 @@ class XHeep:
             return return_bool
 
         # Places peripherals in the domain
-        peripheral_offset_compute(
-            self._on_off_peripherals_length, self._on_off_peripherals
-        )
+        peripheral_offset_compute(self._user_peripherals_length, self._user_peripherals)
         peripheral_offset_compute(self._base_peripherals_length, self._base_peripherals)
 
         ret = check_peripheral_non_overlap(
-            self._on_off_peripherals, self._on_off_peripherals_length
+            self._user_peripherals, self._user_peripherals_length
         )
         ret = check_peripheral_non_overlap(
             self._base_peripherals, self._base_peripherals_length
@@ -582,7 +587,7 @@ class XHeep:
                         return_bool = False
             return return_bool
 
-        ret = check_path(self._on_off_peripherals)
+        ret = check_path(self._user_peripherals)
         ret = check_path(self._base_peripherals)
 
         return ret
