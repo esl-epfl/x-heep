@@ -320,6 +320,12 @@ test:
 	python3 test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
 	@echo "You can also find the output in test/test_apps/test_apps.log"
 
+## @section Profiling
+## Run the profiling on a RTL simulation generating a flamegraph.
+.PHONY: profile
+profile:
+	bash scripts/profiling/run_profile.sh
+
 ## @section Cleaning commands
 
 ## Clean the CMake build folder
@@ -330,10 +336,6 @@ app-clean:
 		$(MAKE) app-restore;\
 	fi
 
-## @section Profiling
-.PHONY: profile
-profile:
-	bash scripts/profiling/run_profile.sh
 
 ## Removes the CMake build folder
 app-restore:
