@@ -41,6 +41,10 @@ filesets:
     files:
     - hw/fpga/scripts/zcu104/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
 
+  ip-fpga-zcu102:
+    files:
+    - hw/fpga/scripts/zcu102/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
+
   xdc-fpga-nexys:
     files:
     - hw/fpga/constraints/nexys/pin_assign.xdc
@@ -58,6 +62,10 @@ filesets:
     - hw/fpga/constraints/zcu104/pin_assign.xdc
     file_type: xdc
 
+  xdc-fpga-zcu102:
+    files:
+    - hw/fpga/constraints/zcu102/pin_assign.xdc
+    file_type: xdc
 
 targets:
   default: &default_target
@@ -70,3 +78,5 @@ targets:
     - target_nexys-a7-100t ? (xdc-fpga-nexys)
     - target_zcu104 ? (ip-fpga-zcu104)
     - target_zcu104 ? (xdc-fpga-zcu104)
+    - target_zcu102 ? (ip-fpga-zcu102)
+    - target_zcu102 ? (xdc-fpga-zcu102)
