@@ -30,4 +30,4 @@ jobs:
           # Set the environment variables for the compiler.
           export COMPILER_PREFIX=riscv32-corev-
 
-          python3 test/test_apps/test_apps.py --compile-only --compiler gcc
+          python3 test/test_apps/test_apps.py --compile-only
