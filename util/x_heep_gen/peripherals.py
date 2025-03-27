@@ -1,19 +1,21 @@
 import os.path as path
-from abc import ABC
+from abc import (
+    ABC,
+)  # Used to define abstract classes that cannot be instantiated, only well defined subclasses can be instantiated.
 from enum import Enum
 
 
 class Peripheral(ABC):
     """
-    Basic description of a peripheral. These peripherals are not linked to a hjson file.
+    Basic description of a peripheral. These peripherals are not linked to a hjson file. This class cannot be instantiated.
 
     :param int address: The virtual (in peripheral domain) memory address of the peripheral, the base address should be known by the creator of the class.
     :param int length: The size taken in memory by the peripheral
-    :param bool isMandatory: Whether the peripheral is always on or not, default is False
     """
 
     _length: int = int("0x00010000", 16)  # default length of 64KB
     _name: str
+    _address: int = None
 
     def __init__(self, offset=None):
         """
@@ -86,7 +88,7 @@ class PeripheralName(Enum):
 
 class DataConfiguration(ABC):
     """
-    Abstract class for adding configuration of a peripheral.
+    Abstract class for adding configuration of a peripheral. This class cannot be instantiated.
     """
 
     _config_path: str
@@ -109,24 +111,24 @@ class DataConfiguration(ABC):
         return self._config_path
 
 
-class AOPeripheral(Peripheral):
+class BasePeripheral(Peripheral, ABC):
     """
-    Abstract class representing always-on peripherals.
+    Abstract class representing always-on peripherals. This class cannot be instantiated.
     """
 
 
-class OnOffPeripheral(Peripheral):
+class OnOffPeripheral(Peripheral, ABC):
     """
-    Abstract class representing optionnal peripherals.
+    Abstract class representing optionnal peripherals. This class cannot be instantiated.
     """
 
 
 # ------------------------------------------------------------
-# AO Peripherals
+# Base Peripherals (mandatory peripherals)
 # ------------------------------------------------------------
 
 
-class SOC_ctrl(AOPeripheral, DataConfiguration):
+class SOC_ctrl(BasePeripheral, DataConfiguration):
     """
     System-on-Chip control peripheral for managing system-level functions and configuration.
     """
@@ -135,7 +137,7 @@ class SOC_ctrl(AOPeripheral, DataConfiguration):
     _config_path = "./hw/ip/soc_ctrl/data/soc_ctrl.hjson"
 
 
-class Bootrom(AOPeripheral):
+class Bootrom(BasePeripheral):
     """
     Read-only memory containing the boot code executed at system startup.
     """
@@ -143,7 +145,7 @@ class Bootrom(AOPeripheral):
     _name = PeripheralName.Bootrom
 
 
-class SPI_flash(AOPeripheral):
+class SPI_flash(BasePeripheral):
     """
     Interface for external SPI flash memory access.
     """
@@ -152,7 +154,7 @@ class SPI_flash(AOPeripheral):
     _length: int = 0x00008000
 
 
-class SPI_memio(AOPeripheral):
+class SPI_memio(BasePeripheral):
     """
     Memory-mapped IO interface for SPI communication.
     """
@@ -161,7 +163,7 @@ class SPI_memio(AOPeripheral):
     _length: int = 0x00008000
 
 
-class DMA(AOPeripheral, DataConfiguration):
+class DMA(BasePeripheral, DataConfiguration):
     """
     Direct Memory Access controller for efficient data transfer between memory and peripherals.
 
@@ -246,7 +248,7 @@ class DMA(AOPeripheral, DataConfiguration):
         return self._num_channels_per_master_port
 
 
-class Power_manager(AOPeripheral, DataConfiguration):
+class Power_manager(BasePeripheral, DataConfiguration):
     """
     Manages power states and clock gating for different system components.
     """
@@ -255,7 +257,7 @@ class Power_manager(AOPeripheral, DataConfiguration):
     _config_path = "./hw/ip/power_manager/data/power_manager.hjson"
 
 
-class RV_timer_ao(AOPeripheral):
+class RV_timer_ao(BasePeripheral):
     """
     RISC-V timer peripheral for system timing and scheduling.
     """
@@ -263,7 +265,7 @@ class RV_timer_ao(AOPeripheral):
     _name = PeripheralName.RV_timer_ao
 
 
-class Fast_intr_ctrl(AOPeripheral, DataConfiguration):
+class Fast_intr_ctrl(BasePeripheral, DataConfiguration):
     """
     Fast interrupt controller for low-latency interrupt handling.
     """
@@ -272,7 +274,7 @@ class Fast_intr_ctrl(AOPeripheral, DataConfiguration):
     _config_path = "./hw/ip/fast_intr_ctrl/data/fast_intr_ctrl.hjson"
 
 
-class Ext_peripheral(AOPeripheral):
+class Ext_peripheral(BasePeripheral):
     """
     Interface for external peripheral connections.
     """
@@ -280,7 +282,7 @@ class Ext_peripheral(AOPeripheral):
     _name = PeripheralName.Ext_peripheral
 
 
-class Pad_control(AOPeripheral):
+class Pad_control(BasePeripheral):
     """
     Controls the configuration of IO pads.
     """
@@ -288,7 +290,7 @@ class Pad_control(AOPeripheral):
     _name = PeripheralName.Pad_control
 
 
-class GPIO_ao(AOPeripheral):
+class GPIO_ao(BasePeripheral):
     """
     General Purpose Input/Output controller.
     """
@@ -296,7 +298,7 @@ class GPIO_ao(AOPeripheral):
     _name = PeripheralName.GPIO_ao
 
 
-class UART(AOPeripheral, DataConfiguration):
+class UART(BasePeripheral, DataConfiguration):
     """
     Universal Asynchronous Receiver/Transmitter for serial communication.
     """
@@ -306,7 +308,7 @@ class UART(AOPeripheral, DataConfiguration):
 
 
 # ------------------------------------------------------------
-# Optional Peripherals
+# On-Off Peripherals (optional peripherals)
 # ------------------------------------------------------------
 
 
@@ -388,9 +390,9 @@ class I2S(OnOffPeripheral, DataConfiguration):
 
 def minimal_config():
     """
-    Returns all always-on peripherals.
+    Returns all base peripherals.
 
-    :return: The dictionary of always-on peripherals already instiated.
+    :return: The dictionary of base peripherals already instiated.
     :rtype: dict[str, Peripheral]
     """
     return {
@@ -415,7 +417,7 @@ def empty_config():
     """
     Returns an empty configuration.
 
-    :return: The dictionary of all optional peripherals but not instiated.
+    :return: The dictionary of all on off peripherals but not instiated.
     :rtype: dict[str, Peripheral]
     """
     return {

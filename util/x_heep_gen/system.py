@@ -87,17 +87,17 @@ class XHeep:
         self._peripheral_configured = False  # Will be set to True if peripherals are added through config() (first time when add_peripheral is called), but should be set through configure_peripherals() in python config()
 
         # Peripherals instantiation
-        self._ao_peripherals_base_address = 0x20000000
-        self._optional_peripherals_base_address = 0x30000000
-        self._ao_peripherals = minimal_config()  # Adding mandatory peripherals
-        self._optional_peripherals = (
+        self._base_peripherals_base_address = 0x20000000
+        self._on_off_peripherals_base_address = 0x30000000
+        self._base_peripherals = minimal_config()  # Adding mandatory peripherals
+        self._on_off_peripherals = (
             empty_config()
-        )  # Adding optional peripherals (all None)
-        self._ao_peripherals_length = 0x00100000
-        self._optional_peripherals_length = 0x00100000
-        # self._ao_peripherals_length = get_total_length(get_peripheral_list(self._ao_peripherals))
-        # self._optional_peripherals_length = get_total_length(get_peripheral_list(self._optional_peripherals))
-        # Warning : _ao_peripherals and _optional_peripherals are dictionnaries of Peripheral name -> Peripheral object, not lists of Peripheral objects. To get the list of peripherals, use get_peripheral_list from peripherals.py
+        )  # Adding on-off peripherals (all None)
+        self._base_peripherals_length = 0x00100000
+        self._on_off_peripherals_length = 0x00100000
+        # self._base_peripherals_length = get_total_length(get_peripheral_list(self._base_peripherals))
+        # self._on_off_peripherals_length = get_total_length(get_peripheral_list(self._on_off_peripherals))
+        # Warning : _base_peripherals and _on_off_peripherals are dictionnaries of Peripheral name -> Peripheral object, not lists of Peripheral objects. To get the list of peripherals, use get_peripheral_list from peripherals.py
 
     # This function is currently trivial, it can be extended to check if the peripherals are correctly configured.
     def are_peripherals_configured(self) -> bool:
@@ -295,7 +295,7 @@ class XHeep:
         :return: the list of peripherals.
         :rtype: Dict[PeripheralName, Peripheral]
         """
-        return self._ao_peripherals + self._optional_peripherals
+        return self._base_peripherals + self._on_off_peripherals
 
     def add_peripheral(self, peripheral: Peripheral):
         """
@@ -307,21 +307,21 @@ class XHeep:
         if not self._peripheral_configured:
             self._peripheral_configured = True
 
-        if isinstance(peripheral, AOPeripheral):
-            raise TypeError("AOPeripherals are already added")
+        if isinstance(peripheral, BasePeripheral):
+            raise TypeError("Base Peripherals are already added")
         elif isinstance(peripheral, OnOffPeripheral):
             # TODO : Handle memory mapping
-            if not (peripheral.get_name() in list(self._optional_peripherals.keys())):
+            if not (peripheral.get_name() in list(self._on_off_peripherals.keys())):
                 raise TypeError(
                     f"Peripheral {peripheral.get_name()} not registered in possible peripherals"
                 )  # Debug case, should not happen
             else:
-                return_value = self._optional_peripherals[peripheral.get_name()]
-                self._optional_peripherals[peripheral.get_name()] = peripheral
+                return_value = self._on_off_peripherals[peripheral.get_name()]
+                self._on_off_peripherals[peripheral.get_name()] = peripheral
                 return return_value
         else:
             raise TypeError(
-                "Peripheral should be an instance of AOPeripheral or OnOffPeripheral"
+                "Peripheral should be an instance of BasePeripheral or OnOffPeripheral"
             )  # Debug case, should not happen
 
     def remove_peripheral(self, peripheral: Peripheral):
@@ -330,60 +330,60 @@ class XHeep:
         :return: The previous peripheral if it was already added, otherwise None. Returns also None in case of non legal peripheral, or if trying to remove a always on peripheral.
         """
         if isinstance(peripheral, OnOffPeripheral) and list(
-            self._optional_peripherals.keys()
+            self._on_off_peripherals.keys()
         ).__contains__(peripheral.get_name()):
-            return_value = self._optional_peripherals[peripheral.get_name()]
-            self._optional_peripherals[peripheral.get_name()] = None
+            return_value = self._on_off_peripherals[peripheral.get_name()]
+            self._on_off_peripherals[peripheral.get_name()] = None
             # TODO : Currently doesn't remove peripheral length form total length, should be added with memory mapping management
             return return_value
         else:
             return None
 
-    def get_ao_peripherals_base_address(self):
+    def get_base_peripherals_base_address(self):
         """
         :return: the base address of the always on peripherals.
         :rtype: int
         """
-        return self._ao_peripherals_base_address
+        return self._base_peripherals_base_address
 
-    def get_ao_peripherals_length(self):
+    def get_base_peripherals_length(self):
         """
         :return: the length of the always on peripheral domain.
         :rtype: int
         """
-        return self._ao_peripherals_length
+        return self._base_peripherals_length
 
-    def get_optional_peripherals_base_address(self):
+    def get_on_off_peripherals_base_address(self):
         """
-        :return: the base address of the optional peripherals.
+        :return: the base address of the on-off peripherals.
         :rtype: int
         """
-        return self._optional_peripherals_base_address
+        return self._on_off_peripherals_base_address
 
-    def get_optional_peripherals_length(self):
+    def get_on_off_peripherals_length(self):
         """
-        :return: the length of the optional peripheral domain.
+        :return: the length of the on-off peripheral domain.
         :rtype: int
         """
-        return self._optional_peripherals_length
+        return self._on_off_peripherals_length
 
-    def get_ao_peripherals(self):
+    def get_base_peripherals(self):
         """
         :return: the always on peripherals.
-        :rtype: List[AOPeripheral]
+        :rtype: List[BasePeripheral]
         """
         return list(
-            filter(lambda x: x is not None, get_peripheral_list(self._ao_peripherals))
+            filter(lambda x: x is not None, get_peripheral_list(self._base_peripherals))
         )
 
-    def get_optional_peripherals(self):
+    def get_on_off_peripherals(self):
         """
-        :return: the optional peripherals.
+        :return: the on-off peripherals.
         :rtype: List[OnOffPeripheral]
         """
         return list(
             filter(
-                lambda x: x is not None, get_peripheral_list(self._optional_peripherals)
+                lambda x: x is not None, get_peripheral_list(self._on_off_peripherals)
             )
         )
 
@@ -392,7 +392,7 @@ class XHeep:
         :return: the dma peripheral.
         :rtype: DMA
         """
-        return self._ao_peripherals[PeripheralName.DMA]
+        return self._base_peripherals[PeripheralName.DMA]
 
     def validate(self) -> bool:
         """
@@ -466,46 +466,45 @@ class XHeep:
 
             old_sec = sec
 
-        # Check that all ao peripherals are instanciated
-        for n, p in self._ao_peripherals.items():
+        # Check that all base peripherals are instanciated
+        for n, p in self._base_peripherals.items():
             if p == None:
-                print(f"An ao peripheral is not instanciated : {n}")
+                print(f"A base peripheral is not instanciated : {n}")
                 ret = False
-            if not isinstance(p, AOPeripheral):
+            if not isinstance(p, BasePeripheral):
                 print(
-                    f"Ao peripheral {n} is not an instance of AOPeripheral. Here is the name of your peripheral : {p.name}."
+                    f"Peripheral {n} is not an instance of BasePeripheral. Here is the name of your peripheral : {p.name}."
                 )
                 ret = False
 
         # Check peripheral memory mappings
-        # Step 1 : AO_Peripheral domain and Optional_Peripheral domains should not overlap
+        # Step 1 : Base_Peripheral domain and On_off_Peripheral domains should not overlap
         if (
-            self._ao_peripherals_base_address < self._optional_peripherals_base_address
-            and self._ao_peripherals_base_address + self._ao_peripherals_length
-            > self._optional_peripherals_base_address
+            self._base_peripherals_base_address < self._on_off_peripherals_base_address
+            and self._base_peripherals_base_address + self._base_peripherals_length
+            > self._on_off_peripherals_base_address
         ):
             print(
-                f"The ao peripherals domain (ends at {self._ao_peripherals_base_address + self._ao_peripherals_length:#08X}) overflows over optional peripherals domain (starts at {self._optional_peripherals_base_address:#08X})."
+                f"The base peripheral domain (ends at {self._base_peripherals_base_address + self._base_peripherals_length:#08X}) overflows over on-off peripheral domain (starts at {self._on_off_peripherals_base_address:#08X})."
             )
             ret = False
         if (
-            self._optional_peripherals_base_address < self._ao_peripherals_base_address
-            and self._optional_peripherals_base_address
-            + self._optional_peripherals_length
-            > self._ao_peripherals_base_address
+            self._on_off_peripherals_base_address < self._base_peripherals_base_address
+            and self._on_off_peripherals_base_address + self._on_off_peripherals_length
+            > self._base_peripherals_base_address
         ):
             print(
-                f"The optional peripherals domain (ends at {self._optional_peripherals_base_address + self._optional_peripherals_length:#08X}) overflows over ao peripherals domain (starts at {self._ao_peripherals_base_address:#08X})."
+                f"The on-off peripheral domain (ends at {self._on_off_peripherals_base_address + self._on_off_peripherals_length:#08X}) overflows over base peripheral domain (starts at {self._base_peripherals_base_address:#08X})."
             )
             ret = False
-        if self._optional_peripherals_base_address == self._ao_peripherals_base_address:
+        if self._on_off_peripherals_base_address == self._base_peripherals_base_address:
             print(
-                f"The ao peripherals domain and the optional peripherals domain should not start at the same address (current addresses are {self._ao_peripherals_base_address:#08X} and {self._optional_peripherals_base_address:#08X})."
+                f"The base peripheral domain and the on-off peripheral domain should not start at the same address (current addresses are {self._base_peripherals_base_address:#08X} and {self._on_off_peripherals_base_address:#08X})."
             )
             ret = False
-        if self._ao_peripherals_base_address < 0x10000:  # from mcu_gen.py
+        if self._base_peripherals_base_address < 0x10000:  # from mcu_gen.py
             print(
-                f"Always on peripheral start address must be greater than 0x10000, current address is {self._ao_peripherals_base_address:#08X}."
+                f"Always on peripheral start address must be greater than 0x10000, current address is {self._base_peripherals_base_address:#08X}."
             )
             ret = False
 
@@ -556,15 +555,15 @@ class XHeep:
 
         # Places peripherals in the domain
         peripheral_offset_compute(
-            self._optional_peripherals_length, self._optional_peripherals
+            self._on_off_peripherals_length, self._on_off_peripherals
         )
-        peripheral_offset_compute(self._ao_peripherals_length, self._ao_peripherals)
+        peripheral_offset_compute(self._base_peripherals_length, self._base_peripherals)
 
         ret = check_peripheral_non_overlap(
-            self._optional_peripherals, self._optional_peripherals_length
+            self._on_off_peripherals, self._on_off_peripherals_length
         )
         ret = check_peripheral_non_overlap(
-            self._ao_peripherals, self._ao_peripherals_length
+            self._base_peripherals, self._base_peripherals_length
         )
 
         # TODO : Check that the peripherals are not overlapping with other componenents (ram banks, linker sections, ...)
@@ -583,8 +582,8 @@ class XHeep:
                         return_bool = False
             return return_bool
 
-        ret = check_path(self._optional_peripherals)
-        ret = check_path(self._ao_peripherals)
+        ret = check_path(self._on_off_peripherals)
+        ret = check_path(self._base_peripherals)
 
         return ret
 
