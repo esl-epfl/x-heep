@@ -9,7 +9,7 @@ ROOT_DIR=$(git rev-parse --show-toplevel)
 WAVE_FILE=$(find $ROOT_DIR/build -name "*.fst")
 
 # Profile report directory
-PROFILE_REPORT_DIR=$ROOT_DIR/profile
+PROFILE_REPORT_DIR=$ROOT_DIR/util/profile
 
 # Config file
 PROFILE_CONFIG_FILE=$PROFILE_REPORT_DIR/configs/${cpu_type}.wal
