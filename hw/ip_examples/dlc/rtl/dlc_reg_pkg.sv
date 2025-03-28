@@ -13,47 +13,35 @@ package dlc_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {
-    logic [7:0]  q;
-  } dlc_reg2hw_dlvl_log_level_width_reg_t;
+  typedef struct packed {logic [7:0] q;} dlc_reg2hw_dlvl_log_level_width_reg_t;
 
-  typedef struct packed {
-    logic [3:0]  q;
-  } dlc_reg2hw_dlvl_n_bits_reg_t;
+  typedef struct packed {logic [3:0] q;} dlc_reg2hw_dlvl_n_bits_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } dlc_reg2hw_dlvl_mask_reg_t;
+  typedef struct packed {logic [15:0] q;} dlc_reg2hw_dlvl_mask_reg_t;
 
-  typedef struct packed {
-    logic        q;
-  } dlc_reg2hw_dlvl_format_reg_t;
+  typedef struct packed {logic q;} dlc_reg2hw_dlvl_format_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } dlc_reg2hw_dt_mask_reg_t;
+  typedef struct packed {logic [15:0] q;} dlc_reg2hw_dt_mask_reg_t;
 
-  typedef struct packed {
-    logic        q;
-  } dlc_reg2hw_readnotwrite_reg_t;
+  typedef struct packed {logic q;} dlc_reg2hw_readnotwrite_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    dlc_reg2hw_dlvl_log_level_width_reg_t dlvl_log_level_width; // [45:38]
-    dlc_reg2hw_dlvl_n_bits_reg_t dlvl_n_bits; // [37:34]
-    dlc_reg2hw_dlvl_mask_reg_t dlvl_mask; // [33:18]
-    dlc_reg2hw_dlvl_format_reg_t dlvl_format; // [17:17]
-    dlc_reg2hw_dt_mask_reg_t dt_mask; // [16:1]
-    dlc_reg2hw_readnotwrite_reg_t readnotwrite; // [0:0]
+    dlc_reg2hw_dlvl_log_level_width_reg_t dlvl_log_level_width;  // [45:38]
+    dlc_reg2hw_dlvl_n_bits_reg_t dlvl_n_bits;  // [37:34]
+    dlc_reg2hw_dlvl_mask_reg_t dlvl_mask;  // [33:18]
+    dlc_reg2hw_dlvl_format_reg_t dlvl_format;  // [17:17]
+    dlc_reg2hw_dt_mask_reg_t dt_mask;  // [16:1]
+    dlc_reg2hw_readnotwrite_reg_t readnotwrite;  // [0:0]
   } dlc_reg2hw_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] DLC_DLVL_LOG_LEVEL_WIDTH_OFFSET = 5'h 0;
-  parameter logic [BlockAw-1:0] DLC_DLVL_N_BITS_OFFSET = 5'h 4;
-  parameter logic [BlockAw-1:0] DLC_DLVL_MASK_OFFSET = 5'h 8;
-  parameter logic [BlockAw-1:0] DLC_DLVL_FORMAT_OFFSET = 5'h c;
-  parameter logic [BlockAw-1:0] DLC_DT_MASK_OFFSET = 5'h 10;
-  parameter logic [BlockAw-1:0] DLC_READNOTWRITE_OFFSET = 5'h 14;
+  parameter logic [BlockAw-1:0] DLC_DLVL_LOG_LEVEL_WIDTH_OFFSET = 5'h0;
+  parameter logic [BlockAw-1:0] DLC_DLVL_N_BITS_OFFSET = 5'h4;
+  parameter logic [BlockAw-1:0] DLC_DLVL_MASK_OFFSET = 5'h8;
+  parameter logic [BlockAw-1:0] DLC_DLVL_FORMAT_OFFSET = 5'hc;
+  parameter logic [BlockAw-1:0] DLC_DT_MASK_OFFSET = 5'h10;
+  parameter logic [BlockAw-1:0] DLC_READNOTWRITE_OFFSET = 5'h14;
 
   // Register index
   typedef enum int {
@@ -66,13 +54,13 @@ package dlc_reg_pkg;
   } dlc_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] DLC_PERMIT [6] = '{
-    4'b 0001, // index[0] DLC_DLVL_LOG_LEVEL_WIDTH
-    4'b 0001, // index[1] DLC_DLVL_N_BITS
-    4'b 0011, // index[2] DLC_DLVL_MASK
-    4'b 0001, // index[3] DLC_DLVL_FORMAT
-    4'b 0011, // index[4] DLC_DT_MASK
-    4'b 0001  // index[5] DLC_READNOTWRITE
+  parameter logic [3:0] DLC_PERMIT[6] = '{
+      4'b0001,  // index[0] DLC_DLVL_LOG_LEVEL_WIDTH
+      4'b0001,  // index[1] DLC_DLVL_N_BITS
+      4'b0011,  // index[2] DLC_DLVL_MASK
+      4'b0001,  // index[3] DLC_DLVL_FORMAT
+      4'b0011,  // index[4] DLC_DT_MASK
+      4'b0001  // index[5] DLC_READNOTWRITE
   };
 
 endpackage
