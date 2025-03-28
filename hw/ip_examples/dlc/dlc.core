@@ -11,7 +11,9 @@ description: "digital level crossing block"
 filesets:
   files_rtl:
     files:
-    - dlc.sv
+    - rtl/dlc_reg_pkg.sv
+    - rtl/dlc_reg_top.sv
+    - rtl/dlc.sv
     file_type: systemVerilogSource
 
 targets:
