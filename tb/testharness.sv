@@ -304,7 +304,7 @@ module testharness #(
       .reg_rsp_t(reg_pkg::reg_rsp_t),
       .hw_fifo_req_t(hw_fifo_pkg::hw_fifo_req_t),
       .hw_fifo_resp_t(hw_fifo_pkg::hw_fifo_resp_t)
-  ) d_level_xing_blk_i (
+  ) dlc_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
       .reg_req_i(ext_periph_slv_req[testharness_pkg::DLC_IDX]),
