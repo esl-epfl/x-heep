@@ -104,7 +104,7 @@ module dlc #(
       */
       if (dlvl_ovf && !hw_w_fifo_full) begin
         dlc_state_n = DLC_DLVL_OVF;
-      /* 
+        /* 
         delta time has overflowed
       */
       end else if (skip_cnt_en && (skip_cnt == reg_dt_mask)) begin
@@ -455,7 +455,7 @@ module dlc #(
       -> dlc_output contains:
         - dt_dir_out shifted left by the number of bits for the delta levels
         - delta levels in the LSBs
-  */ 
+  */
   always_comb begin
     dt_dir_out[16:0] = (reg_dlvl_twoscomp_n_sgnmod) ? {1'b0, dt_out[15:0]} : {dt_out[15:0], dir_out};
     //dt_dir_out[0] = (reg_dlvl_twoscomp_n_sgnmod) ? dt_out[0] : dir_out;
