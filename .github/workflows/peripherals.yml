@@ -1,0 +1,39 @@
+name: Test peripherals (Same output between hjson and python configuration)
+on: [push, pull_request]
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+    name: Test peripherals (Same output between hjson and python configuration). All must pass.
+    steps:
+      - name: Checkout the pushed code. 
+        uses: actions/checkout@v3
+      - name: Configure the job container and simulate all apps
+        run: |
+          # Create the virtual environment and install the requirements. 
+          conda init bash
+          source /root/.bashrc
+          conda activate core-v-mini-mcu
+          make clean-all
+
+          # Targets 
+          CONFIG = configs/general.hjson
+          PADS_CFG = pad_cfg.hjson
+          CONFIG_DIR = test/test_peripherals/configs
+          OUTPUT_DIR = test/test_peripherals/output
+          TEMPLATE = test/test_peripherals/template.hjson.tpl
+
+          NUM_EXAMPLES = 1 # Number of examples to run, change this when adding new examples
+
+          # Run examples 1-NUM_EXAMPLES with both Python and HJSON configurations
+          for i in {1..NUM_EXAMPLES}; do
+            # Generate with Python configuration
+            make mcu-gen --config $CONFIG --pads_cfg $PADS_CFG --cfg_peripherals $CONFIG_DIR/example$i.py --outdir $OUTPUT_DIR --outfile $OUTPUT_DIR/example$i-py.hjson --tpl-sv $TEMPLATE
+            # Generate with HJSON configuration
+            make mcu-gen --config $CONFIG --pads_cfg $PADS_CFG --cfg_peripherals $CONFIG_DIR/example$i.hjson --outdir $OUTPUT_DIR --outfile $OUTPUT_DIR/example$i-hjson.hjson --tpl-sv $TEMPLATE
+          done
+
+          # Run the test script
+          python3 test/test_peripherals/test_peripherals.py
