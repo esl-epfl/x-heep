@@ -11,10 +11,7 @@ from .peripherals import (
     PeripheralName,
     DMA,
     DataConfiguration,
-    minimal_config,
-    empty_config,
-    get_peripheral_list,
-    peripheral_offset_compute,
+    PeripheralDomain,
 )
 import os
 
@@ -97,30 +94,7 @@ class XHeep:
         # Peripherals instantiation
         self._peripheral_configured = False  # Will be set to True if peripherals are added through config() (first time when add_peripheral is called), but should be set through configure_peripherals() in python config()
 
-        # Peripherals instantiation
-        self._base_peripherals_base_address = 0x20000000
-        self._user_peripherals_base_address = 0x30000000
-        self._base_peripherals = minimal_config()  # Adding mandatory peripherals
-        self._user_peripherals = empty_config()  # Adding user peripherals (all None)
-        self._base_peripherals_length = 0x00100000
-        self._user_peripherals_length = 0x00100000
-        # self._base_peripherals_length = get_total_length(get_peripheral_list(self._base_peripherals))
-        # self._user_peripherals_length = get_total_length(get_peripheral_list(self._user_peripherals))
-        # Warning : _base_peripherals and _user_peripherals are dictionnaries of Peripheral name -> Peripheral object, not lists of Peripheral objects. To get the list of peripherals, use get_peripheral_list from peripherals.py
-
-    # This function is currently trivial, it can be extended to check if the peripherals are correctly configured.
-    def are_peripherals_configured(self) -> bool:
-        """
-        :return: `True` if the peripherals are configured, `False` if hjson files should be used.
-        :rtype: bool
-        """
-        return self._peripheral_configured
-
-    def configure_peripherals(self):
-        """
-        Peripherals will be configured manually.
-        """
-        self._peripheral_configured = True
+        self._peripheral_domain = None
 
     def add_ram_banks(self, bank_sizes: "List[int]", section_name: str = ""):
         """
@@ -299,82 +273,81 @@ class XHeep:
     # Peripherals
     # ------------------------------------------------------------
 
-    def get_peripherals(self) -> List[Peripheral]:
+    # This function is currently trivial, it can be extended to check if the peripherals are correctly configured.
+    def are_peripherals_configured(self) -> bool:
         """
+        :return: `True` if the peripherals are configured, `False` if hjson files should be used.
+        :rtype: bool
+        """
+        return self._peripheral_domain is not None
+
+    def configure_peripherals(self):
+        """
+        Creates the domain to configure peripherals.
+
+        :return: the domain to configure peripherals.
+        :rtype: PeripheralDomain
+        """
+        self._peripheral_domain = PeripheralDomain()
+        return self._peripheral_domain
+
+    def get_peripherals(self):
+        """
+        Returns a copy of the peripherals, all modifications in the copy will not be recoreded.
+
         :return: the list of peripherals.
         :rtype: Dict[PeripheralName, Peripheral]
         """
-        return self._base_peripherals + self._user_peripherals
+        return self._peripheral_domain.get_peripherals()
 
     def add_peripheral(self, peripheral: Peripheral):
         """
+        Add a peripheral to the domain. If the peripheral is already in the user domain, it will be replaced. If the peripheral is a base peripheral, it will raise an error. The peripheral will be copied in the domain, thus all modifications done after this call will not be recoreded.
+
         :param Peripheral peripheral: The peripheral to add. If already added, overwrites the previous one.
         :raise TypeError: if the peripheral is not an instance of UserPeripheral.
         :return: The previous peripheral if it was already added, otherwise None.
         """
 
-        if not self._peripheral_configured:
-            self._peripheral_configured = True
+        if not self.are_peripherals_configured():
+            self.configure_peripherals()
 
-        if isinstance(peripheral, BasePeripheral):
-            raise TypeError("Base Peripherals are already added")
-        elif isinstance(peripheral, UserPeripheral):
-            # TODO : Handle memory mapping
-            if not (peripheral.get_name() in list(self._user_peripherals.keys())):
-                raise TypeError(
-                    f"Peripheral {peripheral.get_name()} not registered in possible peripherals"
-                )  # Debug case, should not happen
-            else:
-                return_value = self._user_peripherals[peripheral.get_name()]
-                self._user_peripherals[peripheral.get_name()] = peripheral
-                return return_value
-        else:
-            raise TypeError(
-                "Peripheral should be an instance of BasePeripheral or UserPeripheral"
-            )  # Debug case, should not happen
+        self._peripheral_domain.add_peripheral(peripheral)
 
     def remove_peripheral(self, peripheral: Peripheral):
         """
         :param Peripheral peripheral: The peripheral to remove.
         :return: The previous peripheral if it was already added, otherwise None. Returns also None in case of non legal peripheral, or if trying to remove a always on peripheral.
         """
-        if isinstance(peripheral, UserPeripheral) and list(
-            self._user_peripherals.keys()
-        ).__contains__(peripheral.get_name()):
-            return_value = self._user_peripherals[peripheral.get_name()]
-            self._user_peripherals[peripheral.get_name()] = None
-            # TODO : Currently doesn't remove peripheral length form total length, should be added with memory mapping management
-            return return_value
-        else:
-            return None
+        self._peripheral_domain.remove_peripheral(peripheral)
 
     def get_base_peripherals_base_address(self):
         """
         :return: the base address of the always on peripherals.
         :rtype: int
         """
-        return self._base_peripherals_base_address
+        return self._peripheral_domain.get_base_peripherals_base_address()
 
     def get_base_peripherals_length(self):
         """
         :return: the length of the always on peripheral domain.
         :rtype: int
         """
-        return self._base_peripherals_length
+        return self._peripheral_domain.get_base_peripherals_length()
 
     def get_user_peripherals_base_address(self):
         """
         :return: the base address of the user peripherals.
         :rtype: int
         """
-        return self._user_peripherals_base_address
+        return self._peripheral_domain.get_user_peripherals_base_address()
 
     def get_user_peripherals_length(self):
         """
         :return: the length of the user peripheral domain.
         :rtype: int
         """
-        return self._user_peripherals_length
+        return self._peripheral_domain.get_user_peripherals_length()
 
     def get_base_peripherals(self):
         """
@@ -382,7 +355,10 @@ class XHeep:
         :rtype: List[BasePeripheral]
         """
         return list(
-            filter(lambda x: x is not None, get_peripheral_list(self._base_peripherals))
+            filter(
+                lambda p: p is not None,
+                self._peripheral_domain.get_base_peripherals().values(),
+            )
         )
 
     def get_user_peripherals(self):
@@ -391,7 +367,10 @@ class XHeep:
         :rtype: List[UserPeripheral]
         """
         return list(
-            filter(lambda x: x is not None, get_peripheral_list(self._user_peripherals))
+            filter(
+                lambda p: p is not None,
+                self._peripheral_domain.get_user_peripherals().values(),
+            )
         )
 
     def get_dma(self):
@@ -399,7 +378,7 @@ class XHeep:
         :return: the dma peripheral.
         :rtype: DMA
         """
-        return self._base_peripherals[PeripheralName.DMA]
+        return self._peripheral_domain.get_peripheral(PeripheralName.DMA)
 
     def validate(self) -> bool:
         """
@@ -474,7 +453,7 @@ class XHeep:
             old_sec = sec
 
         # Check that all base peripherals are instanciated
-        for n, p in self._base_peripherals.items():
+        for n, p in self._peripheral_domain.get_base_peripherals().items():
             if p == None:
                 print(f"A base peripheral is not instanciated : {n}")
                 ret = False
@@ -486,109 +465,20 @@ class XHeep:
 
         # Check peripheral memory mappings
         # Step 1 : Base_Peripheral domain and User_Peripheral domains should not overlap
-        if (
-            self._base_peripherals_base_address < self._user_peripherals_base_address
-            and self._base_peripherals_base_address + self._base_peripherals_length
-            > self._user_peripherals_base_address
-        ):
-            print(
-                f"The base peripheral domain (ends at {self._base_peripherals_base_address + self._base_peripherals_length:#08X}) overflows over user peripheral domain (starts at {self._user_peripherals_base_address:#08X})."
-            )
-            ret = False
-        if (
-            self._user_peripherals_base_address < self._base_peripherals_base_address
-            and self._user_peripherals_base_address + self._user_peripherals_length
-            > self._base_peripherals_base_address
-        ):
-            print(
-                f"The user peripheral domain (ends at {self._user_peripherals_base_address + self._user_peripherals_length:#08X}) overflows over base peripheral domain (starts at {self._base_peripherals_base_address:#08X})."
-            )
-            ret = False
-        if self._user_peripherals_base_address == self._base_peripherals_base_address:
-            print(
-                f"The base peripheral domain and the user peripheral domain should not start at the same address (current addresses are {self._base_peripherals_base_address:#08X} and {self._user_peripherals_base_address:#08X})."
-            )
-            ret = False
-        if self._base_peripherals_base_address < 0x10000:  # from mcu_gen.py
-            print(
-                f"Always on peripheral start address must be greater than 0x10000, current address is {self._base_peripherals_base_address:#08X}."
-            )
-            ret = False
+
+        ret &= self._peripheral_domain.check_peripheral_domains_no_overlap()
 
         # Step 2 : Peripheral in the same domains should not overlap
-        def check_peripheral_non_overlap(peripherals, domain_length):
-            peripherals_sorted = sorted(
-                filter(lambda x: x != None, peripherals.values()),
-                key=lambda x: x.get_address(),
-            )  # Filter out None values and sort by offset in growing order
-            return_bool = True
-
-            if len(peripherals_sorted) == 0:
-                return return_bool
-
-            for i in range(len(peripherals_sorted) - 1):
-                if (
-                    peripherals_sorted[i].get_address()
-                    + peripherals_sorted[i].get_length()
-                    > peripherals_sorted[i + 1].get_address()
-                ):
-                    print(
-                        f"The peripheral {peripherals_sorted[i].get_name()} overflows over the domain (starts at {peripherals_sorted[i].get_address():#08X} and ends at {peripherals_sorted[i].get_address() + peripherals_sorted[i].get_length():#08X}, peripheral {peripherals_sorted[i+1].get_name()} starts at {peripherals_sorted[i+1].get_address():#08X})."
-                    )
-                    return_bool = False
-                if peripherals_sorted[i].get_address() >= domain_length:
-                    print(
-                        f"The peripheral {peripherals_sorted[i].get_name()} is out of the domain (starts at {peripherals_sorted[i].get_address():#08X}, domain ends at {domain_length:#08X})."
-                    )
-                    return_bool = False
-
-            # Check if the last peripheral is out of the domain
-            if (
-                peripherals_sorted[-1].get_address()
-                + peripherals_sorted[-1].get_length()
-                > domain_length
-            ):
-                print(
-                    f"The peripheral {peripherals_sorted[-1].get_name()} is out of the domain (starts at {peripherals_sorted[-1].get_address():#08X}, domain ends at {domain_length:#08X})."
-                )
-                return_bool = False
-            if peripherals_sorted[-1].get_address() >= domain_length:
-                print(
-                    f"The peripheral {peripherals_sorted[-1].get_name()} is out of the domain (starts at {peripherals_sorted[-1].get_address():#08X}, domain ends at {domain_length:#08X})."
-                )
-                return_bool = False
-
-            return return_bool
-
-        # Places peripherals in the domain
-        peripheral_offset_compute(self._user_peripherals_length, self._user_peripherals)
-        peripheral_offset_compute(self._base_peripherals_length, self._base_peripherals)
-
-        ret = check_peripheral_non_overlap(
-            self._user_peripherals, self._user_peripherals_length
-        )
-        ret = check_peripheral_non_overlap(
-            self._base_peripherals, self._base_peripherals_length
-        )
-
-        # TODO : Check that the peripherals are not overlapping with other componenents (ram banks, linker sections, ...)
+        ret &= self._peripheral_domain.check_peripheral_non_overlap()
 
         # Step 3 : Peripherals with path should have a valid path
-        def check_path(peripherals):
-            return_bool = True
-            for p in get_peripheral_list(peripherals):
-                if isinstance(p, DataConfiguration):
-                    if not os.path.exists(p.get_config_path()) and not os.path.exists(
-                        p.get_config_path() + ".tpl"
-                    ):
-                        print(
-                            f"The peripheral {p.get_name()} has an invalid path : {p.get_config_path()}"
-                        )
-                        return_bool = False
-            return return_bool
 
-        ret = check_path(self._user_peripherals)
-        ret = check_path(self._base_peripherals)
+        ret &= self._peripheral_domain.check_paths(
+            self._peripheral_domain.get_user_peripherals()
+        )
+        ret &= self._peripheral_domain.check_paths(
+            self._peripheral_domain.get_base_peripherals()
+        )
 
         return ret
 

@@ -115,10 +115,10 @@ if __name__ == "__main__":
         x_heep = x_heep_gen.load_config.load_cfg_script_file(mcu_cfg_file)
 
         base_peripherals = x_heep.get_base_peripherals()
-        on_off_peripherals = x_heep.get_on_off_peripherals()
+        user_peripherals = x_heep.get_user_peripherals()
 
         scan_peripherals_python(base_peripherals)
-        scan_peripherals_python(on_off_peripherals)
+        scan_peripherals_python(user_peripherals)
 
     elif mcu_cfg_file.endswith(".hjson"):
         # Open the json file adn takes the data
@@ -127,11 +127,11 @@ if __name__ == "__main__":
 
         # Get the info relative to the various peripherals
         base_peripherals = data["ao_peripherals"]
-        on_off_peripherals = data["peripherals"]
+        user_peripherals = data["peripherals"]
 
         # loops through the peripherals and add the useful ones
         scan_peripherals_hjson(base_peripherals)
-        scan_peripherals_hjson(on_off_peripherals)
+        scan_peripherals_hjson(user_peripherals)
 
     else:
         exit("Error: Invalid configuration file, only .hjson and .py are supported")
