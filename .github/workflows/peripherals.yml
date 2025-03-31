@@ -31,7 +31,7 @@ jobs:
           mkdir -p "$OUTPUT_DIR"
           
           # Run examples 1-NUM_EXAMPLES with both Python and HJSON configurations
-          for i in $(seq 1 $NUM_EXAMPLES); do
+          for ((i=1; i<=$NUM_EXAMPLES; i++)); do
             echo "Processing example $i"
             
             # Generate with Python configuration
