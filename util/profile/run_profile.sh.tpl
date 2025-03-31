@@ -6,7 +6,12 @@
 ROOT_DIR=$(git rev-parse --show-toplevel)
 
 # Get the waveform file
-WAVE_FILE=$(find $ROOT_DIR/build -name "*.fst")
+WAVE_FILE=$(find $ROOT_DIR/build -name "*.vcd")
+
+# Copy WAVE_FILE in a new file with .fst extension
+cp $WAVE_FILE $WAVE_FILE.fst
+
+WAVE_FILE=$WAVE_FILE.fst
 
 # Profile report directory
 PROFILE_REPORT_DIR=$ROOT_DIR/util/profile
