@@ -37,11 +37,11 @@ jobs:
             
             # Generate with Python configuration
             echo "Running Python configuration for example $i"
-            make mcu-gen --config "$CONFIG" --pads_cfg "$PADS_CFG" --cfg_peripherals "$CONFIG_DIR/example$i.py" --outdir "$OUTPUT_DIR" --outfile "$OUTPUT_DIR/example$i-py.hjson" --tpl-sv "$TEMPLATE"
+            python3 util/mcu_gen.py --config "$CONFIG" --pads_cfg "$PADS_CFG" --cfg_peripherals "$CONFIG_DIR/example$i.py" --outdir "$OUTPUT_DIR" --outfile "$OUTPUT_DIR/example$i-py.hjson" --tpl-sv "$TEMPLATE"
             
             # Generate with HJSON configuration
             echo "Running HJSON configuration for example $i"
-            make mcu-gen --config "$CONFIG" --pads_cfg "$PADS_CFG" --cfg_peripherals "$CONFIG_DIR/example$i.hjson" --outdir "$OUTPUT_DIR" --outfile "$OUTPUT_DIR/example$i-hjson.hjson" --tpl-sv "$TEMPLATE"
+            python3 util/mcu_gen.py --config "$CONFIG" --pads_cfg "$PADS_CFG" --cfg_peripherals "$CONFIG_DIR/example$i.hjson" --outdir "$OUTPUT_DIR" --outfile "$OUTPUT_DIR/example$i-hjson.hjson" --tpl-sv "$TEMPLATE"
             
             echo "Example $i completed"
             i=$((i+1))
