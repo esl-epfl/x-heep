@@ -420,7 +420,7 @@ static inline void write_register( uint32_t  p_val,
                                    uint32_t  p_offset,
                                    uint32_t  p_mask,
                                    uint8_t   p_sel,
-                                   uint32_t* p_dma)
+                                   uint32_t  p_dma)
 {
     /*
      * The index is computed to avoid needing to access the structure

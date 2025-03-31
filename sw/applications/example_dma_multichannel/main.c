@@ -265,7 +265,7 @@ int main()
                     DMA_INTERRUPT_EN_REG_OFFSET,
                     0xffff,
                     DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
-                    dma_peri(i)
+                    (uint32_t) dma_peri(i)
                     );
 
         /* Enable the DMA transaction interrupt logic for every channel */
@@ -274,7 +274,7 @@ int main()
                     DMA_INTERRUPT_EN_REG_OFFSET,
                     0xffff,
                     DMA_INTERRUPT_EN_WINDOW_DONE_BIT,
-                    dma_peri(i)
+                    (uint32_t) dma_peri(i)
                     );
                     
         /* Pointer set up */
@@ -286,84 +286,84 @@ int main()
                         DMA_DIM_CONFIG_REG_OFFSET,
                         0x1,
                         DMA_DIM_CONFIG_DMA_DIM_BIT,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
 
         /* Operation mode configuration */
         write_register( DMA_TRANS_MODE_SINGLE,
                         DMA_MODE_REG_OFFSET,
                         DMA_MODE_MODE_MASK,
                         DMA_MODE_MODE_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
 
         /* Data type configuration */
         write_register(  DMA_DATA_TYPE,
                         DMA_DST_DATA_TYPE_REG_OFFSET,
                         DMA_DST_DATA_TYPE_DATA_TYPE_MASK,
                         DMA_DST_DATA_TYPE_DATA_TYPE_OFFSET,
-                        dma_peri(i)  );
+                        (uint32_t) dma_peri(i)  );
     
         write_register(  DMA_DATA_TYPE,
                         DMA_SRC_DATA_TYPE_REG_OFFSET,
                         DMA_SRC_DATA_TYPE_DATA_TYPE_MASK,
                         DMA_SRC_DATA_TYPE_DATA_TYPE_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
 
         /* Set the source strides */
         write_register( SRC_INC_D1 * DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE),
                         DMA_SRC_PTR_INC_D1_REG_OFFSET,
                         DMA_SRC_PTR_INC_D1_INC_MASK,
                         DMA_SRC_PTR_INC_D1_INC_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
         
         write_register( SRC_INC_D2 * DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE),
                         DMA_SRC_PTR_INC_D2_REG_OFFSET,
                         DMA_SRC_PTR_INC_D2_INC_MASK,
                         DMA_SRC_PTR_INC_D2_INC_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
         
         write_register( DST_INC_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                         DMA_DST_PTR_INC_D1_REG_OFFSET,
                         DMA_DST_PTR_INC_D1_INC_MASK,
                         DMA_DST_PTR_INC_D1_INC_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
         
         write_register( DST_INC_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                         DMA_DST_PTR_INC_D2_REG_OFFSET,
                         DMA_DST_PTR_INC_D2_INC_MASK,
                         DMA_DST_PTR_INC_D2_INC_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
         
         /* Padding configuration */
         write_register( TOP_PAD,
                         DMA_PAD_TOP_REG_OFFSET,
                         DMA_PAD_TOP_PAD_MASK,
                         DMA_PAD_TOP_PAD_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
         
         write_register( RIGHT_PAD,
                         DMA_PAD_RIGHT_REG_OFFSET,
                         DMA_PAD_RIGHT_PAD_MASK,
                         DMA_PAD_RIGHT_PAD_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
         
         write_register( LEFT_PAD,
                         DMA_PAD_LEFT_REG_OFFSET,
                         DMA_PAD_LEFT_PAD_MASK,
                         DMA_PAD_LEFT_PAD_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
         
         write_register( BOTTOM_PAD,
                         DMA_PAD_BOTTOM_REG_OFFSET,
                         DMA_PAD_BOTTOM_PAD_MASK,
                         DMA_PAD_BOTTOM_PAD_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
 
         /* Set the window size */
         write_register( DMA_WINDOW_SIZE,
                         DMA_WINDOW_SIZE_REG_OFFSET,
                         DMA_WINDOW_SIZE_WINDOW_SIZE_MASK,
                         DMA_WINDOW_SIZE_WINDOW_SIZE_OFFSET,
-                        dma_peri(i) );        
+                        (uint32_t) dma_peri(i) );        
     }
 
     for (int i=0; i<DMA_CH_NUM; i++)
@@ -373,13 +373,13 @@ int main()
                         DMA_SIZE_D2_REG_OFFSET,
                         DMA_SIZE_D2_SIZE_MASK,
                         DMA_SIZE_D2_SIZE_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
         
         write_register( SIZE_EXTR_D1,
                         DMA_SIZE_D1_REG_OFFSET,
                         DMA_SIZE_D1_SIZE_MASK,
                         DMA_SIZE_D1_SIZE_OFFSET,
-                        dma_peri(i) );
+                        (uint32_t) dma_peri(i) );
     }
 
     /* Wait for CH(N-1) to end */

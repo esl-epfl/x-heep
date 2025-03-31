@@ -703,7 +703,8 @@ int main()
                     DMA_INTERRUPT_EN_REG_OFFSET,
                     0xffff,
                     DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
-                    peri );
+                    (uint32_t) peri
+                    );
 
     /* Enable global interrupts */
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -720,76 +721,88 @@ int main()
                     DMA_DIM_CONFIG_REG_OFFSET,
                     0xffff,
                     DMA_DIM_CONFIG_DMA_DIM_BIT,
-                    peri );
+                    (uint32_t) peri
+                    );
 
     /* Operation mode configuration */
     write_register( DMA_TRANS_MODE_SINGLE,
                     DMA_MODE_REG_OFFSET,
                     DMA_MODE_MODE_MASK,
                     DMA_MODE_MODE_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
     
     /* Data type configuration */
     write_register( DMA_DATA_TYPE,
                     DMA_DST_DATA_TYPE_REG_OFFSET,
                     DMA_DST_DATA_TYPE_DATA_TYPE_MASK,
                     DMA_DST_DATA_TYPE_DATA_TYPE_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
     write_register( DMA_DATA_TYPE,
                     DMA_SRC_DATA_TYPE_REG_OFFSET,
                     DMA_SRC_DATA_TYPE_DATA_TYPE_MASK,
                     DMA_SRC_DATA_TYPE_DATA_TYPE_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
 
     /* Set the source strides */
     write_register( SRC_INC_D1 * DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE),
                     DMA_SRC_PTR_INC_D1_REG_OFFSET,
                     DMA_SRC_PTR_INC_D1_INC_MASK,
                     DMA_SRC_PTR_INC_D1_INC_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
     
     write_register( SRC_INC_D2 * DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE),
                     DMA_SRC_PTR_INC_D2_REG_OFFSET,
                     DMA_SRC_PTR_INC_D2_INC_MASK,
                     DMA_SRC_PTR_INC_D2_INC_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
     
     write_register( DST_INC_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_DST_PTR_INC_D1_REG_OFFSET,
                     DMA_DST_PTR_INC_D1_INC_MASK,
                     DMA_DST_PTR_INC_D1_INC_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
     
     write_register( DST_INC_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_DST_PTR_INC_D2_REG_OFFSET,
                     DMA_DST_PTR_INC_D2_INC_MASK,
                     DMA_DST_PTR_INC_D2_INC_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
 
     /* Padding configuration */
     write_register( TOP_PAD,
                     DMA_PAD_TOP_REG_OFFSET,
                     DMA_PAD_TOP_PAD_MASK,
                     DMA_PAD_TOP_PAD_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
 
     write_register( RIGHT_PAD,
                     DMA_PAD_RIGHT_REG_OFFSET,
                     DMA_PAD_RIGHT_PAD_MASK,
                     DMA_PAD_RIGHT_PAD_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
 
     write_register( LEFT_PAD,
                     DMA_PAD_LEFT_REG_OFFSET,
                     DMA_PAD_LEFT_PAD_MASK,
                     DMA_PAD_LEFT_PAD_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
 
     write_register( BOTTOM_PAD,
                     DMA_PAD_BOTTOM_REG_OFFSET,
                     DMA_PAD_BOTTOM_PAD_MASK,
                     DMA_PAD_BOTTOM_PAD_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
 
     /* Set the sizes */
 
@@ -797,13 +810,15 @@ int main()
                     DMA_SIZE_D2_REG_OFFSET,
                     DMA_SIZE_D2_SIZE_MASK,
                     DMA_SIZE_D2_SIZE_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
 
     write_register( SIZE_EXTR_D1,
                     DMA_SIZE_D1_REG_OFFSET,
                     DMA_SIZE_D1_SIZE_MASK,
                     DMA_SIZE_D1_SIZE_OFFSET,
-                    peri );
+                    (uint32_t) peri
+                    );
 
     while( ! dma_is_ready(0)) {
         /* Disable_interrupts */
