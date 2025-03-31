@@ -31,7 +31,8 @@ jobs:
           mkdir -p "$OUTPUT_DIR"
           
           # Run examples 1-NUM_EXAMPLES with both Python and HJSON configurations
-          for ((i=1; i<=$NUM_EXAMPLES; i++)); do
+          i=1
+          while [ $i -le $NUM_EXAMPLES ]; do
             echo "Processing example $i"
             
             # Generate with Python configuration
@@ -43,6 +44,7 @@ jobs:
             make mcu-gen --config "$CONFIG" --pads_cfg "$PADS_CFG" --cfg_peripherals "$CONFIG_DIR/example$i.hjson" --outdir "$OUTPUT_DIR" --outfile "$OUTPUT_DIR/example$i-hjson.hjson" --tpl-sv "$TEMPLATE"
             
             echo "Example $i completed"
+            i=$((i+1))
           done
 
           echo "All examples processed. Running test script to verify results..."
