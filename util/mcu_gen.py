@@ -1549,13 +1549,14 @@ def main():
         right_pad_list = None
         bondpad_offsets = None
 
-    # Writes dma parameters into hexadecimal format (removing leading 0x)
-    dma_ch_count = hex(dma_ch_count)[2:]
-    dma_ch_size = hex(dma_ch_size)[2:]
-    num_dma_master_ports = hex(num_dma_master_ports)[2:]
-    num_dma_xbar_channels_per_master_port = hex(num_dma_xbar_channels_per_master_port)[
-        2:
-    ]
+    if xheep.are_peripherals_configured():
+        # Writes dma parameters into hexadecimal format (removing leading 0x)
+        dma_ch_count = hex(dma_ch_count)[2:]
+        dma_ch_size = hex(dma_ch_size)[2:]
+        num_dma_master_ports = hex(num_dma_master_ports)[2:]
+        num_dma_xbar_channels_per_master_port = hex(
+            num_dma_xbar_channels_per_master_port
+        )[2:]
 
     # Writes peripheral domains parameters into hexadecimal format (removing leading 0x and padding to have 8 bits)
     base_peripheral_start_address = f"{base_peripheral_start_address & 0xFFFFFFFF:08X}"

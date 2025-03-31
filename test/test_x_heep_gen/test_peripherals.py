@@ -53,7 +53,7 @@ class PeripheralsDescription:
         self.peripheral_size_address = content["peripheral_size_address"]
 
         # Standardize the peripherals
-        deleted = 0
+        added = 0
         filtered_peripherals = []
         # Reconstructs the peripherals list with the is_included field removed
         for name, info in content["peripherals"].items():
@@ -62,9 +62,9 @@ class PeripheralsDescription:
                 peripheral_info["name"] = name
                 del peripheral_info["is_included"]
                 filtered_peripherals.append(peripheral_info)
-                deleted += 1
+                added += 1
         self.peripherals = filtered_peripherals
-        self.peripherals_count = str(int(content["peripherals_count"]) - deleted)
+        self.peripherals_count = added
 
         self.extension = extension
 
