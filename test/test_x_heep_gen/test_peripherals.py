@@ -199,11 +199,6 @@ def main():
     Current extension supported : .py and .hjson
     """
 
-    # Print all files in outputs directory
-    print(f"Files in {output_directory}:")
-    for file in sorted(pathlib.Path(output_directory).glob("*")):
-        print(f"  - {file.name}")
-
     test_results = []
 
     # Run example 1

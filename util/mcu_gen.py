@@ -1614,6 +1614,7 @@ def main():
     ###########
     # Package #
     ###########
+
     if args.pkg_sv != None:
         write_template(args.pkg_sv, outdir, outfile, **kwargs)
 
@@ -1625,6 +1626,16 @@ def main():
 
     if args.linker_script != None:
         write_template(args.linker_script, outdir, outfile, **kwargs)
+
+    # Print information about output files
+    print("\nFiles written to:")
+    if args.tpl_sv != None:
+        output_path = (
+            outfile
+            if outfile
+            else outdir / pathlib.Path(args.tpl_sv).with_suffix("").name
+        )
+        print(f"  - Template file: {pathlib.Path(output_path).resolve()}")
 
 
 if __name__ == "__main__":
