@@ -11,10 +11,10 @@ import hjson
 
 x_heep_cfg = "configs/general.hjson"
 pad_cfg = "pad_cfg.hjson"
-config_directory = "test/test_peripherals/configs/"
+config_directory = "test/test_x_heep_gen/configs/"
 existing_extensions = [".hjson", ".py"]
-output_directory = "test/test_peripherals/output"
-template = "test/test_peripherals/template.hjson.tpl"
+output_directory = "test/test_x_heep_gen/outputs"
+template = "test/test_x_heep_gen/template.hjson.tpl"
 
 
 def output_filename(example, extension):
@@ -191,7 +191,7 @@ def main():
     Run different configurations, compare the output of mcu_gen with an hjson config and a python config
 
     To add a new test :
-    - Add a new config for every extension in existing_extensions in test/test_peripherals/configs directory, all should yield the same peripheral configuration
+    - Add a new config for every extension in existing_extensions in test/test_x_heep_gen/configs directory, all should yield the same peripheral configuration
     - Name both files example<number><extension>
     - Add test_results.append(run_test(number))
     - Modify NUM_EXAMPLES (add +1) in .github/workflows/peripherals.yml to add the new example
