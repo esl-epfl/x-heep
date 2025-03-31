@@ -1031,7 +1031,7 @@ def main():
         exit("user peripheral start address must be greater than 0x10000")
 
     # For simplicity between python config and hjson config, formating peripherals to list of dictionaries instead of list of Peripherals
-    def format_peripherals_to_dicts(peripherals):
+    def __format_peripherals_to_dicts(peripherals):
         format = {}
 
         for p in peripherals:
@@ -1063,8 +1063,8 @@ def main():
         return format
 
     if xheep.are_peripherals_configured():
-        base_peripherals = format_peripherals_to_dicts(base_peripherals)
-        user_peripherals = format_peripherals_to_dicts(user_peripherals)
+        base_peripherals = __format_peripherals_to_dicts(base_peripherals)
+        user_peripherals = __format_peripherals_to_dicts(user_peripherals)
 
     ext_slave_start_address = string2int(obj["ext_slaves"]["address"])
     ext_slave_size_address = string2int(obj["ext_slaves"]["length"])

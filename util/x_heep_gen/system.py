@@ -91,8 +91,8 @@ class XHeep:
             self._ignore_ram_interleaved = True
             self._override_numbanks_il = override.numbanks_il
 
-        # Peripherals instantiation
-        self._peripheral_configured = False  # Will be set to True if peripherals are added through config() (first time when add_peripheral is called), but should be set through configure_peripherals() in python config()
+        # If true, peripherals are configured through python config(). If false, peripherals are configured through hjson files.
+        self._peripheral_configured = False
 
         self._peripheral_domain = None
 
@@ -283,7 +283,7 @@ class XHeep:
 
     def configure_peripherals(self):
         """
-        Creates the domain to configure peripherals.
+        Creates the domain to configure peripherals. Can then be used to add peripherals through add_peripheral() or configure_xxx() functions.
 
         :return: the domain to configure peripherals.
         :rtype: PeripheralDomain
