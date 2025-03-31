@@ -22,6 +22,26 @@ docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep ghcr.io/esl-epfl/x-heep-toolch
 Take care to indicate the absolute path to the local clone of X-HEEP, otherwise docker will not be able to properly mount the local folder in the container.
 ```
 
+You can build the docker image yourself by running the following command in the root of the X-HEEP repository:
+
+```bash
+make docker-build
+```
+
+This will create a docker image named `x-heep-toolchain` with the tag `latest`. You can then run the docker image using the command:
+
+```bash
+make docker-run
+```
+
+To update the docker image, you can run the following command:
+
+```bash
+make docker-pull
+```
+
+You can tune the beahviour of this commands by setting the variables `TAG`, `GITHUB_REPOSITORY`, `PROJECT_ID`, `IMAGE_NAME`, `LOCAL_FOLDER` and `UTIL_FOLDER` in the Makefile.
+
 The docker setup has certain limitations. For example, the following are not supported:
 
 - Simulation with Questasim and VCS, synthesis with Design Compiler. Licenses are required to use these tools, so they are not installed in the container.
