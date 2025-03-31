@@ -4,26 +4,37 @@ from typing import Generator, Iterable, List, Optional, Set, Union
 from enum import Enum
 from .ram_bank import Bank, is_pow2, ILRamGroup
 from .linker_section import LinkerSection
+from .peripherals import (
+    Peripheral,
+    BasePeripheral,
+    UserPeripheral,
+    PeripheralName,
+    DMA,
+    DataConfiguration,
+    PeripheralDomain,
+)
+import os
+
 
 class BusType(Enum):
     """Enumeration of all supported bus types"""
 
-    onetoM = 'onetoM'
-    NtoM   = 'NtoM'
+    onetoM = "onetoM"
+    NtoM = "NtoM"
 
 
 @dataclass
-class Override():
+class Override:
     """
     Bundles information that can be overriden in the XHeep class.
     """
+
     bus_type: Optional[BusType]
     numbanks: Optional[int]
     numbanks_il: Optional[int]
 
 
-
-class XHeep():
+class XHeep:
     """
     This object represents the whole mcu.
 
@@ -37,22 +48,28 @@ class XHeep():
 
     IL_COMPATIBLE_BUS_TYPES: "Set[BusType]" = set([BusType.NtoM])
     """Constant set of bus types that support interleaved memory banks"""
-    
-    
-    
-    def __init__(self, bus_type: BusType, ram_start_address: int = 0, override: Optional[Override] = None):
+
+    def __init__(
+        self,
+        bus_type: BusType,
+        ram_start_address: int = 0,
+        override: Optional[Override] = None,
+    ):
         if not type(bus_type) is BusType:
-            raise TypeError(f"XHeep.bus_type should be of type BusType not {type(self._bus_type)}")
+            raise TypeError(
+                f"XHeep.bus_type should be of type BusType not {type(self._bus_type)}"
+            )
         if not type(ram_start_address) is int:
             raise TypeError("ram_start_address should be of type int")
 
         if ram_start_address != 0:
-            raise ValueError(f"ram start address must be 0 instead of {ram_start_address}")
+            raise ValueError(
+                f"ram start address must be 0 instead of {ram_start_address}"
+            )
 
         self._bus_type: BusType = bus_type
         if override is not None and override.bus_type is not None:
             self._bus_type = override.bus_type
-
 
         self._ram_start_address: int = ram_start_address
         self._ram_banks: List[Bank] = []
@@ -68,12 +85,16 @@ class XHeep():
         self._ignore_ram_interleaved: bool = False
 
         if override is not None and override.numbanks is not None:
-            self.add_ram_banks([32]*override.numbanks)
+            self.add_ram_banks([32] * override.numbanks)
             self._ignore_ram_continous = True
         if override is not None and override.numbanks_il is not None:
             self._ignore_ram_interleaved = True
             self._override_numbanks_il = override.numbanks_il
 
+        # If true, peripherals are configured through python config(). If false, peripherals are configured through hjson files.
+        self._peripheral_configured = False
+
+        self._peripheral_domain = None
 
     def add_ram_banks(self, bank_sizes: "List[int]", section_name: str = ""):
         """
@@ -103,16 +124,19 @@ class XHeep():
             banks.append(Bank(b, self._ram_next_addr, self._ram_next_idx, 0, 0))
             self._ram_next_addr = banks[-1]._end_address
             self._ram_next_idx += 1
-        
+
         if section_name != "":
             self.add_linker_section_for_banks(banks, section_name)
         # Add all new banks if no error was raised
         self._ram_banks += banks
 
-    
-
-
-    def add_ram_banks_il(self, num: int, bank_size: int, section_name: str = "", ignore_ignore: bool = False):
+    def add_ram_banks_il(
+        self,
+        num: int,
+        bank_size: int,
+        section_name: str = "",
+        ignore_ignore: bool = False,
+    ):
         """
         Add ram banks in interleaved mode to the system.
         The bank size should be a power of two and at least 1kiB,
@@ -130,11 +154,15 @@ class XHeep():
             return
 
         if not self._bus_type in self.IL_COMPATIBLE_BUS_TYPES:
-            raise RuntimeError(f"This system has a {self._bus_type} bus, one of {self.IL_COMPATIBLE_BUS_TYPES} is required for interleaved memory")
+            raise RuntimeError(
+                f"This system has a {self._bus_type} bus, one of {self.IL_COMPATIBLE_BUS_TYPES} is required for interleaved memory"
+            )
         if not type(num) == int:
             raise TypeError("num should be of type int")
         if not is_pow2(num):
-            raise ValueError(f"A power of two is required for the number of banks, got {num}")
+            raise ValueError(
+                f"A power of two is required for the number of banks, got {num}"
+            )
         if not type(section_name) == str:
             raise TypeError("section_name should be of type str")
 
@@ -142,11 +170,19 @@ class XHeep():
 
         banks: List[Bank] = []
         for i in range(num):
-            banks.append(Bank(bank_size, self._ram_next_addr, self._ram_next_idx, num.bit_length()-1, i))
+            banks.append(
+                Bank(
+                    bank_size,
+                    self._ram_next_addr,
+                    self._ram_next_idx,
+                    num.bit_length() - 1,
+                    i,
+                )
+            )
             self._ram_next_idx += 1
-        
+
         self._ram_next_addr = banks[-1]._end_address
-        
+
         if section_name != "":
             self.add_linker_section_for_banks(banks, section_name)
         # Add all new banks if no error was raised
@@ -154,10 +190,15 @@ class XHeep():
 
         indices = range(first_il, first_il + num)
         self._ram_banks_il_idx += indices
-        self._ram_banks_il_groups.append(ILRamGroup(banks[0].start_address(), bank_size*num*1024, len(banks), banks[0].name()))
+        self._ram_banks_il_groups.append(
+            ILRamGroup(
+                banks[0].start_address(),
+                bank_size * num * 1024,
+                len(banks),
+                banks[0].name(),
+            )
+        )
         self._il_banks_present = True
-    
-
 
     def add_linker_section_for_banks(self, banks: "List[Bank]", name: str):
         """
@@ -168,10 +209,12 @@ class XHeep():
         """
         if name in self._used_section_names:
             raise ValueError("linker section names should be unique")
-        
+
         self._used_section_names.add(name)
-        self._linker_sections.append(LinkerSection(name, banks[0].start_address(), banks[-1].end_address()))
-    
+        self._linker_sections.append(
+            LinkerSection(name, banks[0].start_address(), banks[-1].end_address())
+        )
+
     def add_linker_section(self, section: LinkerSection):
         """
         Function to add a linker section.
@@ -182,7 +225,7 @@ class XHeep():
 
         if not isinstance(section, LinkerSection):
             raise TypeError("section should be an instance of LinkerSection")
-        
+
         section.check()
 
         if section.name in self._used_section_names:
@@ -190,8 +233,6 @@ class XHeep():
 
         self._used_section_names.add(section.name)
         self._linker_sections.append(deepcopy(section))
-        
-
 
     def bus_type(self) -> BusType:
         """
@@ -199,7 +240,7 @@ class XHeep():
         :rtype: BusType
         """
         return self._bus_type
-    
+
     def ram_start_address(self) -> int:
         """
         :return: the address of the first ram bank.
@@ -213,8 +254,6 @@ class XHeep():
         :rtype: int
         """
         return len(self._ram_banks)
-    
-
 
     def ram_numbanks_il(self) -> int:
         """
@@ -222,8 +261,6 @@ class XHeep():
         :rtype: int
         """
         return len(self._ram_banks_il_idx)
-    
-
 
     def ram_numbanks_cont(self) -> int:
         """
@@ -231,8 +268,117 @@ class XHeep():
         :rtype: int
         """
         return self.ram_numbanks() - self.ram_numbanks_il()
-    
 
+    # ------------------------------------------------------------
+    # Peripherals
+    # ------------------------------------------------------------
+
+    # This function is currently trivial, it can be extended to check if the peripherals are correctly configured.
+    def are_peripherals_configured(self) -> bool:
+        """
+        :return: `True` if the peripherals are configured, `False` if hjson files should be used.
+        :rtype: bool
+        """
+        return self._peripheral_domain is not None
+
+    def configure_peripherals(self):
+        """
+        Creates the domain to configure peripherals. Can then be used to add peripherals through add_peripheral() or configure_xxx() functions.
+
+        :return: the domain to configure peripherals.
+        :rtype: PeripheralDomain
+        """
+        self._peripheral_domain = PeripheralDomain()
+        return self._peripheral_domain
+
+    def get_peripherals(self):
+        """
+        Returns a copy of the peripherals, all modifications in the copy will not be recoreded.
+
+        :return: the list of peripherals.
+        :rtype: Dict[PeripheralName, Peripheral]
+        """
+        return self._peripheral_domain.get_peripherals()
+
+    def add_peripheral(self, peripheral: Peripheral):
+        """
+        Add a peripheral to the domain. If the peripheral is already in the user domain, it will be replaced. If the peripheral is a base peripheral, it will raise an error. The peripheral will be copied in the domain, thus all modifications done after this call will not be recoreded.
+
+        :param Peripheral peripheral: The peripheral to add. If already added, overwrites the previous one.
+        :raise TypeError: if the peripheral is not an instance of UserPeripheral.
+        :return: The previous peripheral if it was already added, otherwise None.
+        """
+
+        if not self.are_peripherals_configured():
+            self.configure_peripherals()
+
+        self._peripheral_domain.add_peripheral(peripheral)
+
+    def remove_peripheral(self, peripheral: Peripheral):
+        """
+        :param Peripheral peripheral: The peripheral to remove.
+        :return: The previous peripheral if it was already added, otherwise None. Returns also None in case of non legal peripheral, or if trying to remove a always on peripheral.
+        """
+        self._peripheral_domain.remove_peripheral(peripheral)
+
+    def get_base_peripherals_base_address(self):
+        """
+        :return: the base address of the always on peripherals.
+        :rtype: int
+        """
+        return self._peripheral_domain.get_base_peripherals_base_address()
+
+    def get_base_peripherals_length(self):
+        """
+        :return: the length of the always on peripheral domain.
+        :rtype: int
+        """
+        return self._peripheral_domain.get_base_peripherals_length()
+
+    def get_user_peripherals_base_address(self):
+        """
+        :return: the base address of the user peripherals.
+        :rtype: int
+        """
+        return self._peripheral_domain.get_user_peripherals_base_address()
+
+    def get_user_peripherals_length(self):
+        """
+        :return: the length of the user peripheral domain.
+        :rtype: int
+        """
+        return self._peripheral_domain.get_user_peripherals_length()
+
+    def get_base_peripherals(self):
+        """
+        :return: the always on peripherals.
+        :rtype: List[BasePeripheral]
+        """
+        return list(
+            filter(
+                lambda p: p is not None,
+                self._peripheral_domain.get_base_peripherals().values(),
+            )
+        )
+
+    def get_user_peripherals(self):
+        """
+        :return: the user peripherals.
+        :rtype: List[UserPeripheral]
+        """
+        return list(
+            filter(
+                lambda p: p is not None,
+                self._peripheral_domain.get_user_peripherals().values(),
+            )
+        )
+
+    def get_dma(self):
+        """
+        :return: the dma peripheral.
+        :rtype: DMA
+        """
+        return self._peripheral_domain.get_peripheral(PeripheralName.DMA)
 
     def validate(self) -> bool:
         """
@@ -244,18 +390,22 @@ class XHeep():
         :rtype: bool
         """
         if not self.ram_numbanks() in range(1, 17):
-            print(f"The number of banks should be between 1 and 16 instead of {self.ram_numbanks()}") #TODO: clarify upper limit
+            print(
+                f"The number of banks should be between 1 and 16 instead of {self.ram_numbanks()}"
+            )  # TODO: clarify upper limit
             return False
-        
-        if not ("code" in self._used_section_names and "data" in self._used_section_names):
+
+        if not (
+            "code" in self._used_section_names and "data" in self._used_section_names
+        ):
             print("The code and data sections are needed")
             return False
-        
+
         for l in self._linker_sections:
             l.check()
 
         ret = True
-        old_sec: Union[LinkerSection,None] = None
+        old_sec: Union[LinkerSection, None] = None
 
         for i, sec in enumerate(self._linker_sections):
             if i == 0 and sec.name != "code":
@@ -275,7 +425,9 @@ class XHeep():
             for b in self._ram_banks:
                 if found_start:
                     if b.start_address() > start:
-                        print(f"Section {sec.name} has a memory hole starting at {start:#08X}")
+                        print(
+                            f"Section {sec.name} has a memory hole starting at {start:#08X}"
+                        )
                         ret = False
                         found_end = True
                         break
@@ -285,7 +437,7 @@ class XHeep():
                 if sec.start >= b.start_address() and sec.start < b.end_address():
                     found_start = True
                     start = b.end_address()
-                
+
                 if sec.end <= b.end_address() and sec.end > b.start_address():
                     found_end = True
                     break
@@ -299,10 +451,38 @@ class XHeep():
                 print(f"Section {sec.name} does not end in any ram bank.")
 
             old_sec = sec
-        
-        return ret
-    
 
+        # Check that all peripherals are instanciated if using python config()
+        if self.are_peripherals_configured():
+            # Check that all base peripherals are instanciated
+            for n, p in self._peripheral_domain.get_base_peripherals().items():
+                if p == None:
+                    print(f"A base peripheral is not instanciated : {n}")
+                    ret = False
+                if not isinstance(p, BasePeripheral):
+                    print(
+                        f"Peripheral {n} is not an instance of BasePeripheral. Here is the name of your peripheral : {p.name}."
+                    )
+                    ret = False
+
+            # Check peripheral memory mappings
+            # Step 1 : Base_Peripheral domain and User_Peripheral domains should not overlap
+
+            ret &= self._peripheral_domain.check_peripheral_domains_no_overlap()
+
+            # Step 2 : Peripheral in the same domains should not overlap
+            ret &= self._peripheral_domain.check_peripheral_non_overlap()
+
+            # Step 3 : Peripherals with path should have a valid path
+
+            ret &= self._peripheral_domain.check_paths(
+                self._peripheral_domain.get_user_peripherals()
+            )
+            ret &= self._peripheral_domain.check_paths(
+                self._peripheral_domain.get_base_peripherals()
+            )
+
+        return ret
 
     def ram_size_address(self) -> int:
         """
@@ -313,8 +493,6 @@ class XHeep():
         for bank in self._ram_banks:
             size += bank.size()
         return size
-    
-
 
     def ram_il_size(self) -> int:
         """
@@ -325,8 +503,6 @@ class XHeep():
         for i in self._ram_banks_il_idx:
             size += self._ram_banks[i].size()
         return size
-    
-
 
     def iter_ram_banks(self) -> Iterable[Bank]:
         """
@@ -335,27 +511,27 @@ class XHeep():
         """
         return iter(self._ram_banks)
 
-
-
     def iter_cont_ram_banks(self) -> Iterable[Bank]:
         """
         :return: an iterator over all continuous banks.
         :rtype: Iterable[Bank]
         """
-        m = map((lambda b: None if b[0] in self._ram_banks_il_idx else b[1]), enumerate(self._ram_banks))
+        m = map(
+            (lambda b: None if b[0] in self._ram_banks_il_idx else b[1]),
+            enumerate(self._ram_banks),
+        )
         return filter(None, m)
-    
-
 
     def iter_il_ram_banks(self) -> Iterable[Bank]:
         """
         :return: an iterator over all interleaved banks.
         :rtype: Iterable[Bank]
         """
-        m = map((lambda b: None if not b[0] in self._ram_banks_il_idx else b[1]), enumerate(self._ram_banks))
+        m = map(
+            (lambda b: None if not b[0] in self._ram_banks_il_idx else b[1]),
+            enumerate(self._ram_banks),
+        )
         return filter(None, m)
-
-
 
     def has_il_ram(self) -> bool:
         """
@@ -363,8 +539,6 @@ class XHeep():
         :rtype: bool
         """
         return self._il_banks_present
-    
-    
 
     def iter_il_groups(self) -> Iterable[ILRamGroup]:
         """
@@ -372,8 +546,6 @@ class XHeep():
         :rtype: Iterable[ILRamGroup]
         """
         return iter(self._ram_banks_il_groups)
-    
-
 
     def iter_linker_sections(self) -> Iterable[LinkerSection]:
         """
@@ -381,8 +553,6 @@ class XHeep():
         :rtype: Iterable[LinkerSection]
         """
         return iter(self._linker_sections)
-    
-
 
     def iter_bank_numwords(self) -> Generator[int, None, None]:
         """
@@ -396,7 +566,7 @@ class XHeep():
             if b.size() not in sizes:
                 sizes.add(b.size())
                 yield b.size() // 4
-    
+
     def build(self):
         """
         Makes the system ready to be used.
@@ -409,8 +579,9 @@ class XHeep():
             sec_name = ""
             if self.ram_numbanks() > 1:
                 sec_name = "data_interleaved"
-            self.add_ram_banks_il(self._override_numbanks_il, 32, sec_name, ignore_ignore=True) #Add automatically a section for compatibility purposes.
-
+            self.add_ram_banks_il(
+                self._override_numbanks_il, 32, sec_name, ignore_ignore=True
+            )  # Add automatically a section for compatibility purposes.
 
         self._linker_sections.sort(key=lambda l: l.start)
 
@@ -418,13 +589,14 @@ class XHeep():
         for sec in self._linker_sections:
             if old_sec is not None:
                 old_sec.end = sec.start
-            
+
             if sec.end is None:
                 old_sec = sec
             else:
                 old_sec = None
         if old_sec is not None:
             if len(self._ram_banks) == 0:
-                raise RuntimeError("There is no ram bank to infere the end of a section")
+                raise RuntimeError(
+                    "There is no ram bank to infere the end of a section"
+                )
             old_sec.end = self._ram_banks[-1].end_address()
-        
