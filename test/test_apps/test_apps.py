@@ -400,7 +400,6 @@ def main():
 
     # Get a list with all the applications we want to test
     app_list = get_apps("sw/applications")
-    compiler_list = COMPILERS
 
     if not args.compile_only:
         for simulator in SIMULATORS:
@@ -412,7 +411,7 @@ def main():
         if not in_list(an_app.name, BLACKLIST):
             # Compile the app with every compiler, leaving gcc for last
             #   so the simulation is done with gcc
-            for compiler in [c for c in compiler_list if c != "gcc"]:
+            for compiler in [c for c in COMPILERS if c != "gcc"]:
                 if in_list(an_app.name, CLANG_BLACKLIST) and compiler == "clang":
                     print(
                         BColors.WARNING
