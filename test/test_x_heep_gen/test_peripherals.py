@@ -54,12 +54,15 @@ class PeripheralsDescription:
 
         # Standardize the peripherals
         deleted = 0
-        filtered_peripherals = [
-            p for p in content["peripherals"] if p["is_included"] == "yes"
-        ]
-        for p in filtered_peripherals:
-            del p["is_included"]
-            deleted += 1
+        filtered_peripherals = []
+        # Reconstructs the peripherals list with the is_included field removed
+        for name, info in content["peripherals"].items():
+            if info.get("is_included") == "yes":
+                peripheral_info = dict(info)
+                peripheral_info["name"] = name
+                del peripheral_info["is_included"]
+                filtered_peripherals.append(peripheral_info)
+                deleted += 1
         self.peripherals = filtered_peripherals
         self.peripherals_count = str(int(content["peripherals_count"]) - deleted)
 
