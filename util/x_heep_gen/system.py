@@ -452,33 +452,35 @@ class XHeep:
 
             old_sec = sec
 
-        # Check that all base peripherals are instanciated
-        for n, p in self._peripheral_domain.get_base_peripherals().items():
-            if p == None:
-                print(f"A base peripheral is not instanciated : {n}")
-                ret = False
-            if not isinstance(p, BasePeripheral):
-                print(
-                    f"Peripheral {n} is not an instance of BasePeripheral. Here is the name of your peripheral : {p.name}."
-                )
-                ret = False
+        # Check that all peripherals are instanciated if using python config()
+        if self.are_peripherals_configured():
+            # Check that all base peripherals are instanciated
+            for n, p in self._peripheral_domain.get_base_peripherals().items():
+                if p == None:
+                    print(f"A base peripheral is not instanciated : {n}")
+                    ret = False
+                if not isinstance(p, BasePeripheral):
+                    print(
+                        f"Peripheral {n} is not an instance of BasePeripheral. Here is the name of your peripheral : {p.name}."
+                    )
+                    ret = False
 
-        # Check peripheral memory mappings
-        # Step 1 : Base_Peripheral domain and User_Peripheral domains should not overlap
+            # Check peripheral memory mappings
+            # Step 1 : Base_Peripheral domain and User_Peripheral domains should not overlap
 
-        ret &= self._peripheral_domain.check_peripheral_domains_no_overlap()
+            ret &= self._peripheral_domain.check_peripheral_domains_no_overlap()
 
-        # Step 2 : Peripheral in the same domains should not overlap
-        ret &= self._peripheral_domain.check_peripheral_non_overlap()
+            # Step 2 : Peripheral in the same domains should not overlap
+            ret &= self._peripheral_domain.check_peripheral_non_overlap()
 
-        # Step 3 : Peripherals with path should have a valid path
+            # Step 3 : Peripherals with path should have a valid path
 
-        ret &= self._peripheral_domain.check_paths(
-            self._peripheral_domain.get_user_peripherals()
-        )
-        ret &= self._peripheral_domain.check_paths(
-            self._peripheral_domain.get_base_peripherals()
-        )
+            ret &= self._peripheral_domain.check_paths(
+                self._peripheral_domain.get_user_peripherals()
+            )
+            ret &= self._peripheral_domain.check_paths(
+                self._peripheral_domain.get_base_peripherals()
+            )
 
         return ret
 
