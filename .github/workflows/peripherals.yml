@@ -26,14 +26,26 @@ jobs:
           TEMPLATE="test/test_x_heep_gen/template.hjson.tpl"
           NUM_EXAMPLES=1  # Number of examples to run, change this when adding new examples
 
+          echo "Running $NUM_EXAMPLES examples..."
           rm -rf "$OUTPUT_DIR"
+          mkdir -p "$OUTPUT_DIR"
+          
           # Run examples 1-NUM_EXAMPLES with both Python and HJSON configurations
           for i in $(seq 1 $NUM_EXAMPLES); do
+            echo "Processing example $i"
+            
             # Generate with Python configuration
+            echo "Running Python configuration for example $i"
             make mcu-gen --config "$CONFIG" --pads_cfg "$PADS_CFG" --cfg_peripherals "$CONFIG_DIR/example$i.py" --outdir "$OUTPUT_DIR" --outfile "$OUTPUT_DIR/example$i-py.hjson" --tpl-sv "$TEMPLATE"
+            
             # Generate with HJSON configuration
+            echo "Running HJSON configuration for example $i"
             make mcu-gen --config "$CONFIG" --pads_cfg "$PADS_CFG" --cfg_peripherals "$CONFIG_DIR/example$i.hjson" --outdir "$OUTPUT_DIR" --outfile "$OUTPUT_DIR/example$i-hjson.hjson" --tpl-sv "$TEMPLATE"
+            
+            echo "Example $i completed"
           done
 
+          echo "All examples processed. Running test script to verify results..."
+          
           # Run the test script
           python3 test/test_x_heep_gen/test_peripherals.py
