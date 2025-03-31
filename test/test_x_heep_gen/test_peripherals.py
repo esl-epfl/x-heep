@@ -166,7 +166,7 @@ def run_test(example):
     outputs = []
 
     for extension in existing_extensions:
-        # Writes the output in a hjson file
+        # Writes the output in a PeripheralsDescription object
         outputs.append(PeripheralsDescription(example, extension))
 
     result = True
@@ -198,6 +198,11 @@ def main():
 
     Current extension supported : .py and .hjson
     """
+
+    # Print all files in outputs directory
+    print(f"Files in {output_directory}:")
+    for file in sorted(pathlib.Path(output_directory).glob("*")):
+        print(f"  - {file.name}")
 
     test_results = []
 
