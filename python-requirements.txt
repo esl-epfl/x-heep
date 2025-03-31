@@ -11,3 +11,6 @@ git+https://github.com/davideschiavone/fusesoc.git@ot#egg=fusesoc >= 1.11.0
 
 # Install edalize by hand as pip install git+https://github.com/davideschiavone/edalize.git
 git+https://github.com/davideschiavone/edalize.git
+
+# RISC-V firmware profiler
+git+https://github.com/vlsi-lab/rv_profile.git
