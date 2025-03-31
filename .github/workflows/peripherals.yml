@@ -19,7 +19,7 @@ jobs:
           make clean-all
 
           # Targets 
-          CONFIG="configs/general.hjson"
+          CFG_PERIPHERALS="mcu_cfg.hjson"
           PADS_CFG="pad_cfg.hjson"
           CONFIG_DIR="test/test_x_heep_gen/configs"
           OUTPUT_DIR="test/test_x_heep_gen/outputs"
@@ -27,6 +27,8 @@ jobs:
           NUM_EXAMPLES=1  # Number of examples to run, change this when adding new examples
 
           echo "Running $NUM_EXAMPLES examples..."
+
+          # Reset the output directory
           rm -rf "$OUTPUT_DIR"
           mkdir -p "$OUTPUT_DIR"
           
@@ -37,11 +39,11 @@ jobs:
             
             # Generate with Python configuration
             echo "Running Python configuration for example $i"
-            python3 util/mcu_gen.py --config "$CONFIG" --pads_cfg "$PADS_CFG" --cfg_peripherals "$CONFIG_DIR/example$i.py" --outdir "$OUTPUT_DIR" --outfile "$OUTPUT_DIR/example$i-py.hjson" --tpl-sv "$TEMPLATE"
+            python3 util/mcu_gen.py --config "$CONFIG_DIR/example$i.py" --pads_cfg "$PADS_CFG" --cfg_peripherals "$CFG_PERIPHERALS" --outdir "$OUTPUT_DIR" --outfile "$OUTPUT_DIR/example$i-py.hjson" --tpl-sv "$TEMPLATE"
             
             # Generate with HJSON configuration
             echo "Running HJSON configuration for example $i"
-            python3 util/mcu_gen.py --config "$CONFIG" --pads_cfg "$PADS_CFG" --cfg_peripherals "$CONFIG_DIR/example$i.hjson" --outdir "$OUTPUT_DIR" --outfile "$OUTPUT_DIR/example$i-hjson.hjson" --tpl-sv "$TEMPLATE"
+            python3 util/mcu_gen.py --config "$CONFIG_DIR/example$i.hjson" --pads_cfg "$PADS_CFG" --cfg_peripherals "$CFG_PERIPHERALS" --outdir "$OUTPUT_DIR" --outfile "$OUTPUT_DIR/example$i-hjson.hjson" --tpl-sv "$TEMPLATE"
             
             echo "Example $i completed"
             i=$((i+1))
