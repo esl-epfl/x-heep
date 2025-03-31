@@ -10,3 +10,4 @@ This section will guide you in the process of setting up X-HEEP and running your
    Setup
    GeneratingMCU
    CompilingRunningSW
+   UnderstandingTools
