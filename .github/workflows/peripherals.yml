@@ -35,4 +35,4 @@ jobs:
           done
 
           # Run the test script
-          python3 test/test_peripherals/test_peripherals.py
+          python3 test/test_x_heep_gen/test_peripherals.py
