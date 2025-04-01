@@ -27,5 +27,11 @@ int main() {
     PRINTF("%d+%d=%d\n", num1, num2, sum);
     PRINTF("%d*%d=%d\n", num2, MULTIPLY_CONSTANT, mul );
     
-    return (sum == num1+num2) && (mul == num2*MULTIPLY_CONSTANT) ? EXIT_SUCCESS : EXIT_FAILURE;   
+    int return_value = !((sum == num1+num2) && (mul == num2*MULTIPLY_CONSTANT));
+
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("%d&\n", return_value);
+#endif
+
+    return return_value ? EXIT_FAILURE : EXIT_SUCCESS;   
 }

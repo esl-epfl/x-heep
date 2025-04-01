@@ -514,6 +514,9 @@ int main()
     else 
     {
         PRINTF("Fail test 0\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("%d&\n", 1);
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -728,6 +731,9 @@ int main()
     else 
     {
         PRINTF("Fail test 1\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("%d&\n", 2);
+        #endif
         return EXIT_FAILURE;
     }
     #endif
@@ -1026,6 +1032,9 @@ int main()
     else 
     {
         PRINTF("Fail test 2\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("%d&\n", 3);
+        #endif
         return EXIT_FAILURE;
     }
     #endif
@@ -1090,6 +1099,9 @@ int main()
     if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
         PRINTF("This application cannot work with the memory mapped SPI FLASH"
             "module - do not use the FLASH_EXEC linker script for this application\n");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("%d&\n", 0);
+        #endif
         return EXIT_SUCCESS;
     }
 
@@ -1105,6 +1117,9 @@ int main()
     if (w25q128jw_init(spi) != FLASH_OK)
     {
         PRINTF("Error initializing the flash SPI\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("%d&\n", 1);
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -1113,6 +1128,9 @@ int main()
     if (status != FLASH_OK)
     {
         PRINTF("Error reading from flash\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("%d&\n", 2);
+        #endif
         return EXIT_FAILURE;
     }
     
@@ -1252,11 +1270,16 @@ int main()
     else 
     {
         PRINTF("Fail test 3\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("%d&\n", 4);
+        #endif
         return EXIT_FAILURE;
     }
     #endif
 
     #endif
-
+    #ifdef TESTIT_CAMPAIGN
+    PRINTF("%d&\n", 0);
+    #endif
     return EXIT_SUCCESS;
 }

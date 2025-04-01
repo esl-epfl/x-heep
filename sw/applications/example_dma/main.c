@@ -113,6 +113,9 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     if (errors != 0)                                                                        \
     {                                                                                       \
         PRINTF("DMA failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du); \
+        #ifdef TESTIT_CAMPAIGN                                                        \
+        PRINTF("%d&\n", errors);                                                        \
+        #endif
         return EXIT_FAILURE;                                                                \
     }
 
@@ -319,6 +322,9 @@ int main(int argc, char *argv[])
     else
     {
         PRINTF("DMA address mode failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du);
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("%d&\n", errors);
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -374,6 +380,9 @@ int main(int argc, char *argv[])
     else
     {
         PRINTF("DMA address mode in external memory failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du);
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("%d&\n", errors);
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -447,6 +456,9 @@ int main(int argc, char *argv[])
     else
     {
         PRINTF("DMA multiple transactions failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("%d&\n", errors);
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -513,9 +525,15 @@ int main(int argc, char *argv[])
     else
     {
         PRINTF("DMA window failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("%d&\n", errors);
+        #endif
         return EXIT_FAILURE;
     }
 #endif // TEST_WINDOW
 
+    #ifdef TESTIT_CAMPAIGN
+    PRINTF("0&\n");
+    #endif
     return EXIT_SUCCESS;
 }

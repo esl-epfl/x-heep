@@ -307,6 +307,9 @@ int main()
         PRINTF("0a:%d:1\n\r", cycles_cpu); 
         PRINTF("0b:%d:1\n\r", cycles_dma); 
         #endif
+        #if TESTIT_CAMPPAIGN
+        PRINTF("1&\n\r");
+        #endif
         return EXIT_FAILURE;
     }
     #endif
@@ -500,6 +503,9 @@ int main()
         PRINTF("1a:%d:1\n\r", cycles_cpu);
         PRINTF("1b:%d:1\n\r", cycles_dma);  
         #endif
+        #if TESTIT_CAMPPAIGN
+        PRINTF("2&\n\r");
+        #endif
         return EXIT_FAILURE;
     }
     #endif
@@ -661,6 +667,9 @@ int main()
         #else
         PRINTF("2a:%d:1\n\r", cycles_cpu);
         PRINTF("2b:%d:1\n\r", cycles_dma);  
+        #endif
+        #if TESTIT_CAMPPAIGN
+        PRINTF("3&\n\r");
         #endif
         return EXIT_FAILURE;
     }
@@ -931,6 +940,9 @@ int main()
         PRINTF("3a:%d:1\n\r", cycles_cpu);
         PRINTF("3b:%d:1\n\r", cycles_dma);  
         #endif
+        #if TESTIT_CAMPPAIGN
+        PRINTF("4&\n\r");
+        #endif
         return EXIT_FAILURE;
     }
     #endif
@@ -940,6 +952,8 @@ int main()
     #if TEST_EN
     PRINTF("&\n\r");
     #endif
-
+    #if TESTIT_CAMPPAIGN
+    PRINTF("0&\n\r");
+    #endif
     return EXIT_SUCCESS;
 }

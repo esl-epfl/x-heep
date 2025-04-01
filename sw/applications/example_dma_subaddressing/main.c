@@ -72,6 +72,9 @@ int main(int argc, char *argv[]) {
     if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
         PRINTF("This application cannot work with the memory mapped SPI FLASH"
             "module - do not use the FLASH_EXEC linker script for this application\n");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("0&\n");
+        #endif
         return EXIT_SUCCESS;
     }
 
@@ -87,8 +90,12 @@ int main(int argc, char *argv[]) {
     int32_t errors = 0;
 
     // Init SPI host and SPI<->Flash bridge parameters
-    if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
-
+    if (w25q128jw_init(spi) != FLASH_OK) {
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
+        return EXIT_FAILURE;
+    }
     // DMA transaction data type
     dma_trans_data_t dma_data_type;
 
@@ -124,6 +131,10 @@ int main(int argc, char *argv[]) {
     errors += test_read_flash_only_dma(flash_only_buffer, 128, dma_data_type, 0);
     errors += test_read_flash_only_dma(flash_only_buffer, 128, dma_data_type, 1);
 #endif
+
+    #ifdef TESTIT_CAMPAIGN
+    PRINTF("%d&\n", errors);
+    #endif
 
     PRINTF("\n--------TEST FINISHED--------\n");
     if (errors == 0) {

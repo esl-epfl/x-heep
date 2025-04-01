@@ -129,6 +129,12 @@ int main(int argc, char *argv[]) {
     // Check if initialization succeeded
     if (!spi.init) {
         PRINTF("\nFailed to initialize spi\n");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -145,20 +151,55 @@ int main(int argc, char *argv[]) {
 
     // Read whole sector containing the desired START_ADDRESS
     if (!flash_read_non_blocking(&spi, SECT_ADDRESS, sect_data, SECT_LEN)) 
+    {
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
+    }
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
 
     // No need to erase if on simulation
     #ifdef USE_SPI_FLASH
     // Erase that sector
-    if (!flash_erase_sector(&spi, START_ADDRESS)) return EXIT_FAILURE;
+    if (!flash_erase_sector(&spi, START_ADDRESS)) 
+    {
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
+        return EXIT_FAILURE;
+    }
     #endif
 
     // Copy the data to overwrite
     memcpy(&sect_data[START_ADDRESS - SECT_ADDRESS], flash_original_1024B, READ_WRITE_LEN * 4);
     // Write the whole sector with the new data back to flash
-    if (!flash_write_sector(&spi, START_ADDRESS, sect_data)) return EXIT_FAILURE;
-    // Read the modified part
-    if (!flash_read(&spi, START_ADDRESS, rxbuffer, 4*READ_WRITE_LEN)) return EXIT_FAILURE;
+    if (!flash_write_sector(&spi, START_ADDRESS, sect_data)) 
+    {
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
+        return EXIT_FAILURE;
+    }
+        // Read the modified part
+    if (!flash_read(&spi, START_ADDRESS, rxbuffer, 4*READ_WRITE_LEN)) {
+        
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
+        return EXIT_FAILURE;
+    }
 
     // Compare the modified part with the data used to modify
     if (memcmp(rxbuffer, flash_original_1024B, 4*READ_WRITE_LEN))
@@ -178,7 +219,13 @@ int main(int argc, char *argv[]) {
     PRINTF("\n==================================================\n\n");
     
 
-    return EXIT_SUCCESS;
+    #ifdef TESTIT_CAMPAIGN
+        PRINTF("0&\n");
+        #endif
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("0&\n");
+        #endif
+        return EXIT_SUCCESS;
 }
 
 // ========================= FUNCTIONS =========================

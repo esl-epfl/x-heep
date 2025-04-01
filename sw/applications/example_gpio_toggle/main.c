@@ -43,5 +43,8 @@ int main(int argc, char *argv[])
     }
 
     PRINTF("Success.\n");
+    #ifdef TESTIT_CAMPAIGN
+    PRINTF("0&\n");
+    #endif
     return EXIT_SUCCESS;
 }

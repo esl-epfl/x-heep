@@ -118,6 +118,9 @@ int main(int argc, char *argv[])
     if (power_gate_counters_init(&power_manager_counters, reset_off, reset_on, switch_off, switch_on, iso_off, iso_on, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -131,6 +134,9 @@ int main(int argc, char *argv[])
     if (power_gate_core(&power_manager, kTimer_0_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -145,6 +151,9 @@ int main(int argc, char *argv[])
     if (power_gate_core(&power_manager, kTimer_1_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -159,6 +168,9 @@ int main(int argc, char *argv[])
     if (power_gate_core(&power_manager, kTimer_2_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -173,6 +185,9 @@ int main(int argc, char *argv[])
     if (power_gate_core(&power_manager, kTimer_3_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -236,6 +251,9 @@ int main(int argc, char *argv[])
                 if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
                 {
                     PRINTF("Error: power manager fail.\n\r");
+                    #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
                     return EXIT_FAILURE;
                 }
         }
@@ -245,6 +263,9 @@ int main(int argc, char *argv[])
     for(int i=0; i<TEST_DATA_SIZE; i++) {
         if (copied_data_4B[i] != test_data_4B[i]) {
             PRINTF("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n", i, &copied_data_4B[i], &test_data_4B[i], copied_data_4B[i], test_data_4B[i]);
+            #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
             return -1;
         }
     }
@@ -270,6 +291,9 @@ int main(int argc, char *argv[])
     if (power_gate_core(&power_manager, kPlic_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -279,6 +303,9 @@ int main(int argc, char *argv[])
 
     if(gpio_intr_flag == 0){
         PRINTF("Error: GPIO interrupt not detected\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -303,6 +330,9 @@ int main(int argc, char *argv[])
     if (power_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -310,6 +340,9 @@ int main(int argc, char *argv[])
     if (power_gate_periph(&power_manager, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -323,6 +356,9 @@ int main(int argc, char *argv[])
     if (power_gate_periph(&power_manager, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -348,12 +384,18 @@ int main(int argc, char *argv[])
     if (power_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     // Power off ram block 2 domain
     if (power_gate_ram_block(&power_manager, 2, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     // Check that the ram block 2 domain is actually OFF
@@ -365,6 +407,9 @@ int main(int argc, char *argv[])
     if (power_gate_ram_block(&power_manager, 2, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -374,12 +419,18 @@ int main(int argc, char *argv[])
     if (power_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     // Set retention mode on for ram block 2 domain
     if (power_gate_ram_block(&power_manager, 2, kRetOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     // Wait some time
@@ -388,6 +439,9 @@ int main(int argc, char *argv[])
     if (power_gate_ram_block(&power_manager, 2, kRetOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -418,12 +472,18 @@ int main(int argc, char *argv[])
     if (power_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     // Power off external domain
     if (power_gate_external(&power_manager, 0, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     // Check that the external domain is actually OFF
@@ -434,6 +494,9 @@ int main(int argc, char *argv[])
     if (power_gate_external(&power_manager, 0, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -443,12 +506,18 @@ int main(int argc, char *argv[])
    if (power_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     // Set retention mode on for external domain block 0
     if (power_gate_external(&power_manager, 0, kRetOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
     // Wait some time
@@ -457,6 +526,9 @@ int main(int argc, char *argv[])
     if (power_gate_external(&power_manager, 0, kRetOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("1&\n");
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -464,6 +536,9 @@ int main(int argc, char *argv[])
 #else
     #pragma message ( "the external domain test can only run if EXTERNAL_DOMAINS > 0" )
 #endif
-    return EXIT_SUCCESS;
+    #ifdef TESTIT_CAMPAIGN
+        PRINTF("0&\n");
+        #endif
+        return EXIT_SUCCESS;
 
 }

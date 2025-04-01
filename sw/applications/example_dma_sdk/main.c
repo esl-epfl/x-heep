@@ -108,5 +108,9 @@ int main()
 
     PRINTF("Errors:%d\n\r", errors);
 
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("%d&\n", errors);
+#endif
+
     return errors ? EXIT_FAILURE : EXIT_SUCCESS;
 }

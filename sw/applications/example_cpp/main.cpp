@@ -46,5 +46,11 @@ int main()
     int value = myObject.getValue(); // Get the value
     PRINTF("Retrieved Value: %d\n\r" ,value); // Print the retrieved value
 
-    return value == 20*5 ? EXIT_SUCCESS : EXIT_FAILURE;
+    int return_value = !(value == 20*5);
+
+#ifdef TESTIT_CAMPAIGN
+    printf("%d&\n", return_value);
+#endif
+
+    return return_value ? EXIT_FAILURE : EXIT_SUCCESS;
 }

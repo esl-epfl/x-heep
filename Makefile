@@ -48,8 +48,8 @@ EXT_PAD_CFG ?=
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER ?= gcc
 
-# Compiler prefix options are 'riscv32-unknown-' (default)
-COMPILER_PREFIX ?= riscv32-unknown-
+# Compiler prefix options are 'riscv32-corev-' (default)
+COMPILER_PREFIX ?= riscv32-corev-
 
 # Compiler flags to be passed (for both linking and compiling)
 COMPILER_FLAGS ?=
@@ -169,7 +169,7 @@ verible:
 ## @param LINKER=on_chip(default),flash_load,flash_exec
 ## @param COMPILER=gcc(default),clang
 ## @param COMPILER_PREFIX=riscv32-unknown-(default)
-## @param ARCH=rv32imc(default),<any_RISC-V_ISA_string_supported_by_the_CPU>
+## @param ARCH=rv32imc_zicsr(default),<any_RISC-V_ISA_string_supported_by_the_CPU>
 app: clean-app
 	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) COMPILER_FLAGS=$(COMPILER_FLAGS) ARCH=$(ARCH) SOURCE=$(SOURCE) \
 	|| { \
@@ -371,3 +371,30 @@ clean-app: app-restore
 
 ## Removes the CMake build folder and the HW build folder
 clean-all: app-restore clean-sim
+
+sw-sim:
+	$(MAKE) app PROJECT=$(app)
+
+sw-fpga:
+	$(MAKE) app PROJECT=$(app) TARGET=$(target) CDEFS="TESTIT_CAMPAIGN"
+
+sim-build:
+ifeq ($(tool),verilator)
+	$(MAKE) mcu-gen MEMORY_BANKS=6
+	$(MAKE) verilator-sim
+endif
+
+sim-run:
+	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator && ./Vtestharness +firmware=../../../sw/build/main.hex
+
+fpga-build:
+	$(MAKE) vivado-fpga FPGA_BOARD=pynq-z2 FUSESOC_FLAGS=--flag=use_bscane_xilinx
+
+fpga-load:
+	$(MAKE) vivado-fpga-pgm FPGA_BOARD=pynq-z2
+	
+gdb-setup:
+	$(RISCV)/bin/${COMPILER_PREFIX}elf-gdb ./sw/build/main.elf
+
+deb-setup:
+	openocd -f ./tb/core-v-mini-mcu-pynq-z2-bscan.cfg

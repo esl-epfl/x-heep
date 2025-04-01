@@ -66,6 +66,10 @@ int main()
     errors = check_results(m_c, SIZE);
 
     PRINTF("program finished with %d errors and %d cycles\n\r", errors, cycles);
+    
+    #ifdef TESTIT_CAMPAIGN
+    PRINTF("%d&\n", errors);
+    #endif
     return errors;
 }
 

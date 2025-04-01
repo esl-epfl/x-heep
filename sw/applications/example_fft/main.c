@@ -73,6 +73,9 @@ int main(void)
     for(int i = 0; i < 2 * FFT_LEN; i++){
         if(abs(R_radix_2[i] - R[i] > TOLERANCE)){
             PRINTF("Error: R_gold[%d] = %x, R_radix_2[%d] = %x\n", i, R[i], i, R_radix_2[i]);
+            #ifdef TESTIT_CAMPAIGN
+            PRINTF("1&\n");
+            #endif
             return 1;
         }
     }
@@ -81,6 +84,9 @@ int main(void)
 
     if(!is_power_of(FFT_LEN, 4)){
         PRINTF("FFT_LEN must be a power of 4, FFT radix 4 cannot be performed.\n");
+        #ifdef TESTIT_CAMPAIGN
+        PRINTF("2&\n");
+        #endif
         return EXIT_FAILURE;
     }
 
@@ -102,11 +108,17 @@ int main(void)
     for(int i = 0; i < 2 * FFT_LEN; i++){
         if(abs(R_radix_2[i] - R[i] > TOLERANCE)){
             PRINTF("Error: R_gold[%d] = %x, R_radix_4[%d] = %x\n", i, R[i], i, R_radix_4[i]);
+            #ifdef TESTIT_CAMPAIGN
+            PRINTF("3&\n");
+            #endif
             return 1;
         }
     }   
 
     PRINTF("Radix-4 FFT took %d cycles\n", radix4_cycles);
-
+    
+    #if TESTIT_CAMPPAIGN
+    PRINTF("0&\n");
+    #endif
     return EXIT_SUCCESS;
 }

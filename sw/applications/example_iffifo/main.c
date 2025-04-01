@@ -115,9 +115,24 @@ int main(int argc, char *argv[]) {
     const uint32_t mask = 1 << 11;
     CSR_SET_BITS(CSR_REG_MIE, mask);
     
-    if(plic_Init()) {return EXIT_FAILURE;};
-    if(plic_irq_set_priority(EXT_INTR_1, 1)) {return EXIT_FAILURE;};
-    if(plic_irq_set_enabled(EXT_INTR_1, kPlicToggleEnabled)) {return EXIT_FAILURE;};
+    if(plic_Init()) {
+      #ifdef TESTIT_CAMPAIGN
+      PRINTF("1&\n");
+      #endif
+      return EXIT_FAILURE;
+    };
+    if(plic_irq_set_priority(EXT_INTR_1, 1)) {
+      #ifdef TESTIT_CAMPAIGN
+      PRINTF("1&\n");
+      #endif
+      return EXIT_FAILURE;
+    };
+    if(plic_irq_set_enabled(EXT_INTR_1, kPlicToggleEnabled)) {
+      #ifdef TESTIT_CAMPAIGN
+      PRINTF("1&\n");
+      #endif
+      return EXIT_FAILURE;
+    };
     
     plic_assign_external_irq_handler(EXT_INTR_1, &handler_irq_iffifo);
     
@@ -145,11 +160,26 @@ int main(int argc, char *argv[]) {
     trans.end        = DMA_TRANS_END_INTR;
 
     ret = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    if (ret != 0) {return EXIT_FAILURE;}
+    if (ret != 0) {
+      #ifdef TESTIT_CAMPAIGN
+      PRINTF("1&\n");
+      #endif
+      return EXIT_FAILURE;
+    }
     ret = dma_load_transaction(&trans);
-    if (ret != 0) {return EXIT_FAILURE;}
+    if (ret != 0) {
+      #ifdef TESTIT_CAMPAIGN
+      PRINTF("1&\n");
+      #endif
+      return EXIT_FAILURE;
+    }
     
-    if (compare_print_fifo_array() != 4) {return EXIT_FAILURE;}
+    if (compare_print_fifo_array() != 4) {
+      #ifdef TESTIT_CAMPAIGN
+      PRINTF("1&\n");
+      #endif
+      return EXIT_FAILURE;
+    }
     
     print_status_register();
     
@@ -186,9 +216,19 @@ int main(int argc, char *argv[]) {
     trans.end        = DMA_TRANS_END_INTR;
     
     ret = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    if (ret != 0) {return EXIT_FAILURE;}
+    if (ret != 0) {
+      #ifdef TESTIT_CAMPAIGN
+      PRINTF("1&\n");
+      #endif
+      return EXIT_FAILURE;
+    }
     ret = dma_load_transaction(&trans);
-    if (ret != 0) {return EXIT_FAILURE;}
+    if (ret != 0) {
+      #ifdef TESTIT_CAMPAIGN
+      PRINTF("1&\n");
+      #endif
+      return EXIT_FAILURE;
+    }
     PRINTF("Launch Stream -> MM DMA\n");
     dma_launch( &trans );
     
@@ -196,10 +236,24 @@ int main(int argc, char *argv[]) {
     
     print_status_register();
 
-    if (compare_print_fifo_array() == 0) {return EXIT_FAILURE;};
+    if (compare_print_fifo_array() == 0) {
+      #ifdef TESTIT_CAMPAIGN
+      PRINTF("1&\n");
+      #endif
+      return EXIT_FAILURE;
+    };
     
-    if (!iffifo_intr_flag) {return EXIT_FAILURE;};
+    if (!iffifo_intr_flag) {
+      #ifdef TESTIT_CAMPAIGN
+      PRINTF("1&\n");
+      #endif
+      return EXIT_FAILURE;
+    };
     
+    #ifdef TESTIT_CAMPAIGN
+    PRINTF("0&\n");
+    #endif
+  
     return EXIT_SUCCESS;
     
 }
