@@ -562,6 +562,9 @@ void W_ReadLump(lumpindex_t lump, void *dest)
         I_Error ("W_ReadLump: %i >= numlumps", lump);
     }
 
+    void *ptr = W_LumpDataPointer(lump); 
+    X_spi_read(ptr, dest, W_LumpLength(lump)/4); 
+
     //X_spi_read(WAD_START_ADDRESS + lumpinfo[lump].position, dest, lumpinfo[lump].size);
 
 

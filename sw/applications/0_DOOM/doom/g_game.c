@@ -69,6 +69,8 @@
 #include "r_data.h"
 #include "r_sky.h"
 
+#include "x_spi.h"
+
 
 
 #include "g_game.h"
@@ -135,8 +137,8 @@ const boolean         netdemo;
 char           *demoname;
 boolean         longtics;               // cph's doom 1.91 longtics hack
 boolean         lowres_turn;            // low resolution turning for longtics
-byte*           demobuffer;
-byte*           demo_p;
+byte*           demobuffer;             // X-HEEP comment : demobuffer is an adress in flash it must be read using X_spi_read
+byte*           demo_p;                 // X-HEEP comment : demo_p is an adress in flash it must be read using X_spi_read
 byte*           demoend;
 
 // NRFD-EXCLUDE
@@ -1966,28 +1968,37 @@ G_InitNew
 
 void G_ReadDemoTiccmd (ticcmd_t* cmd)
 {
-    if (*demo_p == DEMOMARKER)
+    
+    uint32_t temp_demo_data; 
+    X_spi_read(demo_p, &temp_demo_data, 1); 
+    if (((temp_demo_data >> 0)  & 0xFF) == DEMOMARKER)
     {
         // end of demo data stream
         G_CheckDemoStatus ();
         return;
     }
-    cmd->forwardmove = ((signed char)*demo_p++);
-    cmd->sidemove = ((signed char)*demo_p++);
+    cmd->forwardmove = ((signed char)((temp_demo_data >> 0)  & 0xFF));
+    demo_p += 1; 
+    cmd->sidemove = ((signed char)((temp_demo_data >> 8)  & 0xFF));
+    demo_p += 1;
 
     // If this is a longtics demo, read back in higher resolution
 
     if (longtics)
     {
-        cmd->angleturn = *demo_p++;
-        cmd->angleturn |= (*demo_p++) << 8;
+        cmd->angleturn = ((temp_demo_data >> 16)  & 0xFF);
+        demo_p += 1;
+        cmd->angleturn |= ((temp_demo_data >> 24)  & 0xFF) << 8;
+        demo_p += 1;
     }
     else
     {
-        cmd->angleturn = ((unsigned char) *demo_p++)<<8;
+        cmd->angleturn = (((temp_demo_data >> 16)  & 0xFF))<<8;
+        demo_p += 1;
     }
-
-    cmd->buttons = (unsigned char)*demo_p++;
+    X_spi_read(demo_p, &temp_demo_data, 1); 
+    cmd->buttons = (unsigned char)((temp_demo_data >> 0)  & 0xFF);
+    demo_p+=1; 
 }
 
 // Increase the size of the demo buffer to allow unlimited demos
@@ -2265,17 +2276,32 @@ void G_DoPlayDemo (void)
                          DemoVersionDescription(demoversion));
     }
 
-    skill = *demo_p++;
-    episode = *demo_p++;
-    map = *demo_p++;
-    deathmatch = *demo_p++;
-    respawnparm = *demo_p++;
-    fastparm = *demo_p++;
-    nomonsters = *demo_p++;
-    consoleplayer = *demo_p++;
+    uint32_t temp_demo_data;
+    X_spi_read(demo_p, &temp_demo_data, 1);  
+
+    skill = ((temp_demo_data >> 0)  & 0xFF);
+    demo_p += 1; 
+    episode = ((temp_demo_data >> 8)  & 0xFF);;
+    demo_p += 1;
+    map = ((temp_demo_data >> 16)  & 0xFF);;
+    demo_p += 1;
+    deathmatch = ((temp_demo_data >> 24)  & 0xFF);;
+    demo_p += 1;
+
+    X_spi_read(demo_p, &temp_demo_data, 1);
+    respawnparm = ((temp_demo_data >> 0)  & 0xFF);
+    demo_p += 1;
+    fastparm = ((temp_demo_data >> 8)  & 0xFF);
+    demo_p += 1;
+    nomonsters = ((temp_demo_data >> 16)  & 0xFF);
+    demo_p += 1;
+    consoleplayer = ((temp_demo_data >> 24)  & 0xFF);
+    demo_p += 1;
 
     for (i=0 ; i<MAXPLAYERS ; i++)
-        playeringame[i] = *demo_p++;
+    X_spi_read(demo_p, &temp_demo_data, 1);
+        playeringame[i] = ((temp_demo_data >> 0)  & 0xFF);
+        demo_p += 1;
 
     /* NRFD-TODO: demo
     if (playeringame[1] || M_CheckParm("-solo-net") > 0

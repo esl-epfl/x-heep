@@ -715,7 +715,7 @@ fixed_t                 ds_xstep;
 fixed_t                 ds_ystep;
 
 // start of a 64*64 tile image 
-byte*                   ds_source;      
+byte*                   ds_source;      // X-HEEP comment : ds_source is an adress in flash it must be read using X_spi_read
 
 // just for profiling
 int                     dscount;
@@ -758,6 +758,9 @@ void R_DrawSpan (void)
     // We do not check for zero spans here?
     count = ds_x2 - ds_x1;
 
+    uint32_t temp_data;
+    X_spi_read(ds_source[spot], &temp_data, 1); 
+
     do
     {
         // Calculate current texture index in u,v.
@@ -767,7 +770,7 @@ void R_DrawSpan (void)
 
         // Lookup pixel from flat texture tile,
         //  re-index using light/colormap.
-        *dest++ = ds_colormap[ds_source[spot]];
+        *dest++ = ds_colormap[((temp_data >> 0)  & 0xFF)];
 
         position += step;
 
@@ -884,6 +887,9 @@ void R_DrawSpanLow (void)
     ds_x2 <<= 1;
 
     dest = ylookup(ds_y) + columnofs(ds_x1);
+    
+    uint32_t temp_data;
+    X_spi_read(ds_source[spot], &temp_data, 1); 
 
     do
     {
@@ -894,8 +900,8 @@ void R_DrawSpanLow (void)
 
         // Lowres/blocky mode does it twice,
         //  while scale is adjusted appropriately.
-        *dest++ = ds_colormap[ds_source[spot]];
-        *dest++ = ds_colormap[ds_source[spot]];
+        *dest++ = ds_colormap[((temp_data >> 0)  & 0xFF)];
+        *dest++ = ds_colormap[((temp_data >> 0)  & 0xFF)];
 
         position += step;
 

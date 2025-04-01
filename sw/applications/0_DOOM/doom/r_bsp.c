@@ -37,7 +37,7 @@
 
 
 
-seg_t*          curline;
+seg_t*          curline; //X-HEEP comment: curline is an adress in flash it must be read using X_spi_read
 side_t*         sidedef;
 line_t*         linedef;
 sector_t*       frontsector;
@@ -498,7 +498,7 @@ boolean R_CheckBBox (fixed_t*   bspcoord)
 void R_Subsector (int num)
 {
     int                 count;
-    seg_t*              line;
+    seg_t*              line; //X-HEEP comment: line is an adress in flash it must be read using X_spi_read
     subsector_t*        sub;
         
 #ifdef RANGECHECK

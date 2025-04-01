@@ -230,9 +230,12 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     pixel_t *dest;
     byte *source; 
     int w, h; 
+
+    patch_t temp_patch; 
+    X_spi_read(patch, &temp_patch, sizeof(patch)/4); 
  
-    y -= SHORT(patch->topoffset); 
-    x -= SHORT(patch->leftoffset); 
+    y -= SHORT(temp_patch.topoffset); 
+    x -= SHORT(temp_patch.leftoffset); 
 
     // haleyjd 08/28/10: Strife needs silent error checking here.
     if(patchclip_callback)
@@ -242,8 +245,8 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     }
 
 
-    w = SHORT(patch->width);
-    h = SHORT(patch->height);
+    w = SHORT(temp_patch.width);
+    h = SHORT(temp_patch.height);
 
     N_ldbg("V_DrawPatchFlipped: %d x %d\n", w, h);
 
@@ -266,22 +269,31 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     for ( ; col<w ; x++, col++, desttop++)
     {
 
-        column = (column_t *)((byte *)patch + LONG(patch->columnofs[w-1-col]));
+        column = (column_t *)((byte *)patch + LONG(temp_patch.columnofs[w-1-col]));
+        column_t tempcolumn;
+        uint32_t temp_column_data;
+        uint32_t temp_source;
+        X_spi_read(column, &temp_column_data, 1);  
+        memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));
 
         // step through the posts in a column
-        while (column->topdelta != 0xff )
+        while (tempcolumn.topdelta != 0xff )
         {
 
             source = (byte *)column + 3;
-            dest = desttop + column->topdelta*SCREENWIDTH;
-            count = column->length;
+            dest = desttop + tempcolumn.topdelta*SCREENWIDTH;
+            count = tempcolumn.length;
 
             while (count--)
             {
-                *dest = *source++;
+                X_spi_read(source, &temp_source, 1);
+                *dest = (uint8_t)temp_source; 
+                source += 1; 
                 dest += SCREENWIDTH;
             }
             column = (column_t *)((byte *)column + column->length + 4);
+            X_spi_read(column, &temp_column_data, 1);  
+            memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes  
         }
     }
 

@@ -27,6 +27,7 @@
 
 #include "deh_defs.h"
 #include "deh_io.h"
+#include "x_spi.h"
 
 typedef enum
 {
@@ -106,8 +107,8 @@ deh_context_t *DEH_OpenFile(char *filename)
 
 deh_context_t *DEH_OpenLump(int lumpnum)
 {
-    deh_context_t *context;
-    void *lump;
+    deh_context_t *context; // X-HEEP comment : context->imput_buffer is an adress in flash it must be read using X_spi_read
+    void *lump; // X-HEEP comment : lump is an adress in flash it must be read using X_spi_read
 
     lump = W_CacheLumpNum(lumpnum, PU_STATIC);
 
@@ -164,7 +165,7 @@ int DEH_GetCharLump(deh_context_t *context)
         return -1;
     }
 
-    result = context->input_buffer[context->input_buffer_pos];
+    X_spi_read(context->input_buffer + context->input_buffer_pos, &result, sizeof(result)/4); 
     ++context->input_buffer_pos;
 
     return result;
@@ -191,6 +192,7 @@ int DEH_GetChar(deh_context_t *context)
                 result = DEH_GetCharLump(context);
                 break;
         }
+        
     } while (result == '\r');
 
     // Track the current line number

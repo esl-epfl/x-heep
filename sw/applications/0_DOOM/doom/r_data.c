@@ -964,22 +964,6 @@ void R_InitTextures (void)
     */
 
 
-    /*X-HEEP TODO : write texturetranslation to flash 
-    short texturetranslationbuffer[numtextures];
-    for (i=0 ; i<numtextures ; i++)
-    {
-        texturetranslationbuffer[i] = i;
-    }
-
-    texturetranslation = X_spi_alloc_sector();
-    
-    for (int ofs=0; ofs<(numtextures+1)*sizeof(*texturetranslation); ofs+=SECT_LEN) {
-        X_spi_erase_sector(texturetranslation+ofs);
-        X_spi_alloc_sector();
-    }  
-    X_spi_write(texturetranslation, &texturetranslationbuffer, sizeof(texturetranslationbuffer));      
-    */
-
     GenerateTextureHashTable(); 
 }
 
@@ -1052,19 +1036,25 @@ fixed_t R_SpriteWidth(int num)
 {
     patch_t     *patch;
     patch = W_CacheLumpNum (firstspritelump+num, PU_CACHE);
-    return SHORT(patch->width)<<FRACBITS;
+    patch_t temp_patch; 
+    X_spi_read(patch, &temp_patch, sizeof(temp_patch)); 
+    return SHORT(temp_patch.width)<<FRACBITS;
 }
 fixed_t R_SpriteOffset(int num)
 {
     patch_t     *patch;
     patch = W_CacheLumpNum (firstspritelump+num, PU_CACHE);
-    return SHORT(patch->leftoffset)<<FRACBITS;
+    patch_t temp_patch; 
+    X_spi_read(patch, &temp_patch, sizeof(temp_patch));
+    return SHORT(temp_patch.leftoffset)<<FRACBITS;
 }
 fixed_t R_SpriteTopOffset(int num)
 {
     patch_t     *patch;
     patch = W_CacheLumpNum (firstspritelump+num, PU_CACHE);
-    return SHORT(patch->topoffset)<<FRACBITS;
+    patch_t temp_patch; 
+    X_spi_read(patch, &temp_patch, sizeof(temp_patch));
+    return SHORT(temp_patch.topoffset)<<FRACBITS;
 }
 
 

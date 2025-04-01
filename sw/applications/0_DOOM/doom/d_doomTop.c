@@ -380,11 +380,11 @@ void D_BindVariables(void)
 {
     int i;
 
-    M_ApplyPlatformDefaults();
+    M_ApplyPlatformDefaults(); //useless
 
     I_BindInputVariables();
-    I_BindVideoVariables();
-    I_BindJoystickVariables();
+    I_BindVideoVariables(); 
+    I_BindJoystickVariables(); 
     //I_BindSoundVariables();
 
     M_BindBaseControls();
@@ -476,10 +476,12 @@ void D_DoomLoop (void)
     I_SetWindowTitle(gamedescription); //useless 
     I_GraphicsCheckCommandLine(); //useless
     // I_SetGrabMouseCallback(D_GrabMouseCallback);
-    I_InitGraphics();
+    
+    //X-HEEP comment : need to uncoment this when screen works 
+    //I_InitGraphics(); 
     EnableLoadingDisk();
-
-    TryRunTics();
+    printf("I am here\n"); 
+    TryRunTics(); 
 
     V_RestoreBuffer();
     R_ExecuteSetViewSize();
@@ -1054,7 +1056,7 @@ static void InitGameVersion(void)
     // "chex".
     //
 
-    p = M_CheckParmWithArgs("-gameversion", 1);
+    p = M_CheckParmWithArgs("-gameversion", 1); //useless
 
     if (p)
     {
@@ -1301,10 +1303,10 @@ void D_DoomMain (void)
     char demolumpname[9];
     int numiwadlumps;
 
-    //printf("sizeof st_number_t: %i\n", sizeof(st_number_t)); 
-
     I_AtExit(D_Endoom, false); //Useless 
 
+    //printf("sizeof mapthing_t  : %i\n", sizeof(mapthing_t)); 
+    
     // print banner
 
     I_PrintBanner(DOOM_PACKAGE_STRING);
@@ -1479,7 +1481,7 @@ void D_DoomMain (void)
     // Load configuration files before initialising other subsystems.
     DEH_printf("M_LoadDefaults: Load system defaults.\n");
     M_SetConfigFilenames("default.cfg", DOOM_PROGRAM_PREFIX "doom.cfg"); //Useless
-    D_BindVariables();
+    D_BindVariables(); //useless
     M_LoadDefaults();
 
     // Save configuration at exit.
@@ -1678,7 +1680,7 @@ void D_DoomMain (void)
 */
 
     // Generate the WAD hash table.  Speed things up a bit.
-    W_GenerateHashTable();
+    W_GenerateHashTable(); //useless
 
     /* NRFD-TODO: 
     // Load DEHACKED lumps from WAD files - but only if we give the right

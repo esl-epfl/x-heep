@@ -558,7 +558,7 @@ void F_CastDrawer (void)
     spriteframe_t*      sprframe;
     int                 lump;
     boolean             flip;
-    patch_t*            patch;
+    patch_t*            patch; // X-HEEP comment : patch is an adress in flash it must be read using X_spi_read
     
     // erase the entire screen to a background
     V_DrawPatch (0, 0, W_CacheLumpName (DEH_String("BOSSBACK"), PU_CACHE));
