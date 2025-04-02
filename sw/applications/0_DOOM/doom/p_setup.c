@@ -83,9 +83,9 @@ static int      totallines;
 // Blockmap size.
 int             bmapwidth;
 int             bmapheight;     // size in mapblocks
-short*          blockmap;       // int for larger maps
+short*          blockmap;       // int for larger maps // X-HEEP comment : blockmap is an adress in flash it must be read using X_spi_read 
 // offsets in blockmap are from here
-short*          blockmaplump;           
+short*          blockmaplump;  // X-HEEP comment : blockmaplump is an adress in flash it must be read using X_spi_read 
 // origin of block map
 fixed_t         bmaporgx;
 fixed_t         bmaporgy;
@@ -846,13 +846,15 @@ void P_LoadBlockMap (int lump)
     */
 
     // Read the header
+    uint32_t temp_blockmaplump[2]; 
+    X_spi_read(blockmaplump, &temp_blockmaplump, 2); 
+    
+    bmaporgx = ((temp_blockmaplump[0] >> 0)  & 0xFFFF)<<FRACBITS;
+    bmaporgy = ((temp_blockmaplump[0] >> 16)  & 0xFFFF)<<FRACBITS;
+    bmapwidth = ((temp_blockmaplump[1] >> 0)  & 0xFFFF);
+    bmapheight = ((temp_blockmaplump[1] >> 16)  & 0xFFFF);
 
-    bmaporgx = blockmaplump[0]<<FRACBITS;
-    bmaporgy = blockmaplump[1]<<FRACBITS;
-    bmapwidth = blockmaplump[2];
-    bmapheight = blockmaplump[3];
-
-    PRINTF("BlockMap: %d %d %d %d\n", blockmaplump[0], blockmaplump[1], bmapwidth, bmapheight);
+    PRINTF("BlockMap: %d %d %d %d\n", ((temp_blockmaplump[0] >> 0)  & 0xFFFF), ((temp_blockmaplump[0] >> 16)  & 0xFFFF), bmapwidth, bmapheight);
         
     // Clear out mobj chains
     int block_count =  bmapwidth * bmapheight;

@@ -556,13 +556,21 @@ P_BlockLinesIterator
     int block_num = y*bmapwidth+x;
         
     short *offset_ptr = blockmap+block_num;
-    short offset = *offset_ptr;
+    short offset; 
+    uint32_t temp_offset_data; 
+    X_spi_read(offset_ptr, &temp_offset_data, (sizeof(temp_offset_data)+3)/4);  
+    memcpy(&offset, &temp_offset_data, sizeof(temp_offset_data));
     short *list = blockmaplump+offset;
 
-
     short line_num;
-    for( ; (line_num = *list) != -1; list++)
-    {        
+    short temp_list; 
+    uint32_t temp_list_data;
+    X_spi_read(list, &temp_list_data, (sizeof(temp_list_data)+3)/4);  
+    memcpy(&temp_list, &temp_list_data, sizeof(temp_list_data));
+    for( ; (line_num = temp_list_data) != -1; list++)
+    {   X_spi_read(list, &temp_list_data, (sizeof(temp_list_data)+3)/4);  
+        memcpy(&temp_list, &temp_list_data, sizeof(temp_list_data));
+
         if (line_num < 0 || line_num >= numlines) I_Error("P_BlockLinesIterator: line_num overflow %d vs %d", line_num, numlines);
         line_t *ld = &lines[line_num]; // TODO: Seperate with nop for QSPI loading
 

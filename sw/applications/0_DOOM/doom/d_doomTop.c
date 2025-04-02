@@ -476,11 +476,9 @@ void D_DoomLoop (void)
     I_SetWindowTitle(gamedescription); //useless 
     I_GraphicsCheckCommandLine(); //useless
     // I_SetGrabMouseCallback(D_GrabMouseCallback);
-    
-    //X-HEEP comment : need to uncoment this when screen works 
-    //I_InitGraphics(); 
-    EnableLoadingDisk();
-    printf("I am here\n"); 
+     
+    I_InitGraphics(); 
+    EnableLoadingDisk(); 
     TryRunTics(); 
 
     V_RestoreBuffer();
@@ -1304,8 +1302,6 @@ void D_DoomMain (void)
     int numiwadlumps;
 
     I_AtExit(D_Endoom, false); //Useless 
-
-    //printf("sizeof mapthing_t  : %i\n", sizeof(mapthing_t)); 
     
     // print banner
 
