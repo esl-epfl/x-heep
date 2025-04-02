@@ -7,7 +7,7 @@
 // Date: 17/02/2025
 // Description: Package for FIFOs in the DMA subsystem
 
-package hw_fifo_pkg;
+package fifo_pkg;
 
   typedef struct packed {
     logic pop;

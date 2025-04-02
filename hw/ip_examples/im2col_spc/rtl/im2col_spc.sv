@@ -35,6 +35,9 @@ module im2col_spc
   import im2col_spc_reg_pkg::*;
   import dma_reg_pkg::*;
 
+  `define DISABLE_MODULE
+
+`ifndef DISABLE_MODULE
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Parameter definition */
@@ -620,4 +623,5 @@ module im2col_spc
   /* DMA channel offset */
   assign dma_ch_offset = reg2hw.spc_ch_offset.q;
 
+`endif
 endmodule

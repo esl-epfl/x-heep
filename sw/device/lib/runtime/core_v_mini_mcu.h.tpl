@@ -42,6 +42,10 @@ extern "C" {
 #define DMA_CH_NUM ${dma_ch_count}
 #define DMA_CH_SIZE 0x${dma_ch_size}
 #define DMA_NUM_MASTER_PORTS ${num_dma_master_ports}
+#define DMA_ADDR_MODE ${dma_addr_mode}
+#define DMA_SUBADDR_MODE ${dma_subaddr_mode}
+#define DMA_HW_FIFO_MODE ${dma_hw_fifo_mode}
+#define DMA_ZERO_PADDING ${dma_zero_padding}
 
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}

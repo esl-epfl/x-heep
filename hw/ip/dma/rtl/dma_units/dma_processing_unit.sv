@@ -6,7 +6,7 @@
  * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
  *                         <tommaso.terzano@gmail.com>
  *  
- * Info: Padding FSM for DMA channel.
+ * Info: Processing unit for DMA channel.
  */
 
 module dma_processing_unit
@@ -15,18 +15,23 @@ module dma_processing_unit
 ) (
     input logic clk_i,
     input logic rst_ni,
-    input dma_reg2hw_t reg2hw_i,
-    input logic dma_processing_unit_on_i,
-    input logic dma_start_i,
-    input logic read_fifo_empty_i,
-    input logic write_fifo_full_i,
-    input logic write_fifo_alm_full_i,
-    input logic [31:0] data_read_i,
 
-    output logic processing_unit_done_o,
+    input dma_reg2hw_t reg2hw_i,
+
+    input logic dma_processing_unit_on_i,
+
+    input logic dma_start_i,
+
+    input logic read_buffer_empty_i,
+    input logic write_buffer_full_i,
+    input logic write_buffer_alm_full_i,
+
+    input logic [31:0] read_buffer_output_i,
+
     output logic write_buffer_push_o,
     output logic read_buffer_pop_o,
-    output logic [31:0] data_write_o
+
+    output logic [31:0] write_buffer_input_o
 );
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -43,12 +48,13 @@ module dma_processing_unit
   dma_reg2hw_t reg2hw;
 
   /* General signals */
-  logic read_fifo_en;
-  logic write_fifo_en;
+  logic processing_unit_done;
+  logic read_buffer_en;
+  logic write_buffer_en;
   logic pad_on;
-  logic read_fifo_empty;
-  logic write_fifo_full;
-  logic write_fifo_alm_full;
+  logic read_buffer_empty;
+  logic write_buffer_full;
+  logic write_buffer_alm_full;
   logic dma_start;
   logic [16:0] dma_cnt_d1;
   logic [16:0] dma_cnt_d2;
@@ -94,10 +100,6 @@ module dma_processing_unit
 
   /*_________________________________________________________________________________________________________________________________ */
 
-  /* Module instantiation */
-
-  /*_________________________________________________________________________________________________________________________________ */
-
   /* FSMs instantiation */
 
   /* Padding FSM state update */
@@ -106,7 +108,7 @@ module dma_processing_unit
       pad_state_q <= PAD_IDLE;
     end else begin
       /* Advance in the FSM only if the write FIFO is available */
-      if (write_fifo_en == 1'b1 && dma_processing_unit_on_i == 1'b1 && processing_unit_done_o == 1'b0) begin
+      if (write_buffer_en == 1'b1 && dma_processing_unit_on_i == 1'b1 && processing_unit_done == 1'b0) begin
         pad_state_q <= pad_state_d;
       end
     end
@@ -119,7 +121,7 @@ module dma_processing_unit
     unique case (pad_state_q)
       PAD_IDLE: begin
         /* If the padding is done, stay idle */
-        if (processing_unit_done_o == 1'b1) begin
+        if (processing_unit_done == 1'b1) begin
           pad_state_d = PAD_IDLE;
         end else begin
           if (idle_to_top_ex) begin
@@ -194,21 +196,20 @@ module dma_processing_unit
 
   /* Data transfer */
   always_comb begin : proc_data_transfer
-    data_write_o = '0;
+    write_buffer_input_o = '0;
     write_buffer_push_o = 1'b0;
     read_buffer_pop_o = 1'b0;
-    hw_r_fifo_push_padding_o = 1'b0;
 
-    if (dma_processing_unit_on_i == 1'b1 && processing_unit_done_o == 1'b0) begin
+    if (dma_processing_unit_on_i == 1'b1 && processing_unit_done == 1'b0) begin
       /* 
        * If we need to pad, there is no need to wait for the read fifo to have some values.
        * If we don't have to pad, we need to wait for the read fifo to be not empty.
        * In both cases, we need to wait for the write fifo to have some space.
        */
-      if (pad_on == 1'b1 & write_fifo_en == 1'b1) begin
+      if (pad_on == 1'b1 & write_buffer_en == 1'b1) begin
         write_buffer_push_o = 1'b1;
-      end else if (read_fifo_en == 1'b1 & write_fifo_en == 1'b1) begin
-        data_write_o = data_read_i;
+      end else if (read_buffer_en == 1'b1 & write_buffer_en == 1'b1) begin
+        write_buffer_input_o = read_buffer_output_i;
         write_buffer_push_o = 1'b1;
         read_buffer_pop_o = 1'b1;
       end
@@ -224,12 +225,12 @@ module dma_processing_unit
       if (dma_start == 1'b1) begin
         dma_cnt_d1 <= ({1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q});
         dma_cnt_d2 <= {1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_top.q} + {11'h0, reg2hw.pad_bottom.q};
-      end else if (processing_unit_done_o == 1'b1) begin
+      end else if (processing_unit_done == 1'b1) begin
         dma_cnt_d1 <= '0;
         dma_cnt_d2 <= '0;
-      end else if ((dma_processing_unit_on_i == 1'b1 && processing_unit_done_o == 1'b0) & 
-                   ((pad_on == 1'b1 & write_fifo_en == 1'b1 ) ||
-                   (read_fifo_en == 1'b1 & write_fifo_en == 1'b1))) begin
+      end else if ((dma_processing_unit_on_i == 1'b1 && processing_unit_done == 1'b0) & 
+                   ((pad_on == 1'b1 & write_buffer_en == 1'b1 ) ||
+                   (read_buffer_en == 1'b1 & write_buffer_en == 1'b1))) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
           dma_cnt_d1 <= dma_cnt_d1 - 1;
@@ -253,9 +254,9 @@ module dma_processing_unit
   /* Signal assignments */
 
   /* Renaming */
-  assign read_fifo_empty = read_fifo_empty_i;
-  assign write_fifo_full = write_fifo_full_i;
-  assign write_fifo_alm_full = write_fifo_alm_full_i;
+  assign read_buffer_empty = read_buffer_empty_i;
+  assign write_buffer_full = write_buffer_full_i;
+  assign write_buffer_alm_full = write_buffer_alm_full_i;
   assign dma_start = dma_start_i;
   assign reg2hw = reg2hw_i;
   assign dma_conf_1d = reg2hw.dim_config.q == 0;
@@ -265,13 +266,13 @@ module dma_processing_unit
   assign pad_on = (pad_state_q != PAD_IDLE && pad_state_q != TOP_PAD_DONE && pad_state_q != LEFT_PAD_DONE && pad_state_q != RIGHT_PAD_DONE && pad_state_q != BOTTOM_PAD_DONE);
 
   /* Read FIFO pop signal */
-  assign read_fifo_en = (read_fifo_empty == 1'b0);
+  assign read_buffer_en = (read_buffer_empty == 1'b0);
 
   /* Write FIFO push signal */
-  assign write_fifo_en = (write_fifo_full == 1'b0 && write_fifo_alm_full == 1'b0);
+  assign write_buffer_en = (write_buffer_full == 1'b0 && write_buffer_alm_full == 1'b0);
 
   /* Padding done signal */
-  assign processing_unit_done_o = ((dma_conf_2d == 1'b1 && |dma_cnt_d2 == 1'b0 && dma_processing_unit_on_i == 1'b1)
+  assign processing_unit_done = ((dma_conf_2d == 1'b1 && |dma_cnt_d2 == 1'b0 && dma_processing_unit_on_i == 1'b1)
                                 | (dma_conf_1d == 1'b1 && |dma_cnt_d1 == 1'b0 && dma_processing_unit_on_i == 1'b1));
 
   /* Padding FSM conditions assignments */
