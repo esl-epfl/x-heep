@@ -89,6 +89,10 @@
 #define LEFT_PAD 0
 #define RIGHT_PAD 0
 
+#if !DMA_ZERO_PADDING && (TOP_PAD || BOTTOM_PAD || LEFT_PAD || RIGHT_PAD)
+#error("ERROR: DMA Zero Padding logic disabled, change the test parameters!")
+#endif
+
 /* Macros for dimensions computation */
 #define OUT_D1_PAD ( SIZE_EXTR_D1 + LEFT_PAD + RIGHT_PAD )
 #define OUT_D2_PAD ( SIZE_EXTR_D2  + TOP_PAD + BOTTOM_PAD )
