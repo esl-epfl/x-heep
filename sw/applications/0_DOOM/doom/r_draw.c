@@ -147,17 +147,23 @@ void R_DrawTransColumn (void)
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-lile scaling.
     // This is as fast as it gets.
+    byte tempval;
+    uint32_t temp_val_data;
+    X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+    memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes  
     do 
     {
         // Re-map color indices from wall texture column
         //  using a lighting/special effects LUT.
-        pixel_t val = dc_source[(frac>>FRACBITS)&127];
+        pixel_t val = tempval;
         if (val != 251) { // Use pink as transparent color
             *dest = dc_colormap[val];
         }
         
         dest += SCREENWIDTH; 
         frac += fracstep;
+        X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+        memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
         
     } while (count--); 
 } 
@@ -205,14 +211,20 @@ void R_DrawColumn (void)
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-lile scaling.
     // This is as fast as it gets.
+    byte tempval;
+    uint32_t temp_val_data;
+    X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+    memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
     do 
     {
         // Re-map color indices from wall texture column
         //  using a lighting/special effects LUT.
-        *dest = dc_colormap[dc_source[(frac>>FRACBITS)&127]];
+        *dest = dc_colormap[temp_val_data];
         
         dest += SCREENWIDTH; 
         frac += fracstep;
+        X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+        memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
         
     } while (count--); 
 } 
@@ -312,13 +324,19 @@ void R_DrawColumnLow (void)
     fracstep = dc_iscale; 
     frac = dc_texturemid + (dc_yl-centery)*fracstep;
     
+    byte tempval;
+    uint32_t temp_val_data;
+    X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+    memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
     do 
     {
         // Hack. Does not work corretly.
-        *dest2 = *dest = dc_colormap[dc_source[(frac>>FRACBITS)&127]];
+        *dest2 = *dest = dc_colormap[temp_val_data];
         dest += SCREENWIDTH;
         dest2 += SCREENWIDTH;
         frac += fracstep; 
+        X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+        memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
 
     } while (count--);
 }
@@ -573,6 +591,11 @@ void R_DrawTranslatedColumn (void)
     fracstep = dc_iscale; 
     frac = dc_texturemid + (dc_yl-centery)*fracstep; 
 
+    byte tempval;
+    uint32_t temp_val_data;
+    X_spi_read(dc_source + (frac>>FRACBITS), &temp_val_data, 1);  
+    memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
+
     // Here we do an additional index re-mapping.
     do 
     {
@@ -581,10 +604,12 @@ void R_DrawTranslatedColumn (void)
         //  used with PLAY sprites.
         // Thus the "green" ramp of the player 0 sprite
         //  is mapped to gray, red, black/indigo. 
-        *dest = dc_colormap[dc_translation[dc_source[frac>>FRACBITS]]];
+        *dest = dc_colormap[dc_translation[temp_val_data]];
         dest += SCREENWIDTH;
         
         frac += fracstep; 
+        X_spi_read(dc_source + (frac>>FRACBITS), &temp_val_data, 1);  
+        memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
     } while (count--); 
 } 
 

@@ -1189,17 +1189,13 @@ int     R_TextureNumForName (const char* name)
     else if (i>256) {
         I_Error("R_TextureNumForName: Only 256 textures supported");
     }
-    else 
-    {
-        printf("R_TextureNumForName: %s found!\n", name);
-    }
     return i;
 }
 
 
 char *R_TextureNameForNum(int num) {
     // PRINTF("NRFD-TODO: R_TextureNameForNum\n");
-    // return "TODO";
+    // return "TODO"; 
     return textures[num].wad_texture->name;
 }
 

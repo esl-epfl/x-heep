@@ -151,6 +151,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
     int w, h;
 
     patch_t temppatch; 
+    printf("patch : %p\n", patch);
     X_spi_read(patch, &temppatch, sizeof(temppatch)/4); 
 
     y -= SHORT(temppatch.topoffset);
@@ -166,7 +167,23 @@ void V_DrawPatch(int x, int y, patch_t *patch)
     w = SHORT(temppatch.width);
     h = SHORT(temppatch.height);
 
-    N_ldbg("V_DrawPatch: %d x %d\n", w, h);
+    //N_ldbg("V_DrawPatch: %d x %d\n", w, h);
+    printf("V_DrawPatch: %d x %d\n", w, h);
+
+    int patch_size = sizeof(patch_t) + (w - 8) * sizeof(int);
+    patch_t *full_patch = (patch_t *)malloc(patch_size);
+    printf("patch : %p\n", patch); 
+    X_spi_read(patch, full_patch, patch_size/4); 
+
+    printf("temppatch width : %d\n", w);
+    printf("full_patch width : %d\n", SHORT(full_patch->width)); 
+
+    for (int i = 0; i < w; i++) {
+        printf("full_patch columnofs[%d] = %d\n", i, full_patch->columnofs[i]);
+    }
+    for (int i = 0; i < w; i++) {
+        printf("temppatch columnofs[%d] = %d\n", i, temppatch.columnofs[i]);
+    }
 
 #ifdef RANGECHECK
     if (x < 0
@@ -183,23 +200,24 @@ void V_DrawPatch(int x, int y, patch_t *patch)
 
     col = 0;
     desttop = dest_screen + y * SCREENWIDTH + x;
-
+    column_t tempcolumn;
+    uint32_t temp_column_data;
+    uint32_t temp_source;
     for ( ; col<w ; x++, col++, desttop++)
     {
-        column = (volatile column_t *)((byte *)patch + LONG(temppatch.columnofs[col]));
+        column = (volatile column_t *)((byte *)patch + LONG(full_patch->columnofs[col]));
         I_SleepUS(1); // NRFD-TODO: remove?
-        column_t tempcolumn;
-        uint32_t temp_column_data;
-        uint32_t temp_source;
         X_spi_read(column, &temp_column_data, 1);  
         memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes  
-
+        printf("In V_DrawPatch in for loop, col : %d, w : %d\n", col, w);
+        printf("temppatch.columnofs[col] : %d, column addr: %p, topdelta: %d, length: %d\n", full_patch->columnofs[col], column, tempcolumn.topdelta, tempcolumn.length);
         // step through the posts in a column
         while (tempcolumn.topdelta != 0xff)
         {
             source = (byte *)column + 3;
             dest = desttop + tempcolumn.topdelta*SCREENWIDTH;
             count = tempcolumn.length;
+            printf("In while : temppatch.columnofs[col] : %d, column addr: %p, topdelta: %d, length: %d\n", full_patch->columnofs[col], column, tempcolumn.topdelta, tempcolumn.length);
 
             while (count--)
             {
@@ -213,6 +231,8 @@ void V_DrawPatch(int x, int y, patch_t *patch)
             memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes  
         }
     }
+    free(full_patch); 
+    printf("Finished func\n"); 
 }
 
 //

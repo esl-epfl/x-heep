@@ -21,8 +21,10 @@ void X_stop_time(void)
 }
 
 uint32_t X_get_time(void)
-{
-    return (stop_time_val - start_time_val);
+{  
+    uint32_t current_time;
+    CSR_READ(CSR_REG_MCYCLE, &current_time);
+    return (current_time - start_time_val);
 }
 
 uint32_t X_time_in_secs(uint32_t ticks)

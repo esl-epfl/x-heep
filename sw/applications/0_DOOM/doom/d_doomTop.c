@@ -200,7 +200,6 @@ void D_Display (void)
     boolean                     wipe;
     boolean                     redrawsbar;
 
-    // PRINTF("D_Display\n");
     if (nodrawers)
         return;                    // for comparative timing / profiling
 
@@ -229,6 +228,7 @@ void D_Display (void)
         HU_Erase();
 
     // do buffered drawing
+    printf("In D_Display before switch, gamestate : %i\n", gamestate);
     switch (gamestate)
     {
       case GS_LEVEL:
@@ -257,6 +257,7 @@ void D_Display (void)
         break;
     }
 
+    printf("In D_Display after switch\n");
 
     // draw buffered stuff to screen
     I_UpdateNoBlit ();
@@ -477,7 +478,8 @@ void D_DoomLoop (void)
     I_GraphicsCheckCommandLine(); //useless
     // I_SetGrabMouseCallback(D_GrabMouseCallback);
      
-    I_InitGraphics(); 
+    //X-HEEP comment : uncomment when screen is done
+    //I_InitGraphics(); 
     EnableLoadingDisk(); 
     TryRunTics(); 
 
@@ -491,8 +493,8 @@ void D_DoomLoop (void)
     {
         wipegamestate = gamestate;
     }
-    */
-    frame_time_prev = I_GetTimeRaw();
+    */ 
+    frame_time_prev = I_GetTimeRaw(); 
     // nrf_cache_profiling_set(NRF_CACHE_S, 1);
     while (1)
     {
@@ -513,9 +515,9 @@ void D_DoomLoop (void)
         //S_UpdateSounds (players[consoleplayer].mo);// move positional sounds
 
         // Update display, next frame, with current state.
+        printf("Before D_Display in D_DoomLoop\n"); 
         if (screenvisible)
-            D_Display ();
-
+            D_Display (); //stuck here 
         /*
         int fih = nrf_cache_instruction_hit_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_FLASH);
         int fim = nrf_cache_instruction_miss_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_FLASH);
@@ -565,7 +567,8 @@ void D_PageTicker (void)
 void D_PageDrawer (void)
 {
     //NRFD-TODO:
-    N_ldbg("D_PageDrawer %s\n", pagename);
+    //N_ldbg("D_PageDrawer %s\n", pagename);
+    printf("D_PageDrawer %s\n", pagename);
     V_DrawPatch (0, 0, W_CacheLumpName(pagename, PU_CACHE));
 }
 
@@ -1478,7 +1481,7 @@ void D_DoomMain (void)
     DEH_printf("M_LoadDefaults: Load system defaults.\n");
     M_SetConfigFilenames("default.cfg", DOOM_PROGRAM_PREFIX "doom.cfg"); //Useless
     D_BindVariables(); //useless
-    M_LoadDefaults();
+    M_LoadDefaults(); //useless
 
     // Save configuration at exit.
     I_AtExit(M_SaveDefaults, false); //useless
