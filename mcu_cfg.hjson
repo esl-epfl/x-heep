@@ -45,10 +45,10 @@
             num_master_ports: 0x2
             num_channels_per_master_port: 0x2
             fifo_depth: 0x4
-            addr_mode_en: "no"
+            addr_mode_en: "yes"
             subaddr_mode_en: "yes"
             hw_fifo_mode_en: "yes"
-            zero_padding_en: "no"
+            zero_padding_en: "yes"
             path:    "./hw/ip/dma/data/dma_gen.hjson"
         }
         power_manager: {
