@@ -14,7 +14,7 @@ module x_heep_system
     parameter X_EXT = 0,  // eXtension interface in cv32e40x
     parameter AO_SPC_NUM = 0,
     //do not touch these parameters
-    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 1 : AO_SPC_NUM,
+    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1,
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
@@ -42,8 +42,8 @@ module x_heep_system
     output fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
     input fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
-    input reg_req_t  [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_req_i,
-    output reg_rsp_t [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_resp_o,
+    input reg_req_t  [AO_SPC_NUM_RND:0] ext_ao_peripheral_req_i,
+    output reg_rsp_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_resp_o,
     
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,

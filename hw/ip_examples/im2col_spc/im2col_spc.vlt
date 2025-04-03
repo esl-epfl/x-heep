@@ -10,7 +10,7 @@ lint_off -rule WIDTH -file "*/rtl/im2col_spc_reg_top.sv" -match "Operator ASSIGN
  
 lint_off -rule UNUSED -file "*/rtl/im2col_spc.sv" -match "Signal is not used: 'data_out_rvalid'"
 lint_off -rule UNUSED -file "*/rtl/im2col_spc.sv" -match "Signal is not used:*'"
-lint_off -rule UNUSED -file "*/rtl/im2col_spc.sv" -match "Signal is not driven:*'"
+lint_off -rule UNDRIVEN -file "*/rtl/im2col_spc.sv" -match "Signal is not driven:*'"
 
 lint_off -rule UNUSED -file "*/rtl/im2col_spc.sv" -match "Bits of signal are not used: *"
 lint_off -rule UNUSED -file "*/rtl/im2col_spc_param_fsm.sv" -match "Bits of signal are not used: *"
