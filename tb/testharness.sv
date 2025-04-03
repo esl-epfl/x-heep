@@ -52,6 +52,7 @@ module testharness #(
   import core_v_mini_mcu_pkg::*;
 
   localparam AO_SPC_NUM = 1;
+  localparam AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1;
   localparam SWITCH_ACK_LATENCY = 15;
   localparam EXT_XBAR_NMASTER_RND = USE_EXTERNAL_DEVICE_EXAMPLE ? testharness_pkg::EXT_XBAR_NMASTER : 1;
   localparam HEEP_EXT_XBAR_NMASTER = USE_EXTERNAL_DEVICE_EXAMPLE ? testharness_pkg::EXT_XBAR_NMASTER : 0;
@@ -156,8 +157,8 @@ module testharness #(
   ) ext_if ();
 
   // External SPC interface signals
-  reg_req_t [AO_SPC_NUM-1:0] ext_ao_peripheral_req;
-  reg_rsp_t [AO_SPC_NUM-1:0] ext_ao_peripheral_resp;
+  reg_req_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_req;
+  reg_rsp_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_resp;
 
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_busy;
 
@@ -200,7 +201,8 @@ module testharness #(
       .FPU(FPU),
       .ZFINX(ZFINX),
       .X_EXT(X_EXT),
-      .EXT_XBAR_NMASTER(HEEP_EXT_XBAR_NMASTER)
+      .EXT_XBAR_NMASTER(HEEP_EXT_XBAR_NMASTER),
+      .AO_SPC_NUM(AO_SPC_NUM)
   ) x_heep_system_i (
       .clk_i,
       .rst_ni,

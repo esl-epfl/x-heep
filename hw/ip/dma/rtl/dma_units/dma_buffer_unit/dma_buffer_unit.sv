@@ -49,9 +49,9 @@ module dma_buffer_unit
   logic [31:0] read_buffer_output;
 
   dma_buffer_fifos #(
-      .HW_FIFO_MODE_EN,
-      .ADDR_MODE_EN,
-      .FIFO_DEPTH
+      .HW_FIFO_MODE_EN(HW_FIFO_MODE_EN),
+      .ADDR_MODE_EN(ADDR_MODE_EN),
+      .FIFO_DEPTH(FIFO_DEPTH)
   ) dma_buffer_fifos_i (
       .clk_i,
       .rst_ni,
@@ -73,7 +73,7 @@ module dma_buffer_unit
   );
 
   dma_buffer_control #(
-      .SUBADDR_MODE_EN
+      .SUBADDR_MODE_EN(SUBADDR_MODE_EN)
   ) dma_buffer_control_i (
       .clk_i,
       .rst_ni,
