@@ -20,22 +20,34 @@
 #include "dma.h"
 
 #ifndef RV_PLIC_IS_INCLUDED
-  #error ( "This app does NOT work as the RV_PLIC peripheral is not included" )
+#error( "This app does NOT work as the RV_PLIC peripheral is not included" )
 #endif
 
-
-#define EXTERNAL_CSR_REG_MIE_MASK (1<<11)
+#define EXTERNAL_CSR_REG_MIE_MASK (1 << 11)
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_FPGA 1
+#define PRINTF_IN_SIM 0
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
-    #define PRINTF(...)
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
 static rv_timer_t timer_0_1;
@@ -44,18 +56,18 @@ static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
 static power_manager_t power_manager;
 
 #ifndef TARGET_IS_FPGA
-    #define GPIO_TB_OUT 30
-    #define GPIO_TB_IN  31
-    #define GPIO_INTR  GPIO_INTR_31
+#define GPIO_TB_OUT 30
+#define GPIO_TB_IN 31
+#define GPIO_INTR GPIO_INTR_31
 #endif
 
 #define TEST_WORD
-//this data has to be big to allow the CPU to power gate
+// this data has to be big to allow the CPU to power gate
 #define TEST_DATA_SIZE 450
 
 // Source and destination addresses have to be aligned on a 4 bytes address
-uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
-uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
+uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__((aligned(4))) = {0};
+uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__((aligned(4))) = {0};
 
 uint8_t gpio_intr_flag = 0;
 
@@ -71,12 +83,12 @@ int main(int argc, char *argv[])
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
     power_manager_counters_t power_manager_counters;
-    //counters
+    // counters
     uint32_t reset_off, reset_on, switch_off, switch_on, iso_off, iso_on;
 
-    CSR_CLEAR_BITS(CSR_REG_MIE, EXTERNAL_CSR_REG_MIE_MASK );
+    CSR_CLEAR_BITS(CSR_REG_MIE, EXTERNAL_CSR_REG_MIE_MASK);
     /* Enable machine-level external interrupt. */
-    CSR_SET_BITS(CSR_REG_MIE, EXTERNAL_CSR_REG_MIE_MASK );
+    CSR_SET_BITS(CSR_REG_MIE, EXTERNAL_CSR_REG_MIE_MASK);
 
     // Setup pads
 #ifndef TARGET_IS_FPGA
@@ -106,21 +118,19 @@ int main(int argc, char *argv[])
 
     // Init cpu_subsystem's counters
 
-    //Turn off: first, isolate the CPU outputs, then I reset it, then I switch it off (reset and switch off order does not really matter)
+    // Turn off: first, isolate the CPU outputs, then I reset it, then I switch it off (reset and switch off order does not really matter)
     iso_off = 10;
     reset_off = iso_off + 5;
     switch_off = reset_off + 5;
-    //Turn on: first, give back power by switching on, then deassert the reset, the unisolate the CPU outputs
+    // Turn on: first, give back power by switching on, then deassert the reset, the unisolate the CPU outputs
     switch_on = 10;
-    reset_on = switch_on + 20; //give 20 cycles to emulate the turn on time, this number depends on technology and here it is just a random number
+    reset_on = switch_on + 20; // give 20 cycles to emulate the turn on time, this number depends on technology and here it is just a random number
     iso_on = reset_on + 5;
 
     if (power_gate_counters_init(&power_manager_counters, reset_off, reset_on, switch_off, switch_on, iso_off, iso_on, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
 
@@ -134,9 +144,7 @@ int main(int argc, char *argv[])
     if (power_gate_core(&power_manager, kTimer_0_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -151,9 +159,7 @@ int main(int argc, char *argv[])
     if (power_gate_core(&power_manager, kTimer_1_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -168,9 +174,7 @@ int main(int argc, char *argv[])
     if (power_gate_core(&power_manager, kTimer_2_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -185,17 +189,16 @@ int main(int argc, char *argv[])
     if (power_gate_core(&power_manager, kTimer_3_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 
     // Power-gate and wake-up due to DMA
 
-    //prepare data
-    for(int i=0; i<TEST_DATA_SIZE;i++){
+    // prepare data
+    for (int i = 0; i < TEST_DATA_SIZE; i++)
+    {
         test_data_4B[i] = i;
     }
 
@@ -248,24 +251,22 @@ int main(int argc, char *argv[])
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
         if (dma_is_ready(0) == 0)
         {
-                if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
-                {
-                    PRINTF("Error: power manager fail.\n\r");
-                    #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
-                    return EXIT_FAILURE;
-                }
+            if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
+            {
+                PRINTF("Error: power manager fail.\n\r");
+                PRINTF_TEST("1&\n");
+                return EXIT_FAILURE;
+            }
         }
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
 
-    for(int i=0; i<TEST_DATA_SIZE; i++) {
-        if (copied_data_4B[i] != test_data_4B[i]) {
+    for (int i = 0; i < TEST_DATA_SIZE; i++)
+    {
+        if (copied_data_4B[i] != test_data_4B[i])
+        {
             PRINTF("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n", i, &copied_data_4B[i], &test_data_4B[i], copied_data_4B[i], test_data_4B[i]);
-            #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+            PRINTF_TEST("1&\n");
             return -1;
         }
     }
@@ -273,27 +274,24 @@ int main(int argc, char *argv[])
 #ifndef TARGET_IS_FPGA
     // Power-gate and wake-up due to plic GPIO
 
-    gpio_assign_irq_handler( GPIO_INTR_31, &gpio_handler_in );
+    gpio_assign_irq_handler(GPIO_INTR_31, &gpio_handler_in);
 
     bool state = false;
     plic_irq_set_priority(GPIO_INTR_31, 1);
     plic_irq_set_enabled(GPIO_INTR_31, kPlicToggleEnabled);
 
-    gpio_cfg_t pin2_cfg = {.pin = GPIO_TB_IN, .mode = GpioModeIn,.en_input_sampling = true,
-        .en_intr = true, .intr_type = GpioIntrEdgeRising};
-    gpio_config (pin2_cfg);
+    gpio_cfg_t pin2_cfg = {.pin = GPIO_TB_IN, .mode = GpioModeIn, .en_input_sampling = true, .en_intr = true, .intr_type = GpioIntrEdgeRising};
+    gpio_config(pin2_cfg);
 
     gpio_cfg_t pin1_cfg = {.pin = GPIO_TB_OUT, .mode = GpioModeOutPushPull};
-    gpio_config (pin1_cfg);
+    gpio_config(pin1_cfg);
     gpio_write(GPIO_TB_OUT, true);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kPlic_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -301,11 +299,10 @@ int main(int argc, char *argv[])
     uint32_t intr_num;
     plic_irq_complete(&intr_num);
 
-    if(gpio_intr_flag == 0){
+    if (gpio_intr_flag == 0)
+    {
         PRINTF("Error: GPIO interrupt not detected\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
 
@@ -320,7 +317,8 @@ int main(int argc, char *argv[])
     // ------------ clock gating ------------
     mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_CLK_GATE_REG_OFFSET), 0x1);
     // Wait some time
-    for (int i=0; i<100; i++) asm volatile("nop;");
+    for (int i = 0; i < 100; i++)
+        asm volatile("nop;");
     // Enabling the peripheral subsystem
     mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_CLK_GATE_REG_OFFSET), 0x0);
 
@@ -330,9 +328,7 @@ int main(int argc, char *argv[])
     if (power_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
 
@@ -340,25 +336,23 @@ int main(int argc, char *argv[])
     if (power_gate_periph(&power_manager, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
 
     // Check that the peripheral_subsystem domain is actually OFF
-    while(!periph_power_domain_is_off(&power_manager));
+    while (!periph_power_domain_is_off(&power_manager))
+        ;
 
     // Wait some time
-    for (int i=0; i<100; i++) asm volatile("nop;");
+    for (int i = 0; i < 100; i++)
+        asm volatile("nop;");
 
     // Power on peripheral_subsystem domain
     if (power_gate_periph(&power_manager, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
 
@@ -370,12 +364,13 @@ int main(int argc, char *argv[])
 
     // ------------ clock gating ------------
     // do not clock gate instruction and data memory (usually first 2 banks)
-    for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
+    for (uint32_t i = 2; i < MEMORY_BANKS; ++i)
         mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x1);
     // Wait some time
-    for (int i=0; i<100; i++) asm volatile("nop;");
+    for (int i = 0; i < 100; i++)
+        asm volatile("nop;");
     // Enabling ram-banks
-    for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
+    for (uint32_t i = 2; i < MEMORY_BANKS; ++i)
         mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x0);
 
     PRINTF("Memory Clock Gating Test Successefull\n\r");
@@ -384,32 +379,28 @@ int main(int argc, char *argv[])
     if (power_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     // Power off ram block 2 domain
     if (power_gate_ram_block(&power_manager, 2, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     // Check that the ram block 2 domain is actually OFF
-    while(!ram_block_power_domain_is_off(&power_manager, 2));
+    while (!ram_block_power_domain_is_off(&power_manager, 2))
+        ;
 
     // Wait some time
-    for (int i=0; i<100; i++) asm volatile("nop");
+    for (int i = 0; i < 100; i++)
+        asm volatile("nop");
     // Power on ram block 2 domain
     if (power_gate_ram_block(&power_manager, 2, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
 
@@ -419,37 +410,31 @@ int main(int argc, char *argv[])
     if (power_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     // Set retention mode on for ram block 2 domain
     if (power_gate_ram_block(&power_manager, 2, kRetOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     // Wait some time
-    for (int i=0; i<100; i++) asm volatile("nop");
+    for (int i = 0; i < 100; i++)
+        asm volatile("nop");
     // Set retention mode off for ram block 2 domain
     if (power_gate_ram_block(&power_manager, 2, kRetOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
 
     PRINTF("Memory Set Retentive Test Successefull\n\r");
 
-
 #else
-    #pragma message ( "the memory test can only run if MEMORY_BANKS > 2" )
+#pragma message("the memory test can only run if MEMORY_BANKS > 2")
 #endif
 
 #if EXTERNAL_DOMAINS > 0
@@ -458,12 +443,13 @@ int main(int argc, char *argv[])
     PRINTF("Testing External Domain Subsystems...\n\r");
 
     // ------------ clock gating ------------
-    for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
+    for (uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
         mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x1);
     // Wait some time
-    for (int i=0; i<100; i++) asm volatile("nop;");
+    for (int i = 0; i < 100; i++)
+        asm volatile("nop;");
     // Enabling external subsystems
-    for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
+    for (uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
         mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x0);
 
     PRINTF("External Clock Gating Test Successefull\n\r");
@@ -472,73 +458,61 @@ int main(int argc, char *argv[])
     if (power_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     // Power off external domain
     if (power_gate_external(&power_manager, 0, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     // Check that the external domain is actually OFF
-    while(!external_power_domain_is_off(&power_manager, 0));
+    while (!external_power_domain_is_off(&power_manager, 0))
+        ;
     // Wait some time
-    for (int i=0; i<100; i++) asm volatile("nop");
+    for (int i = 0; i < 100; i++)
+        asm volatile("nop");
     // Power on external domain
     if (power_gate_external(&power_manager, 0, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
 
     PRINTF("External Power Gating Test Successefull\n\r");
 
     // ------------ set retentive domain 0------------
-   if (power_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
+    if (power_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     // Set retention mode on for external domain block 0
     if (power_gate_external(&power_manager, 0, kRetOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
     // Wait some time
-    for (int i=0; i<100; i++) asm volatile("nop");
+    for (int i = 0; i < 100; i++)
+        asm volatile("nop");
     // Set retention mode off for external domain block 0
     if (power_gate_external(&power_manager, 0, kRetOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
 
     PRINTF("External Set Retentive Test Successefull\n\r");
 #else
-    #pragma message ( "the external domain test can only run if EXTERNAL_DOMAINS > 0" )
+#pragma message("the external domain test can only run if EXTERNAL_DOMAINS > 0")
 #endif
-    #ifdef TESTIT_CAMPAIGN
-        PRINTF("0&\n");
-        #endif
-        return EXIT_SUCCESS;
-
+    PRINTF_TEST("0&\n");
+    return EXIT_SUCCESS;
 }

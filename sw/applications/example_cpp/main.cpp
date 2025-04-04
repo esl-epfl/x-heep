@@ -16,41 +16,53 @@
  * Author: Juan Sapriza <juan.sapriza@epfl.ch>
  */
 
-
-
-extern "C" {
-    #include <stdio.h>
-    #include <stdlib.h>
+extern "C"
+{
+#include <stdio.h>
+#include <stdlib.h>
 }
 
 #include "MyClass.hpp"
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
 
+#define PRINTF_IN_FPGA 1
+
 #if TARGET_SIM && PRINTF_IN_SIM
+#ifndef TEST_MODE
 #define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
 #define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
 int main()
 {
-    MyClass myObject(10); // Create an object with initial value 10
+    MyClass myObject(10);  // Create an object with initial value 10
     myObject.printValue(); // Print the initial value
 
     myObject.setValue(20); // Change the value to 20
     myObject.printValue(); // Print the updated value
 
-    int value = myObject.getValue(); // Get the value
-    PRINTF("Retrieved Value: %d\n\r" ,value); // Print the retrieved value
+    int value = myObject.getValue();          // Get the value
+    PRINTF("Retrieved Value: %d\n\r", value); // Print the retrieved value
 
-    int return_value = !(value == 20*5);
+    int return_value = !(value == 20 * 5);
 
-#ifdef TESTIT_CAMPAIGN
-    printf("%d&\n", return_value);
-#endif
+    PRINTF_TEST("0:%d&\n", return_value);
 
     return return_value ? EXIT_FAILURE : EXIT_SUCCESS;
 }

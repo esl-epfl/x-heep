@@ -20,23 +20,37 @@
 #include "w25q128jw.h"
 #include "dma.h"
 
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_FPGA 1
+#define PRINTF_IN_SIM 0
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
-    #define PRINTF(...)
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
 #if defined(TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
-    #define USE_SPI_FLASH
+#define USE_SPI_FLASH
 #endif
 
 // Start buffers (the original data)
 #include "test_data.h"
+#include <string.h>
 
 // End buffer (where what is read is stored)
 uint32_t flash_data[256];
@@ -48,7 +62,8 @@ uint32_t flash_data[256];
 #define TEST_BUFFER_BYTES test_bytes
 #define LENGTH 128
 
-typedef enum {
+typedef enum
+{
     TYPE_WORD = 2,
     TYPE_HALF_WORD = 1,
     TYPE_BYTE = 0
@@ -65,35 +80,38 @@ uint32_t check_result(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma_
 // Define global status variable
 w25q_error_codes_t global_status;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
-    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
+    if (get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO)
+    {
         PRINTF("This application cannot work with the memory mapped SPI FLASH"
-            "module - do not use the FLASH_EXEC linker script for this application\n");
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("0&\n");
-        #endif
+               "module - do not use the FLASH_EXEC linker script for this application\n");
+
+        PRINTF_TEST("0&\n");
+
         return EXIT_SUCCESS;
     }
 
     // Pick the correct spi device based on simulation type
-    spi_host_t* spi;
-    #ifndef USE_SPI_FLASH
+    spi_host_t *spi;
+#ifndef USE_SPI_FLASH
     spi = spi_host1;
-    #else
+#else
     spi = spi_flash;
-    #endif
+#endif
 
     // Define status variable
     int32_t errors = 0;
 
     // Init SPI host and SPI<->Flash bridge parameters
-    if (w25q128jw_init(spi) != FLASH_OK) {
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-        #endif
+    if (w25q128jw_init(spi) != FLASH_OK)
+    {
+
+        PRINTF_TEST("1&\n");
+
         return EXIT_FAILURE;
     }
     // DMA transaction data type
@@ -132,48 +150,50 @@ int main(int argc, char *argv[]) {
     errors += test_read_flash_only_dma(flash_only_buffer, 128, dma_data_type, 1);
 #endif
 
-    #ifdef TESTIT_CAMPAIGN
-    PRINTF("%d&\n", errors);
-    #endif
+    PRINTF_TEST("%d&\n", errors);
 
     PRINTF("\n--------TEST FINISHED--------\n");
-    if (errors == 0) {
+    if (errors == 0)
+    {
         PRINTF("All tests passed!\n");
         return EXIT_SUCCESS;
-    } else {
+    }
+    else
+    {
         PRINTF("Some tests failed!\n");
         return EXIT_FAILURE;
     }
-
 }
 
 #ifndef ON_CHIP
-uint32_t test_read_flash_only_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma_data_type, uint8_t sign_extend) {
-    
+uint32_t test_read_flash_only_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma_data_type, uint8_t sign_extend)
+{
+
     dma_data_type_t dma_trans_data_type;
 
-    switch (dma_data_type) {
-        case TYPE_WORD:
-            dma_trans_data_type = DMA_DATA_TYPE_WORD;
-            break;
-        case TYPE_HALF_WORD:
-            dma_trans_data_type = DMA_DATA_TYPE_HALF_WORD;
-            break;
-        case TYPE_BYTE:
-            dma_trans_data_type = DMA_DATA_TYPE_BYTE;
-            break;
-        default:
-            break;
+    switch (dma_data_type)
+    {
+    case TYPE_WORD:
+        dma_trans_data_type = DMA_DATA_TYPE_WORD;
+        break;
+    case TYPE_HALF_WORD:
+        dma_trans_data_type = DMA_DATA_TYPE_HALF_WORD;
+        break;
+    case TYPE_BYTE:
+        dma_trans_data_type = DMA_DATA_TYPE_BYTE;
+        break;
+    default:
+        break;
     }
 
     dma_init(NULL);
 
-    // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
-    #ifndef USE_SPI_FLASH
+// The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
+#ifndef USE_SPI_FLASH
     uint8_t slot = DMA_TRIG_SLOT_SPI_RX;
-    #else
+#else
     uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
-    #endif
+#endif
 
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
 
@@ -183,7 +203,7 @@ uint32_t test_read_flash_only_dma(uint32_t *test_buffer, uint32_t len, dma_trans
         .type = dma_trans_data_type,
     };
     // Target is SPI RX FIFO
-    tgt_src.ptr = (uint8_t*) (w25q128jw_read_standard_setup(test_buffer_flash, flash_data, len));
+    tgt_src.ptr = (uint8_t *)(w25q128jw_read_standard_setup(test_buffer_flash, flash_data, len));
     // Trigger to control the data flow
     tgt_src.trig = slot;
 
@@ -193,7 +213,7 @@ uint32_t test_read_flash_only_dma(uint32_t *test_buffer, uint32_t len, dma_trans
         .type = DMA_DATA_TYPE_WORD,
         .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
     };
-    tgt_dst.ptr = (uint8_t*)flash_data; // Target is the data buffer
+    tgt_dst.ptr = (uint8_t *)flash_data; // Target is the data buffer
 
     // Set up DMA transaction
     dma_trans_t trans = {
@@ -206,62 +226,73 @@ uint32_t test_read_flash_only_dma(uint32_t *test_buffer, uint32_t len, dma_trans
 
     // Size is in data units (words in this case)
     trans.size_d1_du = len >> (dma_data_type);
-    
+
     // Validate, load and launch DMA transaction
     dma_config_flags_t res;
-    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
     res = dma_load_transaction(&trans);
     res = dma_launch(&trans);
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready(0));
+    while (!dma_is_ready(0))
+        ;
 
     uint32_t result;
-    if(dma_trans_data_type == DMA_DATA_TYPE_WORD){
+    if (dma_trans_data_type == DMA_DATA_TYPE_WORD)
+    {
         result = check_result(flash_only_buffer_golden_value, len, dma_data_type, sign_extend);
-    } else if (dma_trans_data_type == DMA_DATA_TYPE_HALF_WORD && sign_extend) {
+    }
+    else if (dma_trans_data_type == DMA_DATA_TYPE_HALF_WORD && sign_extend)
+    {
         result = check_result(flash_only_buffer_golden_value_hw_se, len, dma_data_type, sign_extend);
-    } else if (dma_trans_data_type == DMA_DATA_TYPE_HALF_WORD && !sign_extend) {
+    }
+    else if (dma_trans_data_type == DMA_DATA_TYPE_HALF_WORD && !sign_extend)
+    {
         result = check_result(flash_only_buffer_golden_value_hw, len, dma_data_type, sign_extend);
-    } else if (dma_trans_data_type == DMA_DATA_TYPE_BYTE && sign_extend) {
+    }
+    else if (dma_trans_data_type == DMA_DATA_TYPE_BYTE && sign_extend)
+    {
         result = check_result(flash_only_buffer_golden_value_bytes_se, len, dma_data_type, sign_extend);
-    } else if (dma_trans_data_type == DMA_DATA_TYPE_BYTE && !sign_extend) {
+    }
+    else if (dma_trans_data_type == DMA_DATA_TYPE_BYTE && !sign_extend)
+    {
         result = check_result(flash_only_buffer_golden_value_bytes, len, dma_data_type, sign_extend);
     }
     // Reset the flash data buffer
     memset(flash_data, 0, len * sizeof(uint8_t));
 
     return result;
-
 }
 #endif
 
-uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma_data_type, uint8_t sign_extend) {
-    
+uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma_data_type, uint8_t sign_extend)
+{
+
     dma_data_type_t dma_trans_data_type;
 
-    switch (dma_data_type) {
-        case TYPE_WORD:
-            dma_trans_data_type = DMA_DATA_TYPE_WORD;
-            break;
-        case TYPE_HALF_WORD:
-            dma_trans_data_type = DMA_DATA_TYPE_HALF_WORD;
-            break;
-        case TYPE_BYTE:
-            dma_trans_data_type = DMA_DATA_TYPE_BYTE;
-            break;
-        default:
-            break;
+    switch (dma_data_type)
+    {
+    case TYPE_WORD:
+        dma_trans_data_type = DMA_DATA_TYPE_WORD;
+        break;
+    case TYPE_HALF_WORD:
+        dma_trans_data_type = DMA_DATA_TYPE_HALF_WORD;
+        break;
+    case TYPE_BYTE:
+        dma_trans_data_type = DMA_DATA_TYPE_BYTE;
+        break;
+    default:
+        break;
     }
 
     dma_init(NULL);
 
-    // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
-    #ifndef USE_SPI_FLASH
+// The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
+#ifndef USE_SPI_FLASH
     uint8_t slot = DMA_TRIG_SLOT_SPI_RX;
-    #else
+#else
     uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
-    #endif
+#endif
 
     // Set up DMA source target
     dma_target_t tgt_src = {
@@ -269,7 +300,7 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma
         .type = dma_trans_data_type,
     };
     // Target is SPI RX FIFO
-    tgt_src.ptr = (uint8_t*) (w25q128jw_read_standard_setup((uint32_t*)(TEST_BUFFER_WORDS), flash_data, len));
+    tgt_src.ptr = (uint8_t *)(w25q128jw_read_standard_setup((uint32_t) TEST_BUFFER_WORDS, flash_data, len));
     // Trigger to control the data flow
     tgt_src.trig = slot;
 
@@ -279,7 +310,7 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma
         .type = DMA_DATA_TYPE_WORD,
         .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
     };
-    tgt_dst.ptr = (uint8_t*)flash_data; // Target is the data buffer
+    tgt_dst.ptr = (uint8_t *)flash_data; // Target is the data buffer
 
     // Set up DMA transaction
     dma_trans_t trans = {
@@ -292,15 +323,16 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma
 
     // Size is in data units (words in this case)
     trans.size_d1_du = len >> (dma_data_type);
-    
+
     // Validate, load and launch DMA transaction
     dma_config_flags_t res;
-    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
     res = dma_load_transaction(&trans);
     res = dma_launch(&trans);
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready(0));
+    while (!dma_is_ready(0))
+        ;
 
     uint32_t result = check_result(test_buffer, len, dma_data_type, sign_extend);
 
@@ -310,32 +342,34 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma
     return result;
 }
 
-uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma_data_type, uint8_t sign_extend) {
+uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma_data_type, uint8_t sign_extend)
+{
 
     dma_data_type_t dma_trans_data_type;
 
-    switch (dma_data_type) {
-        case TYPE_WORD:
-            dma_trans_data_type = DMA_DATA_TYPE_WORD;
-            break;
-        case TYPE_HALF_WORD:
-            dma_trans_data_type = DMA_DATA_TYPE_HALF_WORD;
-            break;
-        case TYPE_BYTE:
-            dma_trans_data_type = DMA_DATA_TYPE_BYTE;
-            break;
-        default:
-            break;
+    switch (dma_data_type)
+    {
+    case TYPE_WORD:
+        dma_trans_data_type = DMA_DATA_TYPE_WORD;
+        break;
+    case TYPE_HALF_WORD:
+        dma_trans_data_type = DMA_DATA_TYPE_HALF_WORD;
+        break;
+    case TYPE_BYTE:
+        dma_trans_data_type = DMA_DATA_TYPE_BYTE;
+        break;
+    default:
+        break;
     }
 
     dma_init(NULL);
 
-    // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
-    #ifndef USE_SPI_FLASH
+// The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
+#ifndef USE_SPI_FLASH
     uint8_t slot = DMA_TRIG_SLOT_SPI_RX;
-    #else
+#else
     uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
-    #endif
+#endif
 
     // Set up DMA source target
     dma_target_t tgt_src = {
@@ -343,7 +377,7 @@ uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_
         .type = dma_trans_data_type,
     };
     // Target is SPI RX FIFO
-    tgt_src.ptr = (uint8_t*) (w25q128jw_read_quad_setup((uint32_t*)(TEST_BUFFER_WORDS), flash_data, len));
+    tgt_src.ptr = (uint8_t *)(w25q128jw_read_quad_setup((uint32_t)(TEST_BUFFER_WORDS), flash_data, len));
     // Trigger to control the data flow
     tgt_src.trig = slot;
 
@@ -353,7 +387,7 @@ uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_
         .type = DMA_DATA_TYPE_WORD,
         .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
     };
-    tgt_dst.ptr = (uint8_t*)flash_data; // Target is the data buffer
+    tgt_dst.ptr = (uint8_t *)flash_data; // Target is the data buffer
 
     // Set up DMA transaction
     dma_trans_t trans = {
@@ -366,15 +400,16 @@ uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_
 
     // Size is in data units (words in this case)
     trans.size_d1_du = len >> (dma_data_type);
-    
+
     // Validate, load and launch DMA transaction
     dma_config_flags_t res;
-    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
     res = dma_load_transaction(&trans);
     res = dma_launch(&trans);
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready(0));
+    while (!dma_is_ready(0))
+        ;
 
     uint32_t result = check_result(test_buffer, len, dma_data_type, sign_extend);
 
@@ -384,19 +419,25 @@ uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_
     return result;
 }
 
-uint32_t check_result(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma_data_type, uint32_t sign_extend) {
+uint32_t check_result(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma_data_type, uint32_t sign_extend)
+{
     uint32_t errors = 0;
 
-    for (uint32_t i = 0; i < len>>dma_data_type; i += 1) {
-        if (test_buffer[i] != flash_data[i]) {
+    for (uint32_t i = 0; i < len >> dma_data_type; i += 1)
+    {
+        if (test_buffer[i] != flash_data[i])
+        {
             PRINTF("Error in transfer %d %d at position %d: expected %x, got %x\n", dma_data_type, sign_extend, i, test_buffer[i], flash_data[i]);
             errors++;
         }
     }
 
-    if (errors == 0) {
+    if (errors == 0)
+    {
         PRINTF("success!\n");
-    } else {
+    }
+    else
+    {
         PRINTF("failure, %d errors!\n", errors);
     }
 

@@ -10,6 +10,7 @@
 #include "x-heep.h"
 #include "csr.h"
 #include "rv_plic.h"
+#include "test_parameters.h"
 
 // TEST DEFINES AND CONFIGURATION
 
@@ -19,13 +20,11 @@
 #define TEST_WINDOW
 #define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 
-#define TEST_DATA_SIZE 16
-#define TEST_DATA_LARGE 256
-#define TRANSACTIONS_N 3         // Only possible to perform one transaction at a time, others should be blocked
-#define TEST_WINDOW_SIZE_DU 256 // if put at <=71 the isr is too slow to react to the interrupt
+// Only possible to perform one transaction at a time, others should be blocked
+// If TEST_WINDOW_SIZE_DU is put at <=71 the isr is too slow to react to the interrupt
 
 #if TEST_DATA_LARGE < 2 * TEST_DATA_SIZE
-#errors("TEST_DATA_LARGE must be at least 2*TEST_DATA_SIZE")
+#error("TEST_DATA_LARGE must be at least 2*TEST_DATA_SIZE")
 #endif
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
@@ -33,11 +32,24 @@
 #define PRINTF_IN_SIM 0
 
 #if TARGET_SIM && PRINTF_IN_SIM
+#ifndef TEST_MODE
 #define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
 #define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
 // UTILITIES
@@ -63,10 +75,10 @@ dma_data_type_t C_type_2_dma_type(int C_type)
 }
 
 #define WAIT_DMA                              \
-    while (!dma_is_ready(0))                   \
+    while (!dma_is_ready(0))                  \
     {                                         \
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8); \
-        if (dma_is_ready(0) == 0)              \
+        if (dma_is_ready(0) == 0)             \
         {                                     \
             wait_for_interrupt();             \
         }                                     \
@@ -101,33 +113,30 @@ dma_data_type_t C_type_2_dma_type(int C_type)
             else                                               \
                 src[i] = (C_src_type)test_data_4B[i];
 
-#define CHECK_RESULTS(data_size)                                                            \
-    for (int i = 0; i < data_size; i++)                                                     \
-    {                                                                                       \
-        if (src[i] != dst[i])                                                               \
-        {                                                                                   \
-            PRINTF("[%d] Expected: %x Got : %x\n\r", i, src[i], dst[i]);                      \
-            errors++;                                                                       \
-        }                                                                                   \
-    }                                                                                       \
-    if (errors != 0)                                                                        \
-    {                                                                                       \
+#define CHECK_RESULTS(data_size)                                                                   \
+    for (int i = 0; i < data_size; i++)                                                            \
+    {                                                                                              \
+        if (src[i] != dst[i])                                                                      \
+        {                                                                                          \
+            PRINTF("[%d] Expected: %x Got : %x\n\r", i, src[i], dst[i]);                           \
+            errors++;                                                                              \
+        }                                                                                          \
+    }                                                                                              \
+    if (errors != 0)                                                                               \
+    {                                                                                              \
         PRINTF("DMA failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du); \
-        #ifdef TESTIT_CAMPAIGN                                                        \
-        PRINTF("%d&\n", errors);                                                        \
-        #endif
-        return EXIT_FAILURE;                                                                \
+        return EXIT_FAILURE;                                                                       \
     }
 
 #define INIT_TEST(signed, data_size, dma_src_type, dma_dst_type) \
     tgt_src.ptr = (uint8_t *)src;                                \
-    tgt_src.inc_d1_du = 1;                                          \
+    tgt_src.inc_d1_du = 1;                                       \
     tgt_src.inc_d2_du = 0;                                       \
     tgt_src.trig = DMA_TRIG_MEMORY;                              \
     tgt_src.type = dma_src_type;                                 \
     tgt_src.env = NULL;                                          \
     tgt_dst.ptr = (uint8_t *)dst;                                \
-    tgt_dst.inc_d1_du = 1;                                          \
+    tgt_dst.inc_d1_du = 1;                                       \
     tgt_dst.inc_d2_du = 0;                                       \
     tgt_dst.trig = DMA_TRIG_MEMORY;                              \
     tgt_dst.type = dma_dst_type;                                 \
@@ -142,7 +151,7 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     trans.win_du = 0;                                            \
     trans.sign_ext = signed;                                     \
     trans.end = DMA_TRANS_END_INTR;                              \
-    trans.dim = DMA_DIM_CONF_1D;                                 \
+    trans.dim = DMA_DIM_CONF_1D;
 
 #define TEST(C_src_type, C_dst_type, test_size, sign_extend)                                                         \
     PRINT_TEST(sign_extend, test_size, C_type_2_dma_type(sizeof(C_src_type)), C_type_2_dma_type(sizeof(C_dst_type))) \
@@ -218,8 +227,9 @@ void dma_intr_handler_trans_done(uint8_t channel)
 
 int32_t window_intr_flag;
 
-void dma_intr_handler_window_done(uint8_t channel) {
-    window_intr_flag ++;
+void dma_intr_handler_window_done(uint8_t channel)
+{
+    window_intr_flag++;
 }
 
 uint8_t dma_window_ratio_warning_threshold()
@@ -233,7 +243,6 @@ dma_trans_t trans;
 
 int main(int argc, char *argv[])
 {
-
 
     static uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__((aligned(4))) = {
         0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
@@ -261,6 +270,15 @@ int main(int argc, char *argv[])
     PRINTF("\n\n\r===================================\n\n\r");
 
     TEST_SINGLE
+
+    if (errors != 0)
+    {
+        PRINTF_TEST("0:%d:1\n", errors);
+    }
+    else
+    {
+        PRINTF_TEST("0:0:0\n");
+    }
 
 #endif // TEST_SINGLE_MODE
 
@@ -318,16 +336,14 @@ int main(int argc, char *argv[])
     if (errors == 0)
     {
         PRINTF("DMA address mode success.\n\r");
+        PRINTF_TEST("1:0:0\n");
     }
     else
     {
         PRINTF("DMA address mode failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du);
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("%d&\n", errors);
-        #endif
+        PRINTF_TEST("1:%d:1\n", errors);
         return EXIT_FAILURE;
     }
-
 
 #endif // TEST_ADDRESS_MODE
 
@@ -343,7 +359,7 @@ int main(int argc, char *argv[])
 
     ext_copied_data_4B = &ext_test_addr_4B_PTR[TEST_DATA_SIZE + 1];
 
-    tgt_addr.ptr = (uint8_t *) ext_test_addr_4B_PTR;
+    tgt_addr.ptr = (uint8_t *)ext_test_addr_4B_PTR;
     trans.src_addr = &tgt_addr;
 
     PRINTF("\n\n\r=====================================\n\n\r");
@@ -353,7 +369,7 @@ int main(int argc, char *argv[])
     // Prepare the data
     for (int i = 0; i < TEST_DATA_SIZE; i++)
     {
-        ext_test_addr_4B_PTR[i] = (uint32_t) &ext_copied_data_4B[i * 2];
+        ext_test_addr_4B_PTR[i] = (uint32_t)&ext_copied_data_4B[i * 2];
     }
 
     trans.mode = DMA_TRANS_MODE_ADDRESS;
@@ -376,13 +392,12 @@ int main(int argc, char *argv[])
     if (errors == 0)
     {
         PRINTF("DMA address mode in external memory success.\n\r");
+        PRINTF_TEST("2:0:0\n");
     }
     else
     {
         PRINTF("DMA address mode in external memory failure: %d errors out of %d elements checked\n\r", errors, trans.size_d1_du);
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("%d&\n", errors);
-        #endif
+        PRINTF_TEST("2:%d:1\n", errors);
         return EXIT_FAILURE;
     }
 
@@ -427,7 +442,8 @@ int main(int argc, char *argv[])
     {
         while (cycles < consecutive_trans)
         {
-            while (!dma_is_ready(0));
+            while (!dma_is_ready(0))
+                ;
             cycles++;
         }
     }
@@ -452,13 +468,12 @@ int main(int argc, char *argv[])
     if (errors == 0)
     {
         PRINTF("DMA multiple transactions success.\n\r");
+        PRINTF_TEST("3:0:0\n");
     }
     else
     {
         PRINTF("DMA multiple transactions failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("%d&\n", errors);
-        #endif
+        PRINTF_TEST("3:%d:1\n", errors);
         return EXIT_FAILURE;
     }
 
@@ -495,7 +510,8 @@ int main(int argc, char *argv[])
 
     if (trans.end == DMA_TRANS_END_POLLING)
     { // There will be no interrupts whatsoever!
-        while (!dma_is_ready(0));
+        while (!dma_is_ready(0))
+            ;
         PRINTF("?\n\r");
     }
     else
@@ -503,7 +519,7 @@ int main(int argc, char *argv[])
         while (!dma_is_ready(0))
         {
             wait_for_interrupt();
-            PRINTF("i\n\r");//@ToDo: is this a debugging?
+            PRINTF("i\n\r"); //@ToDo: is this a debugging?
         }
     }
 
@@ -521,19 +537,16 @@ int main(int argc, char *argv[])
     if (errors == 0)
     {
         PRINTF("DMA window success\n\r");
+        PRINTF_TEST("4:0:0\n");
     }
     else
     {
         PRINTF("DMA window failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
-        #ifdef TESTIT_CAMPAIGN
-        PRINTF("%d&\n", errors);
-        #endif
+        PRINTF_TEST("4:%d:1\n", errors);
         return EXIT_FAILURE;
     }
 #endif // TEST_WINDOW
+    PRINTF_TEST("&\n");
 
-    #ifdef TESTIT_CAMPAIGN
-    PRINTF("0&\n");
-    #endif
     return EXIT_SUCCESS;
 }

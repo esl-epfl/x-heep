@@ -15,7 +15,7 @@
  * data size does not fit in the available SRAM memory, so some data needs to be
  * stored as "flash_only" and read trough the spi interface. This usually requires
  * filling a buffer and tiling the data processing.
-*/
+ */
 
 #include <stdio.h>
 #include <stdint.h>
@@ -28,86 +28,106 @@
 
 #define TILING_ROWS 2
 
- /* By default, printfs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#define PRINTF_IN_FPGA 1
+#define PRINTF_IN_SIM 0
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
-    #define PRINTF(...)
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
-int32_t buffer_data[MATRIX_SIZE*TILING_ROWS] = {0};
-int32_t output_matrix[MATRIX_SIZE*MATRIX_SIZE] = {0};
+int32_t buffer_data[MATRIX_SIZE * TILING_ROWS] = {0};
+int32_t output_matrix[MATRIX_SIZE * MATRIX_SIZE] = {0};
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 #ifndef FLASH_LOAD
     PRINTF("This application is meant to run with the FLASH_LOAD linker script\n");
-#ifdef TESTIT_CAMPAIGN
-    PRINTF("0&\n");
-#endif
+
+    PRINTF_TEST("0&\n");
+
     return EXIT_SUCCESS;
 #else
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
-    #ifdef TARGET_SIM
-        PRINTF("This application is meant to run on FPGA only\n");
-#ifdef TESTIT_CAMPAIGN
-        PRINTF("0&\n");
-#endif
-        return EXIT_SUCCESS;
-    #endif
+#ifdef TARGET_SIM
+    PRINTF("This application is meant to run on FPGA only\n");
 
-    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
-        PRINTF("This application cannot work with the memory mapped SPI FLASH"
-            "module - do not use the FLASH_EXEC linker script for this application\n");
-#ifdef TESTIT_CAMPAIGN
-        PRINTF("0&\n");
+    PRINTF_TEST("0&\n");
+
+    return EXIT_SUCCESS;
 #endif
+
+    if (get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO)
+    {
+        PRINTF("This application cannot work with the memory mapped SPI FLASH"
+               "module - do not use the FLASH_EXEC linker script for this application\n");
+
+        PRINTF_TEST("0&\n");
+
         return EXIT_SUCCESS;
     }
 
     // Pick the correct spi device based on simulation type
-    spi_host_t* spi = spi_flash;
+    spi_host_t *spi = spi_flash;
 
     // Init SPI host and SPI<->Flash bridge parameters
-    if (w25q128jw_init(spi) != FLASH_OK){
+    if (w25q128jw_init(spi) != FLASH_OK)
+    {
         PRINTF("Error initializing SPI flash\n");
-#ifdef TESTIT_CAMPAIGN
-        PRINTF("1&\n");
-#endif
-        return EXIT_FAILURE;
-    } 
 
-    for (int i = 0; i < MATRIX_SIZE; i+=TILING_ROWS) {
+        PRINTF_TEST("1&\n");
+
+        return EXIT_FAILURE;
+    }
+
+    for (int i = 0; i < MATRIX_SIZE; i += TILING_ROWS)
+    {
         // read first half matrix A from flash and perform matmul
-        if(fill_buffer(&A[i*MATRIX_SIZE], buffer_data, MATRIX_SIZE*TILING_ROWS)!=FLASH_OK){
+        if (fill_buffer(&A[i * MATRIX_SIZE], buffer_data, MATRIX_SIZE * TILING_ROWS) != FLASH_OK)
+        {
             PRINTF("Error reading from flash\n");
-#ifdef TESTIT_CAMPAIGN
-            PRINTF("1&\n");
-#endif
+
+            PRINTF_TEST("1&\n");
+
             return EXIT_FAILURE;
         }
-        matmul(buffer_data, B, &output_matrix[i*MATRIX_SIZE], TILING_ROWS, MATRIX_SIZE, MATRIX_SIZE);
+        matmul(buffer_data, B, &output_matrix[i * MATRIX_SIZE], TILING_ROWS, MATRIX_SIZE, MATRIX_SIZE);
     }
 
-    for(int i = 0; i < MATRIX_SIZE*MATRIX_SIZE; i++){
-        if (output_matrix[i] != C[i]){
-            PRINTF("Result[%d][%d]:golden model   %d : %d\n", (i/MATRIX_SIZE), (i % MATRIX_SIZE), output_matrix[i], C[i]);
-#ifdef TESTIT_CAMPAIGN
-            PRINTF("1&\n");
-#endif
+    for (int i = 0; i < MATRIX_SIZE * MATRIX_SIZE; i++)
+    {
+        if (output_matrix[i] != C[i])
+        {
+            PRINTF("Result[%d][%d]:golden model   %d : %d\n", (i / MATRIX_SIZE), (i % MATRIX_SIZE), output_matrix[i], C[i]);
+
+            PRINTF_TEST("1&\n");
+
             return EXIT_FAILURE;
-       }
+        }
     }
     PRINTF("All tests passed!\n");
-#ifdef TESTIT_CAMPAIGN
-    PRINTF("0&\n");
-#endif
+
+    PRINTF_TEST("0&\n");
+
     return EXIT_SUCCESS;
 
 #endif

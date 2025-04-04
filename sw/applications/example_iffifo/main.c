@@ -25,23 +25,35 @@
 #include "dma_regs.h"
 #include "fast_intr_ctrl.h"
 
-
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_FPGA 1
+#define PRINTF_IN_SIM 0
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
-    #define PRINTF(...)
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
 unsigned int IFFIFO_START_ADDRESS = EXT_PERIPHERAL_START_ADDRESS + 0x2000;
 
-int32_t to_fifo  [6]   __attribute__ ((aligned (4)))  = { 1, 2, 3, 4, 5, 6 };
-int32_t from_fifo[4]   __attribute__ ((aligned (4)))  = { 0, 0, 0, 0 };
+int32_t to_fifo[6] __attribute__((aligned(4))) = {1, 2, 3, 4, 5, 6};
+int32_t from_fifo[4] __attribute__((aligned(4))) = {0, 0, 0, 0};
 
 int8_t dma_intr_flag = 0;
 void dma_intr_handler_trans_done(uint8_t channel)
@@ -51,17 +63,19 @@ void dma_intr_handler_trans_done(uint8_t channel)
 
 void protected_wait_for_dma_interrupt(void)
 {
-  while(!dma_is_ready(0)) {
+  while (!dma_is_ready(0))
+  {
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (!dma_is_ready(0)) {
-        wait_for_interrupt();
+    if (!dma_is_ready(0))
+    {
+      wait_for_interrupt();
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
   }
 }
 
 uint8_t iffifo_intr_flag = 0;
-static void handler_irq_iffifo( uint32_t int_id )
+static void handler_irq_iffifo(uint32_t int_id)
 {
   mmio_region_t iffifo_base_addr = mmio_region_from_addr((uintptr_t)IFFIFO_START_ADDRESS);
   mmio_region_write32(iffifo_base_addr, IFFIFO_INTERRUPTS_REG_OFFSET, 0b0);
@@ -73,13 +87,21 @@ static dma_target_t tgt_src;
 static dma_target_t tgt_dst;
 static dma_trans_t trans;
 
-int compare_print_fifo_array(void) {
+int compare_print_fifo_array(void)
+{
   int errors = 0;
   PRINTF("from_fifo = {");
-  for (int i = 0; i < 4; i+=1) {
-    PRINTF("%d",from_fifo[i]);
-    if(i != 4-1) {PRINTF(", ");};
-    if (to_fifo[i]+1 != from_fifo[i]) {++errors;}
+  for (int i = 0; i < 4; i += 1)
+  {
+    PRINTF("%d", from_fifo[i]);
+    if (i != 4 - 1)
+    {
+      PRINTF(", ");
+    };
+    if (to_fifo[i] + 1 != from_fifo[i])
+    {
+      ++errors;
+    }
   }
   PRINTF("}\n");
   return errors;
@@ -90,10 +112,10 @@ void print_status_register(void)
   mmio_region_t iffifo_base_addr = mmio_region_from_addr((uintptr_t)IFFIFO_START_ADDRESS);
   int32_t status = mmio_region_read32(iffifo_base_addr, IFFIFO_STATUS_REG_OFFSET);
   PRINTF("STATUS = ");
-  PRINTF(status & (1 << IFFIFO_STATUS_EMPTY_BIT)     ? "E" : "-"); // FIFO empty
+  PRINTF(status & (1 << IFFIFO_STATUS_EMPTY_BIT) ? "E" : "-");     // FIFO empty
   PRINTF(status & (1 << IFFIFO_STATUS_AVAILABLE_BIT) ? "A" : "-"); // Data available in FIFO
-  PRINTF(status & (1 << IFFIFO_STATUS_REACHED_BIT)   ? "R" : "-"); // Watermark reached
-  PRINTF(status & (1 << IFFIFO_STATUS_FULL_BIT)      ? "F" : "-"); // FIFO full
+  PRINTF(status & (1 << IFFIFO_STATUS_REACHED_BIT) ? "R" : "-");   // Watermark reached
+  PRINTF(status & (1 << IFFIFO_STATUS_FULL_BIT) ? "F" : "-");      // FIFO full
   PRINTF("\n");
 }
 
@@ -104,157 +126,168 @@ int is_iffifo_full(void)
   return status & (1 << IFFIFO_STATUS_FULL_BIT);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 
-    mmio_region_t iffifo_base_addr = mmio_region_from_addr((uintptr_t)IFFIFO_START_ADDRESS);
-    
-    // Enable interrupt on processor side
-    // Enable global interrupt for machine-level interrupts
-    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level external interrupts
-    const uint32_t mask = 1 << 11;
-    CSR_SET_BITS(CSR_REG_MIE, mask);
-    
-    if(plic_Init()) {
-      #ifdef TESTIT_CAMPAIGN
-      PRINTF("1&\n");
-      #endif
-      return EXIT_FAILURE;
-    };
-    if(plic_irq_set_priority(EXT_INTR_1, 1)) {
-      #ifdef TESTIT_CAMPAIGN
-      PRINTF("1&\n");
-      #endif
-      return EXIT_FAILURE;
-    };
-    if(plic_irq_set_enabled(EXT_INTR_1, kPlicToggleEnabled)) {
-      #ifdef TESTIT_CAMPAIGN
-      PRINTF("1&\n");
-      #endif
-      return EXIT_FAILURE;
-    };
-    
-    plic_assign_external_irq_handler(EXT_INTR_1, &handler_irq_iffifo);
-    
-    mmio_region_write32(iffifo_base_addr, IFFIFO_WATERMARK_REG_OFFSET, 2);
-    mmio_region_write32(iffifo_base_addr, IFFIFO_INTERRUPTS_REG_OFFSET, 0b1);
-    
-    dma_config_flags_t ret;
+  mmio_region_t iffifo_base_addr = mmio_region_from_addr((uintptr_t)IFFIFO_START_ADDRESS);
 
-     // -- DMA CONFIGURATION --
+  // Enable interrupt on processor side
+  // Enable global interrupt for machine-level interrupts
+  CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+  // Set mie.MEIE bit to one to enable machine-level external interrupts
+  const uint32_t mask = 1 << 11;
+  CSR_SET_BITS(CSR_REG_MIE, mask);
 
-    dma_init(NULL);
-    tgt_src.ptr        = (uint8_t *)to_fifo;
-    tgt_src.inc_d1_du  = 1;
-    tgt_src.trig       = DMA_TRIG_MEMORY;
-    tgt_src.type       = DMA_DATA_TYPE_WORD;
+  if (plic_Init())
+  {
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("1&\n");
+#endif
+    return EXIT_FAILURE;
+  };
+  if (plic_irq_set_priority(EXT_INTR_1, 1))
+  {
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("1&\n");
+#endif
+    return EXIT_FAILURE;
+  };
+  if (plic_irq_set_enabled(EXT_INTR_1, kPlicToggleEnabled))
+  {
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("1&\n");
+#endif
+    return EXIT_FAILURE;
+  };
 
-    tgt_dst.ptr        = (uint8_t *)(IFFIFO_START_ADDRESS + IFFIFO_FIFO_IN_REG_OFFSET);
-    tgt_dst.inc_d1_du  = 0;
-    tgt_dst.trig       = DMA_TRIG_SLOT_EXT_TX;
-    tgt_dst.type       = DMA_DATA_TYPE_WORD;
-    
-    trans.size_d1_du = 6;
-    trans.src        = &tgt_src;
-    trans.dst        = &tgt_dst;
-    trans.end        = DMA_TRANS_END_INTR;
+  plic_assign_external_irq_handler(EXT_INTR_1, &handler_irq_iffifo);
 
-    ret = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    if (ret != 0) {
-      #ifdef TESTIT_CAMPAIGN
-      PRINTF("1&\n");
-      #endif
-      return EXIT_FAILURE;
-    }
-    ret = dma_load_transaction(&trans);
-    if (ret != 0) {
-      #ifdef TESTIT_CAMPAIGN
-      PRINTF("1&\n");
-      #endif
-      return EXIT_FAILURE;
-    }
-    
-    if (compare_print_fifo_array() != 4) {
-      #ifdef TESTIT_CAMPAIGN
-      PRINTF("1&\n");
-      #endif
-      return EXIT_FAILURE;
-    }
-    
-    print_status_register();
-    
-    PRINTF("Launch MM -> Stream DMA\n");
-    // Launch a 6-word TX DMA transaction to a 4-word FIFO. The FIFO will be full.
-    dma_launch( &trans );
-    
-    // To terminate the DMA transaction, 2 words must be manually popped from the FIFO.
-    while(!is_iffifo_full());
-    int32_t read0 = mmio_region_read32(iffifo_base_addr, IFFIFO_FIFO_OUT_REG_OFFSET);
-    while(!is_iffifo_full());
-    int32_t read1 = mmio_region_read32(iffifo_base_addr, IFFIFO_FIFO_OUT_REG_OFFSET);
-    
-    print_status_register();
-    
-    PRINTF("Manual readings: {%d, %d}\n", read0, read1);
+  mmio_region_write32(iffifo_base_addr, IFFIFO_WATERMARK_REG_OFFSET, 2);
+  mmio_region_write32(iffifo_base_addr, IFFIFO_INTERRUPTS_REG_OFFSET, 0b1);
 
-    protected_wait_for_dma_interrupt();
-    
-    dma_init(NULL);
-    tgt_src.ptr        = (uint8_t *)(IFFIFO_START_ADDRESS + IFFIFO_FIFO_OUT_REG_OFFSET);
-    tgt_src.inc_d1_du  = 0;
-    tgt_src.trig       = DMA_TRIG_SLOT_EXT_RX;
-    tgt_src.type       = DMA_DATA_TYPE_WORD;
+  dma_config_flags_t ret;
 
-    tgt_dst.ptr        = (uint8_t *)from_fifo;
-    tgt_dst.inc_d1_du  = 1;
-    tgt_dst.trig       = DMA_TRIG_MEMORY;
-    tgt_dst.type       = DMA_DATA_TYPE_WORD;
+  // -- DMA CONFIGURATION --
 
-    trans.size_d1_du    = 4;
-    trans.src        = &tgt_src;
-    trans.dst        = &tgt_dst;
-    trans.end        = DMA_TRANS_END_INTR;
-    
-    ret = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    if (ret != 0) {
-      #ifdef TESTIT_CAMPAIGN
-      PRINTF("1&\n");
-      #endif
-      return EXIT_FAILURE;
-    }
-    ret = dma_load_transaction(&trans);
-    if (ret != 0) {
-      #ifdef TESTIT_CAMPAIGN
-      PRINTF("1&\n");
-      #endif
-      return EXIT_FAILURE;
-    }
-    PRINTF("Launch Stream -> MM DMA\n");
-    dma_launch( &trans );
-    
-    protected_wait_for_dma_interrupt();
-    
-    print_status_register();
+  dma_init(NULL);
+  tgt_src.ptr = (uint8_t *)to_fifo;
+  tgt_src.inc_d1_du = 1;
+  tgt_src.trig = DMA_TRIG_MEMORY;
+  tgt_src.type = DMA_DATA_TYPE_WORD;
 
-    if (compare_print_fifo_array() == 0) {
-      #ifdef TESTIT_CAMPAIGN
-      PRINTF("1&\n");
-      #endif
-      return EXIT_FAILURE;
-    };
-    
-    if (!iffifo_intr_flag) {
-      #ifdef TESTIT_CAMPAIGN
-      PRINTF("1&\n");
-      #endif
-      return EXIT_FAILURE;
-    };
-    
-    #ifdef TESTIT_CAMPAIGN
-    PRINTF("0&\n");
-    #endif
-  
-    return EXIT_SUCCESS;
-    
+  tgt_dst.ptr = (uint8_t *)(IFFIFO_START_ADDRESS + IFFIFO_FIFO_IN_REG_OFFSET);
+  tgt_dst.inc_d1_du = 0;
+  tgt_dst.trig = DMA_TRIG_SLOT_EXT_TX;
+  tgt_dst.type = DMA_DATA_TYPE_WORD;
+
+  trans.size_d1_du = 6;
+  trans.src = &tgt_src;
+  trans.dst = &tgt_dst;
+  trans.end = DMA_TRANS_END_INTR;
+
+  ret = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
+  if (ret != 0)
+  {
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("1&\n");
+#endif
+    return EXIT_FAILURE;
+  }
+  ret = dma_load_transaction(&trans);
+  if (ret != 0)
+  {
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("1&\n");
+#endif
+    return EXIT_FAILURE;
+  }
+
+  if (compare_print_fifo_array() != 4)
+  {
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("1&\n");
+#endif
+    return EXIT_FAILURE;
+  }
+
+  print_status_register();
+
+  PRINTF("Launch MM -> Stream DMA\n");
+  // Launch a 6-word TX DMA transaction to a 4-word FIFO. The FIFO will be full.
+  dma_launch(&trans);
+
+  // To terminate the DMA transaction, 2 words must be manually popped from the FIFO.
+  while (!is_iffifo_full())
+    ;
+  int32_t read0 = mmio_region_read32(iffifo_base_addr, IFFIFO_FIFO_OUT_REG_OFFSET);
+  while (!is_iffifo_full())
+    ;
+  int32_t read1 = mmio_region_read32(iffifo_base_addr, IFFIFO_FIFO_OUT_REG_OFFSET);
+
+  print_status_register();
+
+  PRINTF("Manual readings: {%d, %d}\n", read0, read1);
+
+  protected_wait_for_dma_interrupt();
+
+  dma_init(NULL);
+  tgt_src.ptr = (uint8_t *)(IFFIFO_START_ADDRESS + IFFIFO_FIFO_OUT_REG_OFFSET);
+  tgt_src.inc_d1_du = 0;
+  tgt_src.trig = DMA_TRIG_SLOT_EXT_RX;
+  tgt_src.type = DMA_DATA_TYPE_WORD;
+
+  tgt_dst.ptr = (uint8_t *)from_fifo;
+  tgt_dst.inc_d1_du = 1;
+  tgt_dst.trig = DMA_TRIG_MEMORY;
+  tgt_dst.type = DMA_DATA_TYPE_WORD;
+
+  trans.size_d1_du = 4;
+  trans.src = &tgt_src;
+  trans.dst = &tgt_dst;
+  trans.end = DMA_TRANS_END_INTR;
+
+  ret = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
+  if (ret != 0)
+  {
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("1&\n");
+#endif
+    return EXIT_FAILURE;
+  }
+  ret = dma_load_transaction(&trans);
+  if (ret != 0)
+  {
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("1&\n");
+#endif
+    return EXIT_FAILURE;
+  }
+  PRINTF("Launch Stream -> MM DMA\n");
+  dma_launch(&trans);
+
+  protected_wait_for_dma_interrupt();
+
+  print_status_register();
+
+  if (compare_print_fifo_array() == 0)
+  {
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("1&\n");
+#endif
+    return EXIT_FAILURE;
+  };
+
+  if (!iffifo_intr_flag)
+  {
+#ifdef TESTIT_CAMPAIGN
+    PRINTF("1&\n");
+#endif
+    return EXIT_FAILURE;
+  };
+
+#ifdef TESTIT_CAMPAIGN
+  PRINTF("0&\n");
+#endif
+
+  return EXIT_SUCCESS;
 }
-

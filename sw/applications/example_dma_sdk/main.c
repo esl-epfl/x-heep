@@ -11,24 +11,37 @@
 //              are performed correctly.
 
 #include <stdint.h>
-#include <stdio.h>              // For compatibility with OH Group compiler
+#include <stdio.h> // For compatibility with OH Group compiler
 #include <stdlib.h>
 #include "dma_sdk.h"
-#include "dma.h"                // For compatibility with OH Group compiler
+#include "dma.h" // For compatibility with OH Group compiler
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
-#include "csr.h"                // For compatibility with OH Group compiler
+#include "csr.h" // For compatibility with OH Group compiler
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA 1
 #define PRINTF_IN_SIM 0
 
 #if TARGET_SIM && PRINTF_IN_SIM
+#ifndef TEST_MODE
 #define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
 #define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
 #define SOURCE_BUFFER_SIZE_32b 5
@@ -108,9 +121,7 @@ int main()
 
     PRINTF("Errors:%d\n\r", errors);
 
-#ifdef TESTIT_CAMPAIGN
-    PRINTF("%d&\n", errors);
-#endif
+    PRINTF_TEST("%d&\n", errors);
 
     return errors ? EXIT_FAILURE : EXIT_SUCCESS;
 }

@@ -9,31 +9,44 @@
 #include "x-heep.h"
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_FPGA 1
+#define PRINTF_IN_SIM 0
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
-    #define PRINTF(...)
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
-void __attribute__ ((noinline)) matrixMul8_blocksize(int8_t *  A, int8_t *  B, int32_t *  C, int N);
+void __attribute__((noinline)) matrixMul8_blocksize(int8_t *A, int8_t *B, int32_t *C, int N);
 
-void __attribute__ ((noinline)) matrixMul8_tiled(int8_t *  A, int8_t *  B, int32_t *  C, int N);
+void __attribute__((noinline)) matrixMul8_tiled(int8_t *A, int8_t *B, int32_t *C, int N);
 
-uint32_t check_results(int32_t * C, int N);
+uint32_t check_results(int32_t *C, int N);
 
-int32_t m_c[SIZE*SIZE];
+int32_t m_c[SIZE * SIZE];
 
 #define BLOCK_SIZE 4
 
 // Define a macro for accessing matrix elements
-#define A(i,j) &A[i*SIZE+j]
-#define B(i,j) &B[i*SIZE+j]
-#define C(i,j) &C[i*SIZE+j]
+#define A(i, j) &A[i * SIZE + j]
+#define B(i, j) &B[i * SIZE + j]
+#define C(i, j) &C[i * SIZE + j]
 
 #define HIGHEST_PERF
 
@@ -43,13 +56,15 @@ int main()
     uint32_t errors = 0;
     unsigned int instr, cycles;
 
-    for(int i =0;i<SIZE;i++) {
-        for(int j =0;j<SIZE;j++) {
-            m_c[i*SIZE+j] = 0;
+    for (int i = 0; i < SIZE; i++)
+    {
+        for (int j = 0; j < SIZE; j++)
+        {
+            m_c[i * SIZE + j] = 0;
         }
     }
 
-    //enable mcycle csr
+    // enable mcycle csr
     CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 
     CSR_WRITE(CSR_REG_MCYCLE, 0);
@@ -57,7 +72,7 @@ int main()
 #ifdef HIGHEST_PERF
     matrixMul8_blocksize(m_a, m_b, m_c, SIZE);
 #else
-    //execute the kernel
+    // execute the kernel
     matrixMul8_tiled(m_a, m_b, m_c, SIZE);
 #endif
 
@@ -66,37 +81,44 @@ int main()
     errors = check_results(m_c, SIZE);
 
     PRINTF("program finished with %d errors and %d cycles\n\r", errors, cycles);
-    
-    #ifdef TESTIT_CAMPAIGN
+
+#ifdef TESTIT_CAMPAIGN
     PRINTF("%d&\n", errors);
-    #endif
+#endif
+
+    PRINTF_TEST("%d&\n", errors);
+
     return errors;
 }
 
-void __attribute__ ((noinline)) matrixMul8_blocksize(int8_t *  A, int8_t *  B, int32_t *  C, int N)
+void __attribute__((noinline)) matrixMul8_blocksize(int8_t *A, int8_t *B, int32_t *C, int N)
 {
 
-    for(int i = 0; i < N; i++) {
-        for(int j = 0; j < N; j++) {
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
             int32_t acc = 0;
-            for(int k = 0; k < N; k++) {
-                acc+= A[i*SIZE+k] * B[k*SIZE+j];
+            for (int k = 0; k < N; k++)
+            {
+                acc += A[i * SIZE + k] * B[k * SIZE + j];
             }
-            C[i*SIZE+j] += acc;
+            C[i * SIZE + j] += acc;
         }
     }
-
 }
 
-
 // Define a recursive function that multiplies two matrices using the tiled algorithm
-void __attribute__ ((noinline)) matrixMul8_tiled(int8_t* A, int8_t* B, int32_t* C, int N) {
+void __attribute__((noinline)) matrixMul8_tiled(int8_t *A, int8_t *B, int32_t *C, int N)
+{
     // use the elementary function
-    if (N == BLOCK_SIZE) {
+    if (N == BLOCK_SIZE)
+    {
         matrixMul8_blocksize(A, B, C, N);
     }
-    //split the matrices into four blocks each
-    else {
+    // split the matrices into four blocks each
+    else
+    {
         N = N >> 1; // Half the size
         // Multiply the blocks and add them to the corresponding blocks of C
         matrixMul8_tiled(A(0, 0), B(0, 0), C(0, 0), N); // C_00 += A_00 * B_00
@@ -110,18 +132,20 @@ void __attribute__ ((noinline)) matrixMul8_tiled(int8_t* A, int8_t* B, int32_t* 
     }
 }
 
-
-uint32_t check_results(int32_t * C, int N)
+uint32_t check_results(int32_t *C, int N)
 {
     // check
     int i, j;
     uint32_t err = 0;
 
-    for(i = 0; i < N; i++) {
-        for(j = 0; j < N; j++) {
-            if(C[i*N+j] != m_exp[i*N+j]) {
+    for (i = 0; i < N; i++)
+    {
+        for (j = 0; j < N; j++)
+        {
+            if (C[i * N + j] != m_exp[i * N + j])
+            {
                 err++;
-                PRINTF("Error at index %d, %d, expected %d, got %d\n\r", i, j, m_exp[i*N+j], C[i*N+j]);
+                PRINTF("Error at index %d, %d, expected %d, got %d\n\r", i, j, m_exp[i * N + j], C[i * N + j]);
             }
         }
     }
