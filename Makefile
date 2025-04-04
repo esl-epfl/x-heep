@@ -372,11 +372,14 @@ clean-app: app-restore
 ## Removes the CMake build folder and the HW build folder
 clean-all: app-restore clean-sim
 
+## @section TestIt targets
+## TestIt is a tool to run the tests on the FPGA board
+
 sw-sim:
-	$(MAKE) app PROJECT=$(app)
+	$(MAKE) app PROJECT=$(app) CDEFS="TEST_MODE"
 
 sw-fpga:
-	$(MAKE) app PROJECT=$(app) TARGET=$(target) CDEFS="TESTIT_CAMPAIGN"
+	$(MAKE) app PROJECT=$(app) TARGET=$(target) CDEFS="TEST_MODE"
 
 sim-build:
 ifeq ($(tool),verilator)
@@ -398,3 +401,13 @@ gdb-setup:
 
 deb-setup:
 	openocd -f ./tb/core-v-mini-mcu-pynq-z2-bscan.cfg
+
+just-testit:
+	@echo "TestIt will be run in the test folder:"
+	@echo ""
+	cd test && testit run
+	
+testit-report:
+	@echo "TestIt will be run in the test folder:"
+	@echo ""
+	cd test && testit report
