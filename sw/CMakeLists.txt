@@ -77,6 +77,8 @@ FOREACH(file_path ${new_list})
     SET(add 1)
   elseif( ${file_path} MATCHES "${SOURCE_PATH}external/" )
     SET(add 1)
+  elseif( ${file_path} MATCHES "${SOURCE_PATH}dsp/inc/" )
+    SET(add 1)
   endif()
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -141,6 +143,8 @@ FOREACH(file_path IN LISTS new_list)
   elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/.*${MAINFILE}\." ) # look for main.*
     SET(app_found 1)
   elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/" ) # other sources
+    SET(add 1)
+  elseif( ${file_path} MATCHES "${SOURCE_PATH}dsp/" )
     SET(add 1)
   endif()
 
