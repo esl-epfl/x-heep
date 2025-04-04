@@ -10,7 +10,7 @@
  *
  * @note The application assume the correct functioning of the read operation.
  *
-*/
+ */
 
 #include <stdio.h>
 #include <stdint.h>
@@ -20,21 +20,33 @@
 #include "w25q128jw.h"
 
 /* By default, PRINTFs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_FPGA 1
+#define PRINTF_IN_SIM 0
 
 #if TARGET_SIM && PRINTF_IN_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
-    #define PRINTF(...)
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
 #if defined(TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
-    #define USE_SPI_FLASH
+#define USE_SPI_FLASH
 #endif
-
 
 // what to write in flash
 uint32_t flash_original_1024B[256] = {
@@ -70,20 +82,19 @@ uint32_t flash_original_1024B[256] = {
     0x76543225, 0xfedcbaad, 0x579a6fa5, 0x657d5c03, 0x758ee434, 0x0123457c, 0xfadbcaab, 0x89abde14,
     0x76543226, 0xfedcbaae, 0x579a6fa6, 0x657d5c04, 0x758ee435, 0x0123457d, 0xfadbcaac, 0x89abde15,
     0x76543227, 0xfedcbaaf, 0x579a6fa7, 0x657d5c05, 0x758ee436, 0x0123457e, 0xfadbcaad, 0x89abde16,
-    0x76543228, 0xfedcbab0, 0x579a6fa8, 0x657d5c06, 0x758ee437, 0x0123457f, 0xfadbcaae, 0x89abde17
-};
+    0x76543228, 0xfedcbab0, 0x579a6fa8, 0x657d5c06, 0x758ee437, 0x0123457f, 0xfadbcaae, 0x89abde17};
 
 // End buffer (where what is read is stored)
 uint32_t flash_read_data[256];
 
-#define BYTES_TO_WRITE 533 //in bytes, must be less than 256*4=1024
+#define BYTES_TO_WRITE 533 // in bytes, must be less than 256*4=1024
 
 // address to which we write in FLASH, we do not initiliaze it to 0 as we do not want into the BSS
 // otherwise the compilers/linker won't allocate this to the .data section, thus not written in flash
 // If not written in flash, after erasing the block this array would be all '0xFF', and this would loose
 // generality of the testing as without erasing, the write operation in flash can bring 1->0 but not viceversa
 // by initializing to another number, we are sure it goes to .data section and written in flash
-uint32_t __attribute__ ((aligned (16))) flash_write_buffer[256] = {
+uint32_t __attribute__((aligned(16))) flash_write_buffer[256] = {
     0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA,
     0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA,
     0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA,
@@ -116,11 +127,10 @@ uint32_t __attribute__ ((aligned (16))) flash_write_buffer[256] = {
     0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA,
     0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA,
     0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA,
-    0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA
-};
+    0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA, 0xA};
 
 #ifndef ON_CHIP
-int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_only_write_buffer[256];
+int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__((aligned(16))) flash_only_write_buffer[256];
 #endif
 
 // Test functions
@@ -139,34 +149,41 @@ void erase_memory(uint32_t addr);
 // Define global status variable
 w25q_error_codes_t global_status;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     // Initialize the DMA
     dma_init(NULL);
-    
+
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
-    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
+    if (get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO)
+    {
         PRINTF("This application cannot work with the memory mapped SPI FLASH"
-            "module - do not use the FLASH_EXEC linker script for this application\n");
+               "module - do not use the FLASH_EXEC linker script for this application\n");
+        PRINTF_TEST("0&\n");
         return EXIT_SUCCESS;
     }
 
     PRINTF("BSP write test\n");
 
     // Pick the correct spi device based on simulation type
-    spi_host_t* spi;
-    #ifndef USE_SPI_FLASH
+    spi_host_t *spi;
+#ifndef USE_SPI_FLASH
     spi = spi_host1;
-    #else
+#else
     spi = spi_flash;
-    #endif
+#endif
 
     // Define status variable
     int32_t errors = 0;
 
     // Init SPI host and SPI<->Flash bridge parameters
-    if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
+    if (w25q128jw_init(spi) != FLASH_OK)
+    {
+        PRINTF_TEST("1&\n");
+        return EXIT_FAILURE;
+    }
 
     // Test simple write
     PRINTF("Testing simple write...\n");
@@ -177,7 +194,6 @@ int main(int argc, char *argv[]) {
     PRINTF("Testing simple write. on flash only data..\n");
     errors += test_write_flash_only(flash_original_1024B, BYTES_TO_WRITE);
 #endif
-
 
     // Test simple write with DMA
     PRINTF("Testing simple write with DMA...\n");
@@ -192,27 +208,34 @@ int main(int argc, char *argv[]) {
     errors += test_write_quad_dma(flash_original_1024B, BYTES_TO_WRITE);
 
     PRINTF("\n--------TEST FINISHED--------\n");
-    if (errors == 0) {
+    if (errors == 0)
+    {
         PRINTF("All tests passed!\n");
+        PRINTF_TEST("0&\n");
         return EXIT_SUCCESS;
-    } else {
+    }
+    else
+    {
         PRINTF("Some tests failed!\n");
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
 }
 
-
-uint32_t test_write(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_write(uint32_t *test_buffer, uint32_t len)
+{
 
     uint32_t *test_buffer_flash = flash_write_buffer;
 
     // Write to flash memory at specific address
     global_status = w25q128jw_erase_and_write_standard(test_buffer_flash, test_buffer, len);
-    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+    if (global_status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(test_buffer_flash, flash_read_data, len);
-    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+    if (global_status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_original == flash_read_data)
     int32_t result = check_result(test_buffer, len);
@@ -226,17 +249,20 @@ uint32_t test_write(uint32_t *test_buffer, uint32_t len) {
     return result;
 }
 
-uint32_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_write_dma(uint32_t *test_buffer, uint32_t len)
+{
 
     uint32_t *test_buffer_flash = flash_write_buffer;
 
     // Write to flash memory at specific address
     global_status = w25q128jw_erase_and_write_standard_dma(test_buffer_flash, test_buffer, len);
-    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+    if (global_status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(test_buffer_flash, flash_read_data, len);
-    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+    if (global_status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_original == flash_read_data)
     int32_t result = check_result(test_buffer, len);
@@ -250,17 +276,20 @@ uint32_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
     return result;
 }
 
-uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len)
+{
 
     uint32_t *test_buffer_flash = flash_write_buffer;
 
     // Write to flash memory at specific address
     global_status = w25q128jw_erase_and_write_quad(test_buffer_flash, test_buffer, len);
-    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+    if (global_status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(test_buffer_flash, flash_read_data, len);
-    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+    if (global_status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_original == flash_read_data)
     int32_t result = check_result(test_buffer, len);
@@ -274,17 +303,20 @@ uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
     return result;
 }
 
-uint32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len)
+{
 
     uint32_t *test_buffer_flash = flash_write_buffer;
 
     // Write to flash memory at specific address
     global_status = w25q128jw_erase_and_write_quad_dma(test_buffer_flash, test_buffer, len);
-    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+    if (global_status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(test_buffer_flash, flash_read_data, len);
-    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+    if (global_status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_original == flash_read_data)
     int32_t result = check_result(test_buffer, len);
@@ -298,9 +330,10 @@ uint32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
     return result;
 }
 #ifndef ON_CHIP
-uint32_t test_write_flash_only(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_write_flash_only(uint32_t *test_buffer, uint32_t len)
+{
 
-    //remove FLASH offset as required by the BSP, flash_only_write_buffer is only mapped to the LMA
+    // remove FLASH offset as required by the BSP, flash_only_write_buffer is only mapped to the LMA
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_only_write_buffer);
 
     // Clean memory
@@ -308,11 +341,13 @@ uint32_t test_write_flash_only(uint32_t *test_buffer, uint32_t len) {
 
     // Write to flash memory at specific address
     global_status = w25q128jw_erase_and_write_standard(test_buffer_flash, test_buffer, len);
-    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+    if (global_status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(test_buffer_flash, flash_read_data, len);
-    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+    if (global_status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_original == flash_read_data)
     int32_t result = check_result(test_buffer, len);
@@ -326,20 +361,26 @@ uint32_t test_write_flash_only(uint32_t *test_buffer, uint32_t len) {
     return result;
 }
 #endif
-uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
+uint32_t check_result(uint8_t *test_buffer, uint32_t len)
+{
     uint32_t errors = 0;
     uint8_t *flash_read_data_char = (uint8_t *)flash_read_data;
 
-    for (uint32_t i = 0; i < len; i++) {
-        if (test_buffer[i] != flash_read_data_char[i]) {
+    for (uint32_t i = 0; i < len; i++)
+    {
+        if (test_buffer[i] != flash_read_data_char[i])
+        {
             PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_read_data_char[i]);
             errors++;
         }
     }
 
-    if (errors == 0) {
+    if (errors == 0)
+    {
         PRINTF("success!\n");
-    } else {
+    }
+    else
+    {
         PRINTF("failure, %d errors!\n", errors);
     }
 
@@ -347,8 +388,9 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
 }
 
 // Erase the memory only if FPGA is used
-void erase_memory(uint32_t addr) {
-    #ifdef USE_SPI_FLASH
+void erase_memory(uint32_t addr)
+{
+#ifdef USE_SPI_FLASH
     w25q128jw_4k_erase(addr);
-    #endif
+#endif
 }

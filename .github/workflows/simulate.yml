@@ -5,7 +5,7 @@ jobs:
   simulate:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+      image: ghcr.io/vlsi-lab/x-heep-toolchain:latest
     name: Simulate all apps. All must pass.
     steps:
       - name: Checkout the pushed code. 
@@ -26,5 +26,7 @@ jobs:
 
           # The MCU is generated with various memory banks to avoid example code not fitting.
           make mcu-gen X_HEEP_CFG=configs/ci.hjson
-
+          # Set the environment variables for the compiler.
+          export COMPILER_PREFIX=riscv32-corev-
+          
           python3 test/test_apps/test_apps.py

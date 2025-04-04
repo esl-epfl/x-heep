@@ -10,31 +10,43 @@
 #include "core_v_mini_mcu.h"
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_FPGA 1
+#define PRINTF_IN_SIM 0
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
-    #define PRINTF(...)
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
-void __attribute__ ((noinline)) matrixAdd(int32_t * A, int32_t * B, int32_t * C, int N, int M);
-uint32_t check_results(int32_t *  C, int N, int M);
+void __attribute__((noinline)) matrixAdd(int32_t *A, int32_t *B, int32_t *C, int N, int M);
+uint32_t check_results(int32_t *C, int N, int M);
 
-int32_t __attribute__((section(".xheep_data_interleaved"))) m_c[16*16];
-
+int32_t __attribute__((section(".xheep_data_interleaved"))) m_c[16 * 16];
 
 int main()
 {
 
 #ifndef HAS_MEMORY_BANKS_IL
     PRINTF("This application is only meant to be tested when there are interleaved memory banks\n");
+    PRINTF_TEST("0&\n");
     return EXIT_SUCCESS;
 #endif
-
 
     int N = WIDTH;
     int M = HEIGHT;
@@ -43,39 +55,45 @@ int main()
 
     CSR_WRITE(CSR_REG_MCYCLE, 0);
 
-    //execute the kernel
+    // execute the kernel
     matrixAdd(m_a, m_b, m_c, N, M);
 
-    CSR_READ(CSR_REG_MCYCLE, &cycles) ;
+    CSR_READ(CSR_REG_MCYCLE, &cycles);
 
-    //stop the HW counter used for monitoring
+    // stop the HW counter used for monitoring
 
     errors = check_results(m_c, N, M);
 
     PRINTF("program finished with %d errors and %d cycles\n\r", errors, cycles);
+    PRINTF_TEST("%d&\n", errors);
     return errors;
 }
 
-void __attribute__ ((noinline)) matrixAdd(int32_t *  A, int32_t *  B, int32_t *  C, int N, int M)
+void __attribute__((noinline)) matrixAdd(int32_t *A, int32_t *B, int32_t *C, int N, int M)
 {
-    for(int i = 0; i < N; i++) {
-        for(int j = 0; j < M; j++) {
-            C[i*N+j] = A[i*WIDTH+j] + B[i*WIDTH+j];
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < M; j++)
+        {
+            C[i * N + j] = A[i * WIDTH + j] + B[i * WIDTH + j];
         }
     }
 }
 
-uint32_t check_results(int32_t * C, int N, int M)
+uint32_t check_results(int32_t *C, int N, int M)
 {
     // check
     int i, j;
     uint32_t err = 0;
 
-    for(i = 0; i < N; i++) {
-        for(j = 0; j < M; j++) {
-            if(C[i*N+j] != m_exp[i*WIDTH+j]) {
+    for (i = 0; i < N; i++)
+    {
+        for (j = 0; j < M; j++)
+        {
+            if (C[i * N + j] != m_exp[i * WIDTH + j])
+            {
                 err++;
-                PRINTF("Error at index %d, %d, expected %d, got %d\n\r", i, j, m_exp[i*WIDTH+j], C[i*N+j]);
+                PRINTF("Error at index %d, %d, expected %d, got %d\n\r", i, j, m_exp[i * WIDTH + j], C[i * N + j]);
             }
         }
     }

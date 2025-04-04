@@ -45,18 +45,17 @@ X_HEEP_CFG  ?= configs/general.hjson
 PAD_CFG  	?= pad_cfg.hjson
 EXT_PAD_CFG ?=
 
-
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER ?= gcc
 
-# Compiler prefix options are 'riscv32-unknown-' (default)
-COMPILER_PREFIX ?= riscv32-unknown-
+# Compiler prefix options are 'riscv32-corev-' (default)
+COMPILER_PREFIX ?= riscv32-corev-
 
 # Compiler flags to be passed (for both linking and compiling)
 COMPILER_FLAGS ?=
 
-# Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
-ARCH     ?= rv32imc
+# Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc_zicsr'
+ARCH     ?= rv32imc_zicsr
 
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= $(".")
@@ -80,7 +79,6 @@ FLASHREAD_ADDR ?= 0x0
 FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
 FLASHREAD_BYTES ?= 256
 
-
 #binary to store in flash memory
 FLASHWRITE_FILE ?= $(mkfile_path)/sw/build/main.hex
 
@@ -96,6 +94,14 @@ else
 	BYTES_AFTER_MAX_HEX_ADDRESS := $(shell tac $(FLASHWRITE_FILE) | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
 	FLASHWRITE_BYTES := $(shell echo $$(( $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 )))
 endif
+
+#docker specific variables
+TAG 			  := latest
+GITHUB_REPOSITORY := vlsi-lab
+PROJECT_ID        := ghcr.io/$(GITHUB_REPOSITORY)
+IMAGE_NAME        := x-heep-toolchain
+LOCAL_FOLDER      := $(shell pwd)
+UTIL_FOLDER       := $(LOCAL_FOLDER)/util
 
 # Export variables to sub-makefiles
 export
@@ -163,7 +169,7 @@ verible:
 ## @param LINKER=on_chip(default),flash_load,flash_exec
 ## @param COMPILER=gcc(default),clang
 ## @param COMPILER_PREFIX=riscv32-unknown-(default)
-## @param ARCH=rv32imc(default),<any_RISC-V_ISA_string_supported_by_the_CPU>
+## @param ARCH=rv32imc_zicsr(default),<any_RISC-V_ISA_string_supported_by_the_CPU>
 app: clean-app
 	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) COMPILER_FLAGS=$(COMPILER_FLAGS) ARCH=$(ARCH) SOURCE=$(SOURCE) \
 	|| { \
@@ -319,6 +325,29 @@ test:
 	python3 test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
 	@echo "You can also find the output in test/test_apps/test_apps.log"
 
+## @section docker
+
+## Build the docker image
+.PHONY: docker-build
+docker-build: environment.yml
+	mv environment.yml $(UTIL_FOLDER)
+	docker build -t $(PROJECT_ID)/$(IMAGE_NAME):$(TAG) $(UTIL_FOLDER)
+
+## Push the docker image (you need write permission to the registry where you want to store it)
+.PHONY: docker-push
+docker-push:
+	docker push $(PROJECT_ID)/$(IMAGE_NAME):$(TAG)
+
+## Run the docker container
+.PHONY: docker-run
+docker-run:
+	docker run -v $(LOCAL_FOLDER):/workspace/x-heep -it --rm $(PROJECT_ID)/$(IMAGE_NAME):$(TAG)
+
+## Pull the docker image
+.PHONY: docker-pull
+docker-pull:
+	docker pull $(PROJECT_ID)/$(IMAGE_NAME):$(TAG)
+
 ## @section Cleaning commands
 
 ## Clean the CMake build folder
@@ -342,3 +371,43 @@ clean-app: app-restore
 
 ## Removes the CMake build folder and the HW build folder
 clean-all: app-restore clean-sim
+
+## @section TestIt targets
+## TestIt is a tool to run the tests on the FPGA board
+
+sw-sim:
+	$(MAKE) app PROJECT=$(app) CDEFS="TEST_MODE"
+
+sw-fpga:
+	$(MAKE) app PROJECT=$(app) TARGET=$(target) CDEFS="TEST_MODE"
+
+sim-build:
+ifeq ($(tool),verilator)
+	$(MAKE) mcu-gen MEMORY_BANKS=6
+	$(MAKE) verilator-sim
+endif
+
+sim-run:
+	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator && ./Vtestharness +firmware=../../../sw/build/main.hex
+
+fpga-build:
+	$(MAKE) vivado-fpga FPGA_BOARD=pynq-z2 FUSESOC_FLAGS=--flag=use_bscane_xilinx
+
+fpga-load:
+	$(MAKE) vivado-fpga-pgm FPGA_BOARD=pynq-z2
+	
+gdb-setup:
+	$(RISCV)/bin/${COMPILER_PREFIX}elf-gdb ./sw/build/main.elf
+
+deb-setup:
+	openocd -f ./tb/core-v-mini-mcu-pynq-z2-bscan.cfg
+
+just-testit:
+	@echo "TestIt will be run in the test folder:"
+	@echo ""
+	cd test && testit run
+	
+testit-report:
+	@echo "TestIt will be run in the test folder:"
+	@echo ""
+	cd test && testit report
