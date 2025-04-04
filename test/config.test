@@ -1,0 +1,149 @@
+{
+  target: {
+    name: "pynq-z2"
+    type: "fpga"
+    usbPort: 2 
+    baudrate: 9600
+    iterations: 1
+    outputFile: "sim.log"
+  }
+
+  report: {
+    dir: "report"
+  }
+  
+  tests: [
+    {
+      appName: "example_asm"
+      dir: "../sw/applications/example_asm"
+      outputFormat: "(\\d+):(\\d+)" 
+      outputTags: [
+        "ID",
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_cpp"
+      dir: "../sw/applications/example_cpp"
+      outputFormat: "(\\d+):(\\d+)" 
+      outputTags: [
+        "ID",
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_data_processing_from_flash"
+      dir: "../sw/applications/example_data_processing_from_flash"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_dma"
+      dir: "../sw/applications/example_dma"
+      outputFormat: "(\\d+):(\\d+):(\\d+)" 
+      outputTags: [
+        "ID",
+        "Cycles",
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_dma_2d"
+      dir: "../sw/applications/example_dma_2d"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_dma_multichannel"
+      dir: "../sw/applications/example_dma_multichannel"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_dma_sdk"
+      dir: "../sw/applications/example_dma_sdk"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_fft"
+      dir: "../sw/applications/example_fft"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_gpio_toggle"
+      dir: "../sw/applications/example_gpio_toggle"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_matadd"
+      dir: "../sw/applications/example_matadd"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_matadd_interleaved"
+      dir: "../sw/applications/example_matadd_interleaved"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_matfadd"
+      dir: "../sw/applications/example_matfadd"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_matmul"
+      dir: "../sw/applications/example_matmul"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_power_manager"
+      dir: "../sw/applications/example_power_manager"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_tensor_format_conv"
+      dir: "../sw/applications/example_tensor_format_conv"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    },
+    {
+      appName: "example_timer_sdk"
+      dir: "../sw/applications/example_timer_sdk"
+      outputFormat: "(\\d+)" 
+      outputTags: [
+        "Outcome"
+      ]
+    }
+  ]
+}
