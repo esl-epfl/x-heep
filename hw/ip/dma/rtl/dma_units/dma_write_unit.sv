@@ -79,7 +79,6 @@ module dma_write_unit
   logic data_out_req;
   logic data_out_we;
   logic data_out_gnt;
-  logic [3:0] data_out_be;
   logic [31:0] data_out_addr;
   logic [31:0] data_out_wdata;
   logic [31:0] write_address;
@@ -216,11 +215,6 @@ module dma_write_unit
     dma_write_unit_n_state = dma_write_unit_state;
     dma_done = 1'b0;
 
-    data_out_req = '0;
-    data_out_we = '0;
-    data_out_be = '0;
-    data_out_addr = '0;
-
     unique case (dma_write_unit_state)
 
       DMA_WRITE_UNIT_IDLE: begin
@@ -296,7 +290,6 @@ module dma_write_unit
   /* Signal assignments */
   assign data_req_cond = (write_buffer_empty == 1'b0 && wait_for_tx == 1'b0 && (read_addr_buffer_empty && address_mode) == 1'b0);
   assign data_out_we = 1'b1;
-  assign data_out_be = byte_enable_out;
   assign data_out_addr = write_address;
   assign address_mode = reg2hw.mode.q == 2;
   assign dma_conf_1d = reg2hw.dim_config.q == 0;
@@ -326,7 +319,7 @@ module dma_write_unit
   assign write_buffer_empty = write_buffer_empty_i;
   assign write_buffer_data = write_buffer_output_i;
   assign wait_for_tx = wait_for_tx_i;
-  assign data_out_be_o = data_out_be;
+  assign data_out_be_o = byte_enable_out;
   assign data_out_addr_o = data_out_addr;
   assign data_out_req_o = data_out_req;
   assign data_out_we_o = data_out_we;
