@@ -91,8 +91,6 @@ module dma_buffer_control
           end
         end
       end
-    end else begin
-      assign read_data_mask = 4'b1111;
     end
   endgenerate
 
@@ -115,46 +113,52 @@ module dma_buffer_control
   /* This logic enables the correct selection of data with subaddressing mode, using optional sign extension */
   /* By default, sign extension is performed by the read unit */
   generate
-    always_comb begin
-      read_buffer_output = read_fifo_output;
+    if (SUBADDR_MODE_EN == 1) begin
+      always_comb begin
+        read_buffer_output = read_fifo_output;
 
-      if (subaddr_mode == 1'b1) begin
-        if (read_buffer_pop == 1'b1) begin
-          unique case (src_data_type)
-            DMA_DATA_TYPE_HALF_WORD: begin
-              if (read_data_mask == 4'b1100) begin
-                read_buffer_output = {
-                  {16{sign_ext & read_fifo_output[31]}}, read_fifo_output[31:16]
-                };
-              end else begin
-                read_buffer_output = {
-                  {16{sign_ext & read_fifo_output[15]}}, read_fifo_output[15:0]
-                };
+        if (subaddr_mode == 1'b1) begin
+          if (read_buffer_pop == 1'b1) begin
+            unique case (src_data_type)
+              DMA_DATA_TYPE_HALF_WORD: begin
+                if (read_data_mask == 4'b1100) begin
+                  read_buffer_output = {
+                    {16{sign_ext & read_fifo_output[31]}}, read_fifo_output[31:16]
+                  };
+                end else begin
+                  read_buffer_output = {
+                    {16{sign_ext & read_fifo_output[15]}}, read_fifo_output[15:0]
+                  };
+                end
               end
-            end
 
-            DMA_DATA_TYPE_BYTE: begin
-              if (read_data_mask == 4'b1000) begin
-                read_buffer_output = {
-                  {24{sign_ext & read_fifo_output[31]}}, read_fifo_output[31:24]
-                };
-              end else if (read_data_mask == 4'b0100) begin
-                read_buffer_output = {
-                  {24{sign_ext & read_fifo_output[23]}}, read_fifo_output[23:16]
-                };
-              end else if (read_data_mask == 4'b0010) begin
-                read_buffer_output = {
-                  {24{sign_ext & read_fifo_output[15]}}, read_fifo_output[15:8]
-                };
-              end else if (read_data_mask == 4'b0001) begin
-                read_buffer_output = {{24{sign_ext & read_fifo_output[7]}}, read_fifo_output[7:0]};
+              DMA_DATA_TYPE_BYTE: begin
+                if (read_data_mask == 4'b1000) begin
+                  read_buffer_output = {
+                    {24{sign_ext & read_fifo_output[31]}}, read_fifo_output[31:24]
+                  };
+                end else if (read_data_mask == 4'b0100) begin
+                  read_buffer_output = {
+                    {24{sign_ext & read_fifo_output[23]}}, read_fifo_output[23:16]
+                  };
+                end else if (read_data_mask == 4'b0010) begin
+                  read_buffer_output = {
+                    {24{sign_ext & read_fifo_output[15]}}, read_fifo_output[15:8]
+                  };
+                end else if (read_data_mask == 4'b0001) begin
+                  read_buffer_output = {
+                    {24{sign_ext & read_fifo_output[7]}}, read_fifo_output[7:0]
+                  };
+                end
               end
-            end
 
-            default: ;
-          endcase
+              default: ;
+            endcase
+          end
         end
       end
+    end else begin
+      assign read_buffer_output = read_fifo_output;
     end
   endgenerate
 

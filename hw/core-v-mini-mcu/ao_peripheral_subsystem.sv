@@ -235,7 +235,7 @@ module ao_peripheral_subsystem
 
   /* SPC crossbar & FIFOs */
   generate
-    if (AO_SPC_NUM > 0) begin
+    if (AO_SPC_NUM > 0) begin : gen_aopb
       /* Assign the bus port to the first input port of the AOPB */
       reg_req_t [AO_SPC_NUM:0] packet_req;
       reg_rsp_t [AO_SPC_NUM:0] packet_rsp;
@@ -263,7 +263,7 @@ module ao_peripheral_subsystem
           .out_rsp_i(regdemux2perconv_resp)
       );
 
-    end else begin
+    end else begin : gen_no_aopb
       assign perconv2regdemux_req = peripheral_req;
       assign peripheral_rsp = regdemux2perconv_resp;
     end

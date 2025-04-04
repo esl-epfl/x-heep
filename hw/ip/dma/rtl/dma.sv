@@ -191,10 +191,10 @@ module dma
 
   /* Buffer unit */
   dma_buffer_unit #(
-      .HW_FIFO_MODE_EN,
-      .SUBADDR_MODE_EN,
-      .ADDR_MODE_EN,
-      .FIFO_DEPTH
+      .HW_FIFO_MODE_EN(HW_FIFO_MODE_EN),
+      .SUBADDR_MODE_EN(SUBADDR_MODE_EN),
+      .ADDR_MODE_EN(ADDR_MODE_EN),
+      .FIFO_DEPTH(FIFO_DEPTH)
   ) dma_buffer_unit_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -217,7 +217,7 @@ module dma
 
   /* Read unit */
   dma_read_unit #(
-      .RVALID_FIFO_DEPTH
+      .RVALID_FIFO_DEPTH(RVALID_FIFO_DEPTH)
   ) dma_read_unit_i (
       .clk_i(clk_cg),
       .rst_ni,
