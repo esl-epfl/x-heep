@@ -227,17 +227,15 @@ typedef struct spi_configopts_s {
 * SPI command structure
 */
 typedef struct spi_command_s {
-    // Length in bytes (usually: len - 1 is encoded into register)
-    uint16_t    len;        // <= Up to 65535, safe & simple
-
-    // Keep CS line active after command has finished
-    bool        csaat;
-
-    // Speed of communication (standard, dual, quad)
-    spi_speed_e speed;
-
-    // Direction of communication (TX, RX, bidirectional, etc.)
-    spi_dir_e   direction;
+    // Length-1 in bytes for the command to transmit/receive
+    uint32_t    len         : 24;
+    // Keep CS line active after command has finished (allows to instruct series 
+    // of commands)
+    bool        csaat       : 1;
+    // Speed of communication
+    spi_speed_e speed       : 2;
+    // Direction of communication
+    spi_dir_e   direction   : 2;
 } spi_command_t;
 
 /**
@@ -943,30 +941,17 @@ spi_configopts_t spi_create_configopts_structure(const uint32_t config_reg)
 static inline __attribute__((always_inline)) __attribute__((const))
 uint32_t spi_create_command(const spi_command_t command)
 {
-    
-
     uint32_t cmd_reg = 0;
-    
-
-    // Ensure only the lowest 24 bits are used
-    cmd_reg |= (command.len & 0xFFFFFF) << SPI_HOST_COMMAND_LEN_OFFSET;
-
-                             
-
-
-    // Bitfield write for remaining fields (1-bit, 2-bit values)
+    cmd_reg = bitfield_write(cmd_reg, SPI_HOST_COMMAND_LEN_MASK, 
+                             SPI_HOST_COMMAND_LEN_OFFSET, command.len);
     cmd_reg = bitfield_write(cmd_reg, BIT_MASK_1, 
-                             SPI_HOST_COMMAND_CSAAT_BIT, command.csaat ? 1 : 0);
-
+                             SPI_HOST_COMMAND_CSAAT_BIT, command.csaat);
     cmd_reg = bitfield_write(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, 
-                             SPI_HOST_COMMAND_SPEED_OFFSET, command.speed & 0x3);
-
+                             SPI_HOST_COMMAND_SPEED_OFFSET, command.speed);
     cmd_reg = bitfield_write(cmd_reg, SPI_HOST_COMMAND_DIRECTION_MASK, 
-                             SPI_HOST_COMMAND_DIRECTION_OFFSET, command.direction & 0x3);
-
+                             SPI_HOST_COMMAND_DIRECTION_OFFSET, command.direction);
     return cmd_reg;
 }
-
 
 /**
  * @brief Attends the plic interrupt for SPI Host 2.

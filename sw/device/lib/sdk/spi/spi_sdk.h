@@ -43,7 +43,7 @@
 /**                       DEFINITIONS AND MACROS                           **/
 /**                                                                        **/
 /****************************************************************************/
-//#define FC_RSR1    0x05 /** Read Status Register 1 */ //NEW
+
 // Chosen arbitrarily
 #define SPI_CSN_TIMES_DEFAULT 15
 // Default timeout for blocking transactions in milliseconds

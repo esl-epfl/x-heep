@@ -181,7 +181,6 @@ spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi)
                                              SPI_HOST_ALERT_TEST_FATAL_FAULT_BIT, true);
     return SPI_FLAG_OK;
 }
-//SPI GET FUNCTIONS
 
 volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi)
 {
@@ -284,7 +283,7 @@ spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid)
 
 spi_return_flags_e spi_set_command(spi_host_t* spi, const uint32_t cmd_reg)
 {
-    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR);
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
 
     spi_return_flags_e flags = SPI_FLAG_OK;
     spi_speed_e speed   = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, 
@@ -292,25 +291,15 @@ spi_return_flags_e spi_set_command(spi_host_t* spi, const uint32_t cmd_reg)
     spi_dir_e direction = bitfield_read(cmd_reg, SPI_HOST_COMMAND_DIRECTION_MASK, 
                                         SPI_HOST_COMMAND_DIRECTION_OFFSET);
 
-    if (!spi_validate_cmd(direction, speed))
-        flags |= SPI_FLAG_SPEED_INVALID;
-    
-    // Instead of failing immediately, wait for the SPI host to be ready.
-    int timeout = 100000;
-    while (spi_get_ready(spi) != SPI_TRISTATE_TRUE) {
-
-        timeout--;
-        timeout++;
-    }
-    if (timeout == 0) {
-        flags |= SPI_FLAG_NOT_READY;
-    }
+    // Incompatible speed and direction produces an error
+    if (!spi_validate_cmd(direction, speed))     flags |= SPI_FLAG_SPEED_INVALID;
+    // Writing a command while not ready produces an error
+    if (spi_get_ready(spi) != SPI_TRISTATE_TRUE) flags |= SPI_FLAG_NOT_READY;
     if (flags) return flags;
-    
+
     SPI_HW(spi)->COMMAND = cmd_reg;
     return SPI_FLAG_OK;
 }
-
 
 spi_return_flags_e spi_write_word(spi_host_t* spi, uint32_t wdata)
 {

@@ -37,7 +37,6 @@ extern "C" {
 #include "gpio_structs.h"
 #include "core_v_mini_mcu.h"
 #include "bitfield.h"
-#include <stdio.h>
 #include "x-heep.h"
 
 /****************************************************************************/
@@ -302,14 +301,11 @@ gpio_result_t gpio_toggle (gpio_pin_number_t pin)
 
 gpio_result_t gpio_write (gpio_pin_number_t pin, bool val)
 {
-	
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-        
     select_gpio_domain(pin);
     gpio_perif->GPIO_OUT0 = bitfield_write(gpio_perif->GPIO_OUT0,
         BIT_MASK_1, pin, val);
-        
     return GpioOk;
 
 }

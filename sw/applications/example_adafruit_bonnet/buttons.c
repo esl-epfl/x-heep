@@ -42,15 +42,12 @@ bool button_negedge[6];
 
 void buttonsInit(void)
 {
-	printf("buttons init");
     initGPIO(GPIO_TB_IN_UP);
     initGPIO(GPIO_TB_IN_DOWN);
     initGPIO(GPIO_TB_IN_LEFT);
     initGPIO(GPIO_TB_IN_RIGHT);
     initGPIO(GPIO_TB_IN_A);
     initGPIO(GPIO_TB_IN_B);
-    printf("After buttonsInit()\n");  // This should print
-fflush(stdout);
 }
 
 //private function definitions
@@ -84,7 +81,6 @@ void readButtons(void)
 {
     for (int i = 0; i < 6; i++)
     {
-    	//printf("readbuttoons\n");
         button_state[i] = buttonStateRaw(i);
         button_posedge[i] = button_state[i] && !button_prev_state[i];
         button_negedge[i] = !button_state[i] && button_prev_state[i];
