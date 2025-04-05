@@ -53,7 +53,7 @@ COMPILER ?= gcc
 COMPILER_PREFIX ?= riscv32-unknown-
 
 # Compiler flags to be passed (for both linking and compiling)
-COMPILER_FLAGS ?=
+COMPILER_FLAGS ?= -Os
 
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
 ARCH     ?= rv32imc
@@ -76,9 +76,11 @@ FLASHREAD_ADDR ?= 0x0
 FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
 FLASHREAD_BYTES ?= 256
 
+FLASHWIRTE_BYTES_DOOM_WAD = 0x800000
 
 #binary to store in flash memory
 FLASHWRITE_FILE ?= $(mkfile_path)/sw/build/main.hex
+FLASHDOOM_WAD_FILE = $(mkfile_path)/sw/applications/0_DOOM/doomWad.hex
 
 #max address in the hex file, used to program the flash
 ifeq ($(wildcard $(FLASHWRITE_FILE)),)
@@ -90,7 +92,7 @@ else
 	MAX_HEX_ADDRESS  := $(shell cat $(FLASHWRITE_FILE) | grep "@" | tail -1 | cut -c2-)
 	MAX_HEX_ADDRESS_DEC := $(shell printf "%d" 0x$(MAX_HEX_ADDRESS))
 	BYTES_AFTER_MAX_HEX_ADDRESS := $(shell tac $(FLASHWRITE_FILE) | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
-	FLASHWRITE_BYTES := $(shell echo $$(( $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 )))
+	FLASHWRITE_BYTES := $(shell echo $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 | bc)
 endif
 
 # Export variables to sub-makefiles
@@ -168,7 +170,6 @@ app: clean-app
 	echo "\033[0;31mI would start by checking b) if I were you!\033[0m"; \
 	exit 1; \
 	}
-	@python scripts/building/mem_usage.py
 
 ## Just list the different application names available
 app-list:
@@ -288,6 +289,10 @@ flash-readid:
 flash-prog:
 	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
 	./iceprog -a $(FLASHWRITE_BYTES) -d i:0x0403:0x6011 -I B $(FLASHWRITE_FILE);
+
+flash-prog-doom: flash-prog
+	cd sw/vendor/yosyshq_icestorm/iceprog; \
+	./iceprog -a $(FLASHWIRTE_BYTES_DOOM_WAD) -d i:0x0403:0x6011 -o 1M -I B $(FLASHDOOM_WAD_FILE);
 
 ## Read the EPFL_Programmer flash
 flash-read:

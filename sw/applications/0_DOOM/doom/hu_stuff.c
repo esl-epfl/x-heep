@@ -88,9 +88,10 @@ char*   player_names[] =
 */
 
 static player_t*        plr;
-patch_t*                hu_font[HU_FONTSIZE];
+patch_t*                hu_font[HU_FONTSIZE]; // X-HEEP comment : The elements of hu_font are adresses in flash they must be read using X_spi_read
 static hu_textline_t    w_title;
 const boolean           chat_on = false;
+
 /*
 static hu_itext_t       w_chat;
 static boolean          always_off = false;
@@ -355,7 +356,7 @@ void HU_Init(void)
     j = HU_FONTSTART;
     for (i=0;i<HU_FONTSIZE;i++)
     {
-        //DEH_snprintf(buffer, 9, "STCFN%.3d", j++);
+        DEH_snprintf(buffer, 9, "STCFN%.3d", j++);
         hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
 

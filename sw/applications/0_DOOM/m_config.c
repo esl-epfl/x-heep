@@ -2053,8 +2053,8 @@ void M_LoadDefaults (void)
         extra_defaults.filename = M_StringJoin(configdir, default_extra_config, NULL);
     }
 */
-    LoadDefaultCollection(&doom_defaults, default_main_config);
-    LoadDefaultCollection(&extra_defaults, default_extra_config);
+    LoadDefaultCollection(&doom_defaults, default_main_config); //useless
+    LoadDefaultCollection(&extra_defaults, default_extra_config); //useless
 }
 
 // Get a configuration file variable by its name

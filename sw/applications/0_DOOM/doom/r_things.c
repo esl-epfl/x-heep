@@ -37,6 +37,7 @@
 #include "r_local.h"
 
 #include "doomstat.h"
+#include "x_spi.h"
 
 #define MAX_SPRITEFRAMES 261
 #define MAX_SPRITES 138
@@ -434,12 +435,17 @@ void R_DrawMaskedColumn (column_t* column)
         
     basetexturemid = dc_texturemid;
 
-    for ( ; column->topdelta != 0xff ; ) 
+    column_t tempcolumn;
+    uint32_t temp_column_data;
+    X_spi_read(column, &temp_column_data, 1);  
+    memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes 
+
+    for ( ; tempcolumn.topdelta != 0xff ; ) 
     {
         // calculate unclipped screen coordinates
         //  for post
-        topscreen = sprtopscreen + spryscale*column->topdelta;
-        bottomscreen = topscreen + spryscale*column->length;
+        topscreen = sprtopscreen + spryscale*tempcolumn.topdelta;
+        bottomscreen = topscreen + spryscale*tempcolumn.length;
 
         dc_yl = (topscreen+FRACUNIT-1)>>FRACBITS;
         dc_yh = (bottomscreen-1)>>FRACBITS;
@@ -452,14 +458,16 @@ void R_DrawMaskedColumn (column_t* column)
         if (dc_yl <= dc_yh)
         {
             dc_source = (byte *)column + 3;
-            dc_texturemid = basetexturemid - (column->topdelta<<FRACBITS);
+            dc_texturemid = basetexturemid - (tempcolumn.topdelta<<FRACBITS);
             // dc_source = (byte *)column + 3 - column->topdelta;
 
             // Drawn by either R_DrawColumn
             //  or (SHADOW) R_DrawFuzzColumn.
             colfunc (); 
         }
-        column = (column_t *)(  (byte *)column + column->length + 4);
+        column = (column_t *)(  (byte *)column + tempcolumn.length + 4);
+        X_spi_read(column, &temp_column_data, 1);  
+        memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes 
     }
         
     dc_texturemid = basetexturemid;
@@ -479,10 +487,10 @@ R_DrawVisSprite
 {
     // N_ldbg("R_DrawVisSprite\n");
 
-    column_t*           column;
+    column_t*           column; // X-HEEP comment : column is an adress in flash it must be read using X_spi_read
     int                 texturecolumn;
     fixed_t             frac;
-    patch_t*            patch;
+    patch_t*            patch; // X-HEEP comment : patch is an adress in flash it must be read using X_spi_read
         
     int lumpnum = vis->patch+firstspritelump;
 
@@ -491,7 +499,10 @@ R_DrawVisSprite
         // PRINTF("R_DrawVisSprite: Pistol\n");
     }
 
+     
     patch = W_CacheLumpNum (lumpnum, PU_CACHE);
+    patch_t temp_patch;
+    X_spi_read(patch, &temp_patch, sizeof(temp_patch)/4); 
 
     dc_colormap = vis->colormap;
     
@@ -519,11 +530,11 @@ R_DrawVisSprite
     {
         texturecolumn = frac>>FRACBITS;
 #ifdef RANGECHECK
-        if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
+        if (texturecolumn < 0 || texturecolumn >= SHORT(temp_patch.width))
             I_Error ("R_DrawSpriteRange: bad texturecolumn");
 #endif
         column = (column_t *) ((byte *)patch +
-                               LONG(patch->columnofs[texturecolumn]));
+                               LONG(temp_patch.columnofs[texturecolumn]));
         R_DrawMaskedColumn (column);
     }
     dc_debug = false;

@@ -35,7 +35,7 @@
 #include "r_local.h"
 #include "r_sky.h"
 
-
+#include "x_spi.h"
 
 
 
@@ -953,7 +953,9 @@ void R_InitLightTables (void)
             if (level >= NUMCOLORMAPS)
                 level = NUMCOLORMAPS-1;
 
-            zlight[i][j] = colormaps + level*256;
+            lighttable_t tempcolormaps; 
+            X_spi_read(colormaps, &tempcolormaps, sizeof(tempcolormaps)); 
+            zlight[i][j] = tempcolormaps + level*256;
         }
     }
 }
@@ -1111,13 +1113,13 @@ void R_ExecuteSetViewSize (void)
 
 void R_Init (void)
 {
-    R_InitData (); //problem starts here 
-    R_InitPointToAngle ();
-    R_InitTables ();
+    R_InitData ();
+    R_InitPointToAngle (); //useless
+    R_InitTables (); //useless 
     // viewwidth / viewheight / detailLevel are set by the defaults
 
     R_SetViewSize (screenblocks, detailLevel);
-    R_InitPlanes ();
+    R_InitPlanes (); //useless 
     R_InitLightTables ();
     R_InitSkyMap ();
     R_InitTranslationTables ();

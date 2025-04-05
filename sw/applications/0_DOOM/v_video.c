@@ -37,6 +37,7 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
+#include "x_spi.h"
 
 #include "doom_config.h"
 #ifdef HAVE_LIBPNG
@@ -137,20 +138,24 @@ void V_SetPatchClipCallback(vpatchclipfunc_t func)
 //
 // V_DrawPatch
 // Masks a column based masked pic to the screen. 
-//
+// X-HEEP comment : patch is an adress in flash it must be read using X_spi_read
 
 void V_DrawPatch(int x, int y, patch_t *patch)
 { 
     int count;
     int col;
-    volatile column_t *column;
+    volatile column_t *column; // X-HEEP comment : column is an adress in flash it must be read using X_spi_read
     pixel_t *desttop;
     pixel_t *dest;
-    byte *source;
+    byte *source; // X-HEEP comment : source is an adress in flash it must be read using X_spi_read
     int w, h;
 
-    y -= SHORT(patch->topoffset);
-    x -= SHORT(patch->leftoffset);
+    patch_t temppatch; 
+    printf("patch : %p\n", patch);
+    X_spi_read(patch, &temppatch, sizeof(temppatch)/4); 
+
+    y -= SHORT(temppatch.topoffset);
+    x -= SHORT(temppatch.leftoffset);
 
     // haleyjd 08/28/10: Strife needs silent error checking here.
     if(patchclip_callback)
@@ -159,10 +164,26 @@ void V_DrawPatch(int x, int y, patch_t *patch)
             return;
     }
 
-    w = SHORT(patch->width);
-    h = SHORT(patch->height);
+    w = SHORT(temppatch.width);
+    h = SHORT(temppatch.height);
 
-    N_ldbg("V_DrawPatch: %d x %d\n", w, h);
+    //N_ldbg("V_DrawPatch: %d x %d\n", w, h);
+    printf("V_DrawPatch: %d x %d\n", w, h);
+
+    int patch_size = sizeof(patch_t) + (w - 8) * sizeof(int);
+    patch_t *full_patch = (patch_t *)malloc(patch_size);
+    printf("patch : %p\n", patch); 
+    X_spi_read(patch, full_patch, patch_size/4); 
+
+    printf("temppatch width : %d\n", w);
+    printf("full_patch width : %d\n", SHORT(full_patch->width)); 
+
+    for (int i = 0; i < w; i++) {
+        printf("full_patch columnofs[%d] = %d\n", i, full_patch->columnofs[i]);
+    }
+    for (int i = 0; i < w; i++) {
+        printf("temppatch columnofs[%d] = %d\n", i, temppatch.columnofs[i]);
+    }
 
 #ifdef RANGECHECK
     if (x < 0
@@ -179,27 +200,39 @@ void V_DrawPatch(int x, int y, patch_t *patch)
 
     col = 0;
     desttop = dest_screen + y * SCREENWIDTH + x;
-
+    column_t tempcolumn;
+    uint32_t temp_column_data;
+    uint32_t temp_source;
     for ( ; col<w ; x++, col++, desttop++)
     {
-        column = (volatile column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+        column = (volatile column_t *)((byte *)patch + LONG(full_patch->columnofs[col]));
         I_SleepUS(1); // NRFD-TODO: remove?
-
+        X_spi_read(column, &temp_column_data, 1);  
+        memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes  
+        printf("In V_DrawPatch in for loop, col : %d, w : %d\n", col, w);
+        printf("temppatch.columnofs[col] : %d, column addr: %p, topdelta: %d, length: %d\n", full_patch->columnofs[col], column, tempcolumn.topdelta, tempcolumn.length);
         // step through the posts in a column
-        while (column->topdelta != 0xff)
+        while (tempcolumn.topdelta != 0xff)
         {
             source = (byte *)column + 3;
-            dest = desttop + column->topdelta*SCREENWIDTH;
-            count = column->length;
+            dest = desttop + tempcolumn.topdelta*SCREENWIDTH;
+            count = tempcolumn.length;
+            printf("In while : temppatch.columnofs[col] : %d, column addr: %p, topdelta: %d, length: %d\n", full_patch->columnofs[col], column, tempcolumn.topdelta, tempcolumn.length);
 
             while (count--)
             {
-                *dest = *source++;
+                X_spi_read(source, &temp_source, 1);
+                *dest = (uint8_t)temp_source; 
+                source += 1; 
                 dest += SCREENWIDTH;
             }
-            column = (column_t *)((byte *)column + column->length + 4);
+            column = (column_t *)((byte *)column + tempcolumn.length + 4);
+            X_spi_read(column, &temp_column_data, 1);  
+            memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes  
         }
     }
+    free(full_patch); 
+    printf("Finished func\n"); 
 }
 
 //
@@ -217,9 +250,12 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     pixel_t *dest;
     byte *source; 
     int w, h; 
+
+    patch_t temp_patch; 
+    X_spi_read(patch, &temp_patch, sizeof(patch)/4); 
  
-    y -= SHORT(patch->topoffset); 
-    x -= SHORT(patch->leftoffset); 
+    y -= SHORT(temp_patch.topoffset); 
+    x -= SHORT(temp_patch.leftoffset); 
 
     // haleyjd 08/28/10: Strife needs silent error checking here.
     if(patchclip_callback)
@@ -229,8 +265,8 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     }
 
 
-    w = SHORT(patch->width);
-    h = SHORT(patch->height);
+    w = SHORT(temp_patch.width);
+    h = SHORT(temp_patch.height);
 
     N_ldbg("V_DrawPatchFlipped: %d x %d\n", w, h);
 
@@ -253,22 +289,31 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     for ( ; col<w ; x++, col++, desttop++)
     {
 
-        column = (column_t *)((byte *)patch + LONG(patch->columnofs[w-1-col]));
+        column = (column_t *)((byte *)patch + LONG(temp_patch.columnofs[w-1-col]));
+        column_t tempcolumn;
+        uint32_t temp_column_data;
+        uint32_t temp_source;
+        X_spi_read(column, &temp_column_data, 1);  
+        memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));
 
         // step through the posts in a column
-        while (column->topdelta != 0xff )
+        while (tempcolumn.topdelta != 0xff )
         {
 
             source = (byte *)column + 3;
-            dest = desttop + column->topdelta*SCREENWIDTH;
-            count = column->length;
+            dest = desttop + tempcolumn.topdelta*SCREENWIDTH;
+            count = tempcolumn.length;
 
             while (count--)
             {
-                *dest = *source++;
+                X_spi_read(source, &temp_source, 1);
+                *dest = (uint8_t)temp_source; 
+                source += 1; 
                 dest += SCREENWIDTH;
             }
             column = (column_t *)((byte *)column + column->length + 4);
+            X_spi_read(column, &temp_column_data, 1);  
+            memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes  
         }
     }
 
@@ -315,6 +360,7 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
     desttop = dest_screen + y * SCREENWIDTH + x;
 
     w = SHORT(patch->width);
+    uint32_t temp_data;
     for (; col < w; x++, col++, desttop++)
     {
         column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col]));
@@ -329,7 +375,8 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
 
             while (count--)
             {
-                *dest = tinttable[((*dest) << 8) + *source++];
+                X_spi_read(tinttable[((*dest) << 8) + *source++], &temp_data, 1); 
+                *dest = (uint8_t)temp_data;
                 dest += SCREENWIDTH;
             }
             column = (column_t *) ((byte *) column + column->length + 4);
@@ -364,6 +411,7 @@ void V_DrawXlaPatch(int x, int y, patch_t * patch)
     desttop = dest_screen + y * SCREENWIDTH + x;
 
     w = SHORT(patch->width);
+    uint32_t temp_data;
     for(; col < w; x++, col++, desttop++)
     {
         column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col]));
@@ -378,7 +426,8 @@ void V_DrawXlaPatch(int x, int y, patch_t * patch)
 
             while(count--)
             {
-                *dest = xlatab[*dest + ((*source) << 8)];
+                X_spi_read(xlatab[*dest + ((*source) << 8)], &temp_data, 1); 
+                *dest = (uint8_t)temp_data;
                 source++;
                 dest += SCREENWIDTH;
             }
@@ -416,6 +465,7 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
     desttop = dest_screen + y * SCREENWIDTH + x;
 
     w = SHORT(patch->width);
+    uint32_t temp_data;
     for (; col < w; x++, col++, desttop++)
     {
         column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col]));
@@ -430,7 +480,8 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
 
             while (count--)
             {
-                *dest = tinttable[((*dest) << 8) + *source++];
+                X_spi_read(tinttable[((*dest) << 8) + *source++], &temp_data, 1); 
+                *dest = (uint8_t)temp_data;
                 dest += SCREENWIDTH;
             }
             column = (column_t *) ((byte *) column + column->length + 4);
@@ -469,6 +520,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     desttop2 = dest_screen + (y + 2) * SCREENWIDTH + x + 2;
 
     w = SHORT(patch->width);
+    uint32_t temp_data;
     for (; col < w; x++, col++, desttop++, desttop2++)
     {
         column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col]));
@@ -484,7 +536,8 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 
             while (count--)
             {
-                *dest2 = tinttable[((*dest2) << 8)];
+                X_spi_read(tinttable[((*dest2) << 8)], &temp_data, 1); 
+                *dest = (uint8_t)temp_data;
                 dest2 += SCREENWIDTH;
                 *dest = *source++;
                 dest += SCREENWIDTH;

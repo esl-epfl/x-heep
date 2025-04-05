@@ -127,7 +127,7 @@ P_InterceptVector2
 //
 boolean P_CrossSubsector (int num)
 {
-    seg_t*              seg;
+    seg_t*              seg; // X-HEEP comment : seg is an adress in flash it must be read using X_spi_read
     line_t*             line;
     int                 s1;
     int                 s2;

@@ -306,62 +306,62 @@ static boolean          st_armson;
 static boolean          st_fragson; 
 
 // main bar left
-static patch_t*         sbar;
+static patch_t*         sbar; // X-HEEP comment : sbar is an adress in flash it must be read using X_spi_read
 
 // 0-9, tall numbers
-static patch_t*         tallnum[10];
+static patch_t*         tallnum[10]; // X-HEEP comment : The elements of tallnum are adresses in flash they must be read using X_spi_read
 
 // tall % sign
-static patch_t*         tallpercent;
+static patch_t*         tallpercent; // X-HEEP comment : tallpercent is an adress in flash it must be read using X_spi_read
 
 // 0-9, short, yellow (,different!) numbers
-static patch_t*         shortnum[10];
+static patch_t*         shortnum[10]; // X-HEEP comment : The elements of shortnum are adresses in flash they must be read using X_spi_read
 
 // 3 key-cards, 3 skulls
-static patch_t*         keys[NUMCARDS]; 
+static patch_t*         keys[NUMCARDS]; // X-HEEP comment : The elements of keys are adresses in flash they must be read using X_spi_read
 
 // face status patches
-static patch_t*         faces[ST_NUMFACES];
+static patch_t*         faces[ST_NUMFACES]; // X-HEEP comment : The elements of shortnum are adresses in flash they must be read using X_spi_read
 
 // face background
-static patch_t*         faceback;
+static patch_t*         faceback; // X-HEEP comment : faceback is an adress in flash it must be read using X_spi_read
 
  // main bar right
-static patch_t*         armsbg;
+static patch_t*         armsbg;  // X-HEEP comment : armsbg is an adress in flash it must be read using X_spi_read
 
 // weapon ownership patches
-static patch_t*         arms[6][2]; 
+static patch_t*         arms[6][2]; // X-HEEP comment : The elements of arms are adresses in flash they must be read using X_spi_read
 
 // ready-weapon widget
-static st_number_t      w_ready;
+static st_number_t      w_ready; // X-HEEP comment : w_ready->p is an adress in flash it must be read using X_spi_read
 
  // in deathmatch only, summary of frags stats
-static st_number_t      w_frags;
+static st_number_t      w_frags; // X-HEEP comment : w_frags->p is an adress in flash it must be read using X_spi_read
 
 // health widget
-static st_percent_t     w_health;
+static st_percent_t     w_health; // X-HEEP comment : w_health->n->p and w_health->p are adresses in flash they must be read using X_spi_read
 
 // arms background
-static st_binicon_t     w_armsbg; 
+static st_binicon_t     w_armsbg; // X-HEEP comment : w_armsbg->p is an adress in flash it must be read using X_spi_read
 
 
 // weapon ownership widgets
-static st_multicon_t    w_arms[6];
+static st_multicon_t    w_arms[6]; // X-HEEP comment : ->p elements of w_arms are adresses in flash they must be read using X_spi_read
 
 // face status widget
-static st_multicon_t    w_faces; 
+static st_multicon_t    w_faces; // X-HEEP comment : w_faces->p is an adress in flash it must be read using X_spi_read
 
 // keycard widgets
-static st_multicon_t    w_keyboxes[3];
+static st_multicon_t    w_keyboxes[3]; // X-HEEP comment : ->p elements of w_keyboxes are adresses in flash they must be read using X_spi_read
 
 // armor widget
-static st_percent_t     w_armor;
+static st_percent_t     w_armor; // X-HEEP comment : w_armor->n->p and w_armor->p are adresses in flash they must be read using X_spi_read
 
 // ammo widgets
-static st_number_t      w_ammo[4];
+static st_number_t      w_ammo[4]; // X-HEEP comment : ->p elements of w_ammo are adresses in flash they must be read using X_spi_read
 
 // max ammo widgets
-static st_number_t      w_maxammo[4]; 
+static st_number_t      w_maxammo[4]; // X-HEEP comment : ->p elements of w_maxammo are adresses in flash they must be read using X_spi_read
 
 
 
@@ -1113,10 +1113,10 @@ static void ST_loadUnloadGraphics(load_callback_t callback)
     // Load the numbers, tall and short
     for (i=0;i<10;i++)
     {
-        //DEH_snprintf(namebuf, 9, "STTNUM%d", i);
+        DEH_snprintf(namebuf, 9, "STTNUM%d", i);
         callback(namebuf, &tallnum[i]);
 
-        //DEH_snprintf(namebuf, 9, "STYSNUM%d", i);
+        DEH_snprintf(namebuf, 9, "STYSNUM%d", i);
         callback(namebuf, &shortnum[i]);
     }
 
@@ -1128,7 +1128,7 @@ static void ST_loadUnloadGraphics(load_callback_t callback)
     // key cards
     for (i=0;i<NUMCARDS;i++)
     {
-        //DEH_snprintf(namebuf, 9, "STKEYS%d", i);
+        DEH_snprintf(namebuf, 9, "STKEYS%d", i);
         callback(namebuf, &keys[i]);
     }
 
@@ -1138,7 +1138,7 @@ static void ST_loadUnloadGraphics(load_callback_t callback)
     // arms ownership widgets
     for (i=0; i<6; i++)
     {
-        //DEH_snprintf(namebuf, 9, "STGNUM%d", i+2);
+        DEH_snprintf(namebuf, 9, "STGNUM%d", i+2);
 
         // gray #
         callback(namebuf, &arms[i][0]);
@@ -1148,7 +1148,7 @@ static void ST_loadUnloadGraphics(load_callback_t callback)
     }
 
     // face backgrounds for different color players
-    //DEH_snprintf(namebuf, 9, "STFB%d", consoleplayer);
+    DEH_snprintf(namebuf, 9, "STFB%d", consoleplayer);
     callback(namebuf, &faceback);
 
     // status bar background bits
@@ -1160,23 +1160,23 @@ static void ST_loadUnloadGraphics(load_callback_t callback)
     {
         for (j=0; j<ST_NUMSTRAIGHTFACES; j++)
         {
-            //DEH_snprintf(namebuf, 9, "STFST%d%d", i, j);
+            DEH_snprintf(namebuf, 9, "STFST%d%d", i, j);
             callback(namebuf, &faces[facenum]);
             ++facenum;
         }
-        //DEH_snprintf(namebuf, 9, "STFTR%d0", i);        // turn right
+        DEH_snprintf(namebuf, 9, "STFTR%d0", i);        // turn right
         callback(namebuf, &faces[facenum]);
         ++facenum;
-        //DEH_snprintf(namebuf, 9, "STFTL%d0", i);        // turn left
+        DEH_snprintf(namebuf, 9, "STFTL%d0", i);        // turn left
         callback(namebuf, &faces[facenum]);
         ++facenum;
-        //DEH_snprintf(namebuf, 9, "STFOUCH%d", i);       // ouch!
+        DEH_snprintf(namebuf, 9, "STFOUCH%d", i);       // ouch!
         callback(namebuf, &faces[facenum]);
         ++facenum;
-        //DEH_snprintf(namebuf, 9, "STFEVL%d", i);        // evil grin ;)
+        DEH_snprintf(namebuf, 9, "STFEVL%d", i);        // evil grin ;)
         callback(namebuf, &faces[facenum]);
         ++facenum;
-        //DEH_snprintf(namebuf, 9, "STFKILL%d", i);       // pissed off
+        DEH_snprintf(namebuf, 9, "STFKILL%d", i);       // pissed off
         callback(namebuf, &faces[facenum]);
         ++facenum;
     }
@@ -1440,6 +1440,7 @@ void ST_Init (void)
 {
     PRINTF("ST_Init\n");
     ST_loadData();
-    st_backing_screen = (pixel_t *) Z_Malloc(ST_WIDTH * ST_HEIGHT * sizeof(*st_backing_screen), PU_STATIC, 0);
+    //X-HEEP comment 
+    //st_backing_screen = (pixel_t *) Z_Malloc(ST_WIDTH * ST_HEIGHT * sizeof(*st_backing_screen), PU_STATIC, 0);
 }
 

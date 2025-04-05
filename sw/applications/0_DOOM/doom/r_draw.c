@@ -36,6 +36,8 @@
 // State.
 #include "doomstat.h"
 
+#include"x_spi.h"
+
 
 // ?
 #define MAXWIDTH                        320
@@ -145,17 +147,23 @@ void R_DrawTransColumn (void)
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-lile scaling.
     // This is as fast as it gets.
+    byte tempval;
+    uint32_t temp_val_data;
+    X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+    memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes  
     do 
     {
         // Re-map color indices from wall texture column
         //  using a lighting/special effects LUT.
-        pixel_t val = dc_source[(frac>>FRACBITS)&127];
+        pixel_t val = tempval;
         if (val != 251) { // Use pink as transparent color
             *dest = dc_colormap[val];
         }
         
         dest += SCREENWIDTH; 
         frac += fracstep;
+        X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+        memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
         
     } while (count--); 
 } 
@@ -203,14 +211,20 @@ void R_DrawColumn (void)
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-lile scaling.
     // This is as fast as it gets.
+    byte tempval;
+    uint32_t temp_val_data;
+    X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+    memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
     do 
     {
         // Re-map color indices from wall texture column
         //  using a lighting/special effects LUT.
-        *dest = dc_colormap[dc_source[(frac>>FRACBITS)&127]];
+        *dest = dc_colormap[temp_val_data];
         
         dest += SCREENWIDTH; 
         frac += fracstep;
+        X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+        memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
         
     } while (count--); 
 } 
@@ -310,13 +324,19 @@ void R_DrawColumnLow (void)
     fracstep = dc_iscale; 
     frac = dc_texturemid + (dc_yl-centery)*fracstep;
     
+    byte tempval;
+    uint32_t temp_val_data;
+    X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+    memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
     do 
     {
         // Hack. Does not work corretly.
-        *dest2 = *dest = dc_colormap[dc_source[(frac>>FRACBITS)&127]];
+        *dest2 = *dest = dc_colormap[temp_val_data];
         dest += SCREENWIDTH;
         dest2 += SCREENWIDTH;
         frac += fracstep; 
+        X_spi_read(dc_source + ((frac>>FRACBITS)&127), &temp_val_data, 1);  
+        memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
 
     } while (count--);
 }
@@ -571,6 +591,11 @@ void R_DrawTranslatedColumn (void)
     fracstep = dc_iscale; 
     frac = dc_texturemid + (dc_yl-centery)*fracstep; 
 
+    byte tempval;
+    uint32_t temp_val_data;
+    X_spi_read(dc_source + (frac>>FRACBITS), &temp_val_data, 1);  
+    memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
+
     // Here we do an additional index re-mapping.
     do 
     {
@@ -579,10 +604,12 @@ void R_DrawTranslatedColumn (void)
         //  used with PLAY sprites.
         // Thus the "green" ramp of the player 0 sprite
         //  is mapped to gray, red, black/indigo. 
-        *dest = dc_colormap[dc_translation[dc_source[frac>>FRACBITS]]];
+        *dest = dc_colormap[dc_translation[temp_val_data]];
         dest += SCREENWIDTH;
         
         frac += fracstep; 
+        X_spi_read(dc_source + (frac>>FRACBITS), &temp_val_data, 1);  
+        memcpy(&tempval, &temp_val_data, sizeof(column_t));  // Copy only 1 bytes 
     } while (count--); 
 } 
 
@@ -713,7 +740,7 @@ fixed_t                 ds_xstep;
 fixed_t                 ds_ystep;
 
 // start of a 64*64 tile image 
-byte*                   ds_source;      
+byte*                   ds_source;      // X-HEEP comment : ds_source is an adress in flash it must be read using X_spi_read
 
 // just for profiling
 int                     dscount;
@@ -756,6 +783,9 @@ void R_DrawSpan (void)
     // We do not check for zero spans here?
     count = ds_x2 - ds_x1;
 
+    uint32_t temp_data;
+    X_spi_read(ds_source[spot], &temp_data, 1); 
+
     do
     {
         // Calculate current texture index in u,v.
@@ -765,7 +795,7 @@ void R_DrawSpan (void)
 
         // Lookup pixel from flat texture tile,
         //  re-index using light/colormap.
-        *dest++ = ds_colormap[ds_source[spot]];
+        *dest++ = ds_colormap[((temp_data >> 0)  & 0xFF)];
 
         position += step;
 
@@ -882,6 +912,9 @@ void R_DrawSpanLow (void)
     ds_x2 <<= 1;
 
     dest = ylookup(ds_y) + columnofs(ds_x1);
+    
+    uint32_t temp_data;
+    X_spi_read(ds_source[spot], &temp_data, 1); 
 
     do
     {
@@ -892,8 +925,8 @@ void R_DrawSpanLow (void)
 
         // Lowres/blocky mode does it twice,
         //  while scale is adjusted appropriately.
-        *dest++ = ds_colormap[ds_source[spot]];
-        *dest++ = ds_colormap[ds_source[spot]];
+        *dest++ = ds_colormap[((temp_data >> 0)  & 0xFF)];
+        *dest++ = ds_colormap[((temp_data >> 0)  & 0xFF)];
 
         position += step;
 
@@ -948,11 +981,11 @@ R_InitBuffer
 //
 void R_FillBackScreen (void) 
 { 
-    byte*       src;
+    byte*       src; // X-HEEP comment : src is an adress in flash it must be read using X_spi_read
     pixel_t*    dest;
     int         x;
     int         y; 
-    patch_t*    patch;
+    patch_t*    patch; // X-HEEP comment : patch is an adress in flash it must be read using X_spi_read
 
     // DOOM border patch.
     char       *name1 = DEH_String("FLOOR7_2");
@@ -996,13 +1029,15 @@ void R_FillBackScreen (void)
     { 
         for (x=0 ; x<SCREENWIDTH/64 ; x++) 
         { 
-            memcpy (dest, src+((y&63)<<6), 64); 
+            X_spi_read(src+((y&63)<<6), dest, 64/4); 
+            //memcpy (dest, src+((y&63)<<6), 64); 
             dest += 64; 
         } 
 
         if (SCREENWIDTH&63) 
         { 
-            memcpy (dest, src+((y&63)<<6), SCREENWIDTH&63); 
+            X_spi_read(src+((y&63)<<6), dest, (SCREENWIDTH&63)/4); //X-HEEP comment : for now SCREENWIDTH&63 = 0 if this value changes check that it is a multiple of 4 
+            //memcpy (dest, src+((y&63)<<6), SCREENWIDTH&63); 
             dest += (SCREENWIDTH&63); 
         } 
     } 

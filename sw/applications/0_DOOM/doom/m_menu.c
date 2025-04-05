@@ -53,6 +53,7 @@
 //#include "s_sound.h"
 
 #include "doomstat.h"
+#include "x_spi.h"
 
 // Data.
 //#include "sounds.h"
@@ -60,7 +61,7 @@
 #include "m_menu.h"
 
 // NRFD-TODO: HU
-extern patch_t*              hu_font[HU_FONTSIZE];
+extern patch_t*              hu_font[HU_FONTSIZE]; // X-HEEP comment : The elements of hu_font are adresses in flash they must be read using X_spi_read
 // NRFD-TODO
 // extern boolean               message_dontfuckwithme;
 
@@ -1286,14 +1287,15 @@ int M_StringWidth(char* string)
     size_t             i;
     int             w = 0;
     int             c;
-        
+    patch_t tempfont;
     for (i = 0;i < strlen(string);i++)
     {
         c = toupper(string[i]) - HU_FONTSTART;
         if (c < 0 || c >= HU_FONTSIZE)
             w += 4;
         else
-            w += SHORT (hu_font[c]->width);
+            X_spi_read(hu_font[c], &tempfont, sizeof(tempfont)); 
+            w += SHORT (tempfont.width);
     }
                 
     return w;
@@ -1308,7 +1310,9 @@ int M_StringHeight(char* string)
 {
     size_t             i;
     int             h;
-    int             height = SHORT(hu_font[0]->height);
+    patch_t tempfont;
+    X_spi_read(hu_font[0], &tempfont, sizeof(tempfont));
+    int             height = SHORT(tempfont.height);
         
     h = height;
     for (i = 0;i < strlen(string);i++)
@@ -1334,6 +1338,8 @@ void M_WriteText(int x, int y, char*string)
     ch = string;
     cx = x;
     cy = y;
+
+    patch_t tempfont;
         
     while(1)
     {
@@ -1353,8 +1359,9 @@ void M_WriteText(int x, int y, char*string)
             cx += 4;
             continue;
         }
-                
-        w = SHORT (hu_font[c]->width);
+        
+        X_spi_read(hu_font[c], &tempfont, sizeof(tempfont)); 
+        w = SHORT (tempfont.width);
         if (cx+w > SCREENWIDTH)
             break;
         V_DrawPatchDirect(cx, cy, hu_font[c]);
@@ -1988,6 +1995,8 @@ void M_Drawer (void)
     skull_offset_y = 0;
 
     inhelpscreens = false;
+    patch_t tempfont; 
+    X_spi_read(hu_font[0], &tempfont, sizeof(tempfont));
     
     // Horiz. & Vertically center string and print it.
     if (messageToPrint)
@@ -2023,7 +2032,7 @@ void M_Drawer (void)
 
             x = SCREENWIDTH/2 - M_StringWidth(string) / 2;
             M_WriteText(x, y, string);
-            y += SHORT(hu_font[0]->height);
+            y += SHORT(tempfont.height);
         }
         return;
     }

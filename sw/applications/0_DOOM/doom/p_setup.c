@@ -39,6 +39,7 @@
 //#include "s_sound.h"
 
 #include "doomstat.h"
+#include "x_spi.h"
 
 
 void    P_SpawnMapThing (mapthing_t*    mthing);
@@ -51,7 +52,7 @@ vertex_t*       vertexes;
 
 int             numsegs;
 // seg_t*          segs;
-mapseg_t*          mapsegs;
+mapseg_t*          mapsegs; // X-HEEP comment : mapsegs is an adress in flash it must be read using X_spi_read
 
 int             numsectors;
 sector_t*       sectors;
@@ -61,14 +62,14 @@ subsector_t*    subsectors;
 
 int             numnodes;
 // node_t*         nodes;
-mapnode_t*         mapnodes;
+mapnode_t*         mapnodes; // X-HEEP comment : mapnodes is an adress in flash it must be read using X_spi_read
 
 int             numlines;
 line_t*         lines;
 
 int             numsides;
 side_t*         sides;
-mapsidedef_t*   mapsides;
+mapsidedef_t*   mapsides; // X-HEEP comment : mapsides is an adress in flash it must be read using X_spi_read
 
 static int      totallines;
 
@@ -82,9 +83,9 @@ static int      totallines;
 // Blockmap size.
 int             bmapwidth;
 int             bmapheight;     // size in mapblocks
-short*          blockmap;       // int for larger maps
+short*          blockmap;       // int for larger maps // X-HEEP comment : blockmap is an adress in flash it must be read using X_spi_read 
 // offsets in blockmap are from here
-short*          blockmaplump;           
+short*          blockmaplump;  // X-HEEP comment : blockmaplump is an adress in flash it must be read using X_spi_read 
 // origin of block map
 fixed_t         bmaporgx;
 fixed_t         bmaporgy;
@@ -119,9 +120,9 @@ mapthing_t      playerstarts[MAXPLAYERS];
 void P_LoadVertexes (int lump)
 {
 
-    byte*               data;
+    byte*               data; // X-HEEP comment : data is an adress in flash it must be read using X_spi_read
     int                 i;
-    mapvertex_t*        ml;
+    mapvertex_t*        ml;// X-HEEP comment : ml is an adress in flash it must be read using X_spi_read
     vertex_t*           li;
 
     // Determine number of lumps:
@@ -140,12 +141,14 @@ void P_LoadVertexes (int lump)
     ml = (mapvertex_t *)data;
     li = vertexes;
 
+    mapvertex_t temp_ml; 
+    X_spi_read(ml, &temp_ml, sizeof(temp_ml)/4); 
     // Copy and convert vertex coordinates,
     // internal representation as fixed.
     for (i=0 ; i<numvertexes ; i++, li++, ml++)
     {
-        li->x = SHORT(ml->x)<<FRACBITS;
-        li->y = SHORT(ml->y)<<FRACBITS;
+        li->x = SHORT(temp_ml.x)<<FRACBITS;
+        li->y = SHORT(temp_ml.y)<<FRACBITS;
     }
 
     // Free buffer memory.
@@ -252,7 +255,7 @@ void P_LoadSegs (int lump)
         */
 }
 
-
+// X-HEEP comment : This function returns an adress in flash that must be read using X_spi_read
 seg_t *GetSeg(int num)
 {
     return (seg_t*)&mapsegs[num];
@@ -263,11 +266,14 @@ sector_t *SegFrontSector(seg_t *seg) {
     side_t *sidedef = SegSideDef(seg);
     return SideSector(sidedef);
 }
+
 sector_t *SegBackSector(seg_t *seg) {
     mapseg_t *ms = (mapseg_t*)seg;
     line_t *linedef = SegLineDef(seg);
+    mapseg_t temp_ms; 
+    X_spi_read(ms, &temp_ms, sizeof(temp_ms)/4);
     if (LineFlags(linedef) & ML_TWOSIDED) {
-        int side = SHORT(ms->side);
+        int side = SHORT(temp_ms.side);
         side = side ^ 1;
             // NRFD-TODO: Optimize: Use numbers insteadof pointers?
         side_t *line_side = LineSide(linedef, side);
@@ -281,15 +287,18 @@ sector_t *SegBackSector(seg_t *seg) {
 // NRFD-TODO: Consider returning data instead of pointer?
 vertex_t *SegV1(seg_t *seg) {
     mapseg_t *ms = (mapseg_t*)seg;
+    mapseg_t temp_ms; 
+    X_spi_read(ms, &temp_ms, sizeof(temp_ms)/4);
 
-
-    int v1_num = SHORT(ms->v1);
+    int v1_num = SHORT(temp_ms.v1);
     return &vertexes[v1_num];
 }
 vertex_t *SegV2(seg_t *seg) {
     mapseg_t *ms = (mapseg_t*)seg;
+    mapseg_t temp_ms; 
+    X_spi_read(ms, &temp_ms, sizeof(temp_ms)/4);
 
-    int v2_num = SHORT(ms->v2);
+    int v2_num = SHORT(temp_ms.v2);
     return &vertexes[v2_num];
 }
 angle_t SegAngle(seg_t *seg) {
@@ -305,14 +314,19 @@ fixed_t SegOffset(seg_t *seg) {
 line_t *SegLineDef(seg_t *seg)
 {
     mapseg_t *ms = (mapseg_t*)seg;
-    int num = ms->linedef;
+    mapseg_t temp_ms; 
+    X_spi_read(ms, &temp_ms, sizeof(temp_ms)/4);
+    int num = temp_ms.linedef;
     return &lines[num];
 }
 side_t *SegSideDef(seg_t *seg)
 {
     mapseg_t *ms = (mapseg_t*)seg;
 
-    short side = SHORT(ms->side);
+    mapseg_t temp_ms; 
+    X_spi_read(ms, &temp_ms, sizeof(temp_ms)/4); 
+
+    short side = SHORT(temp_ms.side);
     line_t *ldef = SegLineDef(seg);
     return LineSide(ldef, side);
 }
@@ -323,9 +337,9 @@ void P_LoadSubsectors (int lump)
 {
     PRINTF("P_LoadSubsectors\n");
 
-    byte*               data;
+    byte*               data; // X-HEEP comment : data is an adress in flash it must be read using X_spi_read
     int                 i;
-    mapsubsector_t*     ms;
+    mapsubsector_t*     ms; // X-HEEP comment : ms is an adress in flash it must be read using X_spi_read
     subsector_t*        ss;
         
     numsubsectors = W_LumpLength (lump) / sizeof(mapsubsector_t);
@@ -336,10 +350,14 @@ void P_LoadSubsectors (int lump)
     memset (subsectors,0, numsubsectors*sizeof(subsector_t));
     ss = subsectors;
     
+    mapsubsector_t temp_ms;
+    
     for (i=0 ; i<numsubsectors ; i++, ss++, ms++)
     {
-        ss->numlines = SHORT(ms->numsegs);
-        ss->firstline = SHORT(ms->firstseg);
+        X_spi_read(ms, &temp_ms, sizeof(temp_ms)/4); 
+        ss->numlines = SHORT(temp_ms.numsegs);
+        ss->firstline = SHORT(temp_ms.firstseg);
+
     }
         
     W_ReleaseLumpNum(lump);
@@ -354,27 +372,31 @@ void P_LoadSectors (int lump)
 {
     PRINTF("P_LoadSectors\n");
 
-    byte*               data;
+    byte*               data; //X-HEEP comment: data is an adress in flash it must be read using X_spi_read
     int                 i;
-    mapsector_t*        ms;
+    mapsector_t*        ms;//X-HEEP comment: ms is an adress in flash it must be read using X_spi_read
     sector_t*           ss;
         
     numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
     sectors = Z_Malloc (numsectors*sizeof(sector_t),PU_LEVEL,0);        
     memset (sectors, 0, numsectors*sizeof(sector_t));
     data = W_CacheLumpNum (lump,PU_STATIC);
-        
+
     ms = (mapsector_t *)data;
     ss = sectors;
+
+    mapsector_t temp_ms;  
+
     for (i=0 ; i<numsectors ; i++, ss++, ms++)
     {
-        ss->floorheight = SHORT(ms->floorheight)<<FRACBITS;
-        ss->ceilingheight = SHORT(ms->ceilingheight)<<FRACBITS;
-        ss->floorpic = R_FlatNumForName(ms->floorpic);
-        ss->ceilingpic = R_FlatNumForName(ms->ceilingpic);
-        ss->lightlevel = SHORT(ms->lightlevel);
-        ss->special = SHORT(ms->special);
-        ss->tag = SHORT(ms->tag);
+        X_spi_read(ms, &temp_ms, sizeof(temp_ms)/4); 
+        ss->floorheight = SHORT(temp_ms.floorheight)<<FRACBITS;
+        ss->ceilingheight = SHORT(temp_ms.ceilingheight)<<FRACBITS;
+        ss->floorpic = R_FlatNumForName(temp_ms.floorpic);
+        ss->ceilingpic = R_FlatNumForName(temp_ms.ceilingpic);
+        ss->lightlevel = SHORT(temp_ms.lightlevel);
+        ss->special = SHORT(temp_ms.special);
+        ss->tag = SHORT(temp_ms.tag);
         ss->thinglist = NULL;
     }
         
@@ -435,9 +457,9 @@ void P_LoadThings (int lump)
 {
     PRINTF("P_LoadThings\n");
     
-    byte               *data;
+    byte               *data;  //X-HEEP comment: data is an adress in flash it must be read using X_spi_read
     int                 i;
-    mapthing_t         *mt;
+    mapthing_t         *mt;  //X-HEEP comment: mt is an adress in flash it must be read using X_spi_read
     mapthing_t          spawnthing;
     int                 numthings;
     boolean             spawn;
@@ -449,14 +471,19 @@ void P_LoadThings (int lump)
 
         
     mt = (mapthing_t *)data;
+    mapthing_t temp_mt; 
+    uint32_t temp_data[(sizeof(temp_mt)+3)/4];
+
     for (i=0 ; i<numthings ; i++, mt++)
     {
+        X_spi_read(mt, &temp_data, (sizeof(temp_mt)+3)/4); 
+        memcpy(&temp_mt, &temp_data, sizeof(temp_mt));  
         spawn = true;
 
         // Do not spawn cool, new monsters if !commercial
         if (gamemode != commercial)
         {
-            switch (SHORT(mt->type))
+            switch (SHORT(temp_mt.type))
             {
               case 68:  // Arachnotron
               case 64:  // Archvile
@@ -476,11 +503,11 @@ void P_LoadThings (int lump)
             break;
 
         // Do spawn all other stuff. 
-        spawnthing.x = SHORT(mt->x);
-        spawnthing.y = SHORT(mt->y);
-        spawnthing.angle = SHORT(mt->angle);
-        spawnthing.type = SHORT(mt->type);
-        spawnthing.options = SHORT(mt->options);
+        spawnthing.x = SHORT(temp_mt.x);
+        spawnthing.y = SHORT(temp_mt.y);
+        spawnthing.angle = SHORT(temp_mt.angle);
+        spawnthing.type = SHORT(temp_mt.type);
+        spawnthing.options = SHORT(temp_mt.options);
         
         P_SpawnMapThing(&spawnthing);
     }
@@ -497,9 +524,9 @@ void P_LoadLineDefs (int lump)
 {
     PRINTF("P_LoadLineDefs\n");
 
-    byte*               data;
+    byte*               data;  //X-HEEP comment: data is an adress in flash it must be read using X_spi_read
     int                 i;
-    maplinedef_t*       mld;
+    maplinedef_t*       mld;  //X-HEEP comment: mld is an adress in flash it must be read using X_spi_read
     line_t*             ld;
     vertex_t*           v1;
     vertex_t*           v2;
@@ -511,20 +538,24 @@ void P_LoadLineDefs (int lump)
     data = W_CacheLumpNum (lump,PU_STATIC);
         
     mld = (maplinedef_t *)data;
+    maplinedef_t temp_mld; 
+    uint32_t temp_data[(sizeof(temp_mld)+3)/4];
     ld = lines;
     for (i=0 ; i<numlines ; i++, mld++, ld++)
     {
+        X_spi_read(mld, &temp_data, (sizeof(temp_mld)+3)/4); 
+        memcpy(&temp_mld, &temp_data, sizeof(temp_mld));    
         ld->mld = mld;
         // ld->flags_x = SHORT(mld->flags);
-        short special = SHORT(mld->special);
+        short special = SHORT(temp_mld.special);
         if (special > 256 || special < 0) {
             I_Error("P_LoadLineDefs: special");
         }
         ld->special = special;
         // ld->tag_x = SHORT(mld->tag);
 
-        short v1_num = SHORT(mld->v1);
-        short v2_num = SHORT(mld->v2);
+        short v1_num = SHORT(temp_mld.v1);
+        short v2_num = SHORT(temp_mld.v2);
 
         if (v1_num > numvertexes) I_Error("P_LoadLineDefs v1 %d > %d", v1_num, numvertexes);
         if (v2_num > numvertexes) I_Error("P_LoadLineDefs v2 %d > %d", v2_num, numvertexes);
@@ -725,9 +756,9 @@ void P_LoadSideDefs (int lump)
 {
     PRINTF("P_LoadSideDefs\n");
 
-    byte*               data;
+    byte*               data; //X-HEEP comment: data is an adress in flash it must be read using X_spi_read
     int                 i;
-    mapsidedef_t*       msd;
+    mapsidedef_t*       msd; //X-HEEP comment: msd is an adress in flash it must be read using X_spi_read
     side_t*             sd;
         
     numsides = W_LumpLength (lump) / sizeof(mapsidedef_t);
@@ -738,17 +769,22 @@ void P_LoadSideDefs (int lump)
     msd = (mapsidedef_t *)data;
     mapsides = msd; 
     sd = sides;
+
+    mapsidedef_t temp_msd; 
+    uint32_t temp_data[(sizeof(temp_msd)+3)/4];
     for (i=0 ; i<numsides ; i++, msd++, sd++)
     {
+        X_spi_read(msd, &temp_data, (sizeof(temp_msd)+3)/4); 
+        memcpy(&temp_msd, &temp_data, sizeof(temp_msd));   
         // sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
         // sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
-        sd->textureoffset_short = SHORT(msd->textureoffset);
-        sd->rowoffset_short = SHORT(msd->rowoffset);
-        sd->toptexture = R_TextureNumForName(msd->toptexture);
-        sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
-        sd->midtexture = R_TextureNumForName(msd->midtexture);
+        sd->textureoffset_short = SHORT(temp_msd.textureoffset);
+        sd->rowoffset_short = SHORT(temp_msd.rowoffset);
+        sd->toptexture = R_TextureNumForName(temp_msd.toptexture);
+        sd->bottomtexture = R_TextureNumForName(temp_msd.bottomtexture);
+        sd->midtexture = R_TextureNumForName(temp_msd.midtexture);
         // sd->sector = &sectors[SHORT(msd->sector)];
-        sd->sector_num = SHORT(msd->sector);
+        sd->sector_num = SHORT(temp_msd.sector);
         if (sd->sector_num < 0 || sd->sector_num > 256) {
             I_Error("P_LoadSideDefs: sector_num");
         }
@@ -810,13 +846,15 @@ void P_LoadBlockMap (int lump)
     */
 
     // Read the header
+    uint32_t temp_blockmaplump[2]; 
+    X_spi_read(blockmaplump, &temp_blockmaplump, 2); 
+    
+    bmaporgx = ((temp_blockmaplump[0] >> 0)  & 0xFFFF)<<FRACBITS;
+    bmaporgy = ((temp_blockmaplump[0] >> 16)  & 0xFFFF)<<FRACBITS;
+    bmapwidth = ((temp_blockmaplump[1] >> 0)  & 0xFFFF);
+    bmapheight = ((temp_blockmaplump[1] >> 16)  & 0xFFFF);
 
-    bmaporgx = blockmaplump[0]<<FRACBITS;
-    bmaporgy = blockmaplump[1]<<FRACBITS;
-    bmapwidth = blockmaplump[2];
-    bmapheight = blockmaplump[3];
-
-    PRINTF("BlockMap: %d %d %d %d\n", blockmaplump[0], blockmaplump[1], bmapwidth, bmapheight);
+    PRINTF("BlockMap: %d %d %d %d\n", ((temp_blockmaplump[0] >> 0)  & 0xFFFF), ((temp_blockmaplump[0] >> 16)  & 0xFFFF), bmapwidth, bmapheight);
         
     // Clear out mobj chains
     int block_count =  bmapwidth * bmapheight;
@@ -844,8 +882,8 @@ void P_GroupLines (void)
     int                 j;
     line_t*             li;
     sector_t*           sector;
-    subsector_t*        ss;
-    seg_t*              seg;
+    subsector_t*        ss; 
+    seg_t*              seg; // X-HEEP comment : seg is an adress in flash it must be read using X_spi_read
     fixed_t             bbox[4];
     int                 block;
         
@@ -1159,7 +1197,7 @@ P_SetupLevel
 // P_Init
 //
 void P_Init (void)
-{
+{ 
     P_InitSwitchList ();
     P_InitPicAnims ();
     R_InitSprites ();
