@@ -135,17 +135,14 @@ unsigned int W_LumpNameHash(const char *s)
 
 wad_file_t *W_AddFile (char *filename)
 {
-    wadinfo_t header; 
+
     wad_file_t *wad_file_data;
+    
+    wadinfo_t temp_header; 
 
-    uint32_t infotable_addr = WAD_START_ADDRESS + sizeof(header.identification) + sizeof(header.numlumps); 
-    X_spi_read(infotable_addr, (uint32_t *)&first_lump_pos, sizeof(int)/4);
-    filelumps_base = WAD_START_ADDRESS + LONG(first_lump_pos); 
-
-    int add;
-    uint32_t numlumps_addr = WAD_START_ADDRESS + sizeof(header.identification); 
-    X_spi_read(numlumps_addr, (uint32_t *)&add, sizeof(int)/4);
-    numlumps +=  LONG(add);
+    X_spi_read(WAD_START_ADDRESS, &temp_header, sizeof(temp_header)/4); 
+    filelumps_base = WAD_START_ADDRESS + LONG(temp_header.infotableofs); 
+    numlumps += LONG(temp_header.numlumps); 
 
     long file_size = 4196366;
     //wad_file_data = Z_Malloc(sizeof(wad_file_t), PU_STATIC, 0);
@@ -485,6 +482,7 @@ lumpindex_t W_CheckNumForName(const char* name)
         // We don't have a hash table generate yet. Linear search :-(
         //
         // scan backwards so patch lump files take precedence
+        //i = numlumps - 1
         for (i = numlumps - 1; i >= 0; --i)
         {
             W_GetLumpInfo(i, &lump, name);

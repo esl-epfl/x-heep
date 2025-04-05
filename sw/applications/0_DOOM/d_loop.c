@@ -703,6 +703,7 @@ void TryRunTics (void)
     entertic = I_GetTime() / ticdup;
     realtics = entertic - oldentertics;
     oldentertics = entertic;
+     
 
     // in singletics mode, run a single tic every time this function
     // is called.
@@ -750,7 +751,6 @@ void TryRunTics (void)
         counts = 1;
 
     // wait for new tics if needed
-    //get stuck in this loop 
     while (!PlayersInGame() || lowtic < gametic/ticdup + counts)
     {
 

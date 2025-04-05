@@ -199,7 +199,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
         I_SleepUS(1); // NRFD-TODO: remove?
         X_spi_read(column, &temp_column_data, 1);
         tempcolumn.topdelta = temp_column_data & 0xFF;
-        tempcolumn.length   = (temp_column_data >> 8) & 0xFF;    
+        tempcolumn.length   = (temp_column_data >> 8) & 0xFF;   
         
         //printf("In V_DrawPatch in for loop, col : %d, w : %d\n", col, w);
         //printf("temppatch.columnofs[col] : %d, column addr: %p, topdelta: %d, length: %d\n", full_patch->columnofs[col], column, tempcolumn.topdelta, tempcolumn.length);
