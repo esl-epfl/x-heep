@@ -257,8 +257,6 @@ void D_Display (void)
         break;
     }
 
-    printf("In D_Display after switch\n");
-
     // draw buffered stuff to screen
     I_UpdateNoBlit ();
     
