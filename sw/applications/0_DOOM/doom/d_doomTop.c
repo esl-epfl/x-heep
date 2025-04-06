@@ -199,6 +199,7 @@ void D_Display (void)
     boolean                     done;
     boolean                     wipe;
     boolean                     redrawsbar;
+     
 
     if (nodrawers)
         return;                    // for comparative timing / profiling
@@ -228,7 +229,7 @@ void D_Display (void)
         HU_Erase();
 
     // do buffered drawing
-    printf("In D_Display before switch, gamestate : %i\n", gamestate);
+    printf("In D_Display before switch, gamestate : %i\n", gamestate); 
     switch (gamestate)
     {
       case GS_LEVEL:
@@ -257,10 +258,8 @@ void D_Display (void)
         break;
     }
 
-    printf("In D_Display after switch\n");
-
     // draw buffered stuff to screen
-    I_UpdateNoBlit ();
+    I_UpdateNoBlit (); //X-HEEP comment : ?? 
     
     // draw the view directly
     if (gamestate == GS_LEVEL && !automapactive && gametic)
@@ -271,7 +270,7 @@ void D_Display (void)
     
     // clean up border stuff
     if (gamestate != oldgamestate && gamestate != GS_LEVEL) {
-        I_SetPalette (W_CacheLumpName (DEH_String("PLAYPAL"),PU_CACHE));
+        I_SetPalette (W_CacheLumpName(DEH_String("PLAYPAL"),PU_CACHE));
     }
 
     /*
@@ -320,6 +319,7 @@ void D_Display (void)
                           W_CacheLumpName (DEH_String("M_PAUSE"), PU_CACHE));
     }
 
+
     // menus go directly to the screen
     M_Drawer ();          // menu is drawn even on top of everything
 
@@ -328,18 +328,26 @@ void D_Display (void)
     */
 
     // normal update
+
+    printf("In D_Display after M_Drawer, wipe %i\n", wipe);
+
     if (!wipe)
     {
         I_FinishUpdate ();              // page flip or blit buffer
         return;
     }
 
+    printf("In D_Display before wipe_EndScreen \n");
+
     // wipe update
     wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
+
+    printf("In D_Display after wipe\n");
 
     wipestart = I_GetTime () - 1;
 
     tics = 0;
+    printf("In D_Display before do while\n");
     do
     {
         do
@@ -478,9 +486,7 @@ void D_DoomLoop (void)
     I_GraphicsCheckCommandLine(); //useless
     // I_SetGrabMouseCallback(D_GrabMouseCallback);
      
-    //X-HEEP comment : uncomment when screen is done
     I_InitGraphics(); 
-    PRINTF("INIT GRAPHICS\n");
     EnableLoadingDisk(); 
     TryRunTics(); 
 
@@ -518,7 +524,7 @@ void D_DoomLoop (void)
         // Update display, next frame, with current state.
         printf("Before D_Display in D_DoomLoop\n"); 
         if (screenvisible)
-            D_Display (); //stuck here 
+            D_Display ();  
         /*
         int fih = nrf_cache_instruction_hit_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_FLASH);
         int fim = nrf_cache_instruction_miss_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_FLASH);
@@ -534,7 +540,8 @@ void D_DoomLoop (void)
         PRINTF("xih = %d | xim = %d | xdh = %d | xdm = %d\n", xih, xim, xdh, xdm);
         */
 
-        N_ldbg("=== LOOP END ===\n");
+        //N_ldbg("=== LOOP END ===\n");
+        printf("=== LOOP END ===\n");
         frame_time_prev = frame_time;
     }
 

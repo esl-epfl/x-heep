@@ -332,8 +332,12 @@ void I_FinishUpdate (void)
             I_VideoBuffer[ (SCREENHEIGHT-1)*SCREENWIDTH + i] = 0x0;
     }
 
-    PRINTF("UPDATE SCREEN");
+    PRINTF("UPDATE SCREEN\n");
+
+    //X-HEEP comment : uncomment when screen is done
     X_Display_Draw_Screen_200x200();
+
+    
 /* X-HEEP COMMENT
     // Draw disk icon before blit, if necessary.
     // NRFD_TODO: V_DrawDiskIcon();
@@ -496,7 +500,10 @@ void I_GraphicsCheckCommandLine(void)
 void I_InitGraphics(void)
 {
     PRINTF("I_InitGraphics\n");
+    
+    //X-HEEP comment : uncomment when screen is done
     X_Display_init();
+    
     //N_display_init();
     
 /* X-HEEP COMMENT
