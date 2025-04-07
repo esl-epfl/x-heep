@@ -558,7 +558,7 @@ void F_CastDrawer (void)
     spriteframe_t*      sprframe;
     int                 lump;
     boolean             flip;
-    patch_t*            patch;
+    patch_t*            patch; // X-HEEP comment : patch is an adress in flash it must be read using X_spi_read
     
     // erase the entire screen to a background
     V_DrawPatch (0, 0, W_CacheLumpName (DEH_String("BOSSBACK"), PU_CACHE));
@@ -581,35 +581,47 @@ void F_CastDrawer (void)
 
 //
 // F_DrawPatchCol
-//
+// // X-HEEP comment : patch is an adress in flash it must be read using X_spi_read
 void
 F_DrawPatchCol
 ( int           x,
   patch_t*      patch,
   int           col )
 {
-    column_t*   column;
-    byte*       source;
+    column_t*   column; // X-HEEP comment : column is an adress in flash it must be read using X_spi_read
+    byte*       source; // X-HEEP comment : source is an adress in flash it must be read using X_spi_read
     pixel_t*    dest;
     pixel_t*    desttop;
     int         count;
-        
-    column = (column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+    
+    patch_t temppatch; 
+    X_spi_read(patch, &temppatch, sizeof(temppatch)/4); 
+
+    column = (column_t *)((byte *)patch + LONG(temppatch.columnofs[col]));
     desttop = I_VideoBuffer + x;
+    column_t tempcolumn;
+    uint32_t temp_column_data;
+    uint32_t temp_source;
+    X_spi_read(column, &temp_column_data, 1);  
+    memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes
 
     // step through the posts in a column
-    while (column->topdelta != 0xff )
+    while (tempcolumn.topdelta != 0xff )
     {
         source = (byte *)column + 3;
-        dest = desttop + column->topdelta*SCREENWIDTH;
-        count = column->length;
+        dest = desttop + tempcolumn.topdelta*SCREENWIDTH;
+        count = tempcolumn.length;
                 
         while (count--)
         {
-            *dest = *source++;
+            X_spi_read(source, &temp_source, 1);
+            *dest = (uint8_t)temp_source; 
+            source += 1;
             dest += SCREENWIDTH;
         }
-        column = (column_t *)(  (byte *)column + column->length + 4 );
+        column = (column_t *)(  (byte *)column + tempcolumn.length + 4 );
+        X_spi_read(column, &temp_column_data, 1);  
+        memcpy(&tempcolumn, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes
     }
 }
 
@@ -621,8 +633,8 @@ void F_BunnyScroll (void)
 {
     signed int  scrolled;
     int         x;
-    patch_t*    p1;
-    patch_t*    p2;
+    patch_t*    p1; // X-HEEP comment : p1 is an adress in flash it must be read using X_spi_read
+    patch_t*    p2; // X-HEEP comment : p2 is an adress in flash it must be read using X_spi_read
     char        name[10];
     int         stage;
     static int  laststage;

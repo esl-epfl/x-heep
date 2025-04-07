@@ -325,15 +325,17 @@ static inline node_t GetNode(unsigned short num)
     mapnode_t *mn = &mapnodes[num];
     node_t     no;
 
-    no.x = SHORT(mn->x)<<FRACBITS;
-    no.y = SHORT(mn->y)<<FRACBITS;
-    no.dx = SHORT(mn->dx)<<FRACBITS;
-    no.dy = SHORT(mn->dy)<<FRACBITS;
+    mapnode_t temp_mn; 
+    X_spi_read(mn, &temp_mn, sizeof(temp_mn)/4); 
+    no.x = SHORT(temp_mn.x)<<FRACBITS;
+    no.y = SHORT(temp_mn.y)<<FRACBITS;
+    no.dx = SHORT(temp_mn.dx)<<FRACBITS;
+    no.dy = SHORT(temp_mn.dy)<<FRACBITS;
     for (j=0 ; j<2 ; j++)
     {
-        no.children[j] = SHORT(mn->children[j]);
+        no.children[j] = SHORT(temp_mn.children[j]);
         for (k=0 ; k<4 ; k++) {
-            no.bbox[j][k] = SHORT(mn->bbox[j][k])<<FRACBITS;
+            no.bbox[j][k] = SHORT(temp_mn.bbox[j][k])<<FRACBITS;
         }
     }
     return no;

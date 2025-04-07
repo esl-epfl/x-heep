@@ -146,22 +146,29 @@ struct  __attribute__((packed)) texture_s
     // texpatch_t  *patches;
 };
 
+/****************************************************************************/
+/**                                                                        **/
+/*                            GLOBAL VARIABLES                              */
+/**                                                                        **/
+/****************************************************************************/
 
 
-int                   firstflat;
-int                   lastflat;
+ 
+int                   firstflat; //Contains the lump index of the first flat 
+int                   lastflat;  //Contains the lump index of the last flat
 int                   numflats;
 
-int                   firstpatch;
-int                   lastpatch;
+int                   firstpatch; 
+int                   lastpatch;  
 int                   numpatches;
 
-int                   firstspritelump;
-int                   lastspritelump;
+int                   firstspritelump; //Contains the lump index of the first sprite lump
+int                   lastspritelump;  //Contains the lump index of the last sprite lump 
 int                   numspritelumps;
 
 int                   numtextures;
-texture_t             textures[MAX_TEXTURES];
+
+texture_t             textures[MAX_TEXTURES]; //Aray containing all the textures under the texture_t type textures[i]->wad_texture is an adress in flash and thus must be read using X_spi_read()
 char*                 textures_names;
 texpatch_t*           texture_patches;
 // texture_t**           textures_hashtable; // NRFD-EXCLUDE hashtable
@@ -183,7 +190,7 @@ short*                  texturetranslation;
 // fixed_t*              spriteoffset;
 // fixed_t*              spritetopoffset;
 
-lighttable_t*         colormaps;
+lighttable_t*         colormaps; //This is an adress in flash, must be read using X_spi_read()
 
 
 //
@@ -216,13 +223,17 @@ lighttable_t*         colormaps;
 
 int R_TextureWidth(texture_t *tex)
 {
-    return SHORT(tex->wad_texture->width);
+    maptexture_t temp; 
+    X_spi_read(tex->wad_texture, &temp, sizeof(temp)/4);
+    return SHORT(temp.width);
     // return tex->width*4;
 }
 
 int R_TextureHeight(texture_t *tex)
 {
-    return SHORT(tex->wad_texture->height);
+    maptexture_t temp; 
+    X_spi_read(tex->wad_texture, &temp, sizeof(temp)/4);
+    return SHORT(temp.height);
     // return tex->height*4;
 }
 
@@ -349,20 +360,22 @@ void R_GenerateInit(int texture_storage_size)
     generate_to_flash = X_ButtonState(1);
 
     generate_buffer = (byte*)I_VideoBuffers;
-    //store_loc = N_qspi_alloc_block();
+    store_loc = X_spi_alloc_sector();
     PRINTF("R_GenerateInit: %d %d\n", store_loc, generate_to_flash);
-
-    /* X-HEEP COMMENT
-    for (int ofs=0; ofs<texture_storage_size; ofs+=N_QSPI_BLOCK_SIZE) {
+    
+    
+    for (int ofs=0; ofs<texture_storage_size; ofs+=SECT_LEN) {
         if (generate_to_flash) {
-            N_qspi_erase_block(store_loc+ofs);
+            X_spi_erase_sector(store_loc+ofs);
         }
-        N_qspi_alloc_block();
-    } X-HEEP COMMENT END */
+        X_spi_alloc_sector();
+    } 
+    
 }
 
 
 
+//X-HEEP comment : patch_names is an adress in flash it must be read using X_spi_read
 
 void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
 {
@@ -387,29 +400,41 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
         generate_buffer[i] = 251; // PINK, use as transparent is masked textures
     }
 
-    int patchcount = SHORT(mtex->patchcount);
+    maptexture_t temp; 
+    X_spi_read(mtex, &temp, sizeof(temp)/4); 
+    int patchcount = SHORT(temp.patchcount);
     for (i=0; i<patchcount; i++)
     {
         int          x;
         int          x1;
         int          x2;
-        mappatch_t*  mpatch        = &mtex->patches[i];
-        short        patch_num     = SHORT(mpatch->patch);
-        int          originy       = SHORT(mpatch->originy);
-        char*        patch_name    = patch_names + patch_num * 8;
+        mappatch_t*  mpatch        = &mtex->patches[i]; //X-HEEP comment : mpatch is an adress in flash it must be read using X_spi_read
+        mappatch_t   temp2; 
+        uint32_t temp2_data_buffer[3]; 
+        X_spi_read(mpatch, &temp2_data_buffer, 3);
+        memcpy(&temp2, &temp2_data_buffer, sizeof(mappatch_t));  // Copy only 10 bytes
+        
+        short        patch_num     = SHORT(temp2.patch);
+        int          originy       = SHORT(temp2.originy);
+        char*        patch_name    = patch_names + patch_num * 8; //X-HEEP comment : patch_names is an adress in flash it must be read using X_spi_read
+        char temp_patch_name[8] = {0}; 
+        X_spi_read(patch_name, &temp_patch_name, sizeof(temp_patch_name)/4);
         // int          patch_lump    = W_CheckNumForName(patch_name);
-        patch_t*     realpatch     = W_CacheLumpName(patch_name, PU_CACHE); //W_CacheLumpNum (patch_lump, PU_CACHE);
-        int          columnofs[256];
 
+        patch_t*     realpatch     = W_CacheLumpName(temp_patch_name, PU_CACHE); // X-HEEP comment : realpatch is an adress in flash it must be read using X_spi_read
+        //W_CacheLumpNum (patch_lump, PU_CACHE);
+        
+        int          columnofs[256];
         // PRINTF("        %.8s(%d)\n", patch_name, patch_num);
 
         // int *patch_columnofs = realpatch->columnofs;
         // NOTE: Having some trouble with reliable reading of this data from QSPI
-        memcpy(columnofs, realpatch->columnofs, 256*sizeof(int));
+        patch_t temp3;
+        X_spi_read(realpatch, &temp3, sizeof(temp3)/4); 
+        memcpy(columnofs, temp3.columnofs, 256*sizeof(int));
 
-        x1 = SHORT(mpatch->originx);
-        x2 = x1 + SHORT(realpatch->width);
-
+        x1 = SHORT(temp2.originx);
+        x2 = x1 + SHORT(temp3.width);
         if (x1<0)
             x = 0;
         else
@@ -417,10 +442,10 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
 
         if (x2 > width)
             x2 = width;
-
+        
         for ( ; x<x2 ; x++)
         {
-            column_t*       firstcol;
+            column_t*       firstcol; // X-HEEP comment : firstcol is an adress in flash it must be read using X_spi_read
             byte* dest_col = generate_buffer + (height*x);
             int col_num = x-x1;
             // int colofs = LONG(patch_columnofs[col_num]);
@@ -430,13 +455,18 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
             int colofs = columnofs[col_num]; // LONG(...)
             firstcol = (column_t *)((byte *)realpatch + colofs);
             column_t* col_ptr = firstcol;
-
-            while (col_ptr->topdelta != 0xff)
-            {
-                int col_length = col_ptr->length;
-                byte* source = (byte *)col_ptr + 3;
+            column_t temp_column_t; 
+            uint32_t temp_column_data;
+            uint32_t temp_source_data;
+            X_spi_read(col_ptr, &temp_column_data, 1);  
+            memcpy(&temp_column_t, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes 
+            while (temp_column_t.topdelta != 0xff)
+            { 
+                int col_length = temp_column_t.length;
+                byte* source = (byte *)col_ptr + 3; // X-HEEP comment : source is an adress in flash it must be read using X_spi_read
                 int count = col_length;
-                int position = originy + col_ptr->topdelta;
+                int position = originy + temp_column_t.topdelta;
+                
                 if (position < 0)
                 {
                     count += position;
@@ -448,18 +478,24 @@ void R_GenerateComposite_N (int num, texture_t *texture, char *patch_names)
 
 
                 if (count > 0) {
-                    memcpy (dest_col + position, source, count);
+                    X_spi_read(source, &temp_source_data, 1);
+                    byte source_temp = (uint8_t)temp_source_data; 
+                    memcpy (dest_col + position, &source_temp, count);
                 }
+                
                 col_ptr = (column_t *)((byte*)(col_ptr)  + col_length + 4);
+                X_spi_read(col_ptr, &temp_column_data, 1);  
+                memcpy(&temp_column_t, &temp_column_data, sizeof(column_t));  // Copy only 2 bytes 
             }
         }
-    }
-
+    } 
     if (generate_to_flash) {
         /* X-HEEP COMMENT
          * X-HEEP TODO: SPI WRITE
         N_qspi_write(texture_loc, generate_buffer, texture_size);
         */
+       X_spi_write(texture_loc, generate_buffer, texture_size);
+       
     }
 }
 
@@ -664,9 +700,9 @@ static void GenerateTextureHashTable(void)
 //
 void R_InitTextures (void)
 {
-    PRINTF("R_InitTextures\n");
+    PRINTF("R_InitTextures\n"); 
 
-    maptexture_t*       mtexture;
+    maptexture_t*       mtexture; // X-HEEP comment : mtexture is an adress in flash it must be read using X_spi_read
     texture_t*          texture;
     mappatch_t*             mpatch;
     texpatch_t*             patch;
@@ -674,13 +710,13 @@ void R_InitTextures (void)
     int                 i;
     int                 j;
 
-    int*            maptex;
-    int*            maptex2;
-    int*            maptex1;
+    int*            maptex;   // X-HEEP comment : maptex is an adress in flash it must be read using X_spi_read
+    int*            maptex2;  // X-HEEP comment : maptex2 is an adress in flash it must be read using X_spi_read
+    int*            maptex1;  // X-HEEP comment : maptex1 is an adress in flash it must be read using X_spi_read
     
     char            name[9];
-    char*           names;
-    char*           patch_names;
+    char*           names; // X-HEEP comment : names is an adress in flash it must be read using X_spi_read
+    char*           patch_names; // X-HEEP comment : patch_names is an adress in flash it must be read using X_spi_read
     
     short*            patchlookup;
     
@@ -692,7 +728,7 @@ void R_InitTextures (void)
     int                 numtextures1;
     int                 numtextures2;
 
-    int*            directory;
+    int*            directory; // X-HEEP comment : maptex is an adress in flash it must be read using X_spi_read
     
     int                 temp1;
     int                 temp2;
@@ -703,10 +739,11 @@ void R_InitTextures (void)
     
     // Load the patch names from pnames.lmp.
     name[8] = 0;
-    names = W_CacheLumpName (DEH_String("PNAMES"), PU_STATIC);
-    nummappatches = LONG ( *((int *)names) );
+    names = W_CacheLumpName (DEH_String("PNAMES"), PU_STATIC);  
+    X_spi_read(names, &nummappatches, sizeof(nummappatches)/4); 
+    nummappatches = LONG(nummappatches);  
+    
     patch_names = names + 4;
-
     // NRFD-TODO: Avoid malloc
     
     // patchlookup = Z_Malloc(nummappatches*sizeof(*patchlookup), PU_STATIC, NULL);
@@ -717,19 +754,20 @@ void R_InitTextures (void)
     //     patchlookup[i] = W_CheckNumForName(name);
     // }
     W_ReleaseLumpName(DEH_String("PNAMES"));
-
     // Load the map texture definitions from textures.lmp.
     // The data is contained in one or two lumps,
     //  TEXTURE1 for shareware, plus TEXTURE2 for commercial.
     maptex = maptex1 = W_CacheLumpName (DEH_String("TEXTURE1"), PU_STATIC);
-    numtextures1 = LONG(*maptex);
+    X_spi_read(maptex, &numtextures1, sizeof(numtextures1)/4); 
+    numtextures1 = LONG(numtextures1);
     maxoff = maxoff1 = W_LumpLength (W_GetNumForName (DEH_String("TEXTURE1")));
     directory = maptex+1;
         
     if (W_CheckNumForName (DEH_String("TEXTURE2")) != -1)
     {
         maptex2 = W_CacheLumpName (DEH_String("TEXTURE2"), PU_STATIC);
-        numtextures2 = LONG(*maptex2);
+        X_spi_read(maptex2, &numtextures2, sizeof(numtextures2)); 
+        numtextures2 = LONG(numtextures2);
         maxoff2 = W_LumpLength (W_GetNumForName (DEH_String("TEXTURE2")));
     }
     else
@@ -789,35 +827,41 @@ void R_InitTextures (void)
             maxoff = maxoff2;
             directory = maptex+1;
         }
-            
-        offset = LONG(*directory);
+    
+        X_spi_read(directory, &offset, sizeof(offset)/4);
+        offset = LONG(offset);
 
         if (offset > maxoff)
             I_Error ("R_InitTextures: bad texture directory");
         
+    
         mtexture = (maptexture_t *) ( (byte *)maptex + offset);
-
-        texture = &textures[i];
         
+        texture = &textures[i];
         // memcpy (texture->name, mtexture->name, sizeof(texture->name));
         // R_SetTextureWidth(texture, SHORT(mtexture->width));
         // R_SetTextureHeight(texture, SHORT(mtexture->height));
         // texture->patchcount = SHORT(mtexture->patchcount);
 
+
         texture->wad_texture = mtexture;
         texture->composite = 0;
-        patchcount = SHORT(mtexture->patchcount);
-        width = SHORT(mtexture->width);
-        height = SHORT(mtexture->height);
+
+        maptexture_t temp; 
+        X_spi_read(mtexture, &temp, sizeof(temp)/4);
+        char tempname[8];
+        memcpy(tempname, temp.name, 8);
+        patchcount = SHORT(temp.patchcount);
+        width = SHORT(temp.width);
+        height = SHORT(temp.height);
 
         texture_columns_size += R_TextureWidth(texture);
         // if (patchcount > 1) {
-            texture_storage_size += R_TextureWidth(texture)*R_TextureHeight(texture);
+        texture_storage_size += R_TextureWidth(texture)*R_TextureHeight(texture);
         // }
         texture_patches_count += patchcount;
-
         PRINTF("Texture %d %.8s: width = %d, height = %d, patchcount = %d\n", 
-            i, mtexture->name, width, height, patchcount);
+            i, tempname, width, height, patchcount);
 
         /* NRFD-NOTE: Moved to texture_t
         texturecolumnlump[i] = Z_Malloc (texture->width*sizeof(**texturecolumnlump), PU_STATIC,0);
@@ -849,7 +893,7 @@ void R_InitTextures (void)
 
     patch = texture_patches;
 
-    R_GenerateInit(texture_storage_size);
+    R_GenerateInit(texture_storage_size); //X-HEEP COMMENT : have not looked into the buttons yet 
 
     for (i=0 ; i<numtextures ; i++, directory++) {
 
@@ -861,18 +905,19 @@ void R_InitTextures (void)
             directory = maptex+1;
         }
         
-        offset = LONG(*directory);
+        X_spi_read(directory, &offset, sizeof(offset)/4);
+        offset = LONG(offset);
 
         if (offset > maxoff)
             I_Error ("R_InitTextures: bad texture directory");
         
-        mtexture = (maptexture_t *) ( (byte *)maptex + offset);
+        mtexture = (maptexture_t *) ((byte *)maptex + offset);
 
         texture = &textures[i];
 
         // mpatch = &mtexture->patches[0];
 
-        R_GenerateComposite_N(i, texture, patch_names);
+        R_GenerateComposite_N(i, texture, patch_names); 
 
         /*
         texture->patches = patch;
@@ -910,12 +955,16 @@ void R_InitTextures (void)
     */
     
     // Create translation table for global animation.
-    texturetranslation = Z_Malloc ((numtextures+1)*sizeof(*texturetranslation), PU_STATIC, 0);
-    
+
+    //X-HEEP Comment  
+    //texturetranslation = Z_Malloc ((numtextures+1)*sizeof(*texturetranslation), PU_STATIC, 0);
+    /*
     for (i=0 ; i<numtextures ; i++)
         texturetranslation[i] = i;
+    */
 
-    GenerateTextureHashTable();
+
+    GenerateTextureHashTable(); 
 }
 
 
@@ -925,9 +974,9 @@ void R_InitTextures (void)
 //
 void R_InitFlats (void)
 {
-    int             i;
-
-    firstflat = W_GetNumForName (DEH_String("F_START")) + 1;
+    int             i; 
+    printf("In R_InitFlats\n");
+    firstflat = W_GetNumForName(DEH_String("F_START")) + 1; 
     lastflat = W_GetNumForName (DEH_String("F_END")) - 1;
     numflats = lastflat - firstflat + 1;
 
@@ -936,10 +985,14 @@ void R_InitFlats (void)
         
     // Create translation table for global animation.
     // NRFD-TODO? flattranslation could be bytes if we used offset from firstflat 
-    flattranslation = Z_Malloc ((numflats+1)*sizeof(*flattranslation), PU_STATIC, 0);
     
-    for (i=0 ; i<numflats ; i++)
+    //X-HEEP comment 
+    //flattranslation = Z_Malloc ((numflats+1)*sizeof(*flattranslation), PU_STATIC, 0);
+    /*for (i=0 ; i<numflats ; i++)
         flattranslation[i] = i;
+    */
+
+     /*X-HEEP TODO : write flattranslation to flash */
 }
 
 
@@ -983,19 +1036,25 @@ fixed_t R_SpriteWidth(int num)
 {
     patch_t     *patch;
     patch = W_CacheLumpNum (firstspritelump+num, PU_CACHE);
-    return SHORT(patch->width)<<FRACBITS;
+    patch_t temp_patch; 
+    X_spi_read(patch, &temp_patch, sizeof(temp_patch)); 
+    return SHORT(temp_patch.width)<<FRACBITS;
 }
 fixed_t R_SpriteOffset(int num)
 {
     patch_t     *patch;
     patch = W_CacheLumpNum (firstspritelump+num, PU_CACHE);
-    return SHORT(patch->leftoffset)<<FRACBITS;
+    patch_t temp_patch; 
+    X_spi_read(patch, &temp_patch, sizeof(temp_patch));
+    return SHORT(temp_patch.leftoffset)<<FRACBITS;
 }
 fixed_t R_SpriteTopOffset(int num)
 {
     patch_t     *patch;
     patch = W_CacheLumpNum (firstspritelump+num, PU_CACHE);
-    return SHORT(patch->topoffset)<<FRACBITS;
+    patch_t temp_patch; 
+    X_spi_read(patch, &temp_patch, sizeof(temp_patch));
+    return SHORT(temp_patch.topoffset)<<FRACBITS;
 }
 
 
@@ -1010,15 +1069,16 @@ void R_InitColormaps (void)
     //  256 byte align tables.
     lump = W_GetNumForName(DEH_String("COLORMAP"));
 
-    // NRFD-TODO?
-    // colormaps = W_CacheLumpNum(lump, PU_STATIC);
+    colormaps = W_CacheLumpNum(lump, PU_STATIC);
 
     int length = W_LumpLength(lump);
     PRINTF("R_InitColormaps: length = %d\n", length);
 
+    //X-HEEP comment 
+    /*
     colormaps = Z_Malloc(length, PU_STATIC, 0);
     W_ReadLump(lump, colormaps);
-
+    */
 }
 
 
@@ -1031,8 +1091,8 @@ void R_InitColormaps (void)
 //
 void R_InitData (void)
 {
-    R_InitTextures ();
-    R_InitFlats ();
+    R_InitTextures ();  
+    R_InitFlats (); 
     R_InitSpriteLumps ();
     R_InitColormaps ();
 }
@@ -1078,10 +1138,14 @@ int     R_CheckTextureNumForName (const char *name)
 
     // NRFD-NOTE: Slower but requires less memory. Potential for optimization
     // PRINTF("Checking %.7s\n", name);
+    maptexture_t temptexture; 
+    char tempname[8];
     for (int i=0; i<numtextures; i++) {
         texture = &textures[i];
         // PRINTF("  %d: %.8s\n", i, texture->name);
-        if (!strncasecmp (texture->wad_texture->name, name, 8) ) {
+        X_spi_read(texture->wad_texture, &temptexture, sizeof(temptexture)/4);
+        memcpy(tempname, temptexture.name, sizeof(temptexture.name));
+        if (!strncasecmp (tempname, name, 8) ) {
             return i;
         }
     }
@@ -1116,12 +1180,13 @@ int     R_TextureNumForName (const char* name)
         
     i = R_CheckTextureNumForName (name);
 
+
     if (i==-1)
     {
         I_Error ("R_TextureNumForName: %s not found",
              name);
     }
-    if (i>256) {
+    else if (i>256) {
         I_Error("R_TextureNumForName: Only 256 textures supported");
     }
     return i;
@@ -1130,7 +1195,7 @@ int     R_TextureNumForName (const char* name)
 
 char *R_TextureNameForNum(int num) {
     // PRINTF("NRFD-TODO: R_TextureNameForNum\n");
-    // return "TODO";
+    // return "TODO"; 
     return textures[num].wad_texture->name;
 }
 

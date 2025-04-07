@@ -216,8 +216,8 @@ void NetUpdate (void)
         return;
 
     // Run network subsystems    
-    NET_CL_Run();
-    NET_SV_Run();
+    NET_CL_Run(); //useless
+    NET_SV_Run(); //useless
 
     // check time
     nowtime = GetAdjustedTime() / ticdup;
@@ -554,6 +554,7 @@ void D_QuitNetGame (void)
 
 static int GetLowTic(void)
 {
+
     int lowtic;
 
     lowtic = maketic;
@@ -698,11 +699,11 @@ void TryRunTics (void)
     int	availabletics;
     int	counts;
 
-
     // get real tics
     entertic = I_GetTime() / ticdup;
     realtics = entertic - oldentertics;
     oldentertics = entertic;
+     
 
     // in singletics mode, run a single tic every time this function
     // is called.
@@ -717,6 +718,7 @@ void TryRunTics (void)
     }
 
     lowtic = GetLowTic();
+
 
     availabletics = lowtic - gametic/ticdup;
 
@@ -751,6 +753,12 @@ void TryRunTics (void)
     // wait for new tics if needed
     while (!PlayersInGame() || lowtic < gametic/ticdup + counts)
     {
+
+        //printf("PlayersInGame :  %i\n", PlayersInGame());
+        //printf("lowtic : %i\n", lowtic);
+        //printf("gametic/ticdup : %i\n", gametic/ticdup); 
+        //printf("counts : %i\n", counts); 
+
         NetUpdate ();
 
         lowtic = GetLowTic();
@@ -772,6 +780,7 @@ void TryRunTics (void)
             I_Sleep(1);
         }
     }
+
 
     // run the count * ticdup dics
     while (counts--)

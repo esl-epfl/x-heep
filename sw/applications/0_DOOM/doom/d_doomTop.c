@@ -78,6 +78,7 @@
 
 
 #include "d_doomTop.h"
+#include "x_spi.h"
 
 //#include "n_fs.h"
 //#include "n_rjoy.h"
@@ -198,8 +199,8 @@ void D_Display (void)
     boolean                     done;
     boolean                     wipe;
     boolean                     redrawsbar;
+     
 
-    // PRINTF("D_Display\n");
     if (nodrawers)
         return;                    // for comparative timing / profiling
 
@@ -228,6 +229,7 @@ void D_Display (void)
         HU_Erase();
 
     // do buffered drawing
+    printf("In D_Display before switch, gamestate : %i\n", gamestate); 
     switch (gamestate)
     {
       case GS_LEVEL:
@@ -256,9 +258,8 @@ void D_Display (void)
         break;
     }
 
-
     // draw buffered stuff to screen
-    I_UpdateNoBlit ();
+    I_UpdateNoBlit (); //X-HEEP comment : ?? 
     
     // draw the view directly
     if (gamestate == GS_LEVEL && !automapactive && gametic)
@@ -269,7 +270,7 @@ void D_Display (void)
     
     // clean up border stuff
     if (gamestate != oldgamestate && gamestate != GS_LEVEL) {
-        I_SetPalette (W_CacheLumpName (DEH_String("PLAYPAL"),PU_CACHE));
+        I_SetPalette (W_CacheLumpName(DEH_String("PLAYPAL"),PU_CACHE));
     }
 
     /*
@@ -318,6 +319,7 @@ void D_Display (void)
                           W_CacheLumpName (DEH_String("M_PAUSE"), PU_CACHE));
     }
 
+
     // menus go directly to the screen
     M_Drawer ();          // menu is drawn even on top of everything
 
@@ -326,18 +328,26 @@ void D_Display (void)
     */
 
     // normal update
+
+    printf("In D_Display after M_Drawer, wipe %i\n", wipe);
+
     if (!wipe)
     {
         I_FinishUpdate ();              // page flip or blit buffer
         return;
     }
 
+    printf("In D_Display before wipe_EndScreen \n");
+
     // wipe update
     wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
+
+    printf("In D_Display after wipe\n");
 
     wipestart = I_GetTime () - 1;
 
     tics = 0;
+    printf("In D_Display before do while\n");
     do
     {
         do
@@ -367,7 +377,7 @@ static void EnableLoadingDisk(void)
         disk_lump_name = DEH_String("STDISK");
         V_EnableLoadingDisk(disk_lump_name,
                             SCREENWIDTH - LOADING_DISK_W,
-                            SCREENHEIGHT - LOADING_DISK_H);
+                            SCREENHEIGHT - LOADING_DISK_H); //useless
     }
 }
 
@@ -379,11 +389,11 @@ void D_BindVariables(void)
 {
     int i;
 
-    M_ApplyPlatformDefaults();
+    M_ApplyPlatformDefaults(); //useless
 
     I_BindInputVariables();
-    I_BindVideoVariables();
-    I_BindJoystickVariables();
+    I_BindVideoVariables(); 
+    I_BindJoystickVariables(); 
     //I_BindSoundVariables();
 
     M_BindBaseControls();
@@ -472,13 +482,13 @@ void D_DoomLoop (void)
     PRINTF("D_DoomLoop\n");
     main_loop_started = true;
 
-    I_SetWindowTitle(gamedescription);
-    I_GraphicsCheckCommandLine();
+    I_SetWindowTitle(gamedescription); //useless 
+    I_GraphicsCheckCommandLine(); //useless
     // I_SetGrabMouseCallback(D_GrabMouseCallback);
-    I_InitGraphics();
-    EnableLoadingDisk();
-
-    TryRunTics();
+     
+    I_InitGraphics(); 
+    EnableLoadingDisk(); 
+    TryRunTics(); 
 
     V_RestoreBuffer();
     R_ExecuteSetViewSize();
@@ -490,8 +500,8 @@ void D_DoomLoop (void)
     {
         wipegamestate = gamestate;
     }
-    */
-    frame_time_prev = I_GetTimeRaw();
+    */ 
+    frame_time_prev = I_GetTimeRaw(); 
     // nrf_cache_profiling_set(NRF_CACHE_S, 1);
     while (1)
     {
@@ -512,9 +522,9 @@ void D_DoomLoop (void)
         //S_UpdateSounds (players[consoleplayer].mo);// move positional sounds
 
         // Update display, next frame, with current state.
+        printf("Before D_Display in D_DoomLoop\n"); 
         if (screenvisible)
-            D_Display ();
-
+            D_Display ();  
         /*
         int fih = nrf_cache_instruction_hit_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_FLASH);
         int fim = nrf_cache_instruction_miss_counter_get(NRF_CACHE_S, NRF_CACHE_REGION_FLASH);
@@ -530,7 +540,8 @@ void D_DoomLoop (void)
         PRINTF("xih = %d | xim = %d | xdh = %d | xdm = %d\n", xih, xim, xdh, xdm);
         */
 
-        N_ldbg("=== LOOP END ===\n");
+        //N_ldbg("=== LOOP END ===\n");
+        printf("=== LOOP END ===\n");
         frame_time_prev = frame_time;
     }
 
@@ -564,7 +575,8 @@ void D_PageTicker (void)
 void D_PageDrawer (void)
 {
     //NRFD-TODO:
-    N_ldbg("D_PageDrawer %s\n", pagename);
+    //N_ldbg("D_PageDrawer %s\n", pagename);
+    printf("D_PageDrawer %s\n", pagename);
     V_DrawPatch (0, 0, W_CacheLumpName(pagename, PU_CACHE));
 }
 
@@ -1053,7 +1065,7 @@ static void InitGameVersion(void)
     // "chex".
     //
 
-    p = M_CheckParmWithArgs("-gameversion", 1);
+    p = M_CheckParmWithArgs("-gameversion", 1); //useless
 
     if (p)
     {
@@ -1291,6 +1303,8 @@ static void G_CheckDemoStatusAtExit (void)
 //
 // D_DoomMain
 //
+
+#include "st_lib.h"
 void D_DoomMain (void)
 {
     int p;
@@ -1298,9 +1312,8 @@ void D_DoomMain (void)
     char demolumpname[9];
     int numiwadlumps;
 
-
-    I_AtExit(D_Endoom, false);
-
+    I_AtExit(D_Endoom, false); //Useless 
+    
     // print banner
 
     I_PrintBanner(DOOM_PACKAGE_STRING);
@@ -1373,7 +1386,7 @@ void D_DoomMain (void)
     // Disable monsters.
     //
         
-    nomonsters = M_CheckParm ("-nomonsters");
+    nomonsters = M_CheckParm ("-nomonsters"); //useless
 
     //!
     // @vanilla
@@ -1381,7 +1394,7 @@ void D_DoomMain (void)
     // Monsters respawn after being killed.
     //
 
-    respawnparm = M_CheckParm ("-respawn");
+    respawnparm = M_CheckParm ("-respawn"); //useless
 
     //!
     // @vanilla
@@ -1389,7 +1402,7 @@ void D_DoomMain (void)
     // Monsters move faster.
     //
 
-    fastparm = M_CheckParm ("-fast");
+    fastparm = M_CheckParm ("-fast"); //useless
 
     //! 
     // @vanilla
@@ -1398,9 +1411,9 @@ void D_DoomMain (void)
     // directory.
     //
 
-    devparm = M_CheckParm ("-devparm");
+    devparm = M_CheckParm ("-devparm");//useless
 
-    I_DisplayFPSDots(devparm);
+    I_DisplayFPSDots(devparm); //Useless
 
 /* NRFD-TODO:
 
@@ -1433,7 +1446,7 @@ void D_DoomMain (void)
     {
         // Auto-detect the configuration dir.
 
-        M_SetConfigDir(NULL);
+        M_SetConfigDir(NULL); //useless
     }
 
     //!
@@ -1469,25 +1482,33 @@ void D_DoomMain (void)
    
     // init subsystems
     DEH_printf("V_Init: allocate screens.\n");
-    V_Init ();
+    V_Init (); //useless 
     
 
     // Load configuration files before initialising other subsystems.
     DEH_printf("M_LoadDefaults: Load system defaults.\n");
-    M_SetConfigFilenames("default.cfg", DOOM_PROGRAM_PREFIX "doom.cfg");
-    D_BindVariables();
-    M_LoadDefaults();
+    M_SetConfigFilenames("default.cfg", DOOM_PROGRAM_PREFIX "doom.cfg"); //Useless
+    D_BindVariables(); //useless
+    M_LoadDefaults(); //useless
 
     // Save configuration at exit.
-    I_AtExit(M_SaveDefaults, false);
+    I_AtExit(M_SaveDefaults, false); //useless
 
+    if (no_sdcard) {
+        iwadfile = "doom.wad";
+    } else {
+        iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);
+    }
+    
+/* X-heep comment : original version 
     // Find main IWAD file and load it.
     if (no_sdcard) {
-        iwadfile = "doom.wad"; //probably not compatible with x-heep 
+        iwadfile = "doom.wad";  
     }
     else {
         iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);
     }
+*/    
 
     // None found?
 
@@ -1666,7 +1687,7 @@ void D_DoomMain (void)
 */
 
     // Generate the WAD hash table.  Speed things up a bit.
-    W_GenerateHashTable();
+    W_GenerateHashTable(); //useless
 
     /* NRFD-TODO: 
     // Load DEHACKED lumps from WAD files - but only if we give the right
@@ -1924,7 +1945,7 @@ void D_DoomMain (void)
     M_Init ();
 
     DEH_printf("R_Init: Init DOOM refresh daemon\n");
-    R_Init (); //Problem starts here 
+    R_Init ();  
 
     DEH_printf("\nP_Init: Init Playloop state.\n");
     P_Init ();

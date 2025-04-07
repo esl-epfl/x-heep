@@ -414,7 +414,7 @@ int DEH_LoadFile(char *filename)
 
 int DEH_LoadLump(int lumpnum, boolean allow_long, boolean allow_error)
 {
-    deh_context_t *context;
+    deh_context_t *context; //X-HEEP comment: context->input_buffer is an adress in flash it must be read using X_spi_read
 
     if (!deh_initialized)
     {

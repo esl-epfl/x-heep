@@ -27,6 +27,7 @@
 #include "hu_lib.h"
 #include "r_local.h"
 #include "r_draw.h"
+#include "x_spi.h"
 
 // boolean : whether the screen is always erased
 #define noterased viewwindowx
@@ -40,7 +41,7 @@ void HUlib_init(void)
 void HUlib_clearTextLine(hu_textline_t* t)
 {
     t->len = 0;
-    t->l[0] = 0;
+    t->l[0] = 0;  
     t->needsupdate = true;
 }
 
@@ -49,12 +50,12 @@ HUlib_initTextLine
 ( hu_textline_t*	t,
   int			x,
   int			y,
-  patch_t**		f,
+  patch_t**		f, // X-HEEP comment : The elements of f are adresses in flash they must be read using X_spi_read
   int			sc )
 {
     t->x = x;
     t->y = y;
-    t->f = f;
+    t->f = f; // X-HEEP comment : The elements of t->f are adresses in flash they must be read using X_spi_read
     t->sc = sc;
     HUlib_clearTextLine(t);
 }
@@ -171,7 +172,7 @@ HUlib_initSText
   int		x,
   int		y,
   int		h,
-  patch_t**	font,
+  patch_t**	font,  //X-HEEP comment : The elements of font are adresses in flash they must be read using X_spi_read
   int		startchar,
   boolean*	on )
 {
@@ -182,10 +183,15 @@ HUlib_initSText
     s->on = on;
     s->laston = true;
     s->cl = 0;
+    patch_t tempfont;
+    X_spi_read(font[0], &tempfont, sizeof(tempfont)); 
     for (i=0;i<h;i++)
-	HUlib_initTextLine(&s->l[i],
-			   x, y - i*(SHORT(font[0]->height)+1),
-			   font, startchar);
+    {
+        HUlib_initTextLine(&s->l[i],
+            x, y - i*(SHORT(tempfont.height)+1),
+            font, startchar);
+    }
+	
 
 }
 

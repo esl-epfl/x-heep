@@ -44,6 +44,7 @@
 #include "v_video.h"
 
 #include "wi_stuff.h"
+#include "x_spi.h"
 
 //
 // Data needed to add patches to full screen intermission pics.
@@ -367,61 +368,61 @@ static int              NUMCMAPS;
 //
 
 // You Are Here graphic
-static patch_t*         yah[3] = { NULL, NULL, NULL }; 
+static patch_t*         yah[3] = { NULL, NULL, NULL }; // X-HEEP comment : The elements of yah are adresses in flash they must be read using X_spi_read
 
 // splat
-static patch_t*         splat[2] = { NULL, NULL };
+static patch_t*         splat[2] = { NULL, NULL }; //X-HEEP comment : The elements of splat are adresses in flash they must be read using X_spi_read
 
 // %, : graphics
-static patch_t*         percent;
-static patch_t*         colon;
+static patch_t*         percent; // X-HEEP comment : percent is an adress in flash it must be read using X_spi_read
+static patch_t*         colon; // X-HEEP comment : colon is an adress in flash it must be read using X_spi_read
 
 // 0-9 graphic
-static patch_t*         num[10];
+static patch_t*         num[10]; //X-HEEP comment : The elements of num are adresses in flash they must be read using X_spi_read
 
 // minus sign
-static patch_t*         wiminus;
+static patch_t*         wiminus; // X-HEEP comment : wiminus is an adress in flash it must be read using X_spi_read
 
 // "Finished!" graphics
-static patch_t*         finished;
+static patch_t*         finished; // X-HEEP comment : finished is an adress in flash it must be read using X_spi_read
 
 // "Entering" graphic
-static patch_t*         entering; 
+static patch_t*         entering; // X-HEEP comment : entering is an adress in flash it must be read using X_spi_read
 
 // "secret"
-static patch_t*         sp_secret;
+static patch_t*         sp_secret; // X-HEEP comment : sp_secret is an adress in flash it must be read using X_spi_read
 
  // "Kills", "Scrt", "Items", "Frags"
-static patch_t*         kills;
-static patch_t*         secret;
-static patch_t*         items;
-static patch_t*         frags;
+static patch_t*         kills;   // X-HEEP comment : kills is an adress in flash it must be read using X_spi_read
+static patch_t*         secret;  // X-HEEP comment : secret is an adress in flash it must be read using X_spi_read
+static patch_t*         items;   // X-HEEP comment : items is an adress in flash it must be read using X_spi_read
+static patch_t*         frags;   // X-HEEP comment : frags is an adress in flash it must be read using X_spi_read
 
 // Time sucks.
-static patch_t*         timepatch;
-static patch_t*         par;
-static patch_t*         sucks;
+static patch_t*         timepatch; // X-HEEP comment : timepatch is an adress in flash it must be read using X_spi_read
+static patch_t*         par;       // X-HEEP comment : par is an adress in flash it must be read using X_spi_read
+static patch_t*         sucks;     // X-HEEP comment : sucks is an adress in flash it must be read using X_spi_read
 
 // "killers", "victims"
-static patch_t*         killers;
-static patch_t*         victims; 
+static patch_t*         killers; // X-HEEP comment : killers is an adress in flash it must be read using X_spi_read
+static patch_t*         victims; // X-HEEP comment : victims is an adress in flash it must be read using X_spi_read
 
 // "Total", your face, your dead face
-static patch_t*         total;
-static patch_t*         star;
-static patch_t*         bstar;
+static patch_t*         total;  // X-HEEP comment : star is an adress in flash it must be read using X_spi_read
+static patch_t*         star;   // X-HEEP comment : star is an adress in flash it must be read using X_spi_read
+static patch_t*         bstar;  // X-HEEP comment : bstar is an adress in flash it must be read using X_spi_read
 
 // "red P[1..MAXPLAYERS]"
-static patch_t*         p[MAXPLAYERS];
+static patch_t*         p[MAXPLAYERS]; //X-HEEP comment : The elements of p are adresses in flash they must be read using X_spi_read
 
 // "gray P[1..MAXPLAYERS]"
-static patch_t*         bp[MAXPLAYERS];
+static patch_t*         bp[MAXPLAYERS]; //X-HEEP comment : The elements of bp are adresses in flash they must be read using X_spi_read
 
  // Name graphics of each level (centered)
 static patch_t**        lnames;
 
 // Buffer storing the backdrop
-static patch_t *background;
+static patch_t *background; // X-HEEP comment : background is an adress in flash it must be read using X_spi_read
 
 //
 // CODE
@@ -454,8 +455,9 @@ void WI_drawLF(void)
 
         // draw "Finished!"
         y += (5*SHORT(lnames[wbs->last]->height))/4;
-
-        V_DrawPatch((SCREENWIDTH - SHORT(finished->width)) / 2, y, finished);
+        patch_t temp_finished; 
+        X_spi_read(finished, &temp_finished, sizeof(temp_finished)/4); 
+        V_DrawPatch((SCREENWIDTH - SHORT(temp_finished.width)) / 2, y, finished);
     }
     else if (wbs->last == NUMCMAPS)
     {
@@ -483,7 +485,9 @@ void WI_drawEL(void)
     int y = WI_TITLEY;
 
     // draw "Entering"
-    V_DrawPatch((SCREENWIDTH - SHORT(entering->width))/2,
+    patch_t temp_entering; 
+    X_spi_read (entering, &temp_entering, sizeof(temp_entering)/4); 
+    V_DrawPatch((SCREENWIDTH - SHORT(temp_entering.width))/2,
                 y,
                 entering);
 
@@ -512,10 +516,12 @@ WI_drawOnLnode
     i = 0;
     do
     {
-        left = lnodes[wbs->epsd][n].x - SHORT(c[i]->leftoffset);
-        top = lnodes[wbs->epsd][n].y - SHORT(c[i]->topoffset);
-        right = left + SHORT(c[i]->width);
-        bottom = top + SHORT(c[i]->height);
+        patch_t c_temp;
+        X_spi_read(c[i], &c_temp, sizeof(c_temp)/4); 
+        left = lnodes[wbs->epsd][n].x - SHORT(c_temp.leftoffset);
+        top = lnodes[wbs->epsd][n].y - SHORT(c_temp.topoffset);
+        right = left + SHORT(c_temp.width);
+        bottom = top + SHORT(c_temp.height);
 
         if (left >= 0
             && right < SCREENWIDTH
@@ -681,8 +687,9 @@ WI_drawNum
   int           n,
   int           digits )
 {
-
-    int         fontwidth = SHORT(num[0]->width);
+    patch_t temp_num; 
+    X_spi_read(num[0], &temp_num, sizeof(temp_num)/4); 
+    int         fontwidth = SHORT(temp_num.width);
     int         neg;
     int         temp;
 
@@ -770,7 +777,9 @@ WI_drawTime
         do
         {
             n = (t / div) % 60;
-            x = WI_drawNum(x, y, n, 2) - SHORT(colon->width);
+            patch_t temp_colon; 
+            X_spi_read(colon, &temp_colon, sizeof(temp_colon)/4); 
+            x = WI_drawNum(x, y, n, 2) - SHORT(temp_colon.width);
             div *= 60;
 
             // draw
@@ -782,7 +791,9 @@ WI_drawTime
     else
     {
         // "sucks"
-        V_DrawPatch(x - SHORT(sucks->width), y, sucks); 
+        patch_t temp_sucks; 
+        X_spi_read(sucks, &temp_sucks, sizeof(temp_sucks)/4); 
+        V_DrawPatch(x - SHORT(temp_sucks.width), y, sucks); 
     }
 }
 
@@ -1502,8 +1513,9 @@ void WI_drawStats(void)
     // PRINTF("WI_drawStats\n");
     // line height
     int lh;     
-
-    lh = (3*SHORT(num[0]->height))/2;
+    patch_t temp_num; 
+    X_spi_read(num[0], &temp_num, sizeof(temp_num)/4); 
+    lh = (3*SHORT(temp_num.height))/2;
 
     WI_slamBackground();
 
@@ -1619,7 +1631,7 @@ static void WI_loadUnloadData(load_callback_t callback)
     {
         for (i=0 ; i<NUMCMAPS ; i++)
         {
-            //DEH_snprintf(name, 9, "CWILV%2.2d", i);
+            DEH_snprintf(name, 9, "CWILV%2.2d", i);
             callback(name, &lnames[i]);
         }
     }
@@ -1627,7 +1639,7 @@ static void WI_loadUnloadData(load_callback_t callback)
     {
         for (i=0 ; i<NUMMAPS ; i++)
         {
-            //DEH_snprintf(name, 9, "WILV%d%d", wbs->epsd, i);
+            DEH_snprintf(name, 9, "WILV%d%d", wbs->epsd, i);
             callback(name, &lnames[i]);
         }
 
@@ -1672,7 +1684,7 @@ static void WI_loadUnloadData(load_callback_t callback)
     for (i=0;i<10;i++)
     {
          // numbers 0-9
-        //DEH_snprintf(name, 9, "WINUM%d", i);
+        DEH_snprintf(name, 9, "WINUM%d", i);
         callback(name, &num[i]);
     }
 
@@ -1733,11 +1745,11 @@ static void WI_loadUnloadData(load_callback_t callback)
     for (i=0 ; i<MAXPLAYERS ; i++)
     {
         // "1,2,3,4"
-        //DEH_snprintf(name, 9, "STPB%d", i);
+        DEH_snprintf(name, 9, "STPB%d", i);
         callback(name, &p[i]);
 
         // "1,2,3,4"
-        //DEH_snprintf(name, 9, "WIBP%d", i+1);
+        DEH_snprintf(name, 9, "WIBP%d", i+1);
         callback(name, &bp[i]);
     }
 
@@ -1753,7 +1765,7 @@ static void WI_loadUnloadData(load_callback_t callback)
     }
     else
     {
-        //DEH_snprintf(name, sizeof(name), "WIMAP%d", wbs->epsd);
+        DEH_snprintf(name, sizeof(name), "WIMAP%d", wbs->epsd);
     }
 
     // Draw backdrop and save to a temporary buffer

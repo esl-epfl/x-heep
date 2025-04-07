@@ -66,7 +66,7 @@ boolean M_ParmExists(char *check)
 
 int M_CheckParm(char *check)
 {
-    return M_CheckParmWithArgs(check, 0);
+    return M_CheckParmWithArgs(check, 0); //Useless
 }
 
 #define MAXARGVS        100

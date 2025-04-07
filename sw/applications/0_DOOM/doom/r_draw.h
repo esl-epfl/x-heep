@@ -31,7 +31,7 @@ extern fixed_t          dc_iscale;
 extern fixed_t          dc_texturemid;
 
 // first pixel in a column
-extern byte*            dc_source;              
+extern byte*            dc_source;  //X-HEEP comment : dc_source is an adress in flash, it must be read using X_spi_read()            
 
 
 // The span blitting interface.

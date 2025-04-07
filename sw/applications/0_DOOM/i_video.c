@@ -41,6 +41,7 @@
 
 #include "x_buttons.h"
 #include "x_display.h"
+#include "x_spi.h"
 //#include "n_uart.h"
 //#include "n_rjoy.h"
 
@@ -331,8 +332,12 @@ void I_FinishUpdate (void)
             I_VideoBuffer[ (SCREENHEIGHT-1)*SCREENWIDTH + i] = 0x0;
     }
 
-    PRINTF("UPDATE SCREEN");
-    X_Display_Draw_Screen_200x200();
+    PRINTF("UPDATE SCREEN\n");
+
+    //X-HEEP comment : uncomment when screen is done
+    //X_Display_Draw_Screen_200x200();
+
+    
 /* X-HEEP COMMENT
     // Draw disk icon before blit, if necessary.
     // NRFD_TODO: V_DrawDiskIcon();
@@ -370,7 +375,8 @@ void I_ReadScreen (pixel_t* scr)
 
 //
 // I_SetPalette
-//
+//// X-HEEP comment : doompalette is an adress in flash it must be read using X_spi_read
+
 void I_SetPalette (byte *doompalette)
 {
     int i;
@@ -379,14 +385,19 @@ void I_SetPalette (byte *doompalette)
     // Convert Doom palette to FT810 palette
 
     // TODO: Do conversion right before transferring to save memory?
+    uint32_t tempdoompalette; 
     for (i=0; i<256; ++i)
     {
         // Zero out the bottom two bits of each channel - the PC VGA
         // controller only supports 6 bits of accuracy.
 
-        uint8_t r = gammatable[usegamma][*doompalette++] & ~3;
-        uint8_t g = gammatable[usegamma][*doompalette++] & ~3;
-        uint8_t b = gammatable[usegamma][*doompalette++] & ~3;
+        X_spi_read(doompalette, &tempdoompalette, 1);
+
+        uint8_t r = gammatable[usegamma][(tempdoompalette >> 0)  & 0xFF] & ~3;
+        uint8_t g = gammatable[usegamma][(tempdoompalette >> 8)  & 0xFF] & ~3;
+        uint8_t b = gammatable[usegamma][(tempdoompalette >> 16) & 0xFF] & ~3;
+        doompalette += 3; 
+
         display_pal[i*4+0] = r;
         display_pal[i*4+1] = g;
         display_pal[i*4+2] = b;
@@ -489,7 +500,10 @@ void I_GraphicsCheckCommandLine(void)
 void I_InitGraphics(void)
 {
     PRINTF("I_InitGraphics\n");
-    X_Display_init();
+    
+    //X-HEEP comment : uncomment when screen is done
+    //X_Display_init();
+    
     //N_display_init();
     
 /* X-HEEP COMMENT
