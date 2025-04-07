@@ -17,7 +17,7 @@
 #include "csr.h"
 #include "dlc.h"
 #include "rv_plic.h"
-#include "test_sin_16to8.h"
+#include "test_ecg.h"
 
 #define PRINTF_IN_SIM 0
 #define PRINTF_IN_FPGA 1
@@ -32,32 +32,13 @@
 
 #define DLC_START_ADDRESS EXT_PERIPHERAL_START_ADDRESS + 0x5000
 
-void protected_wait_for_dma_interrupt(void)
-{
-    while (!dma_is_ready(0))
-    {
-        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if (!dma_is_ready(0))
-        {
-            wait_for_interrupt();
-        }
-        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    }
-}
-
 int main() {
  
-    /* Enable global interrupt. */
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    /* Enable machine-level fast interrupt. */
     CSR_SET_BITS(CSR_REG_MIE, (1 << 11) | (1 << 19));
 
     // dLC results buffer
-    #if LC_PARAMS_SIZE_PER_SAMPLE_BITS == 16
-        int16_t dlc_results[242];
-    #elif LC_PARAMS_SIZE_PER_SAMPLE_BITS == 8
-        int8_t dlc_results[242];
-    #endif
+    int16_t dlc_results[500];
     
     // dLC programming registers
     uint32_t* dlvl_log_level_width    = DLC_START_ADDRESS + DLC_DLVL_LOG_LEVEL_WIDTH_REG_OFFSET;
@@ -91,7 +72,7 @@ int main() {
     dma_target_t tgt_dst;
     dma_trans_t trans;
 
-    tgt_src.ptr = (uint8_t *) sin_data;
+    tgt_src.ptr = (uint8_t *) ecg_data;
     tgt_src.inc_d1_du = 1;
     tgt_src.trig = DMA_TRIG_MEMORY;    
     tgt_src.type = DMA_DATA_TYPE_HALF_WORD;
@@ -99,19 +80,13 @@ int main() {
     tgt_dst.ptr = (uint8_t *) dlc_results;
     tgt_dst.inc_d1_du = 1;
     tgt_dst.trig = DMA_TRIG_MEMORY;
-    #if LC_PARAMS_SIZE_PER_SAMPLE_BITS == 16
-    // Destination data type is Half Word
     tgt_dst.type = DMA_DATA_TYPE_HALF_WORD;
-    #elif LC_PARAMS_SIZE_PER_SAMPLE_BITS == 8
-    // Destination data type is Byte
-    tgt_dst.type = DMA_DATA_TYPE_BYTE;
-    #endif
 
     trans.src        = &tgt_src;
     trans.dst        = &tgt_dst;
     trans.mode       = DMA_TRANS_MODE_HW_FIFO;
     trans.dim        = DMA_DIM_CONF_1D;
-    trans.size_d1_du = 200;
+    trans.size_d1_du = 3748;
     trans.end        = DMA_TRANS_END_INTR;
 
     dma_init(NULL);
@@ -138,11 +113,11 @@ int main() {
     }
 
     // Checking  the results
-    for (int i = 0; i < 242; i++)
+    for (int i = 0; i < LC_STATS_CROSSINGS; i++)
     {
         if(dlc_results[i] != lc_data_for_storage_data[i])
         {
-            PRINTF("Error: dlc_results[%d] = %d, sin_data[%d] = %d\n", i, dlc_results[i], i, lc_data_for_storage_data[i]);
+            printf("Error at position %d: dlc result is %d, golden result is %d\n", i, dlc_results[i], lc_data_for_storage_data[i]);
             return EXIT_FAILURE;
         }
     }
