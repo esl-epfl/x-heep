@@ -447,7 +447,7 @@ static inline void write_register( uint32_t  p_val,
  * @param dma_peri Pointer to a register address following the dma structure. By
  * default (peri == NULL), the integrated DMA will be used.
  */
-void dma_init( dma *dma_peri);
+void dma_init( dma *dma_instance);
 
 /**
  * @brief Creates a transaction that can be loaded into the DMA.

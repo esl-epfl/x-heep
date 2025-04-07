@@ -64,7 +64,9 @@ void X_Display_Draw_ScreenBuffer(void)
 //Pixel values for the screen are converted from the palette on the fly.
 void X_Display_Draw_Screen_200x200(void)
 {
-    ST7789_set_adress_window(0, 0, 200, 200);
+
+    ST7789_set_adress_window(0, 0, 240, 240);
+
 
     //Code from X_Display_Fill_ST7789_Buffer
     // at the moment the game is hardcoded for a 320*200 screen
@@ -73,13 +75,19 @@ void X_Display_Draw_Screen_200x200(void)
     uint16_t rgb565 = 0;
     uint8_t color;
     //fill the ST7789 Screen Buffer
-    for (int i = 0; i < 200; i++)
+
+    for (int i = 0; i < 240; i++)
     {
+
+        //if (i >= 240) { continue; }
+       
         
-        
-        for (int j = 0; j < 200; j++)
+        for (int j = 0; j < 240; j++)
         {
-            color = I_VideoBuffer[i*200+j];
+            int src_x = (j * 320) / 240;
+            int src_y = (i * 200) / 240;
+            color = I_VideoBuffer[src_y*320+src_x];
+
             rgb565 = I_GetRGB565FromPaletteIndex(color);
             ST7789_spi_write_data_2B(rgb565);
         }

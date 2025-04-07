@@ -9,7 +9,8 @@
  * Include files
  */
 #include <stdint.h>
-#include "spi_host.h"
+
+#include "spi_host_old.h"
 
 
 //extern  spi_host_t ST7789_spi_LCD; 
@@ -27,7 +28,9 @@
 void        ST7789_gpio_init(void);
 uint8_t     ST7789_spi_init();
 uint8_t     ST7789_display_init(void);
-spi_host_t* ST7789_get_spi_host(void);
+
+spi_host_t_old  ST7789_get_spi_host(void);
+
 
 void        ST7789_spi_write_command(uint8_t command);
 void        ST7789_spi_write_data(uint8_t data);
