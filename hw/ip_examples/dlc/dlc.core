@@ -10,6 +10,8 @@ description: "digital level crossing block"
 
 filesets:
   files_rtl:
+    depend:
+      - x-heep::packages
     files:
     - rtl/dlc_reg_pkg.sv
     - rtl/dlc_reg_top.sv

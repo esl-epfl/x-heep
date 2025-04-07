@@ -10,7 +10,7 @@
 module dlc_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 5
+    parameter int AW = 6
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -18,6 +18,7 @@ module dlc_reg_top #(
     output reg_rsp_t reg_rsp_o,
     // To HW
     output dlc_reg_pkg::dlc_reg2hw_t reg2hw,  // Write
+    input dlc_reg_pkg::dlc_hw2reg_t hw2reg,  // Read
 
 
     // Config
@@ -67,8 +68,8 @@ module dlc_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic [7:0] dlvl_log_level_width_qs;
-  logic [7:0] dlvl_log_level_width_wd;
+  logic [3:0] dlvl_log_level_width_qs;
+  logic [3:0] dlvl_log_level_width_wd;
   logic dlvl_log_level_width_we;
   logic [3:0] dlvl_n_bits_qs;
   logic [3:0] dlvl_n_bits_wd;
@@ -85,14 +86,22 @@ module dlc_reg_top #(
   logic readnotwrite_qs;
   logic readnotwrite_wd;
   logic readnotwrite_we;
+  logic bypass_qs;
+  logic bypass_wd;
+  logic bypass_we;
+  logic interrupt_en_qs;
+  logic interrupt_en_wd;
+  logic interrupt_en_we;
+  logic xing_intr_qs;
+  logic xing_intr_re;
 
   // Register instances
   // R[dlvl_log_level_width]: V(False)
 
   prim_subreg #(
-      .DW      (8),
+      .DW      (4),
       .SWACCESS("RW"),
-      .RESVAL  (8'h0)
+      .RESVAL  (4'h0)
   ) u_dlvl_log_level_width (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -249,9 +258,79 @@ module dlc_reg_top #(
   );
 
 
+  // R[bypass]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_bypass (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(bypass_we),
+      .wd(bypass_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.bypass.q),
+
+      // to register interface (read)
+      .qs(bypass_qs)
+  );
 
 
-  logic [5:0] addr_hit;
+  // R[interrupt_en]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_interrupt_en (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(interrupt_en_we),
+      .wd(interrupt_en_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.interrupt_en.q),
+
+      // to register interface (read)
+      .qs(interrupt_en_qs)
+  );
+
+
+  // R[xing_intr]: V(True)
+
+  prim_subreg_ext #(
+      .DW(1)
+  ) u_xing_intr (
+      .re (xing_intr_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.xing_intr.d),
+      .qre(reg2hw.xing_intr.re),
+      .qe (),
+      .q  (reg2hw.xing_intr.q),
+      .qs (xing_intr_qs)
+  );
+
+
+
+
+  logic [8:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DLC_DLVL_LOG_LEVEL_WIDTH_OFFSET);
@@ -260,6 +339,9 @@ module dlc_reg_top #(
     addr_hit[3] = (reg_addr == DLC_DLVL_FORMAT_OFFSET);
     addr_hit[4] = (reg_addr == DLC_DT_MASK_OFFSET);
     addr_hit[5] = (reg_addr == DLC_READNOTWRITE_OFFSET);
+    addr_hit[6] = (reg_addr == DLC_BYPASS_OFFSET);
+    addr_hit[7] = (reg_addr == DLC_INTERRUPT_EN_OFFSET);
+    addr_hit[8] = (reg_addr == DLC_XING_INTR_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -272,11 +354,14 @@ module dlc_reg_top #(
                (addr_hit[2] & (|(DLC_PERMIT[2] & ~reg_be))) |
                (addr_hit[3] & (|(DLC_PERMIT[3] & ~reg_be))) |
                (addr_hit[4] & (|(DLC_PERMIT[4] & ~reg_be))) |
-               (addr_hit[5] & (|(DLC_PERMIT[5] & ~reg_be)))));
+               (addr_hit[5] & (|(DLC_PERMIT[5] & ~reg_be))) |
+               (addr_hit[6] & (|(DLC_PERMIT[6] & ~reg_be))) |
+               (addr_hit[7] & (|(DLC_PERMIT[7] & ~reg_be))) |
+               (addr_hit[8] & (|(DLC_PERMIT[8] & ~reg_be)))));
   end
 
   assign dlvl_log_level_width_we = addr_hit[0] & reg_we & !reg_error;
-  assign dlvl_log_level_width_wd = reg_wdata[7:0];
+  assign dlvl_log_level_width_wd = reg_wdata[3:0];
 
   assign dlvl_n_bits_we = addr_hit[1] & reg_we & !reg_error;
   assign dlvl_n_bits_wd = reg_wdata[3:0];
@@ -293,12 +378,20 @@ module dlc_reg_top #(
   assign readnotwrite_we = addr_hit[5] & reg_we & !reg_error;
   assign readnotwrite_wd = reg_wdata[0];
 
+  assign bypass_we = addr_hit[6] & reg_we & !reg_error;
+  assign bypass_wd = reg_wdata[0];
+
+  assign interrupt_en_we = addr_hit[7] & reg_we & !reg_error;
+  assign interrupt_en_wd = reg_wdata[0];
+
+  assign xing_intr_re = addr_hit[8] & reg_re & !reg_error;
+
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[7:0] = dlvl_log_level_width_qs;
+        reg_rdata_next[3:0] = dlvl_log_level_width_qs;
       end
 
       addr_hit[1]: begin
@@ -319,6 +412,18 @@ module dlc_reg_top #(
 
       addr_hit[5]: begin
         reg_rdata_next[0] = readnotwrite_qs;
+      end
+
+      addr_hit[6]: begin
+        reg_rdata_next[0] = bypass_qs;
+      end
+
+      addr_hit[7]: begin
+        reg_rdata_next[0] = interrupt_en_qs;
+      end
+
+      addr_hit[8]: begin
+        reg_rdata_next[0] = xing_intr_qs;
       end
 
       default: begin
@@ -342,7 +447,7 @@ module dlc_reg_top #(
 endmodule
 
 module dlc_reg_top_intf #(
-    parameter  int AW = 5,
+    parameter  int AW = 6,
     localparam int DW = 32
 ) (
     input logic clk_i,
@@ -350,6 +455,7 @@ module dlc_reg_top_intf #(
     REG_BUS.in regbus_slave,
     // To HW
     output dlc_reg_pkg::dlc_reg2hw_t reg2hw,  // Write
+    input dlc_reg_pkg::dlc_hw2reg_t hw2reg,  // Read
     // Config
     input devmode_i  // If 1, explicit error return for unmapped register access
 );
@@ -383,6 +489,7 @@ module dlc_reg_top_intf #(
       .reg_req_i(s_reg_req),
       .reg_rsp_o(s_reg_rsp),
       .reg2hw,  // Write
+      .hw2reg,  // Read
       .devmode_i
   );
 

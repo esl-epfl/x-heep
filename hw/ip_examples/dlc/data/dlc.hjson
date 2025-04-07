@@ -14,7 +14,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "7:0", name: "LOG_WL", desc: "log2 of the level width" },
+        { bits: "3:0", name: "LOG_WL", desc: "log2 of the level width" },
       ]
     }
     { name:     "DLVL_N_BITS"
@@ -51,10 +51,36 @@
     }
     { name:     "READNOTWRITE"
       desc:     "dLC response push setting"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "RNW", desc: "if 1, dlc sets response push every time it reads from read_hw_fifo, if 0, dlc set response push every time it pushes to write_hw_fifo" },
+      ]
+    }
+    { name:     "BYPASS"
+      desc:     "Bypass input data to output without filter"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "0", name: "RNW", desc: "if 0, dlc sets response push every time it reads from read_hw_fifo, if 1, dlc set response push every time it pushes to write_hw_fifo" },
+        { bits: "0", name: "BP", desc: "if 1, dlc forwards input to output" },
+      ]
+    }
+    { name:     "INTERRUPT_EN"
+      desc:     "Interrupt enable to be used in bypass mode"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "EN", desc: "if 1, interrupt generation is enable" },
+      ]
+    }
+    { name:     "XING_INTR"
+      desc:     "Interrupt bit set whena crossing is detected"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      hwext:    "true",
+      hwre:     "true", // latched signal of software write pulse
+      fields: [
+        { bits: "0", name: "XING", desc: "if 1, interrupt has been triggered" },
       ]
     }
   ]

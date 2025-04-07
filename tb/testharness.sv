@@ -299,14 +299,10 @@ module testharness #(
       .dma_done_o(dma_busy)
   );
 
-  dlc #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t),
-      .hw_fifo_req_t(hw_fifo_pkg::hw_fifo_req_t),
-      .hw_fifo_resp_t(hw_fifo_pkg::hw_fifo_resp_t)
-  ) dlc_i (
+  dlc dlc_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
+      .dlc_xing_intr_o(),
       .reg_req_i(ext_periph_slv_req[testharness_pkg::DLC_IDX]),
       .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::DLC_IDX]),
       .hw_fifo_req_i(hw_fifo_req),

@@ -7,20 +7,17 @@
 // Date: 17/02/2025
 // Description: Digital Level Crossing Block
 
-module dlc #(
-    parameter type reg_req_t = logic,
-    parameter type reg_rsp_t = logic,
-    parameter type hw_fifo_req_t = logic,
-    parameter type hw_fifo_resp_t = logic
-) (
+module dlc (
     input logic clk_i,
     input logic rst_ni,
+    // interrupt
+    output logic dlc_xing_intr_o,
     // width of the level window (it must be a power of 2)
-    input reg_req_t reg_req_i,
-    output reg_rsp_t reg_rsp_o,
+    input reg_pkg::reg_req_t reg_req_i,
+    output reg_pkg::reg_rsp_t reg_rsp_o,
     // fifo interface
-    input hw_fifo_req_t hw_fifo_req_i,
-    output hw_fifo_resp_t hw_fifo_resp_o
+    input hw_fifo_pkg::hw_fifo_req_t hw_fifo_req_i,
+    output hw_fifo_pkg::hw_fifo_resp_t hw_fifo_resp_o
 );
 
   // Signals Declaration
@@ -36,6 +33,10 @@ module dlc #(
   dlc_state_t dlc_state_n;
   dlc_state_t dlc_state;
 
+  // ------------------------- Interrupt
+
+  logic dlc_xing_intr;
+
   // ------------------------- Write and Read Fifos
 
   logic hw_r_fifo_empty;
@@ -48,12 +49,14 @@ module dlc #(
   // ------------------------- Registers
 
   dlc_reg_pkg::dlc_reg2hw_t reg2hw;
-  logic [7:0] reg_log_wl;  // log2 of the level width
+  dlc_reg_pkg::dlc_hw2reg_t hw2reg;
+  logic [3:0] reg_log_wl;  // log2 of the level width
   logic [3:0] reg_dlvl_bits;  // number of bits for the delta levels in the output data
   logic [15:0] reg_dlvl_mask;  // mask for delta levels, it has as many 1s as the number of bits for the delta levels
   logic [15:0] reg_dt_mask;  // mask for delta time, it has as many 1s as the number of bits for the delta time
   logic reg_dlvl_twoscomp_n_sgnmod;  // if '1' delta levels are in 2s complement, else sign|abs_value
   logic reg_rnw;  // base response push on read/write data
+  logic reg_bypass;  // bypass mode
 
   // ------------------------- Level Crossing Logic
 
@@ -83,7 +86,6 @@ module dlc #(
   logic [16:0] dt_dir_out;  // delta-time and direction packet extended on 17 bits
   logic dir_out;  // dir actual output
   logic [16:0] dlc_output;  // dLC output packet
-
 
   // ------------------------- FSM
 
@@ -181,6 +183,8 @@ module dlc #(
 
   // ------------------------- Registers
 
+  parameter type reg_req_t = reg_pkg::reg_req_t;
+  parameter type reg_rsp_t = reg_pkg::reg_rsp_t;
   dlc_reg_top #(
       .reg_req_t(reg_req_t),
       .reg_rsp_t(reg_rsp_t)
@@ -188,6 +192,7 @@ module dlc #(
       .clk_i,
       .rst_ni,
       .reg2hw,
+      .hw2reg,
       .reg_req_i,
       .reg_rsp_o,
       .devmode_i(1'b0)
@@ -208,6 +213,7 @@ module dlc #(
     Response 'Push' Configuration
   */
   assign reg_rnw = reg2hw.readnotwrite.q;
+  assign reg_bypass = reg2hw.bypass.q;
 
   // ------------------------- Fifo Control Logic
 
@@ -264,6 +270,7 @@ module dlc #(
     Input data level detection:
       input data shifted right by (log2 of the level width) positions.
       the resulting signal indicates the level the input data belongs to.
+      4-bit arithmetic right shifter.
   */
   always_comb begin
     din_lvl = hw_r_fifo_data_out >>> reg_log_wl;
@@ -319,12 +326,14 @@ module dlc #(
     if (~rst_ni) begin
       skip_cnt <= 16'd0;
     end else begin
-      if (skip_cnt_rst == 1'b1) begin
-        skip_cnt <= 16'd1;
-      end else if (skip_cnt_en == 1'b1) begin
-        skip_cnt <= skip_cnt + 1;
-      end else begin
-        skip_cnt <= skip_cnt;
+      if (reg_bypass == 1'b0) begin
+        if (skip_cnt_rst == 1'b1) begin
+          skip_cnt <= 16'd1;
+        end else if (skip_cnt_en == 1'b1) begin
+          skip_cnt <= skip_cnt + 1;
+        end else begin
+          skip_cnt <= skip_cnt;
+        end
       end
     end
   end
@@ -366,7 +375,7 @@ module dlc #(
         If this is the case, it means that dlvl cannot be represented with the current
         number of bits.
     */
-    dlvl_ovf = hw_r_fifo_pop & (|(dlvl_abs & ~reg_dlvl_mask));
+    dlvl_ovf = (reg_bypass == 1'b0) ? (hw_r_fifo_pop & (|(dlvl_abs & ~reg_dlvl_mask))) : 1'b0;
 
     /*
       Overflow down counter operand 1 is equal to the absolute value of the delta levels
@@ -458,9 +467,25 @@ module dlc #(
   */
   always_comb begin
     dt_dir_out[16:0] = (reg_dlvl_twoscomp_n_sgnmod) ? {1'b0, dt_out[15:0]} : {dt_out[15:0], dir_out};
-    //dt_dir_out[0] = (reg_dlvl_twoscomp_n_sgnmod) ? dt_out[0] : dir_out;
+    // 4-bit left shifter
     dlc_output = (dt_dir_out << reg_dlvl_bits) | {1'b0, dlvl_out};
   end
 
-  assign hw_w_fifo_data_in = dlc_output[15:0];
+  assign hw_w_fifo_data_in = reg_bypass ? hw_r_fifo_data_out : dlc_output[15:0];
+
+  // ------------------------- Interrupt Generation
+  always_ff @(posedge clk_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      dlc_xing_intr <= '0;
+    end else if (reg2hw.interrupt_en.q == 1'b1) begin
+      if (xing == 1'b1) begin
+        dlc_xing_intr <= 1'b1;
+      end else if (reg2hw.xing_intr.re == 1'b1) begin
+        dlc_xing_intr <= 1'b0;
+      end
+    end
+  end
+
+  assign hw2reg.xing_intr.d = dlc_xing_intr;
+  assign dlc_xing_intr_o = dlc_xing_intr;
 endmodule
