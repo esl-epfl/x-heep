@@ -76,9 +76,9 @@ set_property -dict {PACKAGE_PIN F15 IOSTANDARD LVCMOS18} [get_ports {spi_slave_s
 set_property -dict {PACKAGE_PIN F11 IOSTANDARD LVCMOS18} [get_ports {spi_slave_cs_io}]
 set_property -dict {PACKAGE_PIN E10 IOSTANDARD LVCMOS18} [get_ports {spi_slave_miso_io}]
 set_property -dict {PACKAGE_PIN B11 IOSTANDARD LVCMOS18} [get_ports {spi_slave_mosi_io}]
-set_property -dict {PACKAGE_PIN A11 IOSTANDARD LVCMOS18} [get_ports {gpio_io[15]}]
-set_property -dict {PACKAGE_PIN B9 IOSTANDARD LVCMOS18} [get_ports {gpio_io[16]}]
-set_property -dict {PACKAGE_PIN B8 IOSTANDARD LVCMOS18} [get_ports {gpio_io[17]}]
+set_property -dict {PACKAGE_PIN A11 IOSTANDARD LVCMOS18} [get_ports {gpio_io[11]}]
+set_property -dict {PACKAGE_PIN B9 IOSTANDARD LVCMOS18} [get_ports {gpio_io[12]}]
+set_property -dict {PACKAGE_PIN B8 IOSTANDARD LVCMOS18} [get_ports {gpio_io[13]}]
 
 # PDM2PCM
 set_property -dict {PACKAGE_PIN K19 IOSTANDARD LVCMOS18} [get_ports pdm2pcm_clk_io]
