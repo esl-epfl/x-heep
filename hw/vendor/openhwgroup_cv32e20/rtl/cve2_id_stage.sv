@@ -418,7 +418,7 @@ module cve2_id_stage #(
 
   // Register file write data mux
   always_comb begin : rf_wdata_id_mux
-    unique case (rf_wdata_sel)
+    unique case ($bits(rf_wd_sel_e)'({rf_wdata_sel}))
       RF_WD_EX:     rf_wdata_id_o   = result_ex_i;
       RF_WD_CSR:    rf_wdata_id_o   = csr_rdata_i;
       RF_WD_COPROC: rf_wdata_id_o   = XInterface? x_result_i.data : result_ex_i;

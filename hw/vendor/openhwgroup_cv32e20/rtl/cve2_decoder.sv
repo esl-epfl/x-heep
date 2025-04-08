@@ -210,7 +210,7 @@ module cve2_decoder #(
     multdiv_operator_o    = MD_OP_MULL;
     multdiv_signed_mode_o = 2'b00;
 
-    rf_wdata_sel_o        = RF_WD_EX;
+    rf_wdata_sel_o        = $bits(rf_wdata_sel_o)'({RF_WD_EX});
     rf_we                 = 1'b0;
     rf_ren_a_o            = 1'b0;
     rf_ren_b_o            = 1'b0;
@@ -617,7 +617,7 @@ module cve2_decoder #(
         end else begin
           // instruction to read/modify CSR
           csr_access_o     = 1'b1;
-          rf_wdata_sel_o   = RF_WD_CSR;
+          rf_wdata_sel_o   = $bits(rf_wdata_sel_o)'({RF_WD_CSR});
           rf_we            = 1'b1;
 
           if (~instr[14]) begin
@@ -643,7 +643,7 @@ module cve2_decoder #(
           rf_ren_a_o            = x_issue_resp_register_read_i[0];
           rf_ren_b_o            = x_issue_resp_register_read_i[1];
           rf_we                 = x_issue_resp_writeback_i;
-          rf_wdata_sel_o        = RF_WD_COPROC;
+          rf_wdata_sel_o        = $bits(rf_wdata_sel_o)'({RF_WD_COPROC});
         end
 
       end
