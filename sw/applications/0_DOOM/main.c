@@ -47,6 +47,7 @@
 
 #include "x_buttons.h"
 #include "d_doomTop.h"
+#include "x_cache.h"
 /*
 #include "nrf.h"
 
@@ -171,7 +172,51 @@ int main(int argc, char *argv[])
     //N_I2S_init();
 
     //M_ArgvInit();
+    
+    cache_init(32); 
 
+    uint32_t *ptr = X_cache_read(1024*1024, 16); 
+    for (int i = 0; i < 4; i++)
+    {
+        PRINTF("Data in ptr : %08X\n", ptr[i]);
+    }
+    uint32_t *ptr2 = X_cache_read(1024*1024, 16);
+    for (int i = 0; i < 4; i++)
+    {
+        PRINTF("Data in ptr2 : %08X\n", ptr2[i]);
+    }
+    uint32_t *ptr3 = X_cache_read(1024*1024 + 102, 16); 
+    for (int i = 0; i < 4; i++)
+    {
+        PRINTF("Data in ptr3 : %08X\n", ptr3[i]);
+    }
+    uint32_t *ptr4 = X_cache_read(1024*1024 + 102, 16); 
+    for (int i = 0; i < 4; i++)
+    {
+        PRINTF("Data in ptr4 : %08X\n", ptr4[i]);
+    }
+    uint32_t *ptr5 = X_cache_read(1024*1024 + 103, 16); 
+    for (int i = 0; i < 4; i++)
+    {
+        PRINTF("Data in ptr5 : %08X\n", ptr5[i]);
+    }
+    uint32_t *ptr6 = X_cache_read(1024*1024 + 103, 16); 
+    for (int i = 0; i < 4; i++)
+    {
+        PRINTF("Data in ptr6 : %08X\n", ptr6[i]);
+    }
+    uint32_t *ptr7 = X_cache_read(1024*1024 + 104, 8); 
+    for (int i = 0; i < 4; i++)
+    {
+        PRINTF("Data in ptr7 : %08X\n", ptr7[i]);
+    }
+    uint32_t *ptr9 = X_cache_read(1024*1024, 16);
+    for (int i = 0; i < 4; i++)
+    {
+        PRINTF("Data in ptr9 : %08X\n", ptr9[i]);
+    }
+
+    
     D_DoomMain();
 
     while (1)
