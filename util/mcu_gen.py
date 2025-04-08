@@ -19,8 +19,10 @@ from mako.template import Template
 import collections
 from math import log2
 import x_heep_gen.load_config
-import x_heep_gen.peripherals  # TODO : Should be added or should there be a way to get peripheral information through x_heep_gen.system ?
 from x_heep_gen.system import BusType
+import x_heep_gen.peripherals.base_peripherals
+import x_heep_gen.peripherals.user_peripherals
+import x_heep_gen.peripherals.abstractions
 import math
 
 
@@ -882,7 +884,7 @@ def main():
 
     debug_size_address = string2int(obj["debug"]["length"])
 
-    if xheep.are_peripherals_configured():
+    if xheep.are_base_peripherals_configured():
         base_peripheral_start_address = xheep.get_base_peripherals_base_address()
         base_peripheral_size_address = xheep.get_base_peripherals_length()
     else:
@@ -933,10 +935,12 @@ def main():
                     len_ep += 1
         return len_ep
 
-    if xheep.are_peripherals_configured():
+    if xheep.are_base_peripherals_configured():
         base_peripherals = xheep.get_base_peripherals()  # Paths still in peripherals
         base_peripherals_count = len(base_peripherals)
-        dma = xheep.get_dma()
+        dma = xheep.get_dma()[
+            0
+        ]  # TODO : Currently considering that there is only one DMA peripheral
         dma_ch_count = dma.get_num_channels()
         dma_ch_size = dma.get_ch_length()
         # Number of master ports for the dma subsystem
@@ -1014,7 +1018,7 @@ def main():
             )
         dma_xbar_array = "default: 1"
 
-    if xheep.are_peripherals_configured():
+    if xheep.are_user_peripherals_configured():
         user_peripheral_start_address = xheep.get_user_peripherals_base_address()
         user_peripheral_size_address = xheep.get_user_peripherals_length()
         user_peripherals = xheep.get_user_peripherals()  # Paths still in peripherals
@@ -1042,7 +1046,7 @@ def main():
             }
 
             # Adding DMA specific information
-            if isinstance(p, x_heep_gen.peripherals.DMA):
+            if isinstance(p, x_heep_gen.peripherals.base_peripherals.DMA):
                 description["ch_length"] = hex(p.get_ch_length()).split("x")[
                     1
                 ]  # Converts int to its hexadecimal representation (minimal number of digits)
@@ -1055,15 +1059,16 @@ def main():
                 ).split("x")[1]
 
             # Adding is_included to the description if the peripheral is a UserPeripheral
-            if isinstance(p, x_heep_gen.peripherals.UserPeripheral):
+            if isinstance(p, x_heep_gen.peripherals.abstractions.UserPeripheral):
                 description["is_included"] = "yes"
 
-            format[p.get_name().value] = description
+            format[p.get_name()] = description
 
         return format
 
-    if xheep.are_peripherals_configured():
+    if xheep.are_base_peripherals_configured():
         base_peripherals = __format_peripherals_to_dicts(base_peripherals)
+    if xheep.are_user_peripherals_configured():
         user_peripherals = __format_peripherals_to_dicts(user_peripherals)
 
     ext_slave_start_address = string2int(obj["ext_slaves"]["address"])
@@ -1549,7 +1554,7 @@ def main():
         right_pad_list = None
         bondpad_offsets = None
 
-    if xheep.are_peripherals_configured():
+    if xheep.are_base_peripherals_configured():
         # Writes dma parameters into hexadecimal format (removing leading 0x)
         dma_ch_count = hex(dma_ch_count)[2:]
         dma_ch_size = hex(dma_ch_size)[2:]
