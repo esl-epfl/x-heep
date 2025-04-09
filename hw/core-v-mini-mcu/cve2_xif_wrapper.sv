@@ -2,6 +2,7 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+// Author: Davide Schiavone
 
 /**
  * CVE2 XIF Wrapper that partially translates the X-IF 1.0v to 0.2v 
@@ -130,7 +131,7 @@ module cve2_xif_wrapper
   assign cve2_x_issue_resp.writeback = x_issue_resp_i.writeback;
   assign cve2_x_issue_resp.register_read = {
     2'b11
-  };  //this is suboptimal as forces cve2 to always read all registers
+  };  //this is suboptimal as forces cve2 to always read all registers - however, cve2 does not have instructions in-flight
 
   assign x_commit_valid_o = cve2_x_commit_valid;
   assign x_commit_o.id = cve2_x_commit.id;
