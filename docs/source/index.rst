@@ -14,7 +14,10 @@ Architecture
 ^^^^^^^^^^^^
 The architecture is thought to be divided into the following power domains: CPU subsystem domain, memory banks domains, peripheral subsystem domain and always-on peripheral subsystem domain. The following image highlights each power domain with a different colour. IPs are carefully selected and grouped in the mentioned power domains in order to maximize energy savings during the processing and acquisition phases of our target ultra-low-power edge-computing applications. We reused several IPs from the most important open-source projects, such as `PULP <https://github.com/pulp-platform>`_, `OpenHW <https://github.com/openhwgroup>`_ and `lowRISC <https://github.com/lowRISC>`_. Moreover, we custom-designed some specific IPs to meet our architectural needs.
 
-.. image:: /images/x_heep.svg
+.. image:: /images/xheep_diagram.svg
+
+You can access an editable version of this diagram for your use in presentations or publications [here](https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000FF&edit=_blank&layers=1&nav=1&title=X-HEEP-general-diagram.drawio&dark=auto#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1FxAmuywf1zneG0PeiYe_IHTJCv-3kLPI%26export%3Ddownload). 
+
 
 CPU subsystem domain
 ^^^^^^^^^^^^^^^^^^^^
