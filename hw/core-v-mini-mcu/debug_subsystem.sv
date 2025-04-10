@@ -6,11 +6,13 @@ module debug_subsystem
   import obi_pkg::*;
 #(
     parameter NRHARTS = 1,
-    parameter JTAG_IDCODE = 32'h10001c05
+    parameter JTAG_IDCODE = 32'h10001c05,
+    parameter SPI_SLAVE = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
 
+    //JTAG
     input  logic jtag_tck_i,
     input  logic jtag_tms_i,
     input  logic jtag_trst_ni,
@@ -133,48 +135,62 @@ module debug_subsystem
       .dmi_resp_o      (dmi_resp)
   );
 
-  obi_spi_slave obi_spi_slave_i (
-      .spi_sclk_i(spi_slave_sck_i),
-      .spi_cs_i(spi_slave_cs_i),
-      .spi_miso_o(spi_slave_miso_o),
-      .spi_mosi_i(spi_slave_mosi_i),
-      .obi_clk_i(clk_i),
-      .obi_rstn_i(rst_ni),
-      .obi_master_req_o(spi_slave_req.req),
-      .obi_master_gnt_i(spi_slave_resp.gnt),
-      .obi_master_addr_o(spi_slave_req.addr),
-      .obi_master_we_o(spi_slave_req.we),
-      .obi_master_w_data_o(spi_slave_req.wdata),
-      .obi_master_be_o(spi_slave_req.be),
-      .obi_master_r_valid_i(spi_slave_resp.rvalid),
-      .obi_master_r_data_i(spi_slave_resp.rdata)
-  );
+  if(SPI_SLAVE) begin : gen_spi_slave
 
-  assign dbg_spi_req[0] = dm_req;
-  assign dbg_spi_req[1] = spi_slave_req;
-  assign dm_resp        = dbg_spi_resp[0];
-  assign spi_slave_resp = dbg_spi_resp[1];
+    obi_spi_slave obi_spi_slave_i (
+        .spi_sclk_i(spi_slave_sck_i),
+        .spi_cs_i(spi_slave_cs_i),
+        .spi_miso_o(spi_slave_miso_o),
+        .spi_mosi_i(spi_slave_mosi_i),
+        .obi_clk_i(clk_i),
+        .obi_rstn_i(rst_ni),
+        .obi_master_req_o(spi_slave_req.req),
+        .obi_master_gnt_i(spi_slave_resp.gnt),
+        .obi_master_addr_o(spi_slave_req.addr),
+        .obi_master_we_o(spi_slave_req.we),
+        .obi_master_w_data_o(spi_slave_req.wdata),
+        .obi_master_be_o(spi_slave_req.be),
+        .obi_master_r_valid_i(spi_slave_resp.rvalid),
+        .obi_master_r_data_i(spi_slave_resp.rdata)
+    );
 
-  // 2-to-1 crossbar
-  xbar_varlat_n_to_one #(
-      .XBAR_NMASTER(2)
-  ) xbar_varlat_n_to_one_i (
-      .clk_i,
-      .rst_ni,
-      .master_req_i (dbg_spi_req),
-      .master_resp_o(dbg_spi_resp),
-      .slave_req_o  (tofifo_req),
-      .slave_resp_i (tofifo_resp)
-  );
+    assign dbg_spi_req[0] = dm_req;
+    assign dbg_spi_req[1] = spi_slave_req;
+    assign dm_resp        = dbg_spi_resp[0];
+    assign spi_slave_resp = dbg_spi_resp[1];
 
-  obi_fifo obi_fifo_i (
-      .clk_i,
-      .rst_ni,
-      .producer_req_i (tofifo_req),
-      .producer_resp_o(tofifo_resp),
-      .consumer_req_o (debug_master_req_o),
-      .consumer_resp_i(debug_master_resp_i)
-  );
+    // 2-to-1 crossbar
+    xbar_varlat_n_to_one #(
+        .XBAR_NMASTER(2)
+    ) xbar_varlat_n_to_one_i (
+        .clk_i,
+        .rst_ni,
+        .master_req_i (dbg_spi_req),
+        .master_resp_o(dbg_spi_resp),
+        .slave_req_o  (tofifo_req),
+        .slave_resp_i (tofifo_resp)
+    );
+
+    obi_fifo obi_fifo_i (
+        .clk_i,
+        .rst_ni,
+        .producer_req_i (tofifo_req),
+        .producer_resp_o(tofifo_resp),
+        .consumer_req_o (debug_master_req_o),
+        .consumer_resp_i(debug_master_resp_i)
+    );
+  end else begin : gen_no_spi_slave
+    assign tofifo_req          = '0;
+    assign tofifo_resp         = '0;
+    assign dbg_spi_req[0]      = '0;
+    assign dbg_spi_req[1]      = '0;
+    assign dbg_spi_resp[0]     = '0;
+    assign dbg_spi_resp[1]     = '0;
+    assign spi_slave_resp      = '0;
+    assign spi_slave_miso_o    = '0;
+    assign debug_master_req_o  = dm_req;
+    assign dm_resp             = debug_master_resp_i;
+  end
 
 
 endmodule : debug_subsystem
