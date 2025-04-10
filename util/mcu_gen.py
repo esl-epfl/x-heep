@@ -601,7 +601,10 @@ def main():
     if  external_domains > 32:
         exit("external_domains must be less than 32 instead of " + str(external_domains))
 
-
+    try:
+        has_spi_slave = 1 if obj['debug']['has_spi_slave']=="yes" else 0
+    except KeyError:
+        has_spi_slave = 0
 
     xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)), config_override)
 
@@ -1081,6 +1084,7 @@ def main():
     kwargs = {
         "xheep"                            : xheep,
         "cpu_type"                         : cpu_type,
+        "has_spi_slave"                    : has_spi_slave,
         "cve2_rv32e"                       : cve2_rv32e,
         "cve2_rv32m"                       : cve2_rv32m,
         "external_domains"                 : external_domains,
