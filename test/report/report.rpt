@@ -1,0 +1,101 @@
+  Test Report: example_asm  
+┏━━━━━━━━━━━┳━━━━┳━━━━━━━━━┓
+┃ iteration ┃ ID ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━╇━━━━━━━━━┩
+│ 0         │ 0  │ 0       │
+└───────────┴────┴─────────┘
+  Test Report: example_cpp  
+┏━━━━━━━━━━━┳━━━━┳━━━━━━━━━┓
+┃ iteration ┃ ID ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━╇━━━━━━━━━┩
+│ 0         │ 0  │ 0       │
+└───────────┴────┴─────────┘
+     Test Report:      
+example_data_processing
+      _from_flash      
+┏━━━━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0       │
+└───────────┴─────────┘
+      Test Report: example_dma       
+┏━━━━━━━━━━━┳━━━━┳━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ ID ┃ Cycles ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━╇━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0  │ 0      │ 0       │
+│ 0         │ 1  │ 0      │ 0       │
+│ 0         │ 3  │ 0      │ 0       │
+│ 0         │ 4  │ 0      │ 0       │
+└───────────┴────┴────────┴─────────┘
+     Test Report:      
+    example_dma_2d     
+┏━━━━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0       │
+└───────────┴─────────┘
+     Test Report:      
+example_dma_multichanne
+           l           
+┏━━━━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0       │
+└───────────┴─────────┘
+     Test Report:      
+    example_dma_sdk    
+┏━━━━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0       │
+└───────────┴─────────┘
+     Test Report:      
+      example_fft      
+┏━━━━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0       │
+└───────────┴─────────┘
+     Test Report:      
+  example_gpio_toggle  
+┏━━━━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0       │
+└───────────┴─────────┘
+     Test Report:      
+    example_matadd     
+┏━━━━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0       │
+└───────────┴─────────┘
+     Test Report:      
+example_matadd_interlea
+          ved          
+┏━━━━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0       │
+└───────────┴─────────┘
+     Test Report:      
+    example_matfadd    
+┏━━━━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0       │
+└───────────┴─────────┘
+     Test Report:      
+    example_matmul     
+┏━━━━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0       │
+└───────────┴─────────┘
+     Test Report:      
+ example_power_manager 
+┏━━━━━━━━━━━┳━━━━━━━━━┓
+┃ iteration ┃ Outcome ┃
+┡━━━━━━━━━━━╇━━━━━━━━━┩
+│ 0         │ 0       │
+└───────────┴─────────┘

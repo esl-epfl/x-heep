@@ -20,6 +20,7 @@ cmake_minimum_required(VERSION 3.15)
 # Include to fetch any vendorised repo (e.g. FreeRTOS)
 include(FetchContent)
 
+
 # Add some colors!
 if(NOT WIN32)
   string(ASCII 27 Esc)

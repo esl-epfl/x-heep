@@ -13,27 +13,41 @@
 #include "power_manager.h"
 
 /* By default, PRINTFs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_FPGA 1
+#define PRINTF_IN_SIM 0
 
+#if
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
-    #define PRINTF(...)
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
 #if defined(TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
-    #define USE_SPI_FLASH
+#define USE_SPI_FLASH
 #endif
 
 #define FLASH_ONLY_WORDS 32
-#define FLASH_ONLY_BYTES (FLASH_ONLY_WORDS*4)
+#define FLASH_ONLY_BYTES (FLASH_ONLY_WORDS * 4)
 
 uint32_t on_chip_buffer[FLASH_ONLY_WORDS];
 
-int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_only_buffer[FLASH_ONLY_WORDS] = {
+int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__((aligned(16))) flash_only_buffer[FLASH_ONLY_WORDS] = {
     0xABCDEF00,
     0xABCDEF01,
     0xABCDEF02,
@@ -68,7 +82,7 @@ int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((align
     0xABCDEF1F,
 };
 
-int32_t __attribute__ ((aligned (16))) flash_only_buffer_golden_value[FLASH_ONLY_WORDS] = {
+int32_t __attribute__((aligned(16))) flash_only_buffer_golden_value[FLASH_ONLY_WORDS] = {
     0xABCDEF00,
     0xABCDEF01,
     0xABCDEF02,
@@ -102,47 +116,49 @@ int32_t __attribute__ ((aligned (16))) flash_only_buffer_golden_value[FLASH_ONLY
     0xABCDEF1E,
     0xABCDEF1F,
 };
-
 
 int main(int argc, char *argv[])
 {
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
-    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
+    if (get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO)
+    {
         PRINTF("This application cannot work with the memory mapped SPI FLASH"
-            "module - do not use the FLASH_EXEC linker script for this application\n");
+               "module - do not use the FLASH_EXEC linker script for this application\n");
+        PRINTF_TEST("0&\n");
         return EXIT_SUCCESS;
     }
 
     // Pick the correct spi device based on simulation type
-    spi_host_t* spi;
-    #ifndef USE_SPI_FLASH
+    spi_host_t *spi;
+#ifndef USE_SPI_FLASH
     spi = spi_host1;
-    #else
+#else
     spi = spi_flash;
-    #endif
+#endif
 
     // Setup power_manager
     power_manager_t power_manager;
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
     power_manager_counters_t power_manager_counters;
-    //counters
+    // counters
     uint32_t reset_off, reset_on, switch_off, switch_on, iso_off, iso_on;
 
-    //Turn off: first, isolate the CPU outputs, then I reset it, then I switch it off (reset and switch off order does not really matter)
+    // Turn off: first, isolate the CPU outputs, then I reset it, then I switch it off (reset and switch off order does not really matter)
     iso_off = 10;
     reset_off = iso_off + 5;
     switch_off = reset_off + 5;
-    //Turn on: first, give back power by switching on, then deassert the reset, the unisolate the CPU outputs
+    // Turn on: first, give back power by switching on, then deassert the reset, the unisolate the CPU outputs
     switch_on = 10;
-    reset_on = switch_on + 20; //give 20 cycles to emulate the turn on time, this number depends on technology and here it is just a random number
+    reset_on = switch_on + 20; // give 20 cycles to emulate the turn on time, this number depends on technology and here it is just a random number
     iso_on = reset_on + 5;
 
     if (power_gate_counters_init(&power_manager_counters, reset_off, reset_on, switch_off, switch_on, iso_off, iso_on, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
 
@@ -150,43 +166,50 @@ int main(int argc, char *argv[])
     int32_t errors = 0;
 
     // Init SPI host and SPI<->Flash bridge parameters
-    if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
-
+    if (w25q128jw_init(spi) != FLASH_OK)
+    {
+        PRINTF_TEST("1&\n");
+        return EXIT_FAILURE;
+    }
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_only_buffer);
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard_dma_async(test_buffer_flash, on_chip_buffer, FLASH_ONLY_BYTES);
-    if (status != FLASH_OK) exit(EXIT_FAILURE);
+    if (status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
-    //wait for the DMA to finish in DEEP SLEEP mode
+    // wait for the DMA to finish in DEEP SLEEP mode
     while (!dma_is_ready(0))
     {
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
         if (dma_is_ready(0) == 0)
         {
-                PRINTF("Going to sleep...\r\n");
-                if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
-                {
-                    PRINTF("Error: power manager fail.\n\r");
-                    return EXIT_FAILURE;
-                }
-                PRINTF("Woken up...\r\n");
-
+            PRINTF("Going to sleep...\r\n");
+            if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
+            {
+                PRINTF("Error: power manager fail.\n\r");
+                PRINTF_TEST("1&\n");
+                return EXIT_FAILURE;
+            }
+            PRINTF("Woken up...\r\n");
         }
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
 
-
     PRINTF("Check results...\r\n");
 
     // Check if what we read is correct (i.e. on_chip_buffer == flash_only_buffer_golden_value)
-    for(int i = 0; i < FLASH_ONLY_WORDS; i++) {
-        if (on_chip_buffer[i] != flash_only_buffer_golden_value[i]) {
+    for (int i = 0; i < FLASH_ONLY_WORDS; i++)
+    {
+        if (on_chip_buffer[i] != flash_only_buffer_golden_value[i])
+        {
             errors++;
             PRINTF("Error: on_chip_buffer[%d] = 0x%08x, flash_only_buffer_golden_value[%d] = 0x%08x\n", i, on_chip_buffer[i], i, flash_only_buffer_golden_value[i]);
         }
     }
 
-    if(errors==0) PRINTF("TEST RUN SUCCEFFULLY\r\n");
+    if (errors == 0)
+        PRINTF("TEST RUN SUCCEFFULLY\r\n");
 
+    PRINTF_TEST("%d&\n", errors);
     return errors;
 }

@@ -137,8 +137,7 @@ typedef struct gpio_cfg
  * @param handler A pointer to a function that will be called upon interrupt.
  * @return The result of the operation
  */
-gpio_result_t gpio_assign_irq_handler( uint32_t intr_id,
-                                       void *handler() );
+gpio_result_t gpio_assign_irq_handler(uint32_t intr_id, void (*handler)(void));
 
 /**
  * @brief Resets all handlers to the dummy handler.

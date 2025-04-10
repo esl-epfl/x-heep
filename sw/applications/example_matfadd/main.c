@@ -16,11 +16,24 @@
 #define PRINTF_IN_SIM   0
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
-    #define PRINTF(...)
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
 #endif
 
 void __attribute__ ((noinline)) matrixAdd(float * A, float * B, float * C, int N, int M);
@@ -166,7 +179,7 @@ int main()
     printMatrix(m_c,N,M);
 #endif
 
-
+    PRINTF_TEST("%d&\n", errors);
     return errors;
 }
 

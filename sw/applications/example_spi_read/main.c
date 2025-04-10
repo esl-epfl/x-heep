@@ -5,7 +5,7 @@
  * Simple example that writes a 1kB buffer to flash memory at a specific address
  * and then read it back to check if the data was written correctly.
  *
-*/
+ */
 
 #include <stdio.h>
 #include <stdint.h>
@@ -15,21 +15,29 @@
 #include "w25q128jw.h"
 
 /* By default, PRINTFs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_FPGA 1
+#define PRINTF_IN_SIM 0
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
 #else
-    #define PRINTF(...)
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #endif
-
-#if defined(TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
-    #define USE_SPI_FLASH
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#ifndef TEST_MODE
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINTF_TEST(...)
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #endif
-
+#else
+#define PRINTF(...)
+#define PRINTF_TEST(...)
+#endif
 
 // Start buffers (the original data)
 #include "buffer.h"
@@ -42,15 +50,15 @@ uint32_t flash_data[256];
  * be defined, this is userful to pick the right one.
  * Also the length is specified, to test different length cases. In any case
  * length <= test_buffer length.
-*/
+ */
 #define TEST_BUFFER flash_original_1024B
 #define LENGTH 1024
 
 #ifndef ON_CHIP
 #define FLASH_ONLY_WORDS 32
-#define FLASH_ONLY_BYTES (FLASH_ONLY_WORDS*4)
+#define FLASH_ONLY_BYTES (FLASH_ONLY_WORDS * 4)
 
-int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_only_buffer[FLASH_ONLY_WORDS] = {
+int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__((aligned(16))) flash_only_buffer[FLASH_ONLY_WORDS] = {
     0xABCDEF00,
     0xABCDEF01,
     0xABCDEF02,
@@ -85,7 +93,7 @@ int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((align
     0xABCDEF1F,
 };
 
-int32_t __attribute__ ((aligned (16))) flash_only_buffer_golden_value[FLASH_ONLY_WORDS] = {
+int32_t __attribute__((aligned(16))) flash_only_buffer_golden_value[FLASH_ONLY_WORDS] = {
     0xABCDEF00,
     0xABCDEF01,
     0xABCDEF02,
@@ -134,32 +142,37 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len);
 // Define global status variable
 w25q_error_codes_t global_status;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
-    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
+    if (get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO)
+    {
         PRINTF("This application cannot work with the memory mapped SPI FLASH"
-            "module - do not use the FLASH_EXEC linker script for this application\n");
+               "module - do not use the FLASH_EXEC linker script for this application\n");
+        PRINTF_TEST("0&\n");
         return EXIT_SUCCESS;
     }
 
     PRINTF("BSP read test\n", LENGTH);
 
     // Pick the correct spi device based on simulation type
-    spi_host_t* spi;
-    #ifndef USE_SPI_FLASH
+    spi_host_t *spi;
+#ifndef USE_SPI_FLASH
     spi = spi_host1;
-    #else
+#else
     spi = spi_flash;
-    #endif
+#endif
 
     // Define status variable
     int32_t errors = 0;
 
     // Init SPI host and SPI<->Flash bridge parameters
-    if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
-
+    if (w25q128jw_init(spi) != FLASH_OK){
+        PRINTF_TEST("1&\n");
+        return EXIT_FAILURE;
+}
     // Test simple read
     PRINTF("Testing simple read...\n");
     errors += test_read(TEST_BUFFER, LENGTH);
@@ -182,26 +195,32 @@ int main(int argc, char *argv[]) {
     errors += test_read_quad_dma(TEST_BUFFER, LENGTH);
 
     PRINTF("\n--------TEST FINISHED--------\n");
-    if (errors == 0) {
+    if (errors == 0)
+    {
         PRINTF("All tests passed!\n");
+        PRINTF_TEST("0&\n");
         return EXIT_SUCCESS;
-    } else {
+    }
+    else
+    {
         PRINTF("Some tests failed!\n");
+        PRINTF_TEST("1&\n");
         return EXIT_FAILURE;
     }
-
 }
 
-uint32_t test_read(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_read(uint32_t *test_buffer, uint32_t len)
+{
 
     uint32_t *test_buffer_flash = test_buffer;
 
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard(test_buffer_flash, flash_data, len);
-    if (status != FLASH_OK) exit(EXIT_FAILURE);
+    if (status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
-    uint32_t res =  check_result(test_buffer, len);
+    uint32_t res = check_result(test_buffer, len);
 
     // Reset the flash data buffer
     memset(flash_data, 0, len * sizeof(uint8_t));
@@ -209,18 +228,20 @@ uint32_t test_read(uint32_t *test_buffer, uint32_t len) {
     return res;
 }
 #ifndef ON_CHIP
-uint32_t test_read_flash_only(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_read_flash_only(uint32_t *test_buffer, uint32_t len)
+{
 
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
 
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard(test_buffer_flash, flash_data, len);
-    if (status != FLASH_OK) exit(EXIT_FAILURE);
+    if (status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     printf("Checking Results \n");
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
-    uint32_t res =  check_result(flash_only_buffer_golden_value, len);
+    uint32_t res = check_result(flash_only_buffer_golden_value, len);
 
     // Reset the flash data buffer
     memset(flash_data, 0, len * sizeof(uint8_t));
@@ -228,13 +249,15 @@ uint32_t test_read_flash_only(uint32_t *test_buffer, uint32_t len) {
     return res;
 }
 #endif
-uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len)
+{
 
     uint32_t *test_buffer_flash = test_buffer;
 
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer_flash, flash_data, len, 0, 0);
-    if (status != FLASH_OK) exit(EXIT_FAILURE);
+    if (status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     uint32_t res = check_result(test_buffer, len);
@@ -245,13 +268,15 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
     return res;
 }
 
-uint32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_read_quad(uint32_t *test_buffer, uint32_t len)
+{
 
     uint32_t *test_buffer_flash = test_buffer;
 
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_quad(test_buffer_flash, flash_data, len);
-    if (status != FLASH_OK) exit(EXIT_FAILURE);
+    if (status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     uint32_t res = check_result(test_buffer, len);
@@ -262,13 +287,15 @@ uint32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
     return res;
 }
 
-uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len)
+{
 
     uint32_t *test_buffer_flash = test_buffer;
 
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_quad_dma(test_buffer_flash, flash_data, len);
-    if (status != FLASH_OK) exit(EXIT_FAILURE);
+    if (status != FLASH_OK)
+        exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     uint32_t res = check_result(test_buffer, len);
@@ -279,20 +306,26 @@ uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
     return res;
 }
 
-uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
+uint32_t check_result(uint8_t *test_buffer, uint32_t len)
+{
     uint32_t errors = 0;
     uint8_t *flash_data_char = (uint8_t *)flash_data;
 
-    for (uint32_t i = 0; i < len; i++) {
-        if (test_buffer[i] != flash_data_char[i]) {
+    for (uint32_t i = 0; i < len; i++)
+    {
+        if (test_buffer[i] != flash_data_char[i])
+        {
             PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_data_char[i]);
             errors++;
         }
     }
 
-    if (errors == 0) {
+    if (errors == 0)
+    {
         PRINTF("success!\n");
-    } else {
+    }
+    else
+    {
         PRINTF("failure, %d errors!\n", errors);
     }
 
