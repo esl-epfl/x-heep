@@ -16,8 +16,7 @@ The architecture is thought to be divided into the following power domains: CPU 
 
 .. image:: /images/xheep_diagram.svg
 
-You can access an editable version of this diagram for your use in presentations or publications [here](https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000FF&edit=_blank&layers=1&nav=1&title=X-HEEP-general-diagram.drawio&dark=auto#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1FxAmuywf1zneG0PeiYe_IHTJCv-3kLPI%26export%3Ddownload). 
-
+You can access an editable version of this diagram for your use in presentations or publications `here <https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000FF&edit=_blank&layers=1&nav=1&title=X-HEEP-general-diagram.drawio&dark=auto#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1FxAmuywf1zneG0PeiYe_IHTJCv-3kLPI%26export%3Ddownload>`_.
 
 CPU subsystem domain
 ^^^^^^^^^^^^^^^^^^^^
