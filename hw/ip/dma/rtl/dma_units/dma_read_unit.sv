@@ -87,6 +87,8 @@ module dma_read_unit
 
   logic wait_for_rx;
 
+  logic subaddr_mode;
+
   logic [16:0] dma_src_cnt_d1;
   logic [16:0] dma_src_cnt_d2;
 
@@ -293,29 +295,31 @@ module dma_read_unit
   always_comb begin : proc_input_data
     read_buffer_input = data_in_rdata;
 
-    case (read_data_offset)
-      2'b00: begin
-        if (src_data_type == DMA_DATA_TYPE_BYTE) begin
-          read_buffer_input = {{24{sign_ext & data_in_rdata[7]}}, data_in_rdata[7:0]};
-        end else if (src_data_type == DMA_DATA_TYPE_HALF_WORD) begin
-          read_buffer_input = {{16{sign_ext & data_in_rdata[15]}}, data_in_rdata[15:0]};
+    if (subaddr_mode == 1'b0) begin
+      case (read_data_offset)
+        2'b00: begin
+          if (src_data_type == DMA_DATA_TYPE_BYTE) begin
+            read_buffer_input = {{24{sign_ext & data_in_rdata[7]}}, data_in_rdata[7:0]};
+          end else if (src_data_type == DMA_DATA_TYPE_HALF_WORD) begin
+            read_buffer_input = {{16{sign_ext & data_in_rdata[15]}}, data_in_rdata[15:0]};
+          end
         end
-      end
-      // Only BYTE could cause the address to be 01
-      2'b01: begin
-        read_buffer_input = {{24{sign_ext & data_in_rdata[15]}}, data_in_rdata[15:8]};
-      end
+        // Only BYTE could cause the address to be 01
+        2'b01: begin
+          read_buffer_input = {{24{sign_ext & data_in_rdata[15]}}, data_in_rdata[15:8]};
+        end
 
-      2'b10: begin
-        if (src_data_type == DMA_DATA_TYPE_BYTE) begin
-          read_buffer_input = {{24{sign_ext & data_in_rdata[23]}}, data_in_rdata[23:16]};
-        end else if (src_data_type == DMA_DATA_TYPE_HALF_WORD) begin
-          read_buffer_input = {{16{sign_ext & data_in_rdata[31]}}, data_in_rdata[31:16]};
+        2'b10: begin
+          if (src_data_type == DMA_DATA_TYPE_BYTE) begin
+            read_buffer_input = {{24{sign_ext & data_in_rdata[23]}}, data_in_rdata[23:16]};
+          end else if (src_data_type == DMA_DATA_TYPE_HALF_WORD) begin
+            read_buffer_input = {{16{sign_ext & data_in_rdata[31]}}, data_in_rdata[31:16]};
+          end
         end
-      end
-      // Again, only BYTE could cause the address to be 01
-      2'b11: read_buffer_input = {{24{sign_ext & data_in_rdata[31]}}, data_in_rdata[31:24]};
-    endcase
+        // Again, only BYTE could cause the address to be 01
+        2'b11: read_buffer_input = {{24{sign_ext & data_in_rdata[31]}}, data_in_rdata[31:24]};
+      endcase
+    end
   end
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -359,5 +363,6 @@ module dma_read_unit
   assign data_in_rdata = data_in_rdata_i;
   assign read_buffer_input_o = read_buffer_input;
   assign src_data_type = dma_data_type_t'(reg2hw.src_data_type.q);
+  assign subaddr_mode = reg2hw.mode.q == 3;
 
 endmodule

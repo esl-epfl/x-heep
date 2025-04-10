@@ -1081,6 +1081,7 @@ int main()
     trans[1].win_du         = 0;
     trans[1].end            = DMA_TRANS_END_INTR;
     trans[1].channel        = DMA_CH1_IDX;
+    trans[1].dim_inv        = 0;
     
     /* Initialize the SPI */
     soc_ctrl_t soc_ctrl;
