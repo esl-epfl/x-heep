@@ -77,13 +77,28 @@ module testharness #(
   wire mux_jtag_trstn;
   wire [31:0] gpio;
 
-  wire [3:0] spi_flash_sd_io;
-  wire [1:0] spi_flash_csb;
-  wire spi_flash_sck;
+`ifndef VERILATOR
+  // Pull-up/down are needed in Questasim
+  // SPI flash
+  tri0       spi_flash_sck;
+  tri1 [1:0] spi_flash_csb;
+  tri0 [3:0] spi_flash_sd_io;
 
-  wire [3:0] spi_sd_io;
+  // SPI
+  tri0       spi_sck;
+  tri1 [1:0] spi_csb;
+  tri0 [3:0] spi_sd_io;
+`else
+  // SPI flash
+  wire       spi_flash_sck;
+  wire [1:0] spi_flash_csb;
+  wire [3:0] spi_flash_sd_io;
+
+  // SPI
+  wire       spi_sck;
   wire [1:0] spi_csb;
-  wire spi_sck;
+  wire [3:0] spi_sd_io;
+`endif
 
   logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] ext_periph_select;
 
