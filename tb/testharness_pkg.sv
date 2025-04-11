@@ -31,7 +31,7 @@ package testharness_pkg;
   };
 
   //slave encoder
-  localparam EXT_NPERIPHERALS = 5;
+  localparam EXT_NPERIPHERALS = 6;
 
   // Memcopy controller (external peripheral example)
   localparam logic [31:0] MEMCOPY_CTRL_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h0;
@@ -63,6 +63,12 @@ package testharness_pkg;
   localparam logic [31:0] IM2COL_SPC_END_ADDRESS = IM2COL_SPC_START_ADDRESS + IM2COL_SPC_SIZE;
   localparam logic [31:0] IM2COL_SPC_IDX = 32'd4;
 
+  // External Digital Level Crossing Block Peripheral
+  localparam logic [31:0] DLC_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h05000;
+  localparam logic [31:0] DLC_SIZE = 32'h100;
+  localparam logic [31:0] DLC_END_ADDRESS = DLC_START_ADDRESS + DLC_SIZE;
+  localparam logic [31:0] DLC_IDX = 32'd5;
+
   localparam addr_map_rule_t [EXT_NPERIPHERALS-1:0] EXT_PERIPHERALS_ADDR_RULES = '{
       '{
           idx: MEMCOPY_CTRL_IDX,
@@ -80,7 +86,8 @@ package testharness_pkg;
           idx: IM2COL_SPC_IDX,
           start_addr: IM2COL_SPC_START_ADDRESS,
           end_addr: IM2COL_SPC_END_ADDRESS
-      }
+      },
+      '{idx: DLC_IDX, start_addr: DLC_START_ADDRESS, end_addr: DLC_END_ADDRESS}
   };
 
   localparam int unsigned EXT_PERIPHERALS_PORT_SEL_WIDTH = EXT_NPERIPHERALS > 1 ? $clog2(
