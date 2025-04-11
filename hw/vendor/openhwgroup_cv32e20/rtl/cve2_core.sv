@@ -22,7 +22,8 @@ module cve2_core import cve2_pkg::*; #(
   parameter rv32m_e      RV32M             = RV32MFast,
   parameter rv32b_e      RV32B             = RV32BNone,
   parameter bit          DbgTriggerEn      = 1'b0,
-  parameter int unsigned DbgHwBreakNum     = 1
+  parameter int unsigned DbgHwBreakNum     = 1,
+  parameter bit          XInterface        = 1'b0
 ) (
   // Clock and Reset
   input  logic                         clk_i,
@@ -52,6 +53,25 @@ module cve2_core import cve2_pkg::*; #(
   input  logic [31:0]                  data_rdata_i,
   input  logic                         data_err_i,
 
+  // Core-V Extension Interface (CV-X-IF)
+  // Issue Interface
+  output logic                         x_issue_valid_o,
+  input  logic                         x_issue_ready_i,
+  output x_issue_req_t                 x_issue_req_o,
+  input  x_issue_resp_t                x_issue_resp_i,
+
+  // Register Interface
+  output x_register_t                  x_register_o,
+
+  // Commit Interface
+  output logic                         x_commit_valid_o,
+  output x_commit_t                    x_commit_o,
+
+  // Result Interface
+  input  logic                         x_result_valid_i,
+  output logic                         x_result_ready_o,
+  input  x_result_t                    x_result_i,
+
   // Interrupt inputs
   input  logic                         irq_software_i,
   input  logic                         irq_timer_i,
@@ -62,6 +82,7 @@ module cve2_core import cve2_pkg::*; #(
 
   // Debug Interface
   input  logic                         debug_req_i,
+  output logic                         debug_halted_o,
   input  logic [31:0]                  dm_halt_addr_i,
   input  logic [31:0]                  dm_exception_addr_i,
   output crash_dump_t                  crash_dump_o,
@@ -354,7 +375,8 @@ module cve2_core import cve2_pkg::*; #(
   cve2_id_stage #(
     .RV32E          (RV32E),
     .RV32M          (RV32M),
-    .RV32B          (RV32B)
+    .RV32B          (RV32B),
+    .XInterface     (XInterface)
   ) id_stage_i (
     .clk_i (clk_i),
     .rst_ni(rst_ni),
@@ -437,6 +459,25 @@ module cve2_core import cve2_pkg::*; #(
 
     .lsu_load_err_i (lsu_load_err),
     .lsu_store_err_i(lsu_store_err),
+
+    // Core-V Extension Interface (CV-X-IF)
+    // Issue Interface
+    .x_issue_valid_o(x_issue_valid_o),
+    .x_issue_ready_i(x_issue_ready_i),
+    .x_issue_req_o(x_issue_req_o),
+    .x_issue_resp_i(x_issue_resp_i),
+
+    // Register Interface
+    .x_register_o(x_register_o),
+
+    // Commit Interface
+    .x_commit_valid_o(x_commit_valid_o),
+    .x_commit_o(x_commit_o),
+
+    // Result Interface
+    .x_result_valid_i(x_result_valid_i),
+    .x_result_ready_o(x_result_ready_o),
+    .x_result_i(x_result_i),
 
     // Interrupt Signals
     .csr_mstatus_mie_i(csr_mstatus_mie),
@@ -611,6 +652,11 @@ module cve2_core import cve2_pkg::*; #(
   assign crash_dump_o.last_data_addr = lsu_addr_last;
   assign crash_dump_o.exception_addr = csr_mepc;
 
+  ///////////////////////
+  // Debug output      //
+  ///////////////////////
+
+  assign debug_halted_o = debug_mode;
 
   // Explict INC_ASSERT block to avoid unused signal lint warnings were asserts are not included
   `ifdef INC_ASSERT
