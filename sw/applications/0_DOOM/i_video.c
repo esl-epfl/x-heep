@@ -334,8 +334,6 @@ void I_FinishUpdate (void)
 
     PRINTF("UPDATE SCREEN\n");
 
-    //X-HEEP comment : uncomment when screen is done
-
     X_Display_Draw_Screen_200x200();
 
 
