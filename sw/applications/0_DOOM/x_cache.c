@@ -118,7 +118,7 @@ void *X_cache_read(uint32_t flash_addr, uint32_t len)
             else
             {
                 uint32_t size = (len + 3)/4; 
-                uint8_t raw_buffer[size];
+                uint32_t raw_buffer[size];
                 X_spi_read(flash_addr, &raw_buffer, size); 
                 memcpy(buffer, &raw_buffer, len); 
                 cache_put(&my_cache, flash_addr, buffer, len); 
