@@ -7,6 +7,7 @@
 /**                                                                        **/
 /****************************************************************************/
 
+//Might need to increase this if i have many cache entries  
 #define HASH_TABLE_SIZE 16
 
 // Cache entry structure, with pointers for a doubly-linked LRU list.
@@ -100,15 +101,15 @@ void cache_free() {
     my_cache.used = 0;
 }
 
-//len in bytes
+// Reads `len` bytes from the flash address using the cache.
+// If the data is not cached, it fetches from flash, inserts into cache, and returns it.
 void *X_cache_read(uint32_t flash_addr, uint32_t len)
 {
     void *cached_data = cache_get(&my_cache, flash_addr);
     if (cached_data == NULL)
     {   
         if (len <= my_cache.cache_size && len != 0)
-        {
-            printf("Data not in cache need to go get it\n"); 
+        { 
             void *buffer = malloc(len);
             if (len%4 == 0)
             {
@@ -124,7 +125,7 @@ void *X_cache_read(uint32_t flash_addr, uint32_t len)
             }
             if (cache_put(&my_cache, flash_addr, buffer, len) != 0)
             {
-                printf("Failed to insert data into cache.\n");
+                //printf("Failed to insert data into cache.\n");
                 free(buffer);
                 return NULL;
             }
@@ -132,11 +133,10 @@ void *X_cache_read(uint32_t flash_addr, uint32_t len)
         }
         else
         {
-            printf("Data length bigger than the cache size, failed to insert data into cache\n");
+            //printf("Data length bigger than the cache size, failed to insert data into cache\n");
             return NULL;
         }
     }
-    printf("Data was in cache :)\n");
     return cached_data;
 }
 
@@ -197,7 +197,6 @@ void *cache_get(cache_t *cache, uintptr_t addr) {
 
 static void cache_evict(cache_t *cache, size_t needed) {
     while (cache->used + needed > cache->cache_size && cache->lru_tail) {
-        printf("in cache_evict loop\n");
         cache_entry_t *evict = cache->lru_tail;
         unsigned int hash = hash_function_addr(evict->key) % HASH_TABLE_SIZE;
         cache_entry_t **prev = &cache->buckets[hash];
@@ -212,7 +211,6 @@ static void cache_evict(cache_t *cache, size_t needed) {
         
         cache->used -= evict->size;
     
-        free(evict->key);
         free(evict->data);
         free(evict);
     }
