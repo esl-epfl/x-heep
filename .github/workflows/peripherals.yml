@@ -1,4 +1,4 @@
-name: Test peripherals (Same output between hjson and python configuration)
+name: Test peripherals
 on: [push, pull_request]
 
 jobs:

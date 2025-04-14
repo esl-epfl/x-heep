@@ -296,9 +296,6 @@ class BasePeripheralDomain(PeripheralDomain):
                     f"Peripheral {peripheral.get_name()} is not in the domain {self._name}"
                 )
 
-        if all_peripherals_added:
-            print(f"All base peripherals in {self._name} are added")
-
         return all_peripherals_added
 
     def validate(self):

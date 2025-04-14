@@ -61,36 +61,6 @@ class Peripheral(ABC):
         return self._name
 
 
-class PeripheralName(Enum):
-    """
-    Enum for the names of the peripherals.
-    """
-
-    # Always on peripherals
-    SOC_ctrl = "soc_ctrl"
-    Bootrom = "bootrom"
-    SPI_flash = "spi_flash"
-    SPI_memio = "spi_memio"
-    DMA = "dma"
-    Power_manager = "power_manager"
-    RV_timer_ao = "rv_timer_ao"
-    Fast_intr_ctrl = "fast_intr_ctrl"
-    Ext_peripheral = "ext_peripheral"
-    Pad_control = "pad_control"
-    GPIO_ao = "gpio_ao"
-    UART = "uart"
-
-    # Optional peripherals
-    RV_plic = "rv_plic"
-    SPI_host = "spi_host"
-    GPIO = "gpio"
-    I2C = "i2c"
-    RV_timer = "rv_timer"
-    SPI2 = "spi2"
-    PDM2PCM = "pdm2pcm"
-    I2S = "i2s"
-
-
 class DataConfiguration(ABC):
     """
     Abstract class for adding a more sofisticated configuration to a peripheral, acts as an interface in Java. This class cannot be instantiated.
@@ -324,9 +294,6 @@ class PeripheralDomain(ABC):
 
                     # Ends search for free space
                     fit = True
-                    print(
-                        f"Placed peripheral {current_peripheral.get_name()} at {hex(offsets[peripherals_without_address[i][0]])}"
-                    )
                     break
             if not fit:
                 raise ValueError(
@@ -357,8 +324,6 @@ class PeripheralDomain(ABC):
                     )
                     return_bool = False
 
-        if return_bool:
-            print(f"All configurable peripherals in {self._name} have valid paths")
         return return_bool
 
     def __check_peripheral_non_overlap(self):
@@ -414,8 +379,6 @@ class PeripheralDomain(ABC):
             )
             return_bool = False
 
-        if return_bool:
-            print(f"Peripherals in {self._name} don't overlap")
         return return_bool
 
     def validate(self):

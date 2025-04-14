@@ -438,7 +438,8 @@ class XHeep:
 
         # Check that peripherals domains do not overlap
         if (
-            self.get_base_peripherals_base_address()
+            self.are_base_peripherals_configured()
+            and self.get_base_peripherals_base_address()
             < self.get_user_peripherals_base_address()
             and self.get_base_peripherals_base_address()
             + self.get_base_peripherals_length()
@@ -449,7 +450,8 @@ class XHeep:
             )
             ret = False
         if (
-            self.get_user_peripherals_base_address()
+            self.are_user_peripherals_configured()
+            and self.get_user_peripherals_base_address()
             < self.get_base_peripherals_base_address()
             and self.get_user_peripherals_base_address()
             + self.get_user_peripherals_length()
@@ -460,14 +462,19 @@ class XHeep:
             )
             ret = False
         if (
-            self.get_user_peripherals_base_address()
+            self.are_user_peripherals_configured()
+            and self.are_base_peripherals_configured()
+            and self.get_user_peripherals_base_address()
             == self.get_base_peripherals_base_address()
         ):  # both domains start at the same address
             print(
                 f"The base peripheral domain and the user peripheral domain should not start at the same address (current addresses are {self.get_base_peripherals_base_address():#08X} and {self.get_user_peripherals_base_address():#08X})."
             )
             ret = False
-        if self.get_base_peripherals_base_address() < 0x10000:  # from mcu_gen.py
+        if (
+            self.are_base_peripherals_configured()
+            and self.get_base_peripherals_base_address() < 0x10000
+        ):  # from mcu_gen.py
             print(
                 f"Always on peripheral start address must be greater than 0x10000, current address is {self.get_base_peripherals_base_address():#08X}."
             )
