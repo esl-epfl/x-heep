@@ -14,7 +14,7 @@
 // Description: address decoder and response mux for full crossbar.
 
 module addr_dec_resp_mux_varlat #(
-    parameter int unsigned AggregateGnt  = 0,
+    parameter int unsigned AggregateGnt  = 1,
     parameter int unsigned NumOut        = 32,
     parameter int unsigned ReqDataWidth  = 32,
     parameter int unsigned RespDataWidth = 32,
@@ -95,15 +95,10 @@ end else begin : gen_several_outputs
     end else begin
       //we gate req_i in case there are inflights operation
       //however, as the gnt_o could be one, the master could change the address
-      //thus if gnt_o is 1, we need to store the address be we etc from the obi master
-      //and propose it to the slave as soon as we get back the valid
-      //as this is not currently supported, we need the SLAVE to take care of not sending the GNT if they do not get a 
-      //request -- this creates unwanted timing pressure that requires the bus to be rewritten to take 
-      //care about the above scenario
-      //also, this may creates out-of-order responses as the first request may target a slow slave 
-      //which is slow in returning the rvalid, the second req could target another slave that is fast
-      //thus the rvalid would return and wrongly assigned to the first obi
-      //this is also why the slave gnt should be 1 only upon request
+      //thus if gnt_o is 1, we need to store the address, be, we, etc from the obi master
+      //and propose it to the slave as soon as we get back the valid back.
+      //As this bus does not support neither Outstanding or Out of order transactions
+      //we need to gate the request to the slave and grant to the master until we get the valid back.
       req_o = '0;
       gnt_o = '0;
       if(vld_o) begin
