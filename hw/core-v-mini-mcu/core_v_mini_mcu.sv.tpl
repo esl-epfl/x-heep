@@ -51,8 +51,6 @@ ${pad.core_v_mini_mcu_interface}
     input  obi_resp_t ext_core_data_resp_i,
     output obi_req_t  ext_debug_master_req_o,
     input  obi_resp_t ext_debug_master_resp_i,
-    output obi_req_t  ext_spi_slave_req_o,
-    input  obi_resp_t ext_spi_slave_resp_i,
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_req_o,
     input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_resp_i,
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_req_o,
@@ -141,10 +139,6 @@ ${pad.core_v_mini_mcu_interface}
   obi_resp_t ao_peripheral_slave_resp;
   obi_req_t peripheral_slave_req;
   obi_resp_t peripheral_slave_resp;
-
-  //OBI SPI slave
-  obi_req_t spi_slave_req;
-  obi_resp_t spi_slave_resp;
 
   // signals to debug unit
   logic debug_core_req;
@@ -305,7 +299,8 @@ ${pad.core_v_mini_mcu_interface}
 
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
-      .JTAG_IDCODE(JTAG_IDCODE)
+      .JTAG_IDCODE(JTAG_IDCODE),
+      .SPI_SLAVE(${has_spi_slave})
   ) debug_subsystem_i (
       .clk_i,
       .rst_ni,
@@ -314,6 +309,10 @@ ${pad.core_v_mini_mcu_interface}
       .jtag_trst_ni,
       .jtag_tdi_i,
       .jtag_tdo_o,
+      .spi_slave_sck_i(spi_slave_sck_i),
+      .spi_slave_cs_i(spi_slave_cs_i),
+      .spi_slave_miso_o(spi_slave_miso_o),
+      .spi_slave_mosi_i(spi_slave_mosi_i),
       .debug_core_req_o(debug_req),
       .debug_ndmreset_no(debug_reset_n),
       .debug_slave_req_i(debug_slave_req),
@@ -358,16 +357,12 @@ ${pad.core_v_mini_mcu_interface}
       .ext_core_data_resp_i(ext_core_data_resp_i),
       .ext_debug_master_req_o(ext_debug_master_req_o),
       .ext_debug_master_resp_i(ext_debug_master_resp_i),
-      .ext_spi_slave_req_o(ext_spi_slave_req_o),
-      .ext_spi_slave_resp_i(ext_spi_slave_resp_i),
       .ext_dma_read_req_o(ext_dma_read_req_o),
       .ext_dma_read_resp_i(ext_dma_read_resp_i),
       .ext_dma_write_req_o(ext_dma_write_req_o),
       .ext_dma_write_resp_i(ext_dma_write_resp_i),
       .ext_dma_addr_req_o(ext_dma_addr_req_o),
-      .ext_dma_addr_resp_i(ext_dma_addr_resp_i),
-      .spi_slave_req_i(spi_slave_req),
-      .spi_slave_resp_o(spi_slave_resp)
+      .ext_dma_addr_resp_i(ext_dma_addr_resp_i)
   );
 
   memory_subsystem #(
@@ -455,13 +450,7 @@ ${pad.core_v_mini_mcu_interface}
       .ext_dma_slot_tx_i,
       .ext_dma_slot_rx_i,
       .ext_dma_stop_i,
-      .dma_done_o,
-      .spi_slave_sck_i(spi_slave_sck_i),
-      .spi_slave_cs_i(spi_slave_cs_i),
-      .spi_slave_miso_o(spi_slave_miso_o),
-      .spi_slave_mosi_i(spi_slave_mosi_i),
-      .spi_slave_req_o(spi_slave_req),
-      .spi_slave_resp_i(spi_slave_resp)
+      .dma_done_o
   );
 
   peripheral_subsystem peripheral_subsystem_i (
