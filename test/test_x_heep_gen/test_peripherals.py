@@ -179,8 +179,10 @@ def run_test(example):
         outputs.append(PeripheralsDescription(example, extension))
 
     result = True
-    for output in outputs:
-        for other in outputs:
+    for i, output in enumerate(outputs):
+        for other in outputs[
+            i + 1 :
+        ]:  # avoid comparison with itself and already compared pairs
             if (
                 output != other
             ):  # Works because __eq__ function is defined in PeripheralsDescription
