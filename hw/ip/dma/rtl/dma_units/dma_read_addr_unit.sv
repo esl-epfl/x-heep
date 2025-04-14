@@ -19,7 +19,7 @@ module dma_read_addr_unit
     input dma_reg2hw_t reg2hw_i,
 
     input logic dma_start_i,
-    input logic ext_dma_stop_i,
+    input logic dma_done_override_i,
 
     input logic read_addr_buffer_full_i,
     input logic read_addr_buffer_alm_full_i,
@@ -47,7 +47,7 @@ module dma_read_addr_unit
 
   /* Control signals */
   logic dma_start;
-  logic ext_dma_stop;
+  logic dma_done_override;
 
   enum logic {
     DMA_READ_UNIT_IDLE,
@@ -129,7 +129,7 @@ module dma_read_addr_unit
       end
       // Read one word
       DMA_READ_UNIT_ON: begin
-        if (ext_dma_stop == 1'b0) begin
+        if (dma_done_override == 1'b0) begin
           // If all input data read exit
           if (|dma_addr_cnt == 1'b0) begin
             dma_read_addr_unit_n_state = DMA_READ_UNIT_IDLE;
@@ -161,7 +161,7 @@ module dma_read_addr_unit
   assign read_addr_buffer_full = read_addr_buffer_full_i;
   assign read_addr_buffer_alm_full = read_addr_buffer_alm_full_i;
   assign dma_start = dma_start_i;
-  assign ext_dma_stop = ext_dma_stop_i;
+  assign dma_done_override = dma_done_override_i;
   assign data_addr_in_be_o = data_addr_in_be;
   assign data_addr_in_addr_o = data_addr_in_addr;
   assign data_addr_in_req_o = data_addr_in_req;

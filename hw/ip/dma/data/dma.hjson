@@ -294,6 +294,15 @@
         { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
       ]
     }
+    { name:    "HW_FIFO_DONE_OVERRIDE"
+      desc:    '''Flag to override the write-unit-based done signal logic'''
+      swaccess: "rw"
+      hwaccess: "hro"
+      resval:   0
+      fields: [
+        { bits: "0", name: "FLAG", desc: "Set to enable read-unit-based done logic" }
+      ]
+    }
     { name:    "WINDOW_IFR"
       desc:    '''Interrupt Flag Register for windows'''
       swaccess: "ro"

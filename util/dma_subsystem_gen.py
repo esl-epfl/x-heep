@@ -38,6 +38,9 @@ if dma_addr_mode == "no":
 if dma_zero_padding == "no":
     dma_ch_registers = [d for d in dma_ch_registers if d.get('name') not in padding_params]
 
+if dma_hw_fifo_mode == "no":
+   dma_ch_registers = [d for d in dma_ch_registers if d.get('name') != "HW_FIFO_DONE_OVERRIDE"]
+
 dma_registers_cfg_cpy['registers'] = dma_ch_registers
 
 with open(dma_data_dir, "w") as file:

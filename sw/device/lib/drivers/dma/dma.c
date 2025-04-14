@@ -392,6 +392,10 @@ void dma_init( dma *dma_peri )
         dma_subsys_per[i].peri->PAD_LEFT       = 0;
         dma_subsys_per[i].peri->PAD_RIGHT      = 0;
         #endif
+
+        #if DMA_HW_FIFO_MODE
+        dma_subsys_per[i].peri->HW_FIFO_DONE_OVERRIDE = 0;
+        #endif
     }
 }
 
@@ -1048,17 +1052,17 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
                     0x1 << DMA_SIGN_EXT_SIGNED_BIT,
                     DMA_SIGN_EXT_SIGNED_BIT,
                     dma_subsys_per[channel].peri  );
-
-
+    
+    #if DMA_HW_FIFO_MODE 
     /*
-     * SET THE SIGN EXTENSION BIT
+     * SET THE HW FIFO DONE OVERRIDE
      */
-    write_register( dma_subsys_per[channel].trans->sign_ext,
-                    DMA_SIGN_EXT_REG_OFFSET,
-                    0x1 << DMA_SIGN_EXT_SIGNED_BIT,
-                    DMA_SIGN_EXT_SIGNED_BIT,
-                    dma_subsys_per[channel].peri  );
-
+    write_register( dma_subsys_per[channel].trans->dma_done_override,
+      DMA_HW_FIFO_DONE_OVERRIDE_REG_OFFSET,
+      0x1 << DMA_HW_FIFO_DONE_OVERRIDE_FLAG_BIT,
+      DMA_HW_FIFO_DONE_OVERRIDE_FLAG_BIT,
+      dma_subsys_per[channel].peri  );
+    #endif 
 
     /*
      * SET TRIGGER SLOTS AND DATA TYPE
