@@ -24,10 +24,6 @@
     #define PRINTF(...)
 #endif
 
-#if defined(TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
-    #define USE_SPI_FLASH
-#endif
-
 #define FLASH_ONLY_WORDS 32
 #define FLASH_ONLY_BYTES (FLASH_ONLY_WORDS*4)
 
@@ -117,11 +113,7 @@ int main(int argc, char *argv[])
 
     // Pick the correct spi device based on simulation type
     spi_host_t* spi;
-    #ifndef USE_SPI_FLASH
-    spi = spi_host1;
-    #else
     spi = spi_flash;
-    #endif
 
     // Setup power_manager
     power_manager_t power_manager;

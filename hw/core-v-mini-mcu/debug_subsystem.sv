@@ -6,16 +6,24 @@ module debug_subsystem
   import obi_pkg::*;
 #(
     parameter NRHARTS = 1,
-    parameter JTAG_IDCODE = 32'h10001c05
+    parameter JTAG_IDCODE = 32'h10001c05,
+    parameter SPI_SLAVE = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
 
+    //JTAG
     input  logic jtag_tck_i,
     input  logic jtag_tms_i,
     input  logic jtag_trst_ni,
     input  logic jtag_tdi_i,
     output logic jtag_tdo_o,
+
+    //SPI Slave
+    input  logic spi_slave_sck_i,
+    input  logic spi_slave_cs_i,
+    output logic spi_slave_miso_o,
+    input  logic spi_slave_mosi_i,
 
     output logic debug_ndmreset_no,
     output logic [NRHARTS-1:0] debug_core_req_o,
@@ -52,6 +60,14 @@ module debug_subsystem
   logic          dmi_resp_ready;
   logic          dmi_resp_valid;
   logic          ndmreset;
+
+  obi_req_t dm_req, spi_slave_req;
+  obi_resp_t dm_resp, spi_slave_resp;
+
+  obi_req_t tofifo_req;
+  obi_resp_t tofifo_resp;
+  obi_req_t [2-1:0] dbg_spi_req;
+  obi_resp_t [2-1:0] dbg_spi_resp;
 
   assign debug_ndmreset_no = ~ndmreset;
 
@@ -99,16 +115,16 @@ module debug_subsystem
       .slave_rvalid_o(debug_slave_resp_o.rvalid),
       .slave_rid_o   (),
 
-      .master_req_o      (debug_master_req_o.req),
-      .master_addr_o     (debug_master_req_o.addr),
-      .master_we_o       (debug_master_req_o.we),
-      .master_wdata_o    (debug_master_req_o.wdata),
-      .master_be_o       (debug_master_req_o.be),
-      .master_gnt_i      (debug_master_resp_i.gnt),
-      .master_rvalid_i   (debug_master_resp_i.rvalid),
+      .master_req_o      (dm_req.req),
+      .master_addr_o     (dm_req.addr),
+      .master_we_o       (dm_req.we),
+      .master_wdata_o    (dm_req.wdata),
+      .master_be_o       (dm_req.be),
+      .master_gnt_i      (dm_resp.gnt),
+      .master_rvalid_i   (dm_resp.rvalid),
       .master_err_i      (1'b0),
       .master_other_err_i(1'b0),
-      .master_rdata_i    (debug_master_resp_i.rdata),
+      .master_rdata_i    (dm_resp.rdata),
 
       .dmi_rst_ni      (dmi_rst_n),
       .dmi_req_valid_i (dmi_req_valid),
@@ -118,5 +134,64 @@ module debug_subsystem
       .dmi_resp_ready_i(dmi_resp_ready),
       .dmi_resp_o      (dmi_resp)
   );
+
+  if (SPI_SLAVE) begin : gen_spi_slave
+
+    obi_spi_slave obi_spi_slave_i (
+        .spi_sclk_i(spi_slave_sck_i),
+        .spi_cs_i(spi_slave_cs_i),
+        .spi_miso_o(spi_slave_miso_o),
+        .spi_mosi_i(spi_slave_mosi_i),
+        .obi_clk_i(clk_i),
+        .obi_rstn_i(rst_ni),
+        .obi_master_req_o(spi_slave_req.req),
+        .obi_master_gnt_i(spi_slave_resp.gnt),
+        .obi_master_addr_o(spi_slave_req.addr),
+        .obi_master_we_o(spi_slave_req.we),
+        .obi_master_w_data_o(spi_slave_req.wdata),
+        .obi_master_be_o(spi_slave_req.be),
+        .obi_master_r_valid_i(spi_slave_resp.rvalid),
+        .obi_master_r_data_i(spi_slave_resp.rdata)
+    );
+
+    assign dbg_spi_req[0] = dm_req;
+    assign dbg_spi_req[1] = spi_slave_req;
+    assign dm_resp        = dbg_spi_resp[0];
+    assign spi_slave_resp = dbg_spi_resp[1];
+
+    // 2-to-1 crossbar
+    xbar_varlat_n_to_one #(
+        .XBAR_NMASTER(2)
+    ) xbar_varlat_n_to_one_i (
+        .clk_i,
+        .rst_ni,
+        .master_req_i (dbg_spi_req),
+        .master_resp_o(dbg_spi_resp),
+        .slave_req_o  (tofifo_req),
+        .slave_resp_i (tofifo_resp)
+    );
+
+    obi_fifo obi_fifo_i (
+        .clk_i,
+        .rst_ni,
+        .producer_req_i (tofifo_req),
+        .producer_resp_o(tofifo_resp),
+        .consumer_req_o (debug_master_req_o),
+        .consumer_resp_i(debug_master_resp_i)
+    );
+  end else begin : gen_no_spi_slave
+    assign tofifo_req         = '0;
+    assign tofifo_resp        = '0;
+    assign dbg_spi_req[0]     = '0;
+    assign dbg_spi_req[1]     = '0;
+    assign dbg_spi_resp[0]    = '0;
+    assign dbg_spi_resp[1]    = '0;
+    assign spi_slave_req      = '0;
+    assign spi_slave_resp     = '0;
+    assign spi_slave_miso_o   = '0;
+    assign debug_master_req_o = dm_req;
+    assign dm_resp            = debug_master_resp_i;
+  end
+
 
 endmodule : debug_subsystem

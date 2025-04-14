@@ -31,11 +31,6 @@
     #define PRINTF(...)
 #endif
 
-#if defined(TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
-    #define USE_SPI_FLASH
-#endif
-
-
 // what to write in flash
 uint32_t flash_original_1024B[256] = {
     0x76543211, 0xfedcba99, 0x579a6f91, 0x657d5bef, 0x758ee420, 0x01234568, 0xfedbca97, 0x89abde00,
@@ -156,11 +151,7 @@ int main(int argc, char *argv[]) {
 
     // Pick the correct spi device based on simulation type
     spi_host_t* spi;
-    #ifndef USE_SPI_FLASH
-    spi = spi_host1;
-    #else
     spi = spi_flash;
-    #endif
 
     // Define status variable
     int32_t errors = 0;
@@ -348,7 +339,5 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
 
 // Erase the memory only if FPGA is used
 void erase_memory(uint32_t addr) {
-    #ifdef USE_SPI_FLASH
     w25q128jw_4k_erase(addr);
-    #endif
 }
