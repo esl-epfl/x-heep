@@ -40,3 +40,5 @@ lint_off -rule UNUSED -file "*/rtl/dma.sv" -match "Signal is not used: 'data_add
 lint_off -rule UNUSED -file "*/rtl/dma.sv" -match "Signal is not used: 'read_addr_buffer_full'"
 lint_off -rule UNUSED -file "*/rtl/dma.sv" -match "Signal is not used: 'read_addr_buffer_alm_full'"
 lint_off -rule UNUSED -file "*/rtl/dma.sv" -match "Signal is not used: 'dma_processing_unit_on'"
+lint_off -rule UNUSED -file "*/rtl/dma.sv" -match "Signal is not used: 'dma_read_unit_done'"
+lint_off -rule UNUSED -file "*/rtl/dma.sv" -match "Signal is not used: 'hw_fifo_mode'"

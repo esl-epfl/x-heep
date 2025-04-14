@@ -9,10 +9,10 @@
 module dma
   import fifo_pkg::*;
 #(
-    parameter int HW_FIFO_MODE_EN = 0,
-    parameter int SUBADDR_MODE_EN = 0,
-    parameter int ADDR_MODE_EN = 0,
-    parameter int ZERO_PADDING_EN = 0,
+    parameter int HW_FIFO_MODE_EN = 1,
+    parameter int SUBADDR_MODE_EN = 1,
+    parameter int ADDR_MODE_EN = 1,
+    parameter int ZERO_PADDING_EN = 1,
     parameter int FIFO_DEPTH = 4,
     parameter int RVALID_FIFO_DEPTH = 1,
     parameter int unsigned SLOT_NUM = 0,
@@ -69,12 +69,16 @@ module dma
   logic dma_start;
   logic dma_start_pending;
   logic dma_done;
+  logic dma_write_done_override;
+  logic dma_read_done_override;
+  logic dma_read_unit_done;
 
   logic window_event;
   logic [31:0] window_counter;
 
   logic circular_mode;
   logic address_mode;
+  logic hw_fifo_mode;
 
   /* Buffer signals */
   fifo_req_t read_buffer_req;
@@ -225,8 +229,9 @@ module dma
       .reg2hw_i(reg2hw),
 
       .dma_start_i(dma_start),
-      .dma_done_i (dma_done),
-      .ext_dma_stop_i,
+      .dma_done_i(dma_done),
+      .dma_done_override_i(dma_read_done_override),
+      .dma_read_unit_done_o(dma_read_unit_done),
 
       .wait_for_rx_i(wait_for_rx),
 
@@ -256,7 +261,7 @@ module dma
           .reg2hw_i(reg2hw),
 
           .dma_start_i(dma_start),
-          .ext_dma_stop_i,
+          .dma_done_override_i(dma_write_done_override),
 
           .read_addr_buffer_full_i(read_addr_buffer_full),
           .read_addr_buffer_alm_full_i(read_addr_buffer_alm_full),
@@ -334,7 +339,7 @@ module dma
       .dma_start_i(dma_start),
       .wait_for_tx_i(wait_for_tx),
       .dma_done_o(dma_done),
-      .ext_dma_stop_i,
+      .dma_done_override_i(dma_write_done_override),
 
       .write_buffer_empty_i(write_buffer_empty),
       .read_addr_buffer_empty_i(read_addr_buffer_empty),
@@ -486,6 +491,17 @@ module dma
     end
   end
 
+  /* HW FIFO done signal ovverride logic */
+  generate
+    if (HW_FIFO_MODE_EN == 1) begin
+      assign dma_write_done_override = (reg2hw.hw_fifo_done_override.q & dma_read_unit_done & hw_fifo_mode) || ext_dma_stop_i;
+    end else begin
+      assign dma_write_done_override = ext_dma_stop_i;
+    end
+    
+    assign dma_read_done_override = ext_dma_stop_i;
+  endgenerate
+
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Signal assignments */
@@ -569,6 +585,7 @@ module dma
 
   assign circular_mode = reg2hw.mode.q == 1;
   assign address_mode = reg2hw.mode.q == 2;
+  assign hw_fifo_mode = reg2hw.mode.q == 4;
 
   assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
   assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));

@@ -372,6 +372,10 @@ typedef struct
     uint8_t             pad_left_du; /*!< Padding at the left of the 2D transfer. */
     uint8_t             pad_right_du; /*!< Padding at the right of the 2D transfer. */
     #endif
+
+    #if DMA_HW_FIFO_MODE
+    uint8_t             dma_done_override;
+    #endif
     dma_data_type_t     src_type;   /*!< Source data type to use. One is chosen among
     the targets. */
     dma_data_type_t     dst_type;   /*!< Destination data type to use. One is chosen among

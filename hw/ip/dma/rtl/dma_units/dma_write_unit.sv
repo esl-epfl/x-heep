@@ -21,7 +21,7 @@ module dma_write_unit
 
     input logic dma_start_i,
     input logic wait_for_tx_i,
-    input logic ext_dma_stop_i,
+    input logic dma_done_override_i,
 
     input logic write_buffer_empty_i,
     input logic read_addr_buffer_empty_i,
@@ -75,6 +75,7 @@ module dma_write_unit
   dma_data_type_t dst_data_type;
 
   logic data_req_cond;
+  logic dma_done_override;
 
   logic data_out_req;
   logic data_out_we;
@@ -130,7 +131,7 @@ module dma_write_unit
       if (dma_start == 1'b1) begin
         dma_dst_cnt_d1 <= dma_size_d1;
         dma_dst_cnt_d2 <= dma_size_d2;
-      end else if (dma_done == 1'b1) begin
+      end else if (dma_done == 1'b1 || dma_done_override == 1'b1) begin
         dma_dst_cnt_d1 <= '0;
         dma_dst_cnt_d2 <= '0;
       end else if (data_out_gnt == 1'b1) begin
@@ -224,7 +225,7 @@ module dma_write_unit
       end
       DMA_WRITE_UNIT_ON: begin
         // If all data has been written, exit
-        if (ext_dma_stop_i == 1'b0) begin
+        if (dma_done_override == 1'b0) begin
           if (dma_conf_1d == 1'b1) begin
             // 1D DMA case
             if (|dma_dst_cnt_d1 == 1'b0) begin
@@ -310,6 +311,7 @@ module dma_write_unit
   endgenerate
 
   /* Renaming */
+  assign dma_done_override = dma_done_override_i;
   assign dma_start = dma_start_i;
   assign reg2hw = reg2hw_i;
   assign data_out_gnt = data_out_gnt_i;

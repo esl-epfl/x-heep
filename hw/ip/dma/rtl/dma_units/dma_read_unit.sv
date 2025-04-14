@@ -21,7 +21,7 @@ module dma_read_unit
 
     input logic dma_start_i,
     input logic dma_done_i,
-    input logic ext_dma_stop_i,
+    input logic dma_done_override_i,
 
     input logic wait_for_rx_i,
 
@@ -39,6 +39,7 @@ module dma_read_unit
 
     output logic [31:0] read_buffer_input_o,
 
+    output logic dma_read_unit_done_o,
     output logic general_buffer_flush_o
 );
 
@@ -71,7 +72,7 @@ module dma_read_unit
       dma_read_unit_state, dma_read_unit_n_state;
 
   logic dma_start;
-  logic ext_dma_stop;
+  logic dma_done_override;
 
   logic data_in_gnt;
   logic data_in_rvalid;
@@ -136,7 +137,7 @@ module dma_read_unit
       if (dma_start == 1'b1) begin
         dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q};
         dma_src_cnt_d2 <= {1'h0, reg2hw.size_d2.q};
-      end else if (dma_done_i == 1'b1) begin
+      end else if (dma_done_i == 1'b1 || dma_done_override == 1'b1) begin
         dma_src_cnt_d1 <= '0;
         dma_src_cnt_d2 <= '0;
       end else if (data_in_gnt == 1'b1) begin
@@ -224,6 +225,7 @@ module dma_read_unit
     dma_read_unit_n_state = dma_read_unit_state;
 
     buffer_flush = 1'b0;
+    dma_read_unit_done_o = 1'b0;
 
     unique case (dma_read_unit_state)
 
@@ -237,16 +239,18 @@ module dma_read_unit
       // Read one word
       DMA_READ_UNIT_ON: begin
         // If all input data read exit
-        if (ext_dma_stop == 1'b0) begin
+        if (dma_done_override == 1'b0) begin
           if (dma_conf_1d == 1'b1) begin
             // 1D DMA case
             if (|dma_src_cnt_d1 == 1'b0) begin
               dma_read_unit_n_state = DMA_READ_UNIT_IDLE;
+              dma_read_unit_done_o  = 1'b1;
             end
           end else if (dma_conf_2d == 1'b1) begin
             // 2D DMA case: exit only if both 1d and 2d counters are at 0
             if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} && |dma_src_cnt_d2 == 1'b0) begin
               dma_read_unit_n_state = DMA_READ_UNIT_IDLE;
+              dma_read_unit_done_o  = 1'b1;
             end
           end
         end else begin
@@ -349,7 +353,7 @@ module dma_read_unit
   assign buffer_full = read_buffer_full_i;
   assign buffer_alm_full = read_buffer_alm_full_i;
   assign dma_start = dma_start_i;
-  assign ext_dma_stop = ext_dma_stop_i;
+  assign dma_done_override = dma_done_override_i;
   assign read_ptr_update_sel = reg2hw.dim_inv.q;
   assign dma_conf_1d = reg2hw.dim_config.q == 0;
   assign dma_conf_2d = reg2hw.dim_config.q == 1;
