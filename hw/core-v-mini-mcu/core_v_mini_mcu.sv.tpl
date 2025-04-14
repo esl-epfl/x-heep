@@ -299,7 +299,8 @@ ${pad.core_v_mini_mcu_interface}
 
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
-      .JTAG_IDCODE(JTAG_IDCODE)
+      .JTAG_IDCODE(JTAG_IDCODE),
+      .SPI_SLAVE(${has_spi_slave})
   ) debug_subsystem_i (
       .clk_i,
       .rst_ni,
@@ -308,6 +309,10 @@ ${pad.core_v_mini_mcu_interface}
       .jtag_trst_ni,
       .jtag_tdi_i,
       .jtag_tdo_o,
+      .spi_slave_sck_i(spi_slave_sck_i),
+      .spi_slave_cs_i(spi_slave_cs_i),
+      .spi_slave_miso_o(spi_slave_miso_o),
+      .spi_slave_mosi_i(spi_slave_mosi_i),
       .debug_core_req_o(debug_req),
       .debug_ndmreset_no(debug_reset_n),
       .debug_slave_req_i(debug_slave_req),
