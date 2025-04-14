@@ -60,6 +60,9 @@ class PeripheralsDescription:
             if info.get("is_included") == "yes":
                 peripheral_info = dict(info)
                 peripheral_info["name"] = name
+                del peripheral_info[
+                    "offset"
+                ]  # offset changes between configurations (hardcoded in hjson, computed in python), thus they wan't be the same
                 del peripheral_info["is_included"]
                 filtered_peripherals.append(peripheral_info)
                 added += 1
@@ -149,6 +152,9 @@ class PeripheralsDescription:
             ):
                 if self_p != other_p:
                     eq = False
+                    print(
+                        f"peripheral {i}: {self_p} ({self.extension[1:]}) != {other_p} ({other.extension[1:]})"
+                    )
         if self.peripherals_count != other.peripherals_count:
             eq = False
             print(
