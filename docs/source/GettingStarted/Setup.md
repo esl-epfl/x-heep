@@ -34,19 +34,19 @@ The docker setup has certain limitations. For example, the following are not sup
 
 ### 1. OS requirements
 
-To use `X-HEEP`, first make sure to have a look at the [Check system requirements](https://opentitan.org/book/doc/getting_started/index.html) section of the OpenTitan documentation.
+To use `X-HEEP`, first you will need to install some OS dependencies.
 
-The following command `apt` command should install every required package (tested on an Ubuntu 22.04 distribution) :
+The following command `apt` command should install every required package (tested on an Ubuntu 22.04 distribution):
 ```bash
 sudo apt install autoconf automake autotools-dev curl python3 python3-pip python3-tomli libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev ninja-build git cmake libglib2.0-dev libslirp-dev help2man perl make g++ libfl2 libfl-dev zlibc zlib1g zlib1g-dev ccache mold libgoogle-perftools-dev numactl
 ```
 
-Any error occurring in the folliwing package can can be safely ignored:
+Errors occurring when installing the following packages may be ignored:
 ```bash
 libfl2 libfl-dev zlibc zlib1g zlib1g-dev
 ```
 
-links for the packages relative to each software can also be found under the corresponding section of the guide.
+Links for the packages relative to each software can also be found under the corresponding section of this guide. In general, make sure to have a look at the [Check system requirements](https://opentitan.org/book/doc/getting_started/index.html) section of the OpenTitan documentation.
 
 ### 2. Python
 
@@ -82,11 +82,10 @@ You need to do it only the first time, then just activate the environment every 
 ```bash
 source .venv/bin/activate
 ```
-or put the command directly in the `~/.bashrc` file.
 
 ### 3. Install the RISC-V Compiler:
 
-The RISC-V compiler requires the [following packages](https://github.com/riscv-collab/riscv-gnu-toolchain) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The Github page contains instructions for other linux distributions.
+The RISC-V compiler requires the [following packages](https://github.com/riscv-collab/riscv-gnu-toolchain) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The GitHub page contains instructions for other linux distributions.
 
 Then the installation can proceed with the following commands :
 ```
@@ -100,7 +99,7 @@ You need to set the `RISCV` environment variable like this:
 ```
 export RISCV=/home/$USER/tools/riscv
 ```
-Also consider adding it to your `~/.bashrc` or equivalent so that it's set automatically in the future, 
+Also consider adding it to your `~/.bashrc` or equivalent so that it's set automatically in the future. 
 
 Optionally you can also compile with clang/LLVM instead of gcc. For that you must install the clang compiler into the same `RISCV` path. The binaries of gcc and clang do not collide so you can have both residing in the same `RISCV` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV` when building LLVM. This can be accomplished by doing the following:
 
@@ -117,8 +116,9 @@ cmake --build . --target install
 
 Verilator requires the [following packages](https://verilator.org/guide/latest/install.html) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The [documentation](https://verilator.org/guide/latest/install.html) page contains instructions for other linux distributions. 
 
-> [!NOTE]
-> Verilator 4.210 will not build with GCC 12.0 or later, so it will need to be built with an older toolchain.
+```{note}
+Verilator 4.210 will not build with GCC 12.0 or later, so it will need to be built with an older toolchain.
+```
 
 To proceed with the installation, use the following command:
 
