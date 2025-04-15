@@ -220,7 +220,7 @@ class Pad:
     self.pad_mapping = pad_mapping
     self.pad_mux_list = pad_mux_list
 
-    if('low' in pad_active):
+    if pad_active == 'low':
         name_active = 'n'
     else:
         name_active = ''
@@ -601,7 +601,10 @@ def main():
     if  external_domains > 32:
         exit("external_domains must be less than 32 instead of " + str(external_domains))
 
-
+    try:
+        has_spi_slave = 1 if obj['debug']['has_spi_slave']=="yes" else 0
+    except KeyError:
+        has_spi_slave = 0
 
     xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)), config_override)
 
@@ -626,7 +629,7 @@ def main():
             if isinstance(info, dict):
                 new_info = {}
                 for k, v in info.items():
-                    if k not in ("is_included"):
+                    if k != "is_included":
                         new_info[k] = string2int(v)
                     else:
                         new_info[k] = v
@@ -639,7 +642,7 @@ def main():
         new = {}
         for k,v in peripherals.items():
             if isinstance(v, dict):
-                new[k] = {key:val for key,val in v.items() if key not in ("path")}
+                new[k] = {key:val for key,val in v.items() if key != "path"}
             else:
                 new[k] = v
         return new
@@ -648,10 +651,8 @@ def main():
         len_ep = 0
         for name, info in peripherals.items():
             if isinstance(info, dict):
-                for k, v in info.items():
-                   if k in ("is_included"):
-                    if v in ("yes"):
-                        len_ep += 1
+                if info['is_included'] == "yes":
+                    len_ep += 1
         return len_ep
 
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
@@ -794,7 +795,7 @@ def main():
             pad_mux_list_hjson = []
 
         try:
-            if ('True' in pads[key]['driven_manually']):
+            if pads[key]['driven_manually'] == 'True':
                 pad_driven_manually = True
             else:
                 pad_driven_manually = False
@@ -802,7 +803,7 @@ def main():
             pad_driven_manually = False
 
         try:
-            if ('True' in pads[key]['skip_declaration']):
+            if pads[key]['skip_declaration'] == 'True':
                 pad_skip_declaration = True
             else:
                 pad_skip_declaration = False
@@ -810,7 +811,7 @@ def main():
             pad_skip_declaration = False
 
         try:
-            if ('True' in pads[key]['keep_internal']):
+            if pads[key]['keep_internal'] == 'True':
                 pad_keep_internal = True
             else:
                 pad_keep_internal = False
@@ -857,7 +858,7 @@ def main():
                 pad_active_mux = 'high'
 
             try:
-                if ('True' in pads[key]['mux'][pad_mux]['driven_manually']):
+                if pads[key]['mux'][pad_mux]['driven_manually'] == 'True':
                     pad_driven_manually_mux = True
                 else:
                     pad_driven_manually_mux = False
@@ -865,7 +866,7 @@ def main():
                 pad_driven_manually_mux = False
 
             try:
-                if ('True' in pads[key]['mux'][pad_mux]['skip_declaration']):
+                if pads[key]['mux'][pad_mux]['skip_declaration'] == 'True':
                     pad_skip_declaration_mux = True
                 else:
                     pad_skip_declaration_mux = False
@@ -943,7 +944,7 @@ def main():
                 pad_mux_list_hjson = []
 
             try:
-                if ('True' in external_pads[key]['driven_manually']):
+                if external_pads[key]['driven_manually'] == 'True':
                     pad_driven_manually = True
                 else:
                     pad_driven_manually = False
@@ -951,7 +952,7 @@ def main():
                 pad_driven_manually = False
 
             try:
-                if ('True' in external_pads[key]['skip_declaration']):
+                if external_pads[key]['skip_declaration'] == 'True':
                     pad_skip_declaration = True
                 else:
                     pad_skip_declaration = False
@@ -998,7 +999,7 @@ def main():
                     pad_active_mux = 'high'
 
                 try:
-                    if ('True' in external_pads[key]['mux'][pad_mux]['driven_manually']):
+                    if external_pads[key]['mux'][pad_mux]['driven_manually'] == 'True':
                         pad_driven_manually_mux = True
                     else:
                         pad_driven_manually_mux = False
@@ -1006,7 +1007,7 @@ def main():
                     pad_driven_manually_mux = False
 
                 try:
-                    if ('True' in external_pads[key]['mux'][pad_mux]['skip_declaration']):
+                    if external_pads[key]['mux'][pad_mux]['skip_declaration'] == 'True':
                         pad_skip_declaration_mux = True
                     else:
                         pad_skip_declaration_mux = False
@@ -1083,6 +1084,7 @@ def main():
     kwargs = {
         "xheep"                            : xheep,
         "cpu_type"                         : cpu_type,
+        "has_spi_slave"                    : has_spi_slave,
         "cve2_rv32e"                       : cve2_rv32e,
         "cve2_rv32m"                       : cve2_rv32m,
         "external_domains"                 : external_domains,

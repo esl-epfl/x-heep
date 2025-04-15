@@ -8,16 +8,23 @@ jobs:
       image: ghcr.io/esl-epfl/x-heep-toolchain:latest
     name: Simulate all apps. All must pass.
     steps:
-      - name: Checkout
+      - name: Checkout the pushed code. 
         uses: actions/checkout@v3
-      - name: Run all apps
+      - name: Configure the job container and simulate all apps
         run: |
+          # Create the virtual environment and install the requirements. 
           conda init bash
           source /root/.bashrc
           conda activate core-v-mini-mcu
           make clean-all
-          sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
-          sed 's/num_channels:   0x1,/num_channels:   0x4,/' -i mcu_cfg.hjson
-          sed 's/num_channels_per_master_port: 0x1,/num_channels_per_master_port: 0x4,/' -i mcu_cfg.hjson
-          make mcu-gen MEMORY_BANKS=6
-          python3 .github/workflows/sim-apps-job/test_apps.py
+
+          # All peripherals are included to make sure all apps can be built.
+          sed 's/is_included: "no"/is_included: "yes"/' -i mcu_cfg.hjson
+
+          sed 's/num_channels:   0x1/num_channels:   0x4/' -i mcu_cfg.hjson
+          sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i mcu_cfg.hjson
+
+          # The MCU is generated with various memory banks to avoid example code not fitting.
+          make mcu-gen X_HEEP_CFG=configs/ci.hjson
+
+          python3 test/test_apps/test_apps.py

@@ -58,6 +58,9 @@ ${pad.core_v_mini_mcu_interface}
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
     input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i,
 
+    output hw_fifo_pkg::hw_fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
+    input hw_fifo_pkg::hw_fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
+
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
 
     output reg_req_t ext_peripheral_slave_req_o,
@@ -296,7 +299,8 @@ ${pad.core_v_mini_mcu_interface}
 
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
-      .JTAG_IDCODE(JTAG_IDCODE)
+      .JTAG_IDCODE(JTAG_IDCODE),
+      .SPI_SLAVE(${has_spi_slave})
   ) debug_subsystem_i (
       .clk_i,
       .rst_ni,
@@ -305,6 +309,10 @@ ${pad.core_v_mini_mcu_interface}
       .jtag_trst_ni,
       .jtag_tdi_i,
       .jtag_tdo_o,
+      .spi_slave_sck_i(spi_slave_sck_i),
+      .spi_slave_cs_i(spi_slave_cs_i),
+      .spi_slave_miso_o(spi_slave_miso_o),
+      .spi_slave_mosi_i(spi_slave_mosi_i),
       .debug_core_req_o(debug_req),
       .debug_ndmreset_no(debug_reset_n),
       .debug_slave_req_i(debug_slave_req),
@@ -413,6 +421,8 @@ ${pad.core_v_mini_mcu_interface}
       .dma_addr_resp_i(dma_addr_resp),
       .dma_done_intr_o(dma_done_intr),
       .dma_window_intr_o(dma_window_intr),
+      .hw_fifo_req_o,
+      .hw_fifo_resp_i,
       .spi_flash_intr_event_o(spi_flash_intr),
       .pad_req_o,
       .pad_resp_i,

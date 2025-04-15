@@ -126,6 +126,9 @@ module testharness #(
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_rsp;
 
+  hw_fifo_pkg::hw_fifo_req_t hw_fifo_req;
+  hw_fifo_pkg::hw_fifo_resp_t hw_fifo_resp;
+
   reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
   reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
 
@@ -224,10 +227,10 @@ module testharness #(
       .gpio_11_io(gpio[11]),
       .gpio_12_io(gpio[12]),
       .gpio_13_io(gpio[13]),
-      .gpio_14_io(gpio[14]),
-      .gpio_15_io(gpio[15]),
-      .gpio_16_io(gpio[16]),
-      .gpio_17_io(gpio[17]),
+      .spi_slave_sck_io(spi_sck),
+      .spi_slave_cs_io(spi_csb[0]),
+      .spi_slave_miso_io(spi_sd_io[1]),
+      .spi_slave_mosi_io(spi_sd_io[0]),
       .spi_flash_sck_io(spi_flash_sck),
       .spi_flash_cs_0_io(spi_flash_csb[0]),
       .spi_flash_cs_1_io(spi_flash_csb[1]),
@@ -278,6 +281,8 @@ module testharness #(
       .ext_dma_write_resp_i(heep_dma_write_resp),
       .ext_dma_addr_req_o(heep_dma_addr_req),
       .ext_dma_addr_resp_i(heep_dma_addr_resp),
+      .hw_fifo_req_o(hw_fifo_req),
+      .hw_fifo_resp_i(hw_fifo_resp),
       .ext_ao_peripheral_req_i(ext_ao_peripheral_req),
       .ext_ao_peripheral_resp_o(ext_ao_peripheral_resp),
       .ext_peripheral_slave_req_o(periph_slave_req),
@@ -493,6 +498,8 @@ module testharness #(
           .dma_read_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER0_IDX]),
           .dma_write_req_o(ext_master_req[testharness_pkg::EXT_MASTER1_IDX]),
           .dma_write_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER1_IDX]),
+          .hw_fifo_req_o(),
+          .hw_fifo_resp_i(),
           .dma_addr_req_o(),
           .dma_addr_resp_i('0),
           .trigger_slot_i('0),
@@ -624,17 +631,6 @@ module testharness #(
       );
 `endif
 
-`ifndef VERILATOR
-      // Flash used as an example device with an SPI interface
-      spiflash flash_device_i (
-          .csb(spi_csb[0]),
-          .clk(spi_sck),
-          .io0(spi_sd_io[0]),  // MOSI
-          .io1(spi_sd_io[1]),  // MISO
-          .io2(spi_sd_io[2]),
-          .io3(spi_sd_io[3])
-      );
-`endif
 
       if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px) && X_EXT != 0) begin: gen_fpu_ss_wrapper
         fpu_ss_wrapper #(

@@ -70,6 +70,7 @@ module peripheral_subsystem
     output logic [                        3:0] spi2_sd_en_o,
     input  logic [                        3:0] spi2_sd_i,
 
+
     //RV TIMER
     output logic rv_timer_2_intr_o,
     output logic rv_timer_3_intr_o,
@@ -292,9 +293,7 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_PLIC_IDX])
   );
 
-% for peripheral in peripherals.items():
-% if peripheral[0] in ("rv_plic"):
-% if peripheral[1]['is_included'] in ("yes"):
+% if 'rv_plic' in peripherals and peripherals['rv_plic']['is_included'] == 'yes':
   rv_plic rv_plic_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -315,12 +314,8 @@ module peripheral_subsystem
   assign irq_plic_o = '0;
   assign plic_tl_d2h = '0;
 % endif
-% endif
-% endfor
 
-% for peripheral in peripherals.items():
-% if peripheral[0] in ("spi_host"):
-% if peripheral[1]['is_included'] in ("yes"):
+% if 'spi_host' in peripherals and peripherals['spi_host']['is_included'] == 'yes':
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -357,14 +352,10 @@ module peripheral_subsystem
   assign spi_rx_valid_o = '0;
   assign spi_tx_ready_o = '0;
 % endif
-% endif
-% endfor
 
 
 
-% for peripheral in peripherals.items():
-% if peripheral[0] in ("gpio"):
-% if peripheral[1]['is_included'] in ("yes"):
+% if 'gpio' in peripherals and peripherals['gpio']['is_included'] == 'yes':
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -386,8 +377,6 @@ module peripheral_subsystem
   assign gpio_intr = '0;
   assign peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_IDX] = '0;
 % endif
-% endif
-% endfor
 
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
@@ -406,9 +395,7 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
   );
 
-% for peripheral in peripherals.items():
-% if peripheral[0] in ("i2c"):
-% if peripheral[1]['is_included'] in ("yes"):
+% if 'i2c' in peripherals and peripherals['i2c']['is_included'] == 'yes':
   i2c i2c_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -460,8 +447,6 @@ module peripheral_subsystem
   assign i2c_intr_ack_stop = '0;
   assign i2c_intr_host_timeout = '0;
 % endif
-% endif
-% endfor
 
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
@@ -480,9 +465,7 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
   );
 
-% for peripheral in peripherals.items():
-% if peripheral[0] in ("rv_timer"):
-% if peripheral[1]['is_included'] in ("yes"):
+% if 'rv_timer' in peripherals and peripherals['rv_timer']['is_included'] == 'yes':
   rv_timer rv_timer_2_3_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -496,12 +479,8 @@ module peripheral_subsystem
   assign rv_timer_2_intr_o = '0;
   assign rv_timer_3_intr_o = '0;
 % endif
-% endif
-% endfor
 
-% for peripheral in peripherals.items():
-% if peripheral[0] in ("spi2"):
-% if peripheral[1]['is_included'] in ("yes"):
+% if 'spi2' in peripherals and peripherals['spi2']['is_included'] == 'yes':
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -536,12 +515,8 @@ module peripheral_subsystem
   assign spi2_sd_en_o = '0;
   assign spi2_intr_event = '0;
 % endif
-% endif
-% endfor
 
-% for peripheral in peripherals.items():
-% if peripheral[0] in ("pdm2pcm"):
-% if peripheral[1]['is_included'] in ("yes"):
+% if 'pdm2pcm' in peripherals and peripherals['pdm2pcm']['is_included'] == 'yes':
   pdm2pcm #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -557,14 +532,10 @@ module peripheral_subsystem
   assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX] = '0;
   assign pdm2pcm_clk_o = '0;
 % endif
-% endif
-% endfor
 
   assign pdm2pcm_clk_en_o = 1;
 
-% for peripheral in peripherals.items():
-% if peripheral[0] in ("i2s"):
-% if peripheral[1]['is_included'] in ("yes"):
+% if 'i2s' in peripherals and peripherals['i2s']['is_included'] == 'yes':
   i2s #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -598,7 +569,7 @@ module peripheral_subsystem
   assign i2s_intr_event   = 1'b0;
   assign i2s_rx_valid_o   = 1'b0;
 % endif
-% endif
-% endfor
 
+
+  
 endmodule : peripheral_subsystem

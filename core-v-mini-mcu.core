@@ -36,6 +36,7 @@ filesets:
     - x-heep:ip:fast_intr_ctrl
     - x-heep:ip:obi_fifo
     - x-heep:ip:pdm2pcm
+    - esl_epfl:ip:obi_spi_slave
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -339,6 +340,7 @@ targets:
         vsim_options:
         - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi
         - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs
+        - -voptargs=+acc=npr
       vcs:
         vcs_options:
          - -override_timescale=1ns/1ps
@@ -521,3 +523,4 @@ targets:
       openroad:
         flow_path: flow/OpenROAD-flow-scripts/flow
         make_target: synth
+

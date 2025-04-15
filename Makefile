@@ -71,6 +71,10 @@ SIM_ARGS += $(if $(MAX_SIM_TIME),+max_sim_time=$(MAX_SIM_TIME))
 # Timeout for simulation, default 120
 TIMEOUT ?= 120
 
+# Testing flags
+# Optional TEST_FLAGS options are '--compile-only'
+TEST_FLAGS=
+
 # Flash read address for testing, in hexadecimal format 0x0000
 FLASHREAD_ADDR ?= 0x0
 FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
@@ -90,7 +94,7 @@ else
 	MAX_HEX_ADDRESS  := $(shell cat $(FLASHWRITE_FILE) | grep "@" | tail -1 | cut -c2-)
 	MAX_HEX_ADDRESS_DEC := $(shell printf "%d" 0x$(MAX_HEX_ADDRESS))
 	BYTES_AFTER_MAX_HEX_ADDRESS := $(shell tac $(FLASHWRITE_FILE) | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
-	FLASHWRITE_BYTES := $(shell echo $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 | bc)
+	FLASHWRITE_BYTES := $(shell echo $$(( $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 )))
 endif
 
 # Export variables to sub-makefiles
@@ -108,8 +112,10 @@ environment.yml: python-requirements.txt
 ## Generates mcu files core-v-mini-mcu files and build the design with fusesoc
 ## @param CPU=[cv32e20(default),cv32e40p,cv32e40x,cv32e40px]
 ## @param BUS=[onetoM(default),NtoM]
-## @param MEMORY_BANKS=[2(default) to (16 - MEMORY_BANKS_IL)]
+## @param MEMORY_BANKS=[2(default)to(16-MEMORY_BANKS_IL)]
 ## @param MEMORY_BANKS_IL=[0(default),2,4,8]
+## @param X_HEEP_CFG=[configs/general.hjson(default),<path-to-config-file> ]
+## @param MCU_CFG_PERIPHERALS=[mcu_cfg.hjson(default),<path-to-config-file>]
 mcu-gen:
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/include --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --external_pads $(EXT_PAD_CFG) --pkg-sv hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/core-v-mini-mcu/system_bus.sv.tpl
@@ -168,15 +174,12 @@ app: clean-app
 	echo "\033[0;31mI would start by checking b) if I were you!\033[0m"; \
 	exit 1; \
 	}
+	@python scripts/building/mem_usage.py
 
 ## Just list the different application names available
 app-list:
 	@echo "Note: Applications outside the X-HEEP sw/applications directory will not be listed."
 	tree sw/applications/
-
-## Compile all the apps present in the repo
-app-compile-all:
-	bash util/test_all.sh nosim $(LINKER) $(COMPILER) $(TIMEOUT)
 
 ## @section Simulation
 
@@ -246,10 +249,6 @@ run-app-verilator: app
 	echo '<end of uart0.log>'; \
 	cd ../../..;
 
-## Simulate all the apps present in the repo
-app-simulate-all:
-	bash util/test_all.sh $(LINKER) $(COMPILER) $(TIMEOUT) $(SIMULATOR)
-
 ## @section Vivado
 
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado
@@ -261,6 +260,8 @@ vivado-fpga:
 vivado-fpga-nobuild:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
 
+## Loads the generated bitstream into the FPGA
+## @param FPGA_BOARD=nexys-a7-100t,pynq-z2,zcu104
 vivado-fpga-pgm:
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/$(FPGA_BOARD)-vivado pgm
 
@@ -309,6 +310,29 @@ openOCD_bscan:
 ## Start GDB
 gdb_connect:
 	$(MAKE) -C sw gdb_connect
+
+## @section Testing
+
+## Run the tests for X-HEEP. Cleans and rebuilds all the project.
+.PHONY: test
+test:
+	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson
+	$(RM) test/*.log
+	python3 test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
+	@echo "You can also find the output in test/test_apps/test_apps.log"
+
+
+## Builds the specified app, loads it into the programmer's flash and then opens picocom to see the output
+## @param PROJECT=<folder_name_of_the_project_to_be_built>
+run-fpga-flash-load:
+	$(MAKE) app LINKER=flash_load TARGET=pynq-z2
+	$(MAKE) flash-prog || { \
+		echo "\033[0;31mTry holding the RESET button on the FPGA while loading the flash.\033[0m"; \
+		exit 1; \
+	}
+	@echo "\033[0;33mYou can exit Picocom with ctrl+A, ctrl+Q\033[0m";
+	@echo "\033[0;33mPress the RESET button on the FPGA to start the program\033[0m";
+	picocom -b 9600 -r -l --imap lfcrlf /dev/serial/by-id/usb-FTDI_Quad_RS232-HS-if02-port0;
 
 ## @section Cleaning commands
 

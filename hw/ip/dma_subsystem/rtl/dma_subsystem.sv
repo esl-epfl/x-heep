@@ -34,6 +34,9 @@ module dma_subsystem #(
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_o,
     input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_i,
 
+    output hw_fifo_pkg::hw_fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
+    input hw_fifo_pkg::hw_fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
+
     input logic [GLOBAL_SLOT_NUM-1:0] global_trigger_slot_i,
     input logic [EXT_SLOT_NUM-1:0] ext_trigger_slot_i,
 
@@ -134,6 +137,10 @@ module dma_subsystem #(
           .dma_write_resp_i(xbar_write_resp[i]),
           .dma_addr_req_o(xbar_address_req[i]),
           .dma_addr_resp_i(xbar_address_resp[i]),
+
+          .hw_fifo_req_o(hw_fifo_req_o[i]),
+          .hw_fifo_resp_i(hw_fifo_resp_i[i]),
+
           .trigger_slot_i({
             ext_trigger_slot_i[2*i+1], ext_trigger_slot_i[2*i], global_trigger_slot_i
           }),

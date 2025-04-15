@@ -10,6 +10,8 @@ lint_off -rule UNOPTFLAT -file "*tb/ext_xbar.sv" -match "Signal unoptimizable: F
 lint_off -rule UNDRIVEN -file "*tb/testharness.sv" -match "Signal is not driven: 'jtag_tdo_o'*"
 lint_off -rule UNDRIVEN -file "*tb/testharness.sv" -match "Signal is not driven: 'ext_ao_peripheral_req'*"
 lint_off -rule UNDRIVEN -file "*tb/testharness.sv" -match "Signal is not driven: 'ext_ao_peripheral_resp'*"
+lint_off -rule UNDRIVEN -file "*tb/testharness.sv" -match "Signal is not driven: 'hw_fifo_req'*"
+lint_off -rule UNDRIVEN -file "*tb/testharness.sv" -match "Signal is not driven: 'hw_fifo_resp'*"
 lint_off -rule SYNCASYNCNET -file "*tb/testharness.sv" -match "*"
 lint_off -rule WIDTH -file "*tb/testharness.sv" -match "*"
 lint_off -rule LITENDIAN -file "*tb/testharness.sv" -match "*"
