@@ -22,12 +22,14 @@ include Makefile.venv
 # FUSESOC and Python values (default)
 ifndef CONDA_DEFAULT_ENV
 $(info USING VENV)
-FUSESOC = $(PWD)/$(VENV)/fusesoc
-PYTHON  = $(PWD)/$(VENV)/python
+FUSESOC 	= $(PWD)/$(VENV)/fusesoc
+PYTHON  	= $(PWD)/$(VENV)/python
+RV_PROFILE 	= $(PWD)/$(VENV)/rv_profile
 else
 $(info USING MINICONDA $(CONDA_DEFAULT_ENV))
-FUSESOC := $(shell which fusesoc)
-PYTHON  := $(shell which python)
+FUSESOC 	:= $(shell which fusesoc)
+PYTHON  	:= $(shell which python)
+RV_PROFILE  := $(shell which rv_profile)
 endif
 
 # Project options are based on the app to be build (default - hello_world)
@@ -324,7 +326,7 @@ test:
 ## Run the profiling on a RTL simulation generating a flamegraph.
 .PHONY: profile
 profile:
-	bash util/profile/run_profile.sh
+	bash util/profile/run_profile.sh $(RV_PROFILE)
 
 ## @section Cleaning commands
 
