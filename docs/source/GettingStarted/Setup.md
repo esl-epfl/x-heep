@@ -48,17 +48,17 @@ libfl2 libfl-dev zlibc zlib1g zlib1g-dev
 
 Links for the packages relative to each software can also be found under the corresponding section of this guide. In general, make sure to have a look at the [Check system requirements](https://opentitan.org/book/doc/getting_started/index.html) section of the OpenTitan documentation.
 
-The following command `apt` command should install every required package (tested on an Ubuntu 22.04 distribution) :
+The following command `apt` command should install every required package (tested on an Ubuntu 22.04 distribution):
 ```bash
 sudo apt install autoconf automake autotools-dev curl python3 python3-pip python3-tomli libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev ninja-build git cmake libglib2.0-dev libslirp-dev help2man perl make g++ libfl2 libfl-dev zlibc zlib1g zlib1g-dev ccache mold libgoogle-perftools-dev numactl
 ```
 
-Any error occurring in the folliwing package can can be safely ignored:
+Errors occurring when installing the following packages may be ignored:
 ```bash
 libfl2 libfl-dev zlibc zlib1g zlib1g-dev
 ```
 
-links for the packages relative to each software can also be found under the corresponding section of the guide.
+Links for the packages relative to each software can also be found under the corresponding section of this guide. In general, make sure to have a look at the [Check system requirements](https://opentitan.org/book/doc/getting_started/index.html) section of the OpenTitan documentation.
 
 ### 2. Python
 
@@ -94,7 +94,6 @@ You need to do it only the first time, then just activate the environment every 
 ```bash
 source .venv/bin/activate
 ```
-or put the command directly in the `~/.bashrc` file.
 
 ### 3. Install the RISC-V Compiler:
 
