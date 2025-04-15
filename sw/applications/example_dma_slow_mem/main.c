@@ -6,11 +6,8 @@
  *  Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
  *                         <tommaso.terzano@gmail.com>
  *  
- *  Info: Example application of matrix manipulation by exploiting the 2D DMA.
- *        In this code, there are some optional features:
- *        - Verification of several matrix operations carried out by the 2D DMA
- *        - Performance comparison between the DMA and the CPU, obtained by performing similar matrix operations
- *          and monitoring the performance counter.
+ *  Info: Example application of a DMA interaction with a slow memory. The goal is to test the DAM's robustness with an OBI-compliant,
+ *        realistic unit.
  */
 
 #include <stdio.h>
@@ -24,16 +21,16 @@
 
 /*  
  *  This code contains four different tests that can be run by defining the corresponding TEST_ID_* macro.
- *  - Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using HALs
- *  - Extract a NxM matrix and copy its transposed version to AxB matrix, using HALs
+ *  - Write data from RAM into the slow memory with the DMA, and read its content with the CPU
+ *  - Write data from RAM into the slow memory with the CPU, and reads it with the DMA
  *  - Extract a 1xN matrix (array), perform optional padding and copy it to an array, using HALs
  *  - Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using direct register operations
  */
 
 #define TEST_ID_0
 #define TEST_ID_1
-#define TEST_ID_2
-#define TEST_ID_3
+//#define TEST_ID_2
+//#define TEST_ID_3
 
 /* Enable performance analysis */
 #define EN_PERF 1
@@ -44,7 +41,7 @@
 /* Parameters */
 
 /* Size of the extracted matrix (including strides on the input, excluding strides on the outputs) */
-#define SIZE_EXTR_D1 3
+#define SIZE_EXTR_D1 4
 #define SIZE_EXTR_D2 3
 
 /* Set strides of the input ad output matrix */
@@ -54,9 +51,9 @@
 #define STRIDE_OUT_D2 1
 
 /* Set the padding parameters */
-#define TOP_PAD 0
+#define TOP_PAD 1
 #define BOTTOM_PAD 0
-#define LEFT_PAD 0
+#define LEFT_PAD 1
 #define RIGHT_PAD 0
 
 #if !DMA_ZERO_PADDING && (TOP_PAD || BOTTOM_PAD || LEFT_PAD || RIGHT_PAD)
@@ -78,7 +75,7 @@
 #define TRANSPOSITION_EN 1
 
 /* Enables test format */
-#define TEST_EN 0
+#define TEST_EN 1
 
 /* Define the input datatype */
 typedef uint32_t dma_input_data_type;
@@ -116,6 +113,9 @@ dma_target_t tgt_src;
 dma_target_t tgt_dst;
 dma_trans_t trans;
 
+int* ext_slave_memory = (int*)EXT_SLAVE_START_ADDRESS;
+int dma_value = 0;
+
 uint32_t dst_ptr = 0, src_ptr = 0;
 uint32_t cycles_dma, cycles_cpu;
 uint32_t size_dst_trans_d1;
@@ -152,7 +152,7 @@ int main()
     tgt_src.trig = DMA_TRIG_MEMORY;
     tgt_src.type = DMA_DATA_TYPE;
     
-    tgt_dst.ptr = (uint8_t *)  copied_data_2D_DMA;
+    tgt_dst.ptr = (uint8_t *)  EXT_SLAVE_START_ADDRESS;
     tgt_dst.inc_d1_du = DST_INC_D1;
     tgt_dst.inc_d2_du = DST_INC_D2;
     tgt_dst.trig = DMA_TRIG_MEMORY;
@@ -289,13 +289,23 @@ int main()
     #if EN_VERIF
     
     /* Verify that the DMA and the CPU outputs are the same */
+
+    // Loop to read data from EXT_SLAVE_START_ADDR onward and compare with CPU data
     for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
         for (int j = 0; j < OUT_D1_PAD_STRIDE; j++) {
-            if (copied_data_2D_DMA[i * OUT_D1_PAD_STRIDE + j] != copied_data_2D_CPU[i * OUT_D1_PAD_STRIDE + j]) {
+            // Access data from EXT_SLAVE_START_ADDR directly
+            dma_value = ext_slave_memory[i * OUT_D1_PAD_STRIDE + j];
+
+            // You can then compare dma_value to your CPU-based data
+            PRINTF("%d\n\r", dma_value);  // Print the value if needed
+
+            if (dma_value != copied_data_2D_CPU[i * OUT_D1_PAD_STRIDE + j]) {
                 passed = 0;
             }
         }
+        PRINTF("\n\r");
     }
+    PRINTF("\n\r");
 
     if (passed) {
         #if TEST_EN == 0
@@ -335,42 +345,99 @@ int main()
 
     #ifdef TEST_ID_1
 
-    /* Testing transposition and copy of a NxM matrix using HALs */
- 
+    /* Testing copy and padding of a NxM matrix using HALs */
+    
     #if EN_PERF
 
     /* Reset the counter to evaluate the performance of the DMA */
     timer_cycles_init();
+
     #endif
 
-    tgt_src.ptr            = (uint8_t *) test_data;
-    tgt_src.inc_d1_du      = SRC_INC_TRSP_D1;
-    tgt_src.inc_d2_du      = SRC_INC_TRSP_D2;
-    tgt_src.trig           = DMA_TRIG_MEMORY;
-    tgt_src.type           = DMA_DATA_TYPE;
+    /* Initialize the slow memory */
+    for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
+    {
+        stride_1d_cnt = 0;
+        j_in = 0;
 
-    tgt_dst.ptr            = (uint8_t *) copied_data_2D_DMA;
-    tgt_dst.inc_d1_du      = DST_INC_D1;
-    tgt_dst.inc_d2_du      = DST_INC_D2;
-    tgt_dst.trig           = DMA_TRIG_MEMORY;
+        for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
+        {
+            dst_ptr = i * OUT_D1_PAD_STRIDE + j;
+            src_ptr = (i_in - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j_in - left_pad_cnt) * STRIDE_IN_D1;
+            if (i_in < TOP_PAD || i_in >= SIZE_EXTR_D2 + TOP_PAD || j_in < LEFT_PAD || j_in >= SIZE_EXTR_D1 + LEFT_PAD ||
+                stride_1d_cnt != 0 || stride_2d_cnt != 0)
+            {
+                ext_slave_memory[dst_ptr] = 0;
+            }
+            else
+            {
+                ext_slave_memory[dst_ptr] = test_data[src_ptr];
+            }
 
-    trans.src            = &tgt_src;
-    trans.dst            = &tgt_dst;
-    trans.mode           = DMA_TRANS_MODE_SINGLE;
-    trans.dim            = DMA_DIM_CONF_2D;
-    trans.dim_inv        = TRANSPOSITION_EN;
+            if (j_in < LEFT_PAD && i_in >= TOP_PAD && stride_1d_cnt == 0 && stride_2d_cnt == 0)
+            {
+                left_pad_cnt++;
+            }
+
+            if (stride_1d_cnt == STRIDE_OUT_D1 - 1)
+            {
+                stride_1d_cnt = 0;
+                j_in++;
+            }
+            else
+            {
+                stride_1d_cnt++;
+            }
+
+        }
+
+        if (i_in < TOP_PAD && stride_2d_cnt == 0)
+        {
+            top_pad_cnt++;
+        }
+        
+        if (stride_2d_cnt == STRIDE_OUT_D2 - 1)
+        {
+            stride_2d_cnt = 0;
+            i_in++;
+        }
+        else
+        {
+            stride_2d_cnt++;
+        }
+
+        left_pad_cnt = 0;
+    }
+
+    /* Retrieve data from the slow mem using the DMA */
+    tgt_src.ptr = (uint8_t *) EXT_SLAVE_START_ADDRESS;
+    tgt_src.inc_d1_du = SRC_INC_D1;
+    tgt_src.inc_d2_du = SRC_INC_D2;
+    tgt_src.trig = DMA_TRIG_MEMORY;
+    tgt_src.type = DMA_DATA_TYPE;
+    
+    tgt_dst.ptr = (uint8_t *)  copied_data_2D_DMA;
+    tgt_dst.inc_d1_du = DST_INC_D1;
+    tgt_dst.inc_d2_du = DST_INC_D2;
+    tgt_dst.trig = DMA_TRIG_MEMORY;
+    tgt_dst.type = DMA_DATA_TYPE;
+
+    trans.src = &tgt_src;
+    trans.dst = &tgt_dst;
+    trans.mode = DMA_TRANS_MODE_SINGLE;
+    trans.dim = DMA_DIM_CONF_2D;
     trans.size_d1_du     = SIZE_EXTR_D1;
     trans.size_d2_du     = SIZE_EXTR_D2;
     trans.win_du         = 0,
     trans.end            = DMA_TRANS_END_INTR;
     
     #if (DMA_ZERO_PADDING)
-    trans.pad_top_du     = TOP_PAD;
-    trans.pad_bottom_du  = BOTTOM_PAD;
-    trans.pad_left_du    = LEFT_PAD;
-    trans.pad_right_du   = RIGHT_PAD;
+    trans.pad_top_du     = TOP_PAD,
+    trans.pad_bottom_du  = BOTTOM_PAD,
+    trans.pad_left_du    = LEFT_PAD,
+    trans.pad_right_du   = RIGHT_PAD,
     #endif
-    
+
     dma_init(NULL);
     
     timer_start();
@@ -409,72 +476,21 @@ int main()
     cycles_dma = timer_stop();
 
     /* Reset the performance counter to evaluate the CPU performance */
-    timer_cycles_init();
+    timer_cycles_init();    
     timer_start();
     #endif
 
     #if EN_VERIF
 
     /* Run the same computation on the CPU */
-    for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
-    {
-        stride_1d_cnt = 0;
-        j_in = 0;
-
-        for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
-        {
-            dst_ptr = i * OUT_D1_PAD_STRIDE + j;
-            src_ptr = (j_in - left_pad_cnt) * STRIDE_IN_D2 * SIZE_IN_D1 + (i_in - top_pad_cnt ) * STRIDE_IN_D1;
-            if (i_in < TOP_PAD || i_in >= SIZE_EXTR_D2 + TOP_PAD || j_in < LEFT_PAD || j_in >= SIZE_EXTR_D1 + LEFT_PAD ||
-                stride_1d_cnt != 0 || stride_2d_cnt != 0)
-            {
-                copied_data_2D_CPU[dst_ptr] = 0;
-            }
-            else
-            {
-                copied_data_2D_CPU[dst_ptr] = test_data[src_ptr];
-            }
-
-            if (j_in < LEFT_PAD && i_in >= TOP_PAD && stride_1d_cnt == 0 && stride_2d_cnt == 0)
-            {
-                left_pad_cnt++;
-            }
-
-            if (stride_1d_cnt == STRIDE_OUT_D1 - 1)
-            {
-                stride_1d_cnt = 0;
-                j_in++;
-            }
-            else
-            {
-                stride_1d_cnt++;
-            }
-
-        }
-
-        if (i_in < TOP_PAD && stride_2d_cnt == 0)
-        {
-            top_pad_cnt++;
-        }
-        
-        if (stride_2d_cnt == STRIDE_OUT_D2 - 1)
-        {
-            stride_2d_cnt = 0;
-            i_in++;
-        }
-        else
-        {
-            stride_2d_cnt++;
-        }
-
-        left_pad_cnt = 0;
-    }
+    
     #endif
 
     #if EN_PERF
 
     /* Read the cycles count after the CPU run */
     cycles_cpu = timer_stop();
+    
     #if TEST_EN == 0
     PRINTF("Total number of cycles CPU: [%d]\n\r", cycles_cpu);
     PRINTF("Total number of cycles DMA: [%d]\n\r", cycles_dma);
@@ -488,26 +504,28 @@ int main()
     for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
         for (int j = 0; j < OUT_D1_PAD_STRIDE; j++) {
             if (copied_data_2D_DMA[i * OUT_D1_PAD_STRIDE + j] != copied_data_2D_CPU[i * OUT_D1_PAD_STRIDE + j]) {
-                passed = 0;
+              passed = 0;
             }
         }
+        PRINTF("\n\r");
     }
+    PRINTF("\n\r");
 
     if (passed) {
         #if TEST_EN == 0
-        PRINTF("TEST 1 PASSED!\n\r\n\r");
+        PRINTF("TEST 0 PASSED!\n\r\n\r");
         #else
-        PRINTF("1a:%d:0\n\r", cycles_cpu);  
-        PRINTF("1b:%d:0\n\r", cycles_dma);                
+        PRINTF("0a:%d:0\n\r", cycles_cpu);   
+        PRINTF("0b:%d:0\n\r", cycles_dma);               
         #endif
     } 
     else 
     {
         #if TEST_EN == 0
-        PRINTF("TEST 1 FAILED\n\r");
+        PRINTF("TEST 0 FAILED\n\r");
         #else
-        PRINTF("1a:%d:1\n\r", cycles_cpu);
-        PRINTF("1b:%d:1\n\r", cycles_dma);  
+        PRINTF("0a:%d:1\n\r", cycles_cpu); 
+        PRINTF("0b:%d:1\n\r", cycles_dma); 
         #endif
         return EXIT_FAILURE;
     }
