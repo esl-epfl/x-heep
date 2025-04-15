@@ -6,7 +6,6 @@ module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
   import fifo_pkg::*;
-  import fifo_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -16,7 +15,6 @@ module core_v_mini_mcu
     parameter AO_SPC_NUM = 0,
     parameter EXT_HARTS = 0,
     //do not touch these parameters
-    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1,
     parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1,
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
@@ -296,8 +294,6 @@ module core_v_mini_mcu
 
     input  reg_req_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_slave_req_i,
     output reg_rsp_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_slave_resp_o,
-    input  reg_req_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_slave_req_i,
-    output reg_rsp_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_slave_resp_o,
 
     // External slave ports
     output obi_req_t ext_core_instr_req_o,
@@ -313,8 +309,6 @@ module core_v_mini_mcu
     output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
     input obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i,
 
-    output fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
-    input  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
     output fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
     input  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
@@ -376,12 +370,6 @@ module core_v_mini_mcu
   obi_resp_t core_data_resp;
   obi_req_t debug_master_req;
   obi_resp_t debug_master_resp;
-  obi_req_t [1:0] dma_read_req;
-  obi_resp_t [1:0] dma_read_resp;
-  obi_req_t [1:0] dma_write_req;
-  obi_resp_t [1:0] dma_write_resp;
-  obi_req_t [1:0] dma_addr_req;
-  obi_resp_t [1:0] dma_addr_resp;
   obi_req_t [1:0] dma_read_req;
   obi_resp_t [1:0] dma_read_resp;
   obi_req_t [1:0] dma_write_req;
@@ -503,33 +491,6 @@ module core_v_mini_mcu
   assign memory_subsystem_banks_powergate_iso_n[5] = memory_subsystem_pwr_ctrl_out[5].isogate_en_n;
   assign memory_subsystem_banks_set_retentive_n[5] = memory_subsystem_pwr_ctrl_out[5].retentive_en_n;
   assign memory_subsystem_clkgate_en_n[5] = memory_subsystem_pwr_ctrl_out[5].clkgate_en_n;
-<<<<<<< HEAD
-  assign memory_subsystem_banks_powergate_switch_n[6] = memory_subsystem_pwr_ctrl_out[6].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[6].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[6];
-  //isogate exposed outside for UPF sim flow and switch cells
-  assign memory_subsystem_banks_powergate_iso_n[6] = memory_subsystem_pwr_ctrl_out[6].isogate_en_n;
-  assign memory_subsystem_banks_set_retentive_n[6] = memory_subsystem_pwr_ctrl_out[6].retentive_en_n;
-  assign memory_subsystem_clkgate_en_n[6] = memory_subsystem_pwr_ctrl_out[6].clkgate_en_n;
-  assign memory_subsystem_banks_powergate_switch_n[7] = memory_subsystem_pwr_ctrl_out[7].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[7].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[7];
-  //isogate exposed outside for UPF sim flow and switch cells
-  assign memory_subsystem_banks_powergate_iso_n[7] = memory_subsystem_pwr_ctrl_out[7].isogate_en_n;
-  assign memory_subsystem_banks_set_retentive_n[7] = memory_subsystem_pwr_ctrl_out[7].retentive_en_n;
-  assign memory_subsystem_clkgate_en_n[7] = memory_subsystem_pwr_ctrl_out[7].clkgate_en_n;
-  assign memory_subsystem_banks_powergate_switch_n[8] = memory_subsystem_pwr_ctrl_out[8].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[8].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[8];
-  //isogate exposed outside for UPF sim flow and switch cells
-  assign memory_subsystem_banks_powergate_iso_n[8] = memory_subsystem_pwr_ctrl_out[8].isogate_en_n;
-  assign memory_subsystem_banks_set_retentive_n[8] = memory_subsystem_pwr_ctrl_out[8].retentive_en_n;
-  assign memory_subsystem_clkgate_en_n[8] = memory_subsystem_pwr_ctrl_out[8].clkgate_en_n;
-  assign memory_subsystem_banks_powergate_switch_n[9] = memory_subsystem_pwr_ctrl_out[9].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[9].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[9];
-  //isogate exposed outside for UPF sim flow and switch cells
-  assign memory_subsystem_banks_powergate_iso_n[9] = memory_subsystem_pwr_ctrl_out[9].isogate_en_n;
-  assign memory_subsystem_banks_set_retentive_n[9] = memory_subsystem_pwr_ctrl_out[9].retentive_en_n;
-  assign memory_subsystem_clkgate_en_n[9] = memory_subsystem_pwr_ctrl_out[9].clkgate_en_n;
-=======
->>>>>>> 8a52537a (Made DMA modular)
 
   for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin
     assign external_subsystem_powergate_switch_no[i]        = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
