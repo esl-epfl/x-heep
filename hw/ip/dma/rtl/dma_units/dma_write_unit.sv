@@ -134,7 +134,7 @@ module dma_write_unit
       end else if (dma_done == 1'b1 || dma_done_override == 1'b1) begin
         dma_dst_cnt_d1 <= '0;
         dma_dst_cnt_d2 <= '0;
-      end else if (data_out_gnt == 1'b1) begin
+      end else if ((data_out_gnt && data_out_req)) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
           dma_dst_cnt_d1 <= dma_dst_cnt_d1 - 1;
@@ -186,7 +186,7 @@ module dma_write_unit
     end else begin
       if (dma_start == 1'b1) begin
         write_ptr_reg <= reg2hw.dst_ptr.q;
-      end else if (data_out_gnt == 1'b1) begin
+      end else if ((data_out_gnt && data_out_req)) begin
         if (dma_conf_1d == 1'b1) begin
           write_ptr_reg <= write_ptr_reg + dma_dst_d1_inc;
         end else if (dma_conf_2d == 1'b1) begin
