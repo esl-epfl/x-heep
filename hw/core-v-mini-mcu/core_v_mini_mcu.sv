@@ -6,6 +6,7 @@ module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
   import fifo_pkg::*;
+  import fifo_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -15,6 +16,7 @@ module core_v_mini_mcu
     parameter AO_SPC_NUM = 0,
     parameter EXT_HARTS = 0,
     //do not touch these parameters
+    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1,
     parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1,
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
@@ -294,6 +296,8 @@ module core_v_mini_mcu
 
     input  reg_req_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_slave_req_i,
     output reg_rsp_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_slave_resp_o,
+    input  reg_req_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_slave_req_i,
+    output reg_rsp_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_slave_resp_o,
 
     // External slave ports
     output obi_req_t ext_core_instr_req_o,
@@ -309,6 +313,8 @@ module core_v_mini_mcu
     output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
     input obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i,
 
+    output fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
+    input  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
     output fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
     input  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
@@ -370,6 +376,12 @@ module core_v_mini_mcu
   obi_resp_t core_data_resp;
   obi_req_t debug_master_req;
   obi_resp_t debug_master_resp;
+  obi_req_t [1:0] dma_read_req;
+  obi_resp_t [1:0] dma_read_resp;
+  obi_req_t [1:0] dma_write_req;
+  obi_resp_t [1:0] dma_write_resp;
+  obi_req_t [1:0] dma_addr_req;
+  obi_resp_t [1:0] dma_addr_resp;
   obi_req_t [1:0] dma_read_req;
   obi_resp_t [1:0] dma_read_resp;
   obi_req_t [1:0] dma_write_req;
