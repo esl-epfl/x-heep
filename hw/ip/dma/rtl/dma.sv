@@ -498,7 +498,7 @@ module dma
     end else begin
       assign dma_write_done_override = ext_dma_stop_i;
     end
-    
+
     assign dma_read_done_override = ext_dma_stop_i;
   endgenerate
 

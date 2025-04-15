@@ -79,7 +79,7 @@ module dma_read_addr_unit
     end else begin
       if (dma_start == 1'b1 && address_mode) begin
         addr_ptr_reg <= reg2hw.addr_ptr.q;
-      end else if (data_addr_in_gnt && data_addr_in_req && address_mode) begin
+      end else if ((data_addr_in_gnt && data_addr_in_req) && address_mode) begin
         addr_ptr_reg <= addr_ptr_reg + 32'h4;  //always continuos in 32b
       end
     end
@@ -92,7 +92,7 @@ module dma_read_addr_unit
     end else begin
       if (dma_start == 1'b1 && address_mode) begin
         dma_addr_cnt <= {16'h0, reg2hw.size_d1.q};
-      end else if (data_addr_in_gnt && data_addr_in_req && address_mode) begin
+      end else if ((data_addr_in_gnt && data_addr_in_req) && address_mode) begin
         dma_addr_cnt <= dma_addr_cnt - 1;  //address always 32b
       end
     end
