@@ -9,6 +9,7 @@
 module pdm2pcm #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
+    parameter string CIC_ONLY = "False",
     parameter int unsigned FIFO_DEPTH = 4,
     parameter int unsigned FIFO_WIDTH = 18,
     localparam int unsigned FIFO_ADDR_WIDTH = $clog2(FIFO_DEPTH)
@@ -102,7 +103,9 @@ module pdm2pcm #(
           reg2hw.fircoef13.q
       };
 
-  pdm_core #() pdm_core_i (
+  pdm_core #(
+      .CIC_ONLY(CIC_ONLY)
+  ) pdm_core_i (
       .clk_i,
       .rstn_i(rst_ni),
       .en_i(reg2hw.control.enabl.q),
