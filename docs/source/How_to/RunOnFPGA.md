@@ -52,7 +52,7 @@ and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit`.
 Or simply type:
 
 ```
-bash vivado-fpga-pgm FPGA_BOARD=pynq-z2
+make vivado-fpga-pgm FPGA_BOARD=pynq-z2
 ```
 
 or
