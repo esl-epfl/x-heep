@@ -66,13 +66,13 @@ module slow_memory #(
       mem_wdata_q <= '0;
       mem_be_q <= '0;
     end else begin
-      random1 <= $random();
-      random2 <= $random();
-      random3 <= ($random() % 2) != 0;
+      random1   <= $random();
+      random2   <= $random();
+      random3   <= ($random() % 2) != 0;
       counter_q <= counter_n;
-      rvalid_q <= rvalid_n;
-      state_q <= state_n;
-      if(sample_req) begin
+      rvalid_q  <= rvalid_n;
+      state_q   <= state_n;
+      if (sample_req) begin
         mem_req_q <= mem_req_n;
         mem_we_q <= mem_we_n;
         mem_addr_q <= mem_addr_n;
