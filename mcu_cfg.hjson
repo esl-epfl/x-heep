@@ -121,7 +121,7 @@
         pdm2pcm: {
             offset:  0x00060000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
             path:    "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
             cic_only: 0x1
         }
