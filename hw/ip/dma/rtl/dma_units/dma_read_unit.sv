@@ -140,7 +140,7 @@ module dma_read_unit
       end else if (dma_done_i == 1'b1 || dma_done_override == 1'b1) begin
         dma_src_cnt_d1 <= '0;
         dma_src_cnt_d2 <= '0;
-      end else if (data_in_req && data_in_gnt) begin
+      end else if (data_in_gnt && data_in_req) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
           dma_src_cnt_d1 <= dma_src_cnt_d1 - 1;
@@ -184,7 +184,7 @@ module dma_read_unit
     end else begin
       if (dma_start == 1'b1) begin
         read_ptr_reg <= reg2hw.src_ptr.q;
-      end else if ((data_in_gnt && data_in_req)) begin
+      end else if (data_in_gnt && data_in_req) begin
         if (dma_conf_1d == 1'b1) begin
           /* Increase the pointer by the amount written in ptr_inc */
           read_ptr_reg <= read_ptr_reg + dma_src_d1_inc;
