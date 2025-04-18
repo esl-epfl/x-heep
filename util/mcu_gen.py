@@ -629,7 +629,7 @@ def main():
             if isinstance(info, dict):
                 new_info = {}
                 for k, v in info.items():
-                    if k != "is_included":
+                    if "0x" in v:
                         new_info[k] = string2int(v)
                     else:
                         new_info[k] = v
@@ -657,51 +657,58 @@ def main():
 
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
     ao_peripherals_count = len(ao_peripherals)
-    dma_ch_count = ao_peripherals["dma"]["num_channels"]
+    dma_ch_count = int(ao_peripherals["dma"]["num_channels"], 16)
 
-    if int(dma_ch_count, 16) > int('256', 16) or int(dma_ch_count, 16) == 0:
+    if dma_ch_count > 256 or dma_ch_count == 0:
         exit("Number of DMA channels has to be between 0 and 256, excluded")
 
     dma_ch_size = ao_peripherals["dma"]["ch_length"]
 
     # Number of master ports for the dma subsystem
-    num_dma_master_ports = ao_peripherals["dma"]["num_master_ports"]
-    if int(num_dma_master_ports, 16) > int(dma_ch_count, 16) or int(num_dma_master_ports, 16) == 0:
+    num_dma_master_ports = int(ao_peripherals["dma"]["num_master_ports"], 16)
+    if num_dma_master_ports > dma_ch_count or num_dma_master_ports == 0:
         exit("Number of DMA master ports has to be between 0 and " + str(dma_ch_count) + ", 0 excluded")
 
     # Number of masters for each slave of the DMA NtoM xbar
-    num_dma_xbar_channels_per_master_port = ao_peripherals["dma"]["num_channels_per_master_port"]
-    if (int(num_dma_xbar_channels_per_master_port, 16) > int(dma_ch_count, 16) and int(dma_ch_count, 16) != 1) or int(num_dma_xbar_channels_per_master_port, 16) == 0:
+    num_dma_xbar_channels_per_master_port = int(ao_peripherals["dma"]["num_channels_per_master_port"], 16)
+    if (num_dma_xbar_channels_per_master_port > dma_ch_count and dma_ch_count != 1) or num_dma_xbar_channels_per_master_port == 0:
         exit("Number of DMA channels per system bus master ports has to be between 0 and " + str(dma_ch_count) + ", excluded")
 
-    if (int(num_dma_master_ports) > 1):
+    if (num_dma_master_ports > 1):
         # Computation of full_masters_xbars
-        temp_full_masters_xbars = math.floor(int(dma_ch_count) / int(num_dma_xbar_channels_per_master_port))
-        if temp_full_masters_xbars < int(num_dma_master_ports) and temp_full_masters_xbars * int(num_dma_xbar_channels_per_master_port) == int(dma_ch_count):
+        temp_full_masters_xbars = math.floor(dma_ch_count / num_dma_xbar_channels_per_master_port)
+        if temp_full_masters_xbars < num_dma_master_ports and temp_full_masters_xbars * num_dma_xbar_channels_per_master_port == dma_ch_count:
             full_masters_xbars = temp_full_masters_xbars - 1
         else:
             full_masters_xbars = temp_full_masters_xbars
-        last = int(num_dma_xbar_channels_per_master_port) * full_masters_xbars
+        last = num_dma_xbar_channels_per_master_port * full_masters_xbars
 
         # Array initialization
-        array_xbar_gen = [0] * int(num_dma_master_ports)
+        array_xbar_gen = [0] * num_dma_master_ports
 
         # Computation of the number of xbar channels for each master port
-        for i in range(int(num_dma_master_ports)):
+        for i in range(num_dma_master_ports):
             if i < full_masters_xbars:
-                array_xbar_gen[i] = int(num_dma_xbar_channels_per_master_port)
+                array_xbar_gen[i] = num_dma_xbar_channels_per_master_port
             else:
-                array_xbar_gen[i] = min(int(dma_ch_count) - last, int(dma_ch_count) - last - (int(num_dma_master_ports) - i - 1))
+                array_xbar_gen[i] = min(dma_ch_count - last, dma_ch_count - last - (num_dma_master_ports - i - 1))
                 last = last + array_xbar_gen[i]
 
-        if (sum(array_xbar_gen) != int(dma_ch_count) or 0 in array_xbar_gen):
+        if (sum(array_xbar_gen) != dma_ch_count or 0 in array_xbar_gen):
             exit("Error in the DMA xbar generation: wrong parameters")
         
         dma_xbar_array = ", ".join(map(str, array_xbar_gen))
     else:
-        if (int(num_dma_xbar_channels_per_master_port) != int(dma_ch_count)):
+        if (num_dma_xbar_channels_per_master_port != dma_ch_count):
             exit("With 1 master port, the number of DMA channels per master port has to be equal to the number of DMA channels")
         dma_xbar_array = "default: 1"
+
+    # Generating DMA subsystem configuration
+    dma_fifo_depth = int(ao_peripherals["dma"]["fifo_depth"], 16)
+    dma_addr_mode = 0 if ao_peripherals["dma"]["addr_mode_en"] == "no" else 1
+    dma_subaddr_mode = 0 if ao_peripherals["dma"]["subaddr_mode_en"] == "no" else 1
+    dma_hw_fifo_mode = 0 if ao_peripherals["dma"]["hw_fifo_mode_en"] == "no" else 1
+    dma_zero_padding = 0 if ao_peripherals["dma"]["zero_padding_en"] == "no" else 1
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -1099,6 +1106,11 @@ def main():
         "num_dma_master_ports"             : num_dma_master_ports,
         "num_dma_xbar_channels_per_master_port" : num_dma_xbar_channels_per_master_port,
         "dma_xbar_masters_array"           : dma_xbar_array,
+        "dma_fifo_depth"                   : dma_fifo_depth,  
+        "dma_addr_mode"                    : dma_addr_mode,
+        "dma_subaddr_mode"                 : dma_subaddr_mode,
+        "dma_hw_fifo_mode"                 : dma_hw_fifo_mode,
+        "dma_zero_padding"                 : dma_zero_padding,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "peripherals"                      : peripherals,

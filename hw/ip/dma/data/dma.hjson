@@ -294,6 +294,15 @@
         { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
       ]
     }
+    { name:    "HW_FIFO_DONE_OVERRIDE"
+      desc:    '''Flag to override the write-unit-based done signal logic'''
+      swaccess: "rw"
+      hwaccess: "hro"
+      resval:   0
+      fields: [
+        { bits: "0", name: "FLAG", desc: "Set to enable read-unit-based done logic" }
+      ]
+    }
     { name:    "WINDOW_IFR"
       desc:    '''Interrupt Flag Register for windows'''
       swaccess: "ro"
@@ -303,24 +312,6 @@
       resval:        0
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for window done interrupt" }
-      ]
-    }
-    { name:     "HW_FIFO_MODE_SIGN_EXT"
-      desc:     '''In HW_FIFO_MODE, is the input data to be sign extended before sending it to the hw read fifo?
-                    (The input of the hw read fifo is on 32 bits, which could be wider than the src data type)'''
-      swaccess: "rw"
-      hwaccess: "hro"
-      resval:        0
-      
-      fields: [
-        { bits: "0"
-          name: "HW_FIFO_SIGNED"
-          desc: "Extend the sign to 32 bits"
-          enum: [
-            { value: "0", name: "NO_EXTEND", desc: "Does not extend the sign"}
-            { value: "1", name: "EXTEND", desc: "Extends the sign"}
-          ]
-        }
       ]
     }
   ]

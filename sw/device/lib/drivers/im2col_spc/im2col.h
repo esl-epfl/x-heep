@@ -48,8 +48,8 @@ typedef struct
     uint32_t right_pad;           /*!< Padding on the right. */
     uint32_t top_pad;             /*!< Padding on the top. */
     uint32_t bottom_pad;          /*!< Padding on the bottom. */
-    uint32_t adpt_pad_right;      /*!< Adaptive padding on the right. */
-    uint32_t adpt_pad_bottom;     /*!< Adaptive padding on the bottom. */
+    uint32_t last_patch_w;        /*!< Difference between the location of the first element of the last patch along the width and IW. */
+    uint32_t last_patch_h;        /*!< Difference between the location of the first element of the last patch along the height and IH. */
     uint32_t datatype;            /*!< Data type of the input. */
 } im2col_trans_t;
 

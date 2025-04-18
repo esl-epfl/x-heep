@@ -14,12 +14,13 @@ filesets:
     files:
     - rtl/dma_reg_pkg.sv
     - rtl/dma_reg_top.sv
-    - rtl/dma_padding_fsm.sv
-    - rtl/dma_obiread_fsm.sv
-    - rtl/dma_obiread_addr_fsm.sv
-    - rtl/dma_obiwrite_fsm.sv
-    - rtl/hw_r_fifo_ctrl.sv
-    - rtl/hw_w_fifo_ctrl.sv
+    - rtl/dma_units/dma_processing_unit.sv
+    - rtl/dma_units/dma_read_unit.sv
+    - rtl/dma_units/dma_read_addr_unit.sv
+    - rtl/dma_units/dma_write_unit.sv
+    - rtl/dma_units/dma_buffer_unit/dma_buffer_fifos.sv
+    - rtl/dma_units/dma_buffer_unit/dma_buffer_control.sv
+    - rtl/dma_units/dma_buffer_unit/dma_buffer_unit.sv
     - rtl/dma.sv
     file_type: systemVerilogSource
 

@@ -731,7 +731,7 @@ _Return Values_:
 #### <i> handler_irq_dma() </i>
 
 _Purpose_:
-The *handler_irq_dma* function is very similar to *fic_irq_dma*, but its called whenever one of the DMA channels triggers a window donw interrupt, i.e. the transaction has copied N elements. Just like the previous one, this function identifies the channel that triggered the interrupt and calls a handler function, *dma_intr_handler_window_done()*, passing the channel ID. 
+The *handler_irq_dma* function is very similar to *fic_irq_dma*, but its called whenever one of the DMA channels triggers a window done interrupt, i.e. the transaction has copied N elements. Just like the previous one, this function identifies the channel that triggered the interrupt and calls a handler function, *dma_intr_handler_window_done()*, passing the channel ID. 
 
 _Parameters_: 
 - None

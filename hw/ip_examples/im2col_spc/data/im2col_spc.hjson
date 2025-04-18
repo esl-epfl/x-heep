@@ -98,20 +98,20 @@
         { bits: "15:0", name: "NUM", desc: "Number of patches" }
       ]
     },
-    { name:     "ADPT_PAD_RIGHT",
+    { name:     "LAST_PATCH_H",
       desc:     "Adapted right padded region",
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "7:0", name: "SIZE", desc: "Size of the adapted padded region" }
+        { bits: "7:0", name: "SIZE", desc: "Difference between the location of the first element of the last patch along the height and IH" }
       ]
     },
-    { name:     "ADPT_PAD_BOTTOM",
+    { name:     "LAST_PATCH_W",
       desc:     "Adapted bottom padded region",
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "7:0", name: "SIZE", desc: "Size of the adapted padded region" }
+        { bits: "7:0", name: "SIZE", desc: "Difference between the location of the first element of the last patch along the width and IW" }
       ]
     },
     { name:     "LOG_STRIDES_D1",

@@ -1,12 +1,5 @@
 // Generated register defines for dma
 
-// Copyright information found in source file:
-// Copyright EPFL contributors.
-
-// Licensing information found in source file:
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
-
 #ifndef _DMA_REG_DEFS_
 #define _DMA_REG_DEFS_
 
@@ -183,14 +176,13 @@ extern "C" {
 #define DMA_TRANSACTION_IFR_REG_OFFSET 0x60
 #define DMA_TRANSACTION_IFR_FLAG_BIT 0
 
-// Interrupt Flag Register for windows
-#define DMA_WINDOW_IFR_REG_OFFSET 0x64
-#define DMA_WINDOW_IFR_FLAG_BIT 0
+// Flag to override the write-unit-based done signal logic
+#define DMA_HW_FIFO_DONE_OVERRIDE_REG_OFFSET 0x64
+#define DMA_HW_FIFO_DONE_OVERRIDE_FLAG_BIT 0
 
-// In HW_FIFO_MODE, is the input data to be sign extended before sending it
-// to the hw read fifo?
-#define DMA_HW_FIFO_MODE_SIGN_EXT_REG_OFFSET 0x68
-#define DMA_HW_FIFO_MODE_SIGN_EXT_HW_FIFO_SIGNED_BIT 0
+// Interrupt Flag Register for windows
+#define DMA_WINDOW_IFR_REG_OFFSET 0x68
+#define DMA_WINDOW_IFR_FLAG_BIT 0
 
 #ifdef __cplusplus
 }  // extern "C"

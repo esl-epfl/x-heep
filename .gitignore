@@ -27,6 +27,7 @@ hw/core-v-mini-mcu/memory_subsystem.sv
 hw/system/x_heep_system.sv
 hw/system/pad_ring.sv
 tb/tb_util.svh
+hw/ip/dma/data/dma_gen.hjson
 hw/ip/power_manager/data/power_manager.hjson
 hw/ip/power_manager/rtl/power_manager.sv
 hw/ip/power_manager/rtl/power_manager_reg_top.sv

@@ -147,11 +147,11 @@ module dma_reg_top #(
   logic interrupt_en_window_done_we;
   logic transaction_ifr_qs;
   logic transaction_ifr_re;
+  logic hw_fifo_done_override_qs;
+  logic hw_fifo_done_override_wd;
+  logic hw_fifo_done_override_we;
   logic window_ifr_qs;
   logic window_ifr_re;
-  logic hw_fifo_mode_sign_ext_qs;
-  logic hw_fifo_mode_sign_ext_wd;
-  logic hw_fifo_mode_sign_ext_we;
 
   // Register instances
   // R[src_ptr]: V(False)
@@ -876,6 +876,33 @@ module dma_reg_top #(
   );
 
 
+  // R[hw_fifo_done_override]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_hw_fifo_done_override (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(hw_fifo_done_override_we),
+      .wd(hw_fifo_done_override_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.hw_fifo_done_override.q),
+
+      // to register interface (read)
+      .qs(hw_fifo_done_override_qs)
+  );
+
+
   // R[window_ifr]: V(True)
 
   prim_subreg_ext #(
@@ -889,33 +916,6 @@ module dma_reg_top #(
       .qe (),
       .q  (reg2hw.window_ifr.q),
       .qs (window_ifr_qs)
-  );
-
-
-  // R[hw_fifo_mode_sign_ext]: V(False)
-
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
-  ) u_hw_fifo_mode_sign_ext (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(hw_fifo_mode_sign_ext_we),
-      .wd(hw_fifo_mode_sign_ext_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.hw_fifo_mode_sign_ext.q),
-
-      // to register interface (read)
-      .qs(hw_fifo_mode_sign_ext_qs)
   );
 
 
@@ -949,8 +949,8 @@ module dma_reg_top #(
     addr_hit[22] = (reg_addr == DMA_WINDOW_COUNT_OFFSET);
     addr_hit[23] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
     addr_hit[24] = (reg_addr == DMA_TRANSACTION_IFR_OFFSET);
-    addr_hit[25] = (reg_addr == DMA_WINDOW_IFR_OFFSET);
-    addr_hit[26] = (reg_addr == DMA_HW_FIFO_MODE_SIGN_EXT_OFFSET);
+    addr_hit[25] = (reg_addr == DMA_HW_FIFO_DONE_OVERRIDE_OFFSET);
+    addr_hit[26] = (reg_addr == DMA_WINDOW_IFR_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -1065,10 +1065,10 @@ module dma_reg_top #(
 
   assign transaction_ifr_re = addr_hit[24] & reg_re & !reg_error;
 
-  assign window_ifr_re = addr_hit[25] & reg_re & !reg_error;
+  assign hw_fifo_done_override_we = addr_hit[25] & reg_we & !reg_error;
+  assign hw_fifo_done_override_wd = reg_wdata[0];
 
-  assign hw_fifo_mode_sign_ext_we = addr_hit[26] & reg_we & !reg_error;
-  assign hw_fifo_mode_sign_ext_wd = reg_wdata[0];
+  assign window_ifr_re = addr_hit[26] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin
@@ -1178,11 +1178,11 @@ module dma_reg_top #(
       end
 
       addr_hit[25]: begin
-        reg_rdata_next[0] = window_ifr_qs;
+        reg_rdata_next[0] = hw_fifo_done_override_qs;
       end
 
       addr_hit[26]: begin
-        reg_rdata_next[0] = hw_fifo_mode_sign_ext_qs;
+        reg_rdata_next[0] = window_ifr_qs;
       end
 
       default: begin

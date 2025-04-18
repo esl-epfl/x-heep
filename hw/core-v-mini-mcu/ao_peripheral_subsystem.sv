@@ -6,10 +6,11 @@ module ao_peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
   import power_manager_pkg::*;
+  import fifo_pkg::*;
 #(
     parameter AO_SPC_NUM = 0,
     //do not touch these parameters
-    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 1 : AO_SPC_NUM,
+    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 ) (
@@ -19,8 +20,8 @@ module ao_peripheral_subsystem
     input  reg_req_t slave_req_i,
     output reg_rsp_t slave_resp_o,
 
-    input  reg_req_t [AO_SPC_NUM_RND-1:0] spc2ao_req_i,
-    output reg_rsp_t [AO_SPC_NUM_RND-1:0] ao2spc_resp_o,
+    input  reg_req_t [AO_SPC_NUM_RND:0] spc2ao_req_i,
+    output reg_rsp_t [AO_SPC_NUM_RND:0] ao2spc_resp_o,
 
     // SOC CTRL
     input  logic        boot_select_i,
@@ -76,8 +77,8 @@ module ao_peripheral_subsystem
     output logic                                                      dma_done_intr_o,
     output logic                                                      dma_window_intr_o,
 
-    output hw_fifo_pkg::hw_fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
-    input  hw_fifo_pkg::hw_fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
+    output fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
+    input  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
     // External PADs
     output reg_req_t pad_req_o,
@@ -234,21 +235,21 @@ module ao_peripheral_subsystem
 
   /* SPC crossbar & FIFOs */
   generate
-    if (AO_SPC_NUM_RND > 0) begin
+    if (AO_SPC_NUM > 0) begin : gen_aopb
       /* Assign the bus port to the first input port of the AOPB */
-      reg_req_t [AO_SPC_NUM_RND:0] packet_req;
-      reg_rsp_t [AO_SPC_NUM_RND:0] packet_rsp;
+      reg_req_t [AO_SPC_NUM:0] packet_req;
+      reg_rsp_t [AO_SPC_NUM:0] packet_rsp;
 
       assign packet_req[0]  = peripheral_req;
       assign peripheral_rsp = packet_rsp[0];
 
-      for (genvar i = 0; i < AO_SPC_NUM_RND; i++) begin : gen_spc
+      for (genvar i = 0; i < AO_SPC_NUM; i++) begin : gen_spc
         assign packet_req[i+1]  = spc2ao_req_i[i];
         assign ao2spc_resp_o[i] = packet_rsp[i+1];
       end
 
       reg_mux #(
-          .NoPorts(AO_SPC_NUM_RND + 1),
+          .NoPorts(AO_SPC_NUM + 1),
           .req_t  (reg_pkg::reg_req_t),
           .rsp_t  (reg_pkg::reg_rsp_t),
           .AW     (32),
@@ -262,7 +263,7 @@ module ao_peripheral_subsystem
           .out_rsp_i(regdemux2perconv_resp)
       );
 
-    end else begin
+    end else begin : gen_no_aopb
       assign perconv2regdemux_req = peripheral_req;
       assign peripheral_rsp = regdemux2perconv_resp;
     end

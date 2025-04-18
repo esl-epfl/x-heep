@@ -84,12 +84,12 @@ package dma_reg_pkg;
     logic re;
   } dma_reg2hw_transaction_ifr_reg_t;
 
+  typedef struct packed {logic q;} dma_reg2hw_hw_fifo_done_override_reg_t;
+
   typedef struct packed {
     logic q;
     logic re;
   } dma_reg2hw_window_ifr_reg_t;
-
-  typedef struct packed {logic q;} dma_reg2hw_hw_fifo_mode_sign_ext_reg_t;
 
   typedef struct packed {
     struct packed {logic d;} ready;
@@ -132,8 +132,8 @@ package dma_reg_pkg;
     dma_reg2hw_window_count_reg_t window_count;  // [14:7]
     dma_reg2hw_interrupt_en_reg_t interrupt_en;  // [6:5]
     dma_reg2hw_transaction_ifr_reg_t transaction_ifr;  // [4:3]
-    dma_reg2hw_window_ifr_reg_t window_ifr;  // [2:1]
-    dma_reg2hw_hw_fifo_mode_sign_ext_reg_t hw_fifo_mode_sign_ext;  // [0:0]
+    dma_reg2hw_hw_fifo_done_override_reg_t hw_fifo_done_override;  // [2:2]
+    dma_reg2hw_window_ifr_reg_t window_ifr;  // [1:0]
   } dma_reg2hw_t;
 
   // HW -> register type
@@ -170,8 +170,8 @@ package dma_reg_pkg;
   parameter logic [BlockAw-1:0] DMA_WINDOW_COUNT_OFFSET = 7'h58;
   parameter logic [BlockAw-1:0] DMA_INTERRUPT_EN_OFFSET = 7'h5c;
   parameter logic [BlockAw-1:0] DMA_TRANSACTION_IFR_OFFSET = 7'h60;
-  parameter logic [BlockAw-1:0] DMA_WINDOW_IFR_OFFSET = 7'h64;
-  parameter logic [BlockAw-1:0] DMA_HW_FIFO_MODE_SIGN_EXT_OFFSET = 7'h68;
+  parameter logic [BlockAw-1:0] DMA_HW_FIFO_DONE_OVERRIDE_OFFSET = 7'h64;
+  parameter logic [BlockAw-1:0] DMA_WINDOW_IFR_OFFSET = 7'h68;
 
   // Reset values for hwext registers and their fields
   parameter logic [1:0] DMA_STATUS_RESVAL = 2'h1;
@@ -209,8 +209,8 @@ package dma_reg_pkg;
     DMA_WINDOW_COUNT,
     DMA_INTERRUPT_EN,
     DMA_TRANSACTION_IFR,
-    DMA_WINDOW_IFR,
-    DMA_HW_FIFO_MODE_SIGN_EXT
+    DMA_HW_FIFO_DONE_OVERRIDE,
+    DMA_WINDOW_IFR
   } dma_id_e;
 
   // Register width information to check illegal writes
@@ -240,8 +240,8 @@ package dma_reg_pkg;
       4'b0001,  // index[22] DMA_WINDOW_COUNT
       4'b0001,  // index[23] DMA_INTERRUPT_EN
       4'b0001,  // index[24] DMA_TRANSACTION_IFR
-      4'b0001,  // index[25] DMA_WINDOW_IFR
-      4'b0001  // index[26] DMA_HW_FIFO_MODE_SIGN_EXT
+      4'b0001,  // index[25] DMA_HW_FIFO_DONE_OVERRIDE
+      4'b0001  // index[26] DMA_WINDOW_IFR
   };
 
 endpackage

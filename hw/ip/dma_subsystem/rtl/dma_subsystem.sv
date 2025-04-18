@@ -6,11 +6,12 @@
  * Author: Tommaso Terzano <tommaso.terzano@epfl.ch> 
  *                         <tommaso.terzano@gmail.com>
  *  
- * Info: DMA subsystem, it instantiates 1 to 8 DMA channels and manages the data transfers.
+ * Info: DMA subsystem, it instantiates the DMA channels and manages the data transfers.
  */
 
-
-module dma_subsystem #(
+module dma_subsystem
+  import fifo_pkg::*;
+#(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
@@ -20,7 +21,7 @@ module dma_subsystem #(
 ) (
     input logic clk_i,
     input logic rst_ni,
-    input logic clk_gate_en_ni [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0],
+    input logic clk_gate_en_ni[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0],
 
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
@@ -34,8 +35,8 @@ module dma_subsystem #(
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_o,
     input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_i,
 
-    output hw_fifo_pkg::hw_fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
-    input hw_fifo_pkg::hw_fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
+    output fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
+    input  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
     input logic [GLOBAL_SLOT_NUM-1:0] global_trigger_slot_i,
     input logic [EXT_SLOT_NUM-1:0] ext_trigger_slot_i,
@@ -51,32 +52,11 @@ module dma_subsystem #(
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Imports and parameters */
-
   import obi_pkg::*;
   import reg_pkg::*;
+  import core_v_mini_mcu_pkg::*;
 
-  /* 
-   * It's possible to define individually the sizes of each DMA channel's FIFOs.
-   * For example, a FIFO_CH_ARRAY like this {L, M, M, S} means that CH0 will be small,
-   * CH1 and CH2 will be medium and CH3 will be large.
-   *
-   * This is useful in applications that require different bandwidths for different channels.
-   * To enable this functionality, decomment EN_SET_FIFO_CH_SIZE and set the desired sizes.
-   */
-
-  //`define EN_SET_FIFO_CH_SIZE;
-
-  `ifdef EN_SET_FIFO_CH_SIZE 
-
-  localparam int unsigned LARGE_FIFO_CH_SIZE = 8;
-  localparam int unsigned MEDIUM_FIFO_CH_SIZE = 4;
-  localparam int unsigned SMALL_FIFO_CH_SIZE = 2;
-
-  typedef enum {L, M, S} fifo_ch_size_t;
-
-  localparam fifo_ch_size_t FIFO_CH_ARRAY [core_v_mini_mcu_pkg::DMA_CH_NUM] = '{L, M, M, S};
-
-  `endif
+  localparam RVALID_FIFO_DEPTH = 4;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -107,23 +87,18 @@ module dma_subsystem #(
   /* DMA modules */
   generate
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_i_gen
-
-      /* FIFO size assignment */
-      localparam int fifo_size = 
-      `ifdef EN_SET_FIFO_CH_SIZE
-        (FIFO_CH_ARRAY[i] == L) ? LARGE_FIFO_CH_SIZE :
-        ((FIFO_CH_ARRAY[i] == M) ? MEDIUM_FIFO_CH_SIZE : SMALL_FIFO_CH_SIZE);
-      `else
-        4;
-      `endif
-
       dma #(
-          .reg_req_t (reg_pkg::reg_req_t),
-          .reg_rsp_t (reg_pkg::reg_rsp_t),
-          .obi_req_t (obi_pkg::obi_req_t),
+          .reg_req_t(reg_pkg::reg_req_t),
+          .reg_rsp_t(reg_pkg::reg_rsp_t),
+          .obi_req_t(obi_pkg::obi_req_t),
           .obi_resp_t(obi_pkg::obi_resp_t),
-          .SLOT_NUM  (GLOBAL_SLOT_NUM + 2),
-          .FIFO_DEPTH (fifo_size)
+          .SLOT_NUM(GLOBAL_SLOT_NUM + 2),
+          .HW_FIFO_MODE_EN(core_v_mini_mcu_pkg::DMA_HW_FIFO_MODE),
+          .ADDR_MODE_EN(core_v_mini_mcu_pkg::DMA_ADDR_MODE),
+          .SUBADDR_MODE_EN(core_v_mini_mcu_pkg::DMA_SUBADDR_MODE),
+          .ZERO_PADDING_EN(core_v_mini_mcu_pkg::DMA_ZERO_PADDING),
+          .FIFO_DEPTH(core_v_mini_mcu_pkg::DMA_FIFO_DEPTH),
+          .RVALID_FIFO_DEPTH(RVALID_FIFO_DEPTH)
       ) dma_i (
           .clk_i,
           .rst_ni,
@@ -138,7 +113,7 @@ module dma_subsystem #(
           .dma_addr_req_o(xbar_address_req[i]),
           .dma_addr_resp_i(xbar_address_resp[i]),
 
-          .hw_fifo_req_o(hw_fifo_req_o[i]),
+          .hw_fifo_req_o (hw_fifo_req_o[i]),
           .hw_fifo_resp_i(hw_fifo_resp_i[i]),
 
           .trigger_slot_i({
@@ -163,7 +138,7 @@ module dma_subsystem #(
         /* Read, write & address mode operations xbar*/
         dma_NtoM_xbar #(
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
-            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
+            .XBAR_MSLAVE (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
         ) xbar_read_i (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
@@ -175,7 +150,7 @@ module dma_subsystem #(
 
         dma_NtoM_xbar #(
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
-            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
+            .XBAR_MSLAVE (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
         ) xbar_write_i (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
@@ -187,7 +162,7 @@ module dma_subsystem #(
 
         dma_NtoM_xbar #(
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
-            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
+            .XBAR_MSLAVE (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
         ) xbar_address_i (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
@@ -197,7 +172,7 @@ module dma_subsystem #(
             .slave_resp_i(dma_addr_resp_i)
         );
       end else if (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS > 1 && core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS == core_v_mini_mcu_pkg::DMA_CH_NUM) begin : xbar_n_to_n_gen
-        for (genvar i = 0 ; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin
+        for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin
           assign dma_read_req_o[i] = xbar_read_req[i];
           assign xbar_read_resp[i] = dma_read_resp_i[i];
           assign dma_write_req_o[i] = xbar_write_req[i];
@@ -286,7 +261,6 @@ module dma_subsystem #(
       assign reg_rsp_o = submodules_rsp[0];
     end
   endgenerate
-
 
   /*_________________________________________________________________________________________________________________________________ */
 
