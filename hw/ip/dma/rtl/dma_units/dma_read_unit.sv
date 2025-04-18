@@ -290,7 +290,7 @@ module dma_read_unit
       .empty_o(),
       .usage_o(read_data_offset_usage),
       .data_i(read_ptr_reg[1:0]),
-      .push_i(data_in_gnt),
+      .push_i(data_in_gnt && data_in_req),
       .data_o(read_data_offset),
       .pop_i(data_in_rvalid)
   );
