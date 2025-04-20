@@ -89,6 +89,8 @@
 
 extern int no_sdcard; //NRFD-NOTE: from main.c
 
+#define PRINTF(fmt, ...)    PRINTF(fmt, ## __VA_ARGS__)
+
 //
 // D-DoomLoop()
 // Not a globally visible function,
@@ -229,7 +231,7 @@ void D_Display (void)
         HU_Erase();
 
     // do buffered drawing
-    printf("In D_Display before switch, gamestate : %i\n", gamestate); 
+    PRINTF("In D_Display before switch, gamestate : %i\n", gamestate); 
     switch (gamestate)
     {
       case GS_LEVEL:
@@ -329,7 +331,7 @@ void D_Display (void)
 
     // normal update
 
-    printf("In D_Display after M_Drawer, wipe %i\n", wipe);
+    PRINTF("In D_Display after M_Drawer, wipe %i\n", wipe);
 
     if (!wipe)
     {
@@ -337,17 +339,17 @@ void D_Display (void)
         return;
     }
 
-    printf("In D_Display before wipe_EndScreen \n");
+    PRINTF("In D_Display before wipe_EndScreen \n");
 
     // wipe update
     wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
-    printf("In D_Display after wipe\n");
+    PRINTF("In D_Display after wipe\n");
 
     wipestart = I_GetTime () - 1;
 
     tics = 0;
-    printf("In D_Display before do while\n");
+    PRINTF("In D_Display before do while\n");
     do
     {
         do
@@ -482,8 +484,8 @@ void D_DoomLoop (void)
     PRINTF("D_DoomLoop\n");
     main_loop_started = true;
 
-    I_SetWindowTitle(gamedescription); //useless 
-    I_GraphicsCheckCommandLine(); //useless
+    //I_SetWindowTitle(gamedescription); //useless 
+    //I_GraphicsCheckCommandLine(); //useless
     // I_SetGrabMouseCallback(D_GrabMouseCallback);
      
     I_InitGraphics(); 
@@ -522,7 +524,7 @@ void D_DoomLoop (void)
         //S_UpdateSounds (players[consoleplayer].mo);// move positional sounds
 
         // Update display, next frame, with current state.
-        printf("Before D_Display in D_DoomLoop\n"); 
+        PRINTF("Before D_Display in D_DoomLoop\n"); 
         if (screenvisible)
             D_Display ();  
         /*
@@ -541,7 +543,7 @@ void D_DoomLoop (void)
         */
 
         //N_ldbg("=== LOOP END ===\n");
-        printf("=== LOOP END ===\n");
+        PRINTF("=== LOOP END ===\n");
         frame_time_prev = frame_time;
     }
 
@@ -576,7 +578,7 @@ void D_PageDrawer (void)
 {
     //NRFD-TODO:
     //N_ldbg("D_PageDrawer %s\n", pagename);
-    printf("D_PageDrawer %s\n", pagename);
+    PRINTF("D_PageDrawer %s\n", pagename);
     V_DrawPatch (0, 0, W_CacheLumpName(pagename, PU_CACHE));
 }
 
@@ -1312,7 +1314,7 @@ void D_DoomMain (void)
     char demolumpname[9];
     int numiwadlumps;
 
-    I_AtExit(D_Endoom, false); //Useless 
+    //I_AtExit(D_Endoom, false); //Useless 
     
     // print banner
 
@@ -1386,7 +1388,7 @@ void D_DoomMain (void)
     // Disable monsters.
     //
         
-    nomonsters = M_CheckParm ("-nomonsters"); //useless
+    //nomonsters = M_CheckParm ("-nomonsters"); //useless
 
     //!
     // @vanilla
@@ -1394,7 +1396,7 @@ void D_DoomMain (void)
     // Monsters respawn after being killed.
     //
 
-    respawnparm = M_CheckParm ("-respawn"); //useless
+    //respawnparm = M_CheckParm ("-respawn"); //useless
 
     //!
     // @vanilla
@@ -1402,7 +1404,7 @@ void D_DoomMain (void)
     // Monsters move faster.
     //
 
-    fastparm = M_CheckParm ("-fast"); //useless
+    //fastparm = M_CheckParm ("-fast"); //useless
 
     //! 
     // @vanilla
@@ -1411,9 +1413,9 @@ void D_DoomMain (void)
     // directory.
     //
 
-    devparm = M_CheckParm ("-devparm");//useless
+    //devparm = M_CheckParm ("-devparm");//useless
 
-    I_DisplayFPSDots(devparm); //Useless
+    //I_DisplayFPSDots(devparm); //Useless
 
 /* NRFD-TODO:
 
@@ -1446,7 +1448,7 @@ void D_DoomMain (void)
     {
         // Auto-detect the configuration dir.
 
-        M_SetConfigDir(NULL); //useless
+        //M_SetConfigDir(NULL); //useless
     }
 
     //!
@@ -1482,17 +1484,17 @@ void D_DoomMain (void)
    
     // init subsystems
     DEH_printf("V_Init: allocate screens.\n");
-    V_Init (); //useless 
+    //V_Init (); //useless 
     
 
     // Load configuration files before initialising other subsystems.
     DEH_printf("M_LoadDefaults: Load system defaults.\n");
-    M_SetConfigFilenames("default.cfg", DOOM_PROGRAM_PREFIX "doom.cfg"); //Useless
-    D_BindVariables(); //useless
-    M_LoadDefaults(); //useless
+    //M_SetConfigFilenames("default.cfg", DOOM_PROGRAM_PREFIX "doom.cfg"); //Useless
+    //D_BindVariables(); //useless
+    //M_LoadDefaults(); //useless
 
     // Save configuration at exit.
-    I_AtExit(M_SaveDefaults, false); //useless
+    //I_AtExit(M_SaveDefaults, false); //useless
 
     if (no_sdcard) {
         iwadfile = "doom.wad";
@@ -1687,7 +1689,7 @@ void D_DoomMain (void)
 */
 
     // Generate the WAD hash table.  Speed things up a bit.
-    W_GenerateHashTable(); //useless
+    //W_GenerateHashTable(); //useless
 
     /* NRFD-TODO: 
     // Load DEHACKED lumps from WAD files - but only if we give the right

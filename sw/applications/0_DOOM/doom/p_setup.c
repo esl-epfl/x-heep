@@ -133,7 +133,8 @@ void P_LoadVertexes (int lump)
     PRINTF("P_LoadVertexes: lump = %d, lumplength = %d, numvertexes = %d\n", lump,  W_LumpLength (lump), numvertexes);
 
     // Allocate zone memory for buffer.
-    vertexes = Z_Malloc (numvertexes*sizeof(vertex_t),PU_LEVEL,0);      
+    vertexes = Z_Malloc (numvertexes*sizeof(vertex_t),PU_LEVEL,0); 
+    printf ("vertexes : %d\n", vertexes);      
 
     // Load data into cache.
     data = W_CacheLumpNum (lump, PU_STATIC);
@@ -143,6 +144,7 @@ void P_LoadVertexes (int lump)
 
     mapvertex_t temp_ml; 
     X_spi_read(ml, &temp_ml, sizeof(temp_ml)/4); 
+    printf ("before loop \n"); 
     // Copy and convert vertex coordinates,
     // internal representation as fixed.
     for (i=0 ; i<numvertexes ; i++, li++, ml++)
@@ -152,7 +154,7 @@ void P_LoadVertexes (int lump)
     }
 
     // Free buffer memory.
-    W_ReleaseLumpNum(lump);
+    //W_ReleaseLumpNum(lump); //useless 
 }
 
 //
@@ -1115,22 +1117,21 @@ P_SetupLevel
     // Make sure all sounds are stopped before Z_FreeTags.
     //S_Start ();                 
 
-    Z_FreeTags (PU_LEVEL, PU_PURGELEVEL-1);
+    //Z_FreeTags (PU_LEVEL, PU_PURGELEVEL-1); //X-HEEP comment 
 
     // UNUSED W_Profile ();
     P_InitThinkers ();
 
     // if working with a devlopment map, reload it
-    W_Reload ();
+    //W_Reload (); //useless 
 
     // find map name
-    /* X-HEEP COMMENT
     if ( gamemode == commercial)
     {
         if (map<10)
-            //DEH_snprintf(lumpname, 9, "map0%i", map);
+            DEH_snprintf(lumpname, 9, "map0%i", map);
         else
-            //DEH_snprintf(lumpname, 9, "map%i", map);
+            DEH_snprintf(lumpname, 9, "map%i", map);
     }
     else
     {
@@ -1140,12 +1141,13 @@ P_SetupLevel
         lumpname[3] = '0' + map;
         lumpname[4] = 0;
     }
-    X-HEEP COMMENT END */
+
 
     lumpnum = W_GetNumForName (lumpname);
         
     leveltime = 0;
 
+    PRINTF("In P_SetupLevel before loads\n");
     // note: most of this ordering is important 
     P_LoadBlockMap (lumpnum+ML_BLOCKMAP);
     P_LoadVertexes (lumpnum+ML_VERTEXES);
@@ -1158,6 +1160,8 @@ P_SetupLevel
     P_GroupLines ();
     P_LoadReject (lumpnum+ML_REJECT);
 
+
+    PRINTF("In P_SetupLevel before loadthings\n");
     bodyqueslot = 0;
     deathmatch_p = deathmatchstarts;
     P_LoadThings (lumpnum+ML_THINGS);
@@ -1177,6 +1181,7 @@ P_SetupLevel
     // clear special respawning que
     iquehead = iquetail = 0;            
     
+    PRINTF("In P_SetupLevel before SpawnSpecials\n");
     // set up world state
     P_SpawnSpecials ();
         

@@ -24,8 +24,10 @@
 
 // Screen width and height.
 
-#define SCREENWIDTH  320
-#define SCREENHEIGHT 200
+//#define SCREENWIDTH  320
+//#define SCREENHEIGHT 200
+#define SCREENWIDTH  160
+#define SCREENHEIGHT 100
 
 // Screen height used when aspect_ratio_correct=true.
 
@@ -39,7 +41,8 @@ extern const boolean vanilla_keyboard_mapping;
 extern byte usegamma;
 extern pixel_t *I_VideoBuffer;
 //extern pixel_t *I_VideoBackBuffer;
-extern pixel_t I_VideoBuffers[320*200];
+//extern pixel_t I_VideoBuffers[320*200];
+extern pixel_t I_VideoBuffers[160*100];
 
 typedef struct palette_pixel {
     uint8_t r;

@@ -127,7 +127,8 @@ const int usemouse = 1;
 
 pixel_t *I_VideoBuffer; //[320*200];
 //pixel_t *I_VideoBackBuffer; //[320*200];
-pixel_t I_VideoBuffers[320*200];
+//pixel_t I_VideoBuffers[320*200];
+pixel_t I_VideoBuffers[160*100];
 
 uint8_t  display_pal[DISPLAY_PALETTE_SIZE];
 

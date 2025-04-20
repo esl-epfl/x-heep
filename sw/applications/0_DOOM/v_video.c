@@ -174,7 +174,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
 
     patch_t *full_patch = (patch_t *)raw_buffer;
 
-
+/*
 #ifdef RANGECHECK
     if (x < 0
      || x + w > SCREENWIDTH
@@ -185,15 +185,15 @@ void V_DrawPatch(int x, int y, patch_t *patch)
         I_Error("Bad V_DrawPatch");
     }
 #endif
-
-    V_MarkRect(x, y, w, h);
+*/
+    //V_MarkRect(x, y, w, h);
 
     col = 0;
     desttop = dest_screen + y * SCREENWIDTH + x;
     column_t tempcolumn;
     uint32_t temp_column_data;
     uint32_t temp_source;
-    for ( ; col<w ; x++, col++, desttop++)
+    for ( ; col<w ; x+=2, col+=2, desttop++)
     {
         column = (volatile column_t *)((byte *)patch + LONG(full_patch->columnofs[col]));
         I_SleepUS(1); // NRFD-TODO: remove?
@@ -215,14 +215,14 @@ void V_DrawPatch(int x, int y, patch_t *patch)
             {
                 X_spi_read(source, &temp_source, 1);
                 *dest = (uint8_t)temp_source; 
-                source += 1; 
-                dest += SCREENWIDTH;
+                source += 2; 
+                dest += SCREENWIDTH; 
             }
             column = (column_t *)((byte *)column + tempcolumn.length + 4);
             X_spi_read(column, &temp_column_data, 1);  
             tempcolumn.topdelta = temp_column_data & 0xFF;
             tempcolumn.length   = (temp_column_data >> 8) & 0xFF;  
-        }
+        } 
     } 
 }
 

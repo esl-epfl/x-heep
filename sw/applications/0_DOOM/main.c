@@ -162,9 +162,11 @@ int main(int argc, char *argv[])
 
     //N_qspi_init();
 
+    /*
     if (!no_sdcard) {
         //N_fs_init();
     }
+    */
 
     X_ButtonsInit();
     X_init_spi();

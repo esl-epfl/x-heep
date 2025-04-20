@@ -94,7 +94,7 @@ char*                   messageString;
 // message x & y
 short                     messx;
 short                     messy;
-short                     messageLastMenuActive;
+uint8_t                   messageLastMenuActive;
 
 // timed message = no input from user
 boolean                 messageNeedsInput;
@@ -112,7 +112,7 @@ const char gammamsg[5][26] =
 
 // we are going to be entering a savegame string
 int                     saveStringEnter;              
-int                     saveSlot;       // which slot to save in
+uint8_t                 saveSlot;       // which slot to save in
 int                     saveCharIndex;  // which char we're editing
 static boolean          joypadSave = false; // was the save action initiated by joypad?
 
@@ -164,9 +164,9 @@ typedef struct __attribute__((packed)) menu_s
     int8_t               lastOn;         // last item user was on in menu // NRFD: Was short
 } menu_t;
 
-short           itemOn;                 // menu item skull is on
-short           skullAnimCounter;       // skull animation counter
-short           whichSkull;             // which skull to draw
+uint8_t         itemOn;                 // menu item skull is on
+uint8_t           skullAnimCounter;       // skull animation counter
+uint8_t           whichSkull;             // which skull to draw
 
 // graphic name of skulls
 // warning: initializer-string for array of chars is too long
@@ -902,7 +902,7 @@ void M_NewGame(int choice)
 //
 //      M_Episode
 //
-int     epi;
+uint8_t     epi;
 
 void M_DrawEpisode(void)
 {

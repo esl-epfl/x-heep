@@ -84,9 +84,9 @@ void X_Display_Draw_Screen_200x200(void)
         
         for (int j = 0; j < 240; j++)
         {
-            int src_x = (j * 320) / 240;
-            int src_y = (i * 200) / 240;
-            color = I_VideoBuffer[src_y*320+src_x];
+            int src_x = (j * 160) / 240;
+            int src_y = (i * 100) / 240;
+            color = I_VideoBuffer[src_y*160+src_x];
 
             rgb565 = I_GetRGB565FromPaletteIndex(color);
             ST7789_spi_write_data_2B(rgb565);

@@ -29,14 +29,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
+
+ #include <stdint.h>
+ #include <stdio.h>
+ #include <stdlib.h>
 
 //extern const uint32_t __HeapLimit;
 
 //X-HEEP HARDCODED VALUE TODO: FIX
 #define X_HEEP_HEAP_LIMIT 64000
-const uint32_t heapLimit = (uint32_t)X_HEEP_HEAP_LIMIT;//&__HeapLimit;
+const uint32_t heapLimit = (uint32_t)X_HEEP_HEAP_LIMIT;
 
 void *N_malloc(size_t size)
 {

@@ -975,7 +975,6 @@ void R_InitTextures (void)
 void R_InitFlats (void)
 {
     int             i; 
-    printf("In R_InitFlats\n");
     firstflat = W_GetNumForName(DEH_String("F_START")) + 1; 
     lastflat = W_GetNumForName (DEH_String("F_END")) - 1;
     numflats = lastflat - firstflat + 1;

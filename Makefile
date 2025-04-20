@@ -53,7 +53,7 @@ COMPILER ?= gcc
 COMPILER_PREFIX ?= riscv32-unknown-
 
 # Compiler flags to be passed (for both linking and compiling)
-COMPILER_FLAGS ?= -Os
+COMPILER_FLAGS ?= -Os 
 
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
 ARCH     ?= rv32imc

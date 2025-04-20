@@ -106,7 +106,7 @@ static boolean          message_nottobefuckedwith;
 
 static hu_stext_t       w_message;
 static hu_stext_t       w_fps;
-static int              message_counter;
+static uint8_t          message_counter;
 
 extern int              showMessages;
 static boolean          headsupactive = false;
