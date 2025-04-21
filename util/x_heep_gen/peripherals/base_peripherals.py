@@ -27,6 +27,8 @@ class Bootrom(BasePeripheral):
 class SPI_flash(BasePeripheral):
     """
     Interface for external SPI flash memory access.
+
+    Default length : 32KB
     """
 
     _name = "spi_flash"
@@ -36,6 +38,8 @@ class SPI_flash(BasePeripheral):
 class SPI_memio(BasePeripheral):
     """
     Memory-mapped IO interface for SPI communication.
+
+    Default length : 32KB
     """
 
     _name = "spi_memio"

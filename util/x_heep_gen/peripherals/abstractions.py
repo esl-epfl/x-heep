@@ -22,16 +22,20 @@ class Peripheral(ABC):
     _name: str
     _address: int = None
 
-    def __init__(self, offset=None):
+    def __init__(self, offset=None, length=None):
         """
         Initialize the peripheral with a given address.
 
         :param int offset: The virtual (in peripheral domain) memory address of the peripheral. If None, the offset will be automatically compute during build function.
+        :param int length: The size taken in memory by the peripheral. If None, the length will be automatically set to 64KB.
         """
         if type(offset) == int and offset >= 0x00000000:
             self._address = offset
         else:
             self._address = None
+
+        if length is not None:
+            self._length = length
 
     def get_address(self):
         """
