@@ -76,6 +76,8 @@ mapsidedef_t*   mapsides; // X-HEEP comment : mapsides is an adress in flash it 
 
 static int      totallines;
 
+line_t**            linebuffer;
+
 // BLOCKMAP
 // Created from axis aligned bounding box
 // of the map, a rectangular array of
@@ -375,7 +377,8 @@ void P_LoadSubsectors (int lump)
     subsector_t*        ss;
         
     numsubsectors = W_LumpLength (lump) / sizeof(mapsubsector_t);
-    subsectors = Z_Malloc (numsubsectors*sizeof(subsector_t),PU_LEVEL,0);       
+    subsectors = N_malloc(numsubsectors*sizeof(subsector_t));
+    //subsectors = Z_Malloc (numsubsectors*sizeof(subsector_t),PU_LEVEL,0);       
     data = W_CacheLumpNum (lump,PU_STATIC);
         
     ms = (mapsubsector_t *)data;
@@ -566,7 +569,8 @@ void P_LoadLineDefs (int lump)
     fixed_t             dx, dy;
         
     numlines = W_LumpLength (lump) / sizeof(maplinedef_t);
-    lines = Z_Malloc (numlines*sizeof(line_t),PU_LEVEL,0);      
+    lines = N_malloc(numlines*sizeof(line_t));
+    //lines = Z_Malloc (numlines*sizeof(line_t),PU_LEVEL,0);      
     memset (lines, 0, numlines*sizeof(line_t));
     data = W_CacheLumpNum (lump,PU_STATIC);
         
@@ -811,7 +815,8 @@ void P_LoadSideDefs (int lump)
     side_t*             sd;
         
     numsides = W_LumpLength (lump) / sizeof(mapsidedef_t);
-    sides = Z_Malloc (numsides*sizeof(side_t),PU_LEVEL,0);      
+    sides = N_malloc(numsides*sizeof(side_t));
+    //sides = Z_Malloc (numsides*sizeof(side_t),PU_LEVEL,0);      
     memset (sides, 0, numsides*sizeof(side_t));
     data = W_CacheLumpNum (lump,PU_STATIC);
     
@@ -926,7 +931,6 @@ void P_GroupLines (void)
 {
     PRINTF("P_GroupLines\n");
 
-    line_t**            linebuffer;
     int                 i;
     int                 j;
     line_t*             li;
@@ -961,8 +965,9 @@ void P_GroupLines (void)
         }
     }
 
-    // build line tables for each sector        
-    linebuffer = Z_Malloc (totallines*sizeof(line_t *), PU_LEVEL, 0);
+    // build line tables for each sector 
+    linebuffer = N_malloc(totallines*sizeof(line_t *));       
+    //linebuffer = Z_Malloc (totallines*sizeof(line_t *), PU_LEVEL, 0);
 
     for (i=0; i<numsectors; ++i)
     {
@@ -1142,10 +1147,11 @@ void P_FreeLevelData()
 {
     PRINTF("P_FreeLevelData\n");
 
-    if (sectors != NULL)
-    {
-        N_free(sectors, numsectors*sizeof(sector_t)); 
-    }
+    N_free(sectors, numsectors*sizeof(sector_t)); 
+    N_free(sides ,numsides*sizeof(side_t)); 
+    N_free(lines, numlines*sizeof(line_t));
+    N_free(subsectors, numsubsectors*sizeof(subsector_t)); 
+    N_free(linebuffer, totallines*sizeof(line_t *));  
 }
 
 
@@ -1215,12 +1221,12 @@ P_SetupLevel
     P_LoadBlockMap (lumpnum+ML_BLOCKMAP);    //X-HEEP comment : No more Z_malloc
     P_LoadVertexes (lumpnum+ML_VERTEXES);    //X-HEEP comment : No more Z_malloc : in flash
     P_LoadSectors (lumpnum+ML_SECTORS);      //X-HEEP comment : Uses N_malloc: sectors in heap    
-    P_LoadSideDefs (lumpnum+ML_SIDEDEFS);
-    P_LoadLineDefs (lumpnum+ML_LINEDEFS);
-    P_LoadSubsectors (lumpnum+ML_SSECTORS);
+    P_LoadSideDefs (lumpnum+ML_SIDEDEFS);    //X-HEEP comment : Uses N_malloc: sides in heap
+    P_LoadLineDefs (lumpnum+ML_LINEDEFS);    //X-HEEP comment : Uses N_malloc: lines in heap
+    P_LoadSubsectors (lumpnum+ML_SSECTORS);  //X-HEEP comment : Uses N_malloc: subsectors in heap
     P_LoadNodes (lumpnum+ML_NODES);          //X-HEEP comment : No more Z_malloc : in flash
     P_LoadSegs (lumpnum+ML_SEGS);            //X-HEEP comment : No more Z_malloc : in flash
-    P_GroupLines ();
+    P_GroupLines ();                         //X-HEEP comment : Uses N_malloc: linebuffer in heap
     P_LoadReject (lumpnum+ML_REJECT);        //X-HEEP comment : No more Z_malloc : in flash
 
 

@@ -1762,7 +1762,7 @@ void D_DoomMain (void)
     */
 
     I_PrintStartupBanner(gamedescription);
-    PrintDehackedBanners();
+    //PrintDehackedBanners();
 
     // Freedoom's IWADs are Boom-compatible, which means they usually
     // don't work in Vanilla (though FreeDM is okay). Show a warning

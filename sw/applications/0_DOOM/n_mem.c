@@ -53,6 +53,9 @@
 
 void N_free(void *ptr, size_t size)
 {
-    free(ptr);
-    heap_used -= size;
+    if (ptr != NULL)
+    {
+        free(ptr);
+        heap_used -= size;
+    }
 }
