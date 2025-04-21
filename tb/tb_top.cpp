@@ -115,7 +115,12 @@ int main (int argc, char * argv[])
     }
   }
 
-  if(dut->exit_valid_o==1) {
+  std::cout<<"Simulation finished after "<<(sim_time/CLK_PERIOD_ps)<<" clock cycles"<<std::endl;
+  
+
+  // This should be the last message printed  so that the scripts like test-all can catch the exit value properly. 
+  // The return value should be the last character (in case it is 0)
+  if(dut->exit_valid_o==1) { 
     std::cout<<"Program Finished with value "<<dut->exit_value_o<<std::endl;
     exit_val = EXIT_SUCCESS;
   } else {
@@ -123,7 +128,6 @@ int main (int argc, char * argv[])
     exit_val = 2; // exit 2 to indicate successful run but premature termination
   }
 
-  std::cout<<"Simulation finished after "<<(sim_time/CLK_PERIOD_ps)<<" clock cycles"<<std::endl;
 
   m_trace->close();
   delete dut;
