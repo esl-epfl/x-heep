@@ -1,2 +1,7 @@
 # Tests output files
-test/test_x_heep_gen/outputs/*
+outputs/*
+
+# Python cache
+configs/__pycache__/*
+
+# Python __init__.py

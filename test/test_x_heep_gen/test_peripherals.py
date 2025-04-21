@@ -6,8 +6,9 @@ directory = pathlib.Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(directory.joinpath("util")))
 
 import mcu_gen
-
+import os
 import hjson
+
 
 x_heep_cfg = "configs/general.hjson"
 pad_cfg = "pad_cfg.hjson"
@@ -166,28 +167,17 @@ class PeripheralsDescription:
 
 def run_test(example):
     """
-    Compare the output of mcu_gen with an hjson config and a python config. Mcu_gen has to be called in a Makefile before running this script.
+    Compare the output of mcu_gen with an hjson config and a python config. Mcu_gen has to be called before running this script.
     :param example: the example number to run
 
     :return: True if the test passed, False otherwise
     """
 
-    outputs = []
+    # Writes the output in a PeripheralsDescription object
+    hjson_output = PeripheralsDescription(example, ".hjson")
+    py_output = PeripheralsDescription(example, ".py")
 
-    for extension in existing_extensions:
-        # Writes the output in a PeripheralsDescription object
-        outputs.append(PeripheralsDescription(example, extension))
-
-    result = True
-    for i, output in enumerate(outputs):
-        for other in outputs[
-            i + 1 :
-        ]:  # avoid comparison with itself and already compared pairs
-            if (
-                output != other
-            ):  # Works because __eq__ function is defined in PeripheralsDescription
-                print(f"output {output.extension[1:]} != {other.extension[1:]}")
-                result = False
+    result = hjson_output == py_output
 
     if result:
         print(f"Example {example} passed")
@@ -197,6 +187,97 @@ def run_test(example):
     return result
 
 
+def __generate_argv(
+    example_number: int,
+    config_dir: str,
+    pads_cfg: str,
+    cfg_peripherals: str,
+    output_dir: str,
+    template: str,
+    extension: str,
+):
+    return [
+        "mcu_gen.py",
+        "--config",
+        f"{config_dir}/example{example_number}.{extension}",
+        "--pads_cfg",
+        pads_cfg,
+        "--cfg_peripherals",
+        cfg_peripherals,
+        "--outdir",
+        output_dir,
+        "--outfile",
+        f"{output_dir}/example{example_number}-{extension}.hjson",
+        "--tpl-sv",
+        template,
+    ]
+
+
+def generate_examples(
+    num_examples: int,
+    config_dir: str,
+    pads_cfg: str,
+    cfg_peripherals: str,
+    output_dir: str,
+    template: str,
+):
+    """
+    Generate examples with both Python and HJSON configurations.
+
+    :param num_examples: Number of tests to run
+    :param config_dir: Directory containing example (test) configurations
+    :param pads_cfg: Path to pads configuration file
+    :param cfg_peripherals: Path to peripherals configuration file
+    :param output_dir: Directory to store generated outputs
+    :param template: Path to template file to drop mcu_gen.py outputs (kwargs)
+    """
+
+    # Reset the output directory
+    output_path = pathlib.Path(output_dir)
+    if output_path.exists():
+        os.system(f"rm -rf {output_path}")
+    output_path.mkdir(parents=True)
+
+    # Store original sys.argv
+    original_argv = sys.argv.copy()
+
+    try:
+        for i in range(1, num_examples + 1):
+            print(f"Processing example {i}")
+
+            # Generate with Python configuration
+            print(f"Running Python configuration for example {i}")
+            sys.argv = __generate_argv(
+                example_number=i,
+                config_dir=config_dir,
+                pads_cfg=pads_cfg,
+                cfg_peripherals=cfg_peripherals,
+                output_dir=output_dir,
+                template=template,
+                extension="py",
+            )
+            mcu_gen.main()
+
+            # Generate with HJSON configuration
+            print(f"Running HJSON configuration for example {i}")
+            sys.argv = __generate_argv(
+                example_number=i,
+                config_dir=config_dir,
+                pads_cfg=pads_cfg,
+                cfg_peripherals=cfg_peripherals,
+                output_dir=output_dir,
+                template=template,
+                extension="hjson",
+            )
+            mcu_gen.main()
+
+            print(f"Example {i} processed")
+
+    finally:
+        # Restore original sys.argv
+        sys.argv = original_argv
+
+
 def main():
     """
     Run different configurations, compare the output of mcu_gen with an hjson config and a python config
@@ -204,16 +285,28 @@ def main():
     To add a new test :
     - Add a new config for every extension in existing_extensions in test/test_x_heep_gen/configs directory, all should yield the same peripheral configuration
     - Name both files example<number><extension>
-    - Add test_results.append(run_test(number))
-    - Modify NUM_EXAMPLES (add +1) in .github/workflows/peripherals.yml to add the new example
+    - Modify num_examples in main() to add the new example
 
     Current extension supported : .py and .hjson
     """
 
+    num_examples = 1
+
+    # Generate examples
+    generate_examples(
+        num_examples=num_examples,
+        config_dir="test/test_x_heep_gen/configs",
+        pads_cfg="pad_cfg.hjson",
+        cfg_peripherals="mcu_cfg.hjson",
+        output_dir="test/test_x_heep_gen/outputs",
+        template="test/test_x_heep_gen/template.hjson.tpl",
+    )
+
     test_results = []
 
-    # Run example 1
-    test_results.append(run_test(1))
+    # Run examples
+    for i in range(1, num_examples + 1):
+        test_results.append(run_test(i))
 
     if not all(test_results):
         exit(1)  # Exit with error if any test failed
