@@ -3,5 +3,3 @@ outputs/*
 
 # Python cache
 configs/__pycache__/*
-
-# Python __init__.py
