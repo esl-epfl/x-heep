@@ -18,9 +18,5 @@ jobs:
           conda activate core-v-mini-mcu
           make clean-all
 
-          # Targets 
-          CONFIG_DIR="test/test_x_heep_gen/configs"
-          OUTPUT_DIR="test/test_x_heep_gen/outputs"
-
           # Run the test script
           python3 test/test_x_heep_gen/test_peripherals.py

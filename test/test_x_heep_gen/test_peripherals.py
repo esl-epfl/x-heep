@@ -165,7 +165,7 @@ class PeripheralsDescription:
         return eq
 
 
-def run_test(example):
+def run_test(example, example_name):
     """
     Compare the output of mcu_gen with an hjson config and a python config. Mcu_gen has to be called before running this script.
     :param example: the example number to run
@@ -180,9 +180,9 @@ def run_test(example):
     result = hjson_output == py_output
 
     if result:
-        print(f"Example {example} passed")
+        print(f'Test "{example_name}" passed')
     else:
-        print(f"Example {example} failed")
+        print(f'Test "{example_name}" failed')
 
     return result
 
@@ -191,7 +191,6 @@ def __generate_argv(
     example_number: int,
     config_dir: str,
     pads_cfg: str,
-    cfg_peripherals: str,
     output_dir: str,
     template: str,
     extension: str,
@@ -203,7 +202,7 @@ def __generate_argv(
         "--pads_cfg",
         pads_cfg,
         "--cfg_peripherals",
-        cfg_peripherals,
+        f"{config_dir}/mcu_cfg{example_number}.hjson",
         "--outdir",
         output_dir,
         "--outfile",
@@ -217,7 +216,6 @@ def generate_examples(
     num_examples: int,
     config_dir: str,
     pads_cfg: str,
-    cfg_peripherals: str,
     output_dir: str,
     template: str,
 ):
@@ -251,7 +249,6 @@ def generate_examples(
                 example_number=i,
                 config_dir=config_dir,
                 pads_cfg=pads_cfg,
-                cfg_peripherals=cfg_peripherals,
                 output_dir=output_dir,
                 template=template,
                 extension="py",
@@ -264,7 +261,6 @@ def generate_examples(
                 example_number=i,
                 config_dir=config_dir,
                 pads_cfg=pads_cfg,
-                cfg_peripherals=cfg_peripherals,
                 output_dir=output_dir,
                 template=template,
                 extension="hjson",
@@ -285,19 +281,22 @@ def main():
     To add a new test :
     - Add a new config for every extension in existing_extensions in test/test_x_heep_gen/configs directory, all should yield the same peripheral configuration
     - Name both files example<number><extension>
-    - Modify num_examples in main() to add the new example
+    - Add the corresponding mcu_cfg<number>.hjson file in the same directory
+    - Append the name of the test in test_names
 
     Current extension supported : .py and .hjson
     """
 
-    num_examples = 1
+    test_names = []
+    test_names.append("All peripherals included except PDM2PCM")
+    test_names.append("No user peripheral")
+    test_names.append("All user peripherals included")
 
     # Generate examples
     generate_examples(
-        num_examples=num_examples,
+        num_examples=len(test_names),
         config_dir="test/test_x_heep_gen/configs",
         pads_cfg="pad_cfg.hjson",
-        cfg_peripherals="mcu_cfg.hjson",
         output_dir="test/test_x_heep_gen/outputs",
         template="test/test_x_heep_gen/template.hjson.tpl",
     )
@@ -305,8 +304,8 @@ def main():
     test_results = []
 
     # Run examples
-    for i in range(1, num_examples + 1):
-        test_results.append(run_test(i))
+    for i in range(1, len(test_names) + 1):
+        test_results.append(run_test(i, test_names[i - 1]))
 
     if not all(test_results):
         exit(1)  # Exit with error if any test failed
