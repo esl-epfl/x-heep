@@ -48,7 +48,9 @@ void    P_SpawnMapThing (mapthing_t*    mthing);
 // Store VERTEXES, LINEDEFS, SIDEDEFS, etc.
 //
 int             numvertexes;
-vertex_t*       vertexes;
+//vertex_t*       vertexes;
+mapvertex_t*    mapvertexes; // X-HEEP comment : mapvertexes is an adress in flash it must be read using X_spi_read
+
 
 int             numsegs;
 // seg_t*          segs;
@@ -120,17 +122,23 @@ mapthing_t      playerstarts[MAXPLAYERS];
 void P_LoadVertexes (int lump)
 {
 
+    /*
     byte*               data; // X-HEEP comment : data is an adress in flash it must be read using X_spi_read
     int                 i;
     mapvertex_t*        ml;// X-HEEP comment : ml is an adress in flash it must be read using X_spi_read
     vertex_t*           li;
+    */
 
     // Determine number of lumps:
     //  total lump length / vertex record length.
     numvertexes = W_LumpLength (lump) / sizeof(mapvertex_t);
+    
+    mapvertexes = (mapvertex_t*)W_CacheLumpNum(lump, PU_LEVEL); 
 
     // NRFD-TODO: Access mapvertexes directly?
     PRINTF("P_LoadVertexes: lump = %d, lumplength = %d, numvertexes = %d\n", lump,  W_LumpLength (lump), numvertexes);
+
+    /* X-HEEP comment : avoid Z_Malloc of vertexes 
 
     // Allocate zone memory for buffer.
     vertexes = Z_Malloc (numvertexes*sizeof(vertex_t),PU_LEVEL,0); 
@@ -155,6 +163,8 @@ void P_LoadVertexes (int lump)
 
     // Free buffer memory.
     //W_ReleaseLumpNum(lump); //useless 
+
+    */
 }
 
 //
@@ -183,6 +193,7 @@ void P_LoadSegs (int lump)
 {
     PRINTF("P_LoadSegs\n");
 
+    /*
     byte*               data;
     int                 i;
     mapseg_t*           ml;
@@ -191,7 +202,8 @@ void P_LoadSegs (int lump)
     int                 linedef;
     int                 side;
     int                 sidenum;
-        
+    */
+
     numsegs = W_LumpLength (lump) / sizeof(mapseg_t);
     mapsegs = (mapseg_t*)W_CacheLumpNum(lump, PU_LEVEL);
 
@@ -286,22 +298,39 @@ sector_t *SegBackSector(seg_t *seg) {
     }
 }
 
-// NRFD-TODO: Consider returning data instead of pointer?
-vertex_t *SegV1(seg_t *seg) {
+vertex_t SegV1(seg_t *seg) {
     mapseg_t *ms = (mapseg_t*)seg;
     mapseg_t temp_ms; 
     X_spi_read(ms, &temp_ms, sizeof(temp_ms)/4);
 
     int v1_num = SHORT(temp_ms.v1);
-    return &vertexes[v1_num];
+
+    mapvertex_t temp_ml; 
+
+    X_spi_read(mapvertexes + v1_num, &temp_ml, sizeof(temp_ml)/4);
+    
+    vertex_t linev1;
+    linev1.x = (SHORT(temp_ml.x)<<FRACBITS); 
+    linev1.y = (SHORT(temp_ml.y)<<FRACBITS); 
+    
+    return linev1;
 }
-vertex_t *SegV2(seg_t *seg) {
+vertex_t SegV2(seg_t *seg) {
     mapseg_t *ms = (mapseg_t*)seg;
     mapseg_t temp_ms; 
     X_spi_read(ms, &temp_ms, sizeof(temp_ms)/4);
 
     int v2_num = SHORT(temp_ms.v2);
-    return &vertexes[v2_num];
+
+    mapvertex_t temp_ml; 
+
+    X_spi_read(mapvertexes + v2_num, &temp_ml, sizeof(temp_ml)/4);
+    
+    vertex_t linev2;
+    linev2.x = (SHORT(temp_ml.x)<<FRACBITS); 
+    linev2.y = (SHORT(temp_ml.y)<<FRACBITS);
+
+    return linev2; 
 }
 angle_t SegAngle(seg_t *seg) {
     mapseg_t *ms = (mapseg_t*)seg;
@@ -626,13 +655,29 @@ void P_LoadLineDefs (int lump)
 
 vertex_t LineV1(line_t *line)
 {
+    mapvertex_t temp_ml; 
     short v1_num = SHORT(line->mld->v1);
-    return vertexes[v1_num];
+
+    X_spi_read(mapvertexes + v1_num, &temp_ml, sizeof(temp_ml)/4);
+    
+    vertex_t linev1;
+    linev1.x = (SHORT(temp_ml.x)<<FRACBITS); 
+    linev1.y = (SHORT(temp_ml.y)<<FRACBITS); 
+    
+    return linev1;
 }
 vertex_t LineV2(line_t *line)
 {
-    short v2_num = SHORT(line->mld->v2);
-    return vertexes[v2_num];
+    mapvertex_t temp_ml; 
+    short v2_num = SHORT(line->mld->v2); 
+    
+    X_spi_read(mapvertexes + v2_num, &temp_ml, sizeof(temp_ml)/4);
+    
+    vertex_t linev2;
+    linev2.x = (SHORT(temp_ml.x)<<FRACBITS); 
+    linev2.y = (SHORT(temp_ml.y)<<FRACBITS); 
+    
+    return linev2;
 }
 short LineFlags(line_t *line)
 {
@@ -1060,6 +1105,9 @@ static void P_LoadReject(int lumpnum)
 {
     PRINTF("P_LoadReject\n");
 
+    rejectmatrix = W_CacheLumpNum(lumpnum, PU_LEVEL);
+    
+    /*  X-HEEP comment : avoid Z_Malloc of rejectmatrix
     int minlength;
     int lumplen;
 
@@ -1084,6 +1132,7 @@ static void P_LoadReject(int lumpnum)
 
         PadRejectArray(rejectmatrix + lumplen, minlength - lumplen);
     }
+    */
 }
 
 //
@@ -1149,16 +1198,16 @@ P_SetupLevel
 
     PRINTF("In P_SetupLevel before loads\n");
     // note: most of this ordering is important 
-    P_LoadBlockMap (lumpnum+ML_BLOCKMAP);
-    P_LoadVertexes (lumpnum+ML_VERTEXES);
-    P_LoadSectors (lumpnum+ML_SECTORS);
+    P_LoadBlockMap (lumpnum+ML_BLOCKMAP);    //X-HEEP comment : No more Z_malloc
+    P_LoadVertexes (lumpnum+ML_VERTEXES);    //X-HEEP comment : No more Z_malloc : in flash
+    P_LoadSectors (lumpnum+ML_SECTORS);         
     P_LoadSideDefs (lumpnum+ML_SIDEDEFS);
     P_LoadLineDefs (lumpnum+ML_LINEDEFS);
     P_LoadSubsectors (lumpnum+ML_SSECTORS);
-    P_LoadNodes (lumpnum+ML_NODES);
-    P_LoadSegs (lumpnum+ML_SEGS);
+    P_LoadNodes (lumpnum+ML_NODES);          //X-HEEP comment : No more Z_malloc : in flash
+    P_LoadSegs (lumpnum+ML_SEGS);            //X-HEEP comment : No more Z_malloc : in flash
     P_GroupLines ();
-    P_LoadReject (lumpnum+ML_REJECT);
+    P_LoadReject (lumpnum+ML_REJECT);        //X-HEEP comment : No more Z_malloc : in flash
 
 
     PRINTF("In P_SetupLevel before loadthings\n");

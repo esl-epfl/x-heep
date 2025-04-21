@@ -363,17 +363,20 @@ void AM_findMinMaxBoundaries(void)
     min_x = min_y =  INT_MAX;
     max_x = max_y = -INT_MAX;
   
-    for (i=0;i<numvertexes;i++)
-    {
-        if (vertexes[i].x < min_x)
-            min_x = vertexes[i].x;
-        else if (vertexes[i].x > max_x)
-            max_x = vertexes[i].x;
+    mapvertex_t temp_ml; 
     
-        if (vertexes[i].y < min_y)
-            min_y = vertexes[i].y;
-        else if (vertexes[i].y > max_y)
-            max_y = vertexes[i].y;
+    for (i=0;i<numvertexes; i++)
+    {
+        X_spi_read(mapvertexes + i, &temp_ml, sizeof(temp_ml)/4);
+        if ((SHORT(temp_ml.x)<<FRACBITS) < min_x)
+            min_x = SHORT(temp_ml.x)<<FRACBITS;
+        else if ((SHORT(temp_ml.x)<<FRACBITS) > max_x)
+            max_x = (SHORT(temp_ml.x)<<FRACBITS);
+    
+        if ((SHORT(temp_ml.y)<<FRACBITS) < min_y)
+            min_y = (SHORT(temp_ml.y)<<FRACBITS);
+        else if ((SHORT(temp_ml.y)<<FRACBITS) > max_y)
+            max_y = (SHORT(temp_ml.y)<<FRACBITS);
     }
   
     max_w = max_x - min_x;

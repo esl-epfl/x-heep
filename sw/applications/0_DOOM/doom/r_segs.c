@@ -115,12 +115,12 @@ R_RenderMaskedSegRange
 
     lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
 
-    vertex_t *v1 = SegV1(curline);
-    vertex_t *v2 = SegV2(curline);
+    vertex_t v1 = SegV1(curline);
+    vertex_t v2 = SegV2(curline);
 
-    if (v1->y == v2->y)
+    if (v1.y == v2.y)
         lightnum--;
-    else if (v1->x == v2->x)
+    else if (v1.x == v2.x)
         lightnum++;
 
     if (lightnum < 0)           
@@ -445,9 +445,9 @@ R_StoreWallRange
         offsetangle = ANG90;
 
     distangle = ANG90 - offsetangle;
-    vertex_t *v1 = SegV1(curline);
-    vertex_t *v2 = SegV2(curline);
-    hyp = R_PointToDist (v1->x, v1->y);
+    vertex_t v1 = SegV1(curline);
+    vertex_t v2 = SegV2(curline);
+    hyp = R_PointToDist (v1.x, v1.y);
     sineval = finesine[distangle>>ANGLETOFINESHIFT];
     rw_distance = FixedMul (hyp, sineval);
                 
@@ -671,9 +671,9 @@ R_StoreWallRange
             lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
 
             // NRFD-TODO: We sure curline is the same as above?
-            if (v1->y == v2->y)
+            if (v1.y == v2.y)
                 lightnum--;
-            else if (v1->x == v2->x)
+            else if (v1.x == v2.x)
                 lightnum++;
 
             if (lightnum < 0)           

@@ -69,7 +69,8 @@ extern int              numsprites;
 extern spritedef_t      sprites[];
 
 extern int              numvertexes;
-extern vertex_t*        vertexes;
+//extern vertex_t*        vertexes;
+extern mapvertex_t*     mapvertexes; 
 
 extern int              numsegs;
 // extern seg_t*           segs;

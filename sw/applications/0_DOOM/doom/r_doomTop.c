@@ -509,14 +509,14 @@ R_PointOnSegSide
     fixed_t     left;
     fixed_t     right;
 
-    vertex_t *v1 = SegV1(line);
-    vertex_t *v2 = SegV2(line);
+    vertex_t v1 = SegV1(line);
+    vertex_t v2 = SegV2(line);
 
-    lx = v1->x;
-    ly = v1->y;
+    lx = v1.x;
+    ly = v1.y;
         
-    ldx = v2->x - lx;
-    ldy = v2->y - ly;
+    ldx = v2.x - lx;
+    ldy = v2.y - ly;
         
     if (!ldx)
     {
