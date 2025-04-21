@@ -34,24 +34,25 @@
  #include <stdio.h>
  #include <stdlib.h>
 
-//extern const uint32_t __HeapLimit;
+ #define X_HEEP_HEAP_LIMIT 0xC000  // 48 KiB
+ static size_t heap_used = 0;
+ 
+ void *N_malloc(size_t size)
+ {
+     if (heap_used + size > X_HEEP_HEAP_LIMIT) {
+         PRINTF("Heap overflow! Requested %d, used %lu/%d\n", size, heap_used, X_HEEP_HEAP_LIMIT);
+         return NULL;
+     }
+ 
+     void *ptr = malloc(size);
+     heap_used += size;       
+     PRINTF("Alloc %d -> %p (heap used: %lu/%d)\n", size, ptr, heap_used, X_HEEP_HEAP_LIMIT);
+ 
+     return ptr;
+ }
 
-//X-HEEP HARDCODED VALUE TODO: FIX
-#define X_HEEP_HEAP_LIMIT 64000
-const uint32_t heapLimit = (uint32_t)X_HEEP_HEAP_LIMIT;
-
-void *N_malloc(size_t size)
+void N_free(void *ptr, size_t size)
 {
-    void *result;
-    result = malloc(size);
-    size_t end = (size_t)result + size;
-    
-    // PRINTF("A %d at %X - %X - %lX\n", size, (size_t)result, end, heapLimit);
-    if (end > heapLimit) {
-        PRINTF("Heap Overflow!!\n");
-        return NULL;
-    }
-
-    return result;
+    free(ptr);
+    heap_used -= size;
 }
-

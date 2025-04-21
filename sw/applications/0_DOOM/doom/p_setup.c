@@ -40,6 +40,7 @@
 
 #include "doomstat.h"
 #include "x_spi.h"
+#include "n_mem.h"
 
 
 void    P_SpawnMapThing (mapthing_t*    mthing);
@@ -367,7 +368,7 @@ side_t *SegSideDef(seg_t *seg)
 void P_LoadSubsectors (int lump)
 {
     PRINTF("P_LoadSubsectors\n");
-
+    
     byte*               data; // X-HEEP comment : data is an adress in flash it must be read using X_spi_read
     int                 i;
     mapsubsector_t*     ms; // X-HEEP comment : ms is an adress in flash it must be read using X_spi_read
@@ -409,7 +410,8 @@ void P_LoadSectors (int lump)
     sector_t*           ss;
         
     numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
-    sectors = Z_Malloc (numsectors*sizeof(sector_t),PU_LEVEL,0);        
+    sectors = N_malloc(numsectors*sizeof(sector_t)); 
+    //sectors = Z_Malloc (numsectors*sizeof(sector_t),PU_LEVEL,0);        
     memset (sectors, 0, numsectors*sizeof(sector_t));
     data = W_CacheLumpNum (lump,PU_STATIC);
 
@@ -1135,6 +1137,18 @@ static void P_LoadReject(int lumpnum)
     */
 }
 
+//X-HEEP comment : function to free malloc data from levels
+void P_FreeLevelData()
+{
+    PRINTF("P_FreeLevelData\n");
+
+    if (sectors != NULL)
+    {
+        N_free(sectors, numsectors*sizeof(sector_t)); 
+    }
+}
+
+
 //
 // P_SetupLevel
 //
@@ -1166,7 +1180,7 @@ P_SetupLevel
     // Make sure all sounds are stopped before Z_FreeTags.
     //S_Start ();                 
 
-    //Z_FreeTags (PU_LEVEL, PU_PURGELEVEL-1); //X-HEEP comment 
+    //Z_FreeTags (PU_LEVEL, PU_PURGELEVEL-1); //X-HEEP comment need to uncoment or replace if mallocs left 
 
     // UNUSED W_Profile ();
     P_InitThinkers ();
@@ -1200,7 +1214,7 @@ P_SetupLevel
     // note: most of this ordering is important 
     P_LoadBlockMap (lumpnum+ML_BLOCKMAP);    //X-HEEP comment : No more Z_malloc
     P_LoadVertexes (lumpnum+ML_VERTEXES);    //X-HEEP comment : No more Z_malloc : in flash
-    P_LoadSectors (lumpnum+ML_SECTORS);         
+    P_LoadSectors (lumpnum+ML_SECTORS);      //X-HEEP comment : Uses N_malloc: sectors in heap    
     P_LoadSideDefs (lumpnum+ML_SIDEDEFS);
     P_LoadLineDefs (lumpnum+ML_LINEDEFS);
     P_LoadSubsectors (lumpnum+ML_SSECTORS);

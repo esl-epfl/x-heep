@@ -9,7 +9,7 @@
 
     linker_script: {
         stack_size: 0x800
-        heap_size: 0x4000
+        heap_size: 0xC000
     }
 
     debug: {
