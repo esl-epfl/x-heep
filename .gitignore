@@ -59,6 +59,3 @@ flow/OpenROAD-flow-scripts
 # User-dependent configuration files
 .vscode
 private/
-
-# Tests output files
-test/test_x_heep_gen/outputs/*
