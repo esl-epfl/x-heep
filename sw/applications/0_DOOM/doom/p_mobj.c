@@ -739,7 +739,7 @@ void P_RespawnSpecials (void)
 //
 void P_SpawnPlayer (mapthing_t* mthing)
 {
-    // PRINTF("P_SpawnPlayer\n");
+    //PRINTF("P_SpawnPlayer\n");
     player_t*           p;
     fixed_t             x;
     fixed_t             y;
@@ -793,11 +793,12 @@ void P_SpawnPlayer (mapthing_t* mthing)
     if (deathmatch)
         for (i=0 ; i<NUMCARDS ; i++)
             p->cards[i] = true;
-                        
+    
     if (mthing->type-1 == consoleplayer)
     {
         // wake up the status bar
         ST_Start ();
+        PRINTF("P_SpawnPlayer before HU\n");
         // wake up the heads up text
         HU_Start ();            
     }
@@ -838,17 +839,20 @@ void P_SpawnMapThing (mapthing_t* mthing)
         return;
     }
         
+    PRINTF("In P_SpawnMapThing before third if\n");
     // check for players specially
     if (mthing->type <= 4)
     {
         // save spots for respawning in network games
         playerstarts[mthing->type-1] = *mthing;
+        PRINTF("In P_SpawnMapThing before if (!deathmatch)\n");
         if (!deathmatch)
             P_SpawnPlayer (mthing);
 
         return;
     }
 
+    PRINTF("In P_SpawnMapThing before fourth if\n");
     // check for apropriate skill level
     if (!netgame && (mthing->options & 16) )
         return;
@@ -867,7 +871,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
     for (i=0 ; i< NUMMOBJTYPES ; i++)
         if (mthing->type == mobjinfo[i].doomednum)
             break;
-        
+    
     if (i==NUMMOBJTYPES)
         I_Error ("P_SpawnMapThing: Unknown type %i at (%i, %i)",
                  mthing->type,
@@ -894,6 +898,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
     else
         z = ONFLOORZ;
     
+    PRINTF("In P_SpawnMapThing before P_SpawnMobj\n");
     mobj = P_SpawnMobj (x,y,z, i);
     // mobj->spawnpoint = *mthing; // NRFD-TODO: nightmare
 
@@ -1051,8 +1056,9 @@ P_SpawnMissile
 
     th->angle = an;
     an >>= ANGLETOFINESHIFT;
+    fixed_t sineval = read_finesine(an);
     th->momx = FixedMul (th->info->speed, finecosine[an]);
-    th->momy = FixedMul (th->info->speed, finesine[an]);
+    th->momy = FixedMul (th->info->speed, sineval);
         
     dist = P_AproxDistance (dest->x - source->x, dest->y - source->y);
     dist = dist / th->info->speed;
@@ -1117,10 +1123,11 @@ P_SpawnPlayerMissile
 
     th->target = source;
     th->angle = an;
+    fixed_t sineval = read_finesine(an>>ANGLETOFINESHIFT);
     th->momx = FixedMul( th->info->speed,
                          finecosine[an>>ANGLETOFINESHIFT]);
     th->momy = FixedMul( th->info->speed,
-                         finesine[an>>ANGLETOFINESHIFT]);
+                         sineval);
     th->momz = FixedMul( th->info->speed, slope);
 
     P_CheckMissileSpawn (th);

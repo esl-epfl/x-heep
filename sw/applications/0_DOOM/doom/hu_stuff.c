@@ -373,6 +373,7 @@ void HU_Start(void)
     int         i;
     char*       s;
 
+    printf("In HU_start, before first if \n");
     if (headsupactive)
         HU_Stop();
 
@@ -384,22 +385,25 @@ void HU_Start(void)
     // chat_on = false; // NRFD-TODO: chat
 
     // create the message widget
+    printf("In HU_start, before HUlib_initSText \n");
     HUlib_initSText(&w_message,
                     HU_MSGX, HU_MSGY, HU_MSGHEIGHT,
                     hu_font,
                     HU_FONTSTART, &message_on);
 
+    printf("In HU_start, before HUlib_initSText \n");
     HUlib_initSText(&w_fps,
                     /*x*/ 270, /*y*/ 0, HU_MSGHEIGHT,
                     hu_font,
                     HU_FONTSTART, &fps_on);
 
+    printf("In HU_start, before  HUlib_initTextLine \n");
     // create the map title widget
     HUlib_initTextLine(&w_title,
                        HU_TITLEX, HU_TITLEY,
                        hu_font,
-                       HU_FONTSTART);
-    
+                       HU_FONTSTART); //problem here 
+    printf("In HU_start, before  switch \n");
     switch ( logical_gamemission )
     {
       case doom:
@@ -428,8 +432,9 @@ void HU_Start(void)
 
     // dehacked substitution to get modified level name
 
+    printf("In HU_start, before  deh \n");
     s = DEH_String(s);
-    
+    printf("In HU_start, before  HUlib_addCharToTextLine \n");
     while (*s)
         HUlib_addCharToTextLine(&w_title, *(s++));
 

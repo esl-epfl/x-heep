@@ -11,5 +11,6 @@ void X_spi_erase_sector(uint32_t addr);
 void X_spi_write(uint32_t loc, void* buffer, uint32_t size); 
 void X_spi_write_sector(uint32_t address, uint32_t* sect_data); 
 uint32_t X_spi_alloc_sector();  
+int32_t read_finesine(uint32_t index); 
 
 #endif // X_SPI_H

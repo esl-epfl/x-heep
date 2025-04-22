@@ -1268,11 +1268,11 @@ G_CheckSpot
                 ya = finetangent[1024];    // finesine[-3072]
                 break;
             case 6144:  // -2048:
-                xa = finesine[0];          // finecosine[-2048]
+                xa = read_finesine(0);          // finecosine[-2048]
                 ya = finetangent[2048];    // finesine[-2048]
                 break;
             case 7168:  // -1024:
-                xa = finesine[1024];       // finecosine[-1024]
+                xa = read_finesine(1024);       // finecosine[-1024]
                 ya = finetangent[3072];    // finesine[-1024]
                 break;
             case 0:
@@ -1280,7 +1280,7 @@ G_CheckSpot
             case 2048:
             case 3072:
                 xa = finecosine[an];
-                ya = finesine[an];
+                ya = read_finesine(an);
                 break;
             default:
                 I_Error("G_CheckSpot: unexpected angle %d\n", an);

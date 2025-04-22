@@ -1219,13 +1219,13 @@ AM_rotate
   angle_t       a )
 {
     fixed_t tmpx;
-
+    fixed_t sineval = read_finesine(a>>ANGLETOFINESHIFT);
     tmpx =
         FixedMul(*x,finecosine[a>>ANGLETOFINESHIFT])
-        - FixedMul(*y,finesine[a>>ANGLETOFINESHIFT]);
+        - FixedMul(*y,sineval);
     
     *y   =
-        FixedMul(*x,finesine[a>>ANGLETOFINESHIFT])
+        FixedMul(*x,sineval)
         + FixedMul(*y,finecosine[a>>ANGLETOFINESHIFT]);
 
     *x = tmpx;

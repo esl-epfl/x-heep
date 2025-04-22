@@ -10,6 +10,7 @@
 #include "fast_intr_ctrl.h"
 #include "csr.h"
 #include "csr_registers.h"
+#include "tables.h"
 
 // =========================== VARS & DEFS ==================================
 // Flash w25q128jw SPI commands
@@ -232,6 +233,12 @@ uint32_t X_spi_alloc_sector()
     uint32_t loc = next_loc; 
     next_loc += SECT_LEN; 
     return loc; 
+}
+
+int32_t read_finesine(uint32_t index) {
+    int32_t value;
+    X_spi_read(&finesine[index], &value, sizeof(value)/4);
+    return value;
 }
 
 //old version 

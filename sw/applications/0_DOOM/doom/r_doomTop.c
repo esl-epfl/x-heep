@@ -709,8 +709,9 @@ R_PointToDist
         
     angle = (tantoangle[frac>>DBITS]+ANG90) >> ANGLETOFINESHIFT;
 
+    fixed_t sineval = read_finesine(angle); 
     // use as cosine
-    dist = FixedDiv (dx, finesine[angle] );     
+    dist = FixedDiv (dx, sineval);     
         
     return dist;
 }
@@ -779,8 +780,8 @@ fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
     angleb = ANG90 + (visangle-rw_normalangle);
 
     // both sines are allways positive
-    sinea = finesine[anglea>>ANGLETOFINESHIFT]; 
-    sineb = finesine[angleb>>ANGLETOFINESHIFT];
+    sinea = read_finesine(anglea>>ANGLETOFINESHIFT); 
+    sineb = read_finesine(angleb>>ANGLETOFINESHIFT);
     num = FixedMul(projection,sineb)<<detailshift;
     den = FixedMul(rw_distance,sinea);
 
@@ -1175,7 +1176,7 @@ void R_SetupFrame (player_t* player)
 
     viewz = player->viewz;
     
-    viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
+    viewsin = read_finesine(viewangle>>ANGLETOFINESHIFT);
     viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];
         
     sscount = 0;

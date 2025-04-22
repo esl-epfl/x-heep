@@ -832,8 +832,9 @@ P_DamageMobj
         }
                 
         ang >>= ANGLETOFINESHIFT;
+        fixed_t sineval = read_finesine(ang);
         target->momx += FixedMul (thrust, finecosine[ang]);
-        target->momy += FixedMul (thrust, finesine[ang]);
+        target->momy += FixedMul (thrust, sineval);
     }
     
     // player specific

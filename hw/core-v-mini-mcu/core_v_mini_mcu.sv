@@ -158,24 +158,24 @@ module core_v_mini_mcu
     input logic spi_sd_3_i,
     output logic spi_sd_3_oe_o,
 
-    input  logic spi_slave_sck_i,
+    input logic spi_slave_sck_i,
     output logic gpio_14_o,
-    input  logic gpio_14_i,
+    input logic gpio_14_i,
     output logic gpio_14_oe_o,
 
-    input  logic spi_slave_cs_i,
+    input logic spi_slave_cs_i,
     output logic gpio_15_o,
-    input  logic gpio_15_i,
+    input logic gpio_15_i,
     output logic gpio_15_oe_o,
 
     output logic spi_slave_miso_o,
     output logic gpio_16_o,
-    input  logic gpio_16_i,
+    input logic gpio_16_i,
     output logic gpio_16_oe_o,
 
-    input  logic spi_slave_mosi_i,
+    input logic spi_slave_mosi_i,
     output logic gpio_17_o,
-    input  logic gpio_17_i,
+    input logic gpio_17_i,
     output logic gpio_17_oe_o,
 
     output logic pdm2pcm_pdm_o,
@@ -635,7 +635,7 @@ module core_v_mini_mcu
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
       .JTAG_IDCODE(JTAG_IDCODE),
-      .SPI_SLAVE  (1)
+      .SPI_SLAVE(1)
   ) debug_subsystem_i (
       .clk_i,
       .rst_ni,

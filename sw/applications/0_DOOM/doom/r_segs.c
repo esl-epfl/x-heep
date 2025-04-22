@@ -31,6 +31,7 @@
 
 #include "r_local.h"
 #include "r_sky.h"
+#include "x_spi.h"
 
 
 // OPTIMIZE: closed two sided lines as single sided
@@ -448,7 +449,7 @@ R_StoreWallRange
     vertex_t v1 = SegV1(curline);
     vertex_t v2 = SegV2(curline);
     hyp = R_PointToDist (v1.x, v1.y);
-    sineval = finesine[distangle>>ANGLETOFINESHIFT];
+    sineval = read_finesine(distangle>>ANGLETOFINESHIFT);
     rw_distance = FixedMul (hyp, sineval);
                 
         
@@ -653,7 +654,7 @@ R_StoreWallRange
         if (offsetangle > ANG90)
             offsetangle = ANG90;
 
-        sineval = finesine[offsetangle >>ANGLETOFINESHIFT];
+        sineval = read_finesine(offsetangle >>ANGLETOFINESHIFT);  
         rw_offset = FixedMul (hyp, sineval);
 
         if (rw_normalangle-rw_angle1 < ANG180)

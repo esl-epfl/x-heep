@@ -55,9 +55,9 @@ P_Thrust
   fixed_t       move )
 {
     angle >>= ANGLETOFINESHIFT;
-
+    fixed_t sineval = read_finesine(angle);
     player->mo->momx += FixedMul(move,finecosine[angle]);
-    player->mo->momy += FixedMul(move,finesine[angle]);
+    player->mo->momy += FixedMul(move,sineval);
 }
 
 
@@ -99,7 +99,8 @@ void P_CalcHeight (player_t* player)
     }
 
     angle = (FINEANGLES/20*leveltime)&FINEMASK;
-    bob = FixedMul ( player->bob/2, finesine[angle]);
+    fixed_t sineval = read_finesine(angle);
+    bob = FixedMul ( player->bob/2, sineval);
 
 
     // move viewheight

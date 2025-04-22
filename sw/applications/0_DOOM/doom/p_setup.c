@@ -68,7 +68,7 @@ int             numnodes;
 mapnode_t*         mapnodes; // X-HEEP comment : mapnodes is an adress in flash it must be read using X_spi_read
 
 int             numlines;
-line_t*         lines;
+line_t*         lines; //X-HEEP comment: lines->mld is an adress in flash it must be read using X_spi_read
 
 int             numsides;
 side_t*         sides;
@@ -544,11 +544,11 @@ void P_LoadThings (int lump)
         spawnthing.angle = SHORT(temp_mt.angle);
         spawnthing.type = SHORT(temp_mt.type);
         spawnthing.options = SHORT(temp_mt.options);
-        
         P_SpawnMapThing(&spawnthing);
+        printf("P_LoadThings : In loop after P_SpawnMapThing\n");
     }
 
-    W_ReleaseLumpNum(lump);
+    //W_ReleaseLumpNum(lump); //useless
 }
 
 
@@ -661,9 +661,13 @@ void P_LoadLineDefs (int lump)
 
 vertex_t LineV1(line_t *line)
 {
-    mapvertex_t temp_ml; 
-    short v1_num = SHORT(line->mld->v1);
+    maplinedef_t temp_mld; 
+    uint32_t temp_mld_data[(sizeof(temp_mld)+3)/4];
+    X_spi_read(line->mld, &temp_mld_data, (sizeof(temp_mld)+3)/4);
+    memcpy(&temp_mld, &temp_mld_data, sizeof(temp_mld)); 
+    short v1_num = SHORT(temp_mld.v1);
 
+    mapvertex_t temp_ml;
     X_spi_read(mapvertexes + v1_num, &temp_ml, sizeof(temp_ml)/4);
     
     vertex_t linev1;
@@ -674,9 +678,13 @@ vertex_t LineV1(line_t *line)
 }
 vertex_t LineV2(line_t *line)
 {
-    mapvertex_t temp_ml; 
-    short v2_num = SHORT(line->mld->v2); 
+    maplinedef_t temp_mld; 
+    uint32_t temp_mld_data[(sizeof(temp_mld)+3)/4];
+    X_spi_read(line->mld, &temp_mld_data, (sizeof(temp_mld)+3)/4);
+    memcpy(&temp_mld, &temp_mld_data, sizeof(temp_mld)); 
+    short v2_num = SHORT(temp_mld.v2);
     
+    mapvertex_t temp_ml; 
     X_spi_read(mapvertexes + v2_num, &temp_ml, sizeof(temp_ml)/4);
     
     vertex_t linev2;
@@ -687,7 +695,11 @@ vertex_t LineV2(line_t *line)
 }
 short LineFlags(line_t *line)
 {
-    return SHORT(line->mld->flags);
+    maplinedef_t temp_mld; 
+    uint32_t temp_mld_data[(sizeof(temp_mld)+3)/4];
+    X_spi_read(line->mld, &temp_mld_data, (sizeof(temp_mld)+3)/4);
+    memcpy(&temp_mld, &temp_mld_data, sizeof(temp_mld));  
+    return SHORT(temp_mld.flags);
 }
 void LineSetMapped(line_t *line)
 {
@@ -699,7 +711,11 @@ boolean LineIsMapped(line_t *line)
 }
 short LineTag(line_t *line)
 {
-    return SHORT(line->mld->tag);
+    maplinedef_t temp_mld; 
+    uint32_t temp_mld_data[(sizeof(temp_mld)+3)/4];
+    X_spi_read(line->mld, &temp_mld_data, (sizeof(temp_mld)+3)/4);
+    memcpy(&temp_mld, &temp_mld_data, sizeof(temp_mld));  
+    return SHORT(temp_mld.tag);
 }
 void LineTagSet666(line_t *line)
 {
@@ -707,11 +723,19 @@ void LineTagSet666(line_t *line)
 }
 short   LineSideNum(line_t *line, int num)
 {
-    return  SHORT(line->mld->sidenum[num]);
+    maplinedef_t temp_mld; 
+    uint32_t temp_mld_data[(sizeof(temp_mld)+3)/4];
+    X_spi_read(line->mld, &temp_mld_data, (sizeof(temp_mld)+3)/4);
+    memcpy(&temp_mld, &temp_mld_data, sizeof(temp_mld));
+    return  SHORT(temp_mld.sidenum[num]);
 }
 side_t*   LineSide(line_t *line, int num)
 {
-    short sn = SHORT(line->mld->sidenum[num]);
+    maplinedef_t temp_mld; 
+    uint32_t temp_mld_data[(sizeof(temp_mld)+3)/4];
+    X_spi_read(line->mld, &temp_mld_data, (sizeof(temp_mld)+3)/4);
+    memcpy(&temp_mld, &temp_mld_data, sizeof(temp_mld));  
+    short sn = SHORT(temp_mld.sidenum[num]);
     if (sn == -1) return NULL;
     return &sides[sn];
 }
@@ -983,7 +1007,6 @@ void P_GroupLines (void)
     }
 
     // Assign lines to sectors
-
     for (i=0; i<numlines; ++i)
     { 
         li = &lines[i];
@@ -1009,7 +1032,6 @@ void P_GroupLines (void)
     }
     
     // Generate bounding boxes for sectors
-        
     sector = sectors;
     for (i=0 ; i<numsectors ; i++, sector++)
     {
