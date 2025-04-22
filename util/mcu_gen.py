@@ -873,6 +873,11 @@ def main():
         exit(
             "external_domains must be less than 32 instead of " + str(external_domains)
         )
+ 
+    try:
+        has_spi_slave = 1 if obj['debug']['has_spi_slave'] == "yes" else 0
+    except KeyError:
+        has_spi_slave = 0
 
     xheep = x_heep_gen.load_config.load_cfg_file(
         pathlib.PurePath(str(args.config)), config_override
@@ -1586,6 +1591,7 @@ def main():
         "num_dma_master_ports": num_dma_master_ports,
         "num_dma_xbar_channels_per_master_port": num_dma_xbar_channels_per_master_port,
         "dma_xbar_masters_array": dma_xbar_array,
+        "has_spi_slave": has_spi_slave,
         "peripheral_start_address": user_peripheral_start_address,
         "peripheral_size_address": user_peripheral_size_address,
         "peripherals": user_peripherals,
