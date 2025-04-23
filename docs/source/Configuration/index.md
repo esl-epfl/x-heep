@@ -15,7 +15,7 @@ If you want to modify the default parameters, check the [system configuration gu
 In this section you will also find the detailed documentation for configuring the different elements of X-HEEP (e.g. the bus, the memory, the pads...), and the API documentation of the `x_heep_gen` Python project that models and is in charge of generating X-HEEP according to the specified configuration.
 
 ```{toctree}
-:maxdepth: 4
+:maxdepth: 3
 
 SystemConfiguration
 
