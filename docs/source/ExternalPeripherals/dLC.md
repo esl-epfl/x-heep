@@ -8,8 +8,6 @@ The dLC block can be used to filter input data, reduce the output data rate from
 
 The dLC block works as a digital filter, that literally filters out data that is "redundant", and reduces the bit-depth of the data that is not redundant by computing the difference with the last output. How much this difference should be is configurable from SW by setting the `LVL W` (level width) register. 
 
-> Note that the `LVL W` register actually is the log2 of the number of levels among which the entire input range is divided. i.e. a `LVL W = 5` will divide the input range in 32 equally distributed levels. If the input data is in 16 bits, setting `LVL W = 15` will mean that levels will be extremely thin (every other bit of data increase will trigger a crossing). 
- 
 If the input data differs more than the level width in any direction a new output will be generated, formatted and added to the write fifo. If this is not the case, the sample is discarded and a count controlling the samples' difference is increased.
 
 The data output format can be configured to specify 
@@ -26,7 +24,7 @@ The dLC logic can still be used while preserving all the input data. For this, s
 
 ### General case 
 At every new sample available to the DMA, the input data (`din`) is loaded in the the `read fifo`. This is popped by the dLC while it is on the `RUN` state. 
-The `LVL W` most significant bits of the input data are taken. This number of bits represent the width of the levels and force the level width to be a power of two. 
+The input data is right shifted `LVL W` bits, so the `16 - LVL W` most significant bits of the input data are taken. This number of bits represent the width of the levels and force the level width to be a power of two. 
 
 The piece of the input data corresponding to its level gets subtracted the last crossed level to obtain the level difference `dlvl`. This difference is used to decide how the dLC should proceed. 
 
@@ -70,9 +68,9 @@ The `dlvl_mask` should be as many 1s in the LSBs as bits were assigned to `dlvl`
 ```
 The 7th bit will be used by the sign (both in twos complement or in sign + absolute value mode). 
 
-The `dt_mask` should be as many 1s in the position where `dt` will be found as bits were assigned to `dt`. For example, following the previous case, and if we assign 4 bits for `dt`, the `dt_mask` should look like: 
+The `dt_mask` should be as many 1s in the LSBs where `dt` as bits were assigned to `dt`. For example, following the previous case, and if we assign 4 bits for `dt`, the `dt_mask` should look like: 
 ```
-0000 0111 1000 0000
+0000 0000 0000 1111
 ```
 
 So you don't have to think about it, here is how to compute the masks, and how to unmask the received value to extract `dlvl` and `dt`. 
@@ -81,15 +79,17 @@ So you don't have to think about it, here is how to compute the masks, and how t
 // Assign bits
 dlvl_bits   = 7;
 dt_bits     = 4;
+twoscomp    = true; //or false, as you wish...
+
 // Compute the masks
 dlvl_mask   = ( 1 << ( dlvl_bits - 1 )) -1;
-dt_mask     = (( 1 << dt_bits ) -1 ) << dlvl_bits;
+dt_mask     = (( 1 << dt_bits ) -1 );
 
-// Compute the unmasks
+// Compute the "unmasks" (masks used to retrieve the values)
 dlvl_umask      = dlvl_mask;
 dir_umask       = 1 << dlvl_bits;
 dlvl_2s_umask   = ( 1 << ( dlvl_bits - 1 )) -1; //keep the sign
-dt_umask        = dt_mask;
+dt_umask        = dt_mask  << dlvl_bits;
 
 // Unmask the received value
 if( twoscomp ){
@@ -140,5 +140,5 @@ When `bypass` is enabled the dLC will still compute the `dlvl` difference and tr
 
 ### Differentiation
 
-The dLC can be used as a differentiation block by assigning 0 bits to `dt`, as many as desired to `dlvl` (below the permissible 8-bits) and setting the level width to a single bit (`LVL W = 16`). This will generate an output on every single input data, and the result will be the difference with the previous value. 
+The dLC can be used as a differentiation block by assigning 0 bits to `dt`, as many as desired to `dlvl` (below the permissible 8-bits) and setting the level width to a single bit (`LVL W = 1`). This will generate an output on every single input data, and the result will be the difference with the previous value. 
 
