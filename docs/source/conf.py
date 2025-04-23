@@ -46,8 +46,7 @@ apidoc_module_dir = "../../util/x_heep_gen"
 apidoc_output_dir = "Configuration/x_heep_gen"
 apidoc_separate_modules = True
 apidoc_toc_file = "index"
-apidoc_module_first = True
-apidoc_extra_args = ["--force", "--no-toc"]
+apidoc_extra_args = ["--implicit-namespaces"]
 
 # Auto-generate header anchors for MyST
 myst_heading_anchors = 4
