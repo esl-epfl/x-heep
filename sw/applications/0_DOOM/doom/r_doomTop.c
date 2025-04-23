@@ -1177,7 +1177,7 @@ void R_SetupFrame (player_t* player)
     viewz = player->viewz;
     
     viewsin = read_finesine(viewangle>>ANGLETOFINESHIFT);
-    viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];
+    viewcos = read_finecosine(viewangle>>ANGLETOFINESHIFT);
         
     sscount = 0;
         

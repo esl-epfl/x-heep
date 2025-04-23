@@ -56,7 +56,8 @@ P_Thrust
 {
     angle >>= ANGLETOFINESHIFT;
     fixed_t sineval = read_finesine(angle);
-    player->mo->momx += FixedMul(move,finecosine[angle]);
+    fixed_t cosval = read_finecosine(angle); 
+    player->mo->momx += FixedMul(move,cosval);
     player->mo->momy += FixedMul(move,sineval);
 }
 

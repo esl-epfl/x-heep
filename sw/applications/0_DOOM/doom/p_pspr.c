@@ -326,10 +326,12 @@ X-HEEP COMMENT END */
         player->attackdown = false;
     
     // bob the weapon based on movement speed
-    angle = (128*leveltime)&FINEMASK;
-    psp->sx = FRACUNIT + FixedMul (player->bob, finecosine[angle]);
+    angle = (128*leveltime)&FINEMASK; 
+    fixed_t cosval = read_finecosine(angle); 
+    psp->sx = FRACUNIT + FixedMul (player->bob, cosval);
     angle &= FINEANGLES/2-1;
-    psp->sy = WEAPONTOP + FixedMul (player->bob, finesine[angle]);
+    fixed_t sineval = read_finesine(angle);
+    psp->sy = WEAPONTOP + FixedMul (player->bob, sineval);
 }
 
 

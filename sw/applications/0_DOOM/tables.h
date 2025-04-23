@@ -49,7 +49,7 @@
 extern int32_t finesine[10240];
 
 // Re-use data, is just PI/2 pahse shift.
-extern const fixed_t *finecosine;
+//extern const fixed_t *finecosine;
 
 
 // Effective size is 4096.

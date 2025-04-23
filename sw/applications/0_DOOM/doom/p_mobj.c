@@ -1057,7 +1057,8 @@ P_SpawnMissile
     th->angle = an;
     an >>= ANGLETOFINESHIFT;
     fixed_t sineval = read_finesine(an);
-    th->momx = FixedMul (th->info->speed, finecosine[an]);
+    fixed_t cosval = read_finecosine(an); 
+    th->momx = FixedMul (th->info->speed, cosval);
     th->momy = FixedMul (th->info->speed, sineval);
         
     dist = P_AproxDistance (dest->x - source->x, dest->y - source->y);
@@ -1124,8 +1125,9 @@ P_SpawnPlayerMissile
     th->target = source;
     th->angle = an;
     fixed_t sineval = read_finesine(an>>ANGLETOFINESHIFT);
+    fixed_t cosval = read_finecosine(an>>ANGLETOFINESHIFT); 
     th->momx = FixedMul( th->info->speed,
-                         finecosine[an>>ANGLETOFINESHIFT]);
+                         cosval);
     th->momy = FixedMul( th->info->speed,
                          sineval);
     th->momz = FixedMul( th->info->speed, slope);

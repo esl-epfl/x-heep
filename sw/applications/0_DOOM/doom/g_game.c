@@ -1279,7 +1279,7 @@ G_CheckSpot
             case 1024:
             case 2048:
             case 3072:
-                xa = finecosine[an];
+                xa = read_finecosine(an);
                 ya = read_finesine(an);
                 break;
             default:

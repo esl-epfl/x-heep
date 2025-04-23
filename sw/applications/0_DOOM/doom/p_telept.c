@@ -113,7 +113,8 @@ EV_Teleport
 		//S_StartSound (fog, sfx_telept);
 		an = m->angle >> ANGLETOFINESHIFT;
 		fixed_t sineval = read_finesine(an);
-		fog = P_SpawnMobj (m->x+20*finecosine[an], m->y+20*sineval
+		fixed_t cosval = read_finecosine(an); 
+		fog = P_SpawnMobj (m->x+20*cosval, m->y+20*sineval
 				   , thing->z, MT_TFOG);
 
 		// emit sound, where?

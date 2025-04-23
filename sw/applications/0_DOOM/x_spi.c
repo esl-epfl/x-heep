@@ -241,6 +241,11 @@ int32_t read_finesine(uint32_t index) {
     return value;
 }
 
+int32_t read_finecosine(uint32_t index)
+{
+    return read_finesine(index + FINEANGLES/4); 
+}
+
 //old version 
 
 /*

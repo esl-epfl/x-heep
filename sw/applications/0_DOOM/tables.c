@@ -1862,7 +1862,7 @@ int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__((aligne
     65534,65535,65535,65535,65535,65535,65535,65535
 };
 
-const fixed_t *finecosine = &finesine[FINEANGLES/4];
+//const fixed_t *finecosine = &finesine[FINEANGLES/4];
 
 const angle_t tantoangle[2049] =
 {

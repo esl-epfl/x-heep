@@ -189,7 +189,8 @@ R_MapPlane
     length = FixedMul (distance,distscale[x1]);
     angle = (viewangle + xtoviewangle[x1])>>ANGLETOFINESHIFT;
     fixed_t sineval = read_finesine(angle); 
-    ds_xfrac = viewx + FixedMul(finecosine[angle], length);
+    fixed_t cosval = read_finecosine(angle); 
+    ds_xfrac = viewx + FixedMul(cosval, length);
     ds_yfrac = -viewy - FixedMul(sineval, length);
 
     if (fixedcolormap)
@@ -241,8 +242,9 @@ void R_ClearPlanes (void)
     angle = (viewangle-ANG90)>>ANGLETOFINESHIFT;
     
     fixed_t sineval = read_finesine(angle); 
+    fixed_t cosval = read_finecosine(angle); 
     // scale will be unit scale at SCREENWIDTH/2 distance
-    basexscale = FixedDiv (finecosine[angle],centerxfrac);
+    basexscale = FixedDiv (cosval,centerxfrac);
     baseyscale = -FixedDiv (sineval,centerxfrac);
 }
 

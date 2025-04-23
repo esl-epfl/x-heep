@@ -833,7 +833,8 @@ P_DamageMobj
                 
         ang >>= ANGLETOFINESHIFT;
         fixed_t sineval = read_finesine(ang);
-        target->momx += FixedMul (thrust, finecosine[ang]);
+        fixed_t cosval = read_finecosine(ang);
+        target->momx += FixedMul (thrust, cosval);
         target->momy += FixedMul (thrust, sineval);
     }
     
