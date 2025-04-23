@@ -1294,7 +1294,7 @@ int M_StringWidth(char* string)
         if (c < 0 || c >= HU_FONTSIZE)
             w += 4;
         else
-            X_spi_read(hu_font[c], &tempfont, sizeof(tempfont)); 
+            X_spi_read(hu_font[c], &tempfont, sizeof(tempfont)/4); 
             w += SHORT (tempfont.width);
     }
                 
@@ -1311,7 +1311,7 @@ int M_StringHeight(char* string)
     size_t             i;
     int             h;
     patch_t tempfont;
-    X_spi_read(hu_font[0], &tempfont, sizeof(tempfont));
+    X_spi_read(hu_font[0], &tempfont, sizeof(tempfont)/4);
     int             height = SHORT(tempfont.height);
         
     h = height;
@@ -1360,7 +1360,7 @@ void M_WriteText(int x, int y, char*string)
             continue;
         }
         
-        X_spi_read(hu_font[c], &tempfont, sizeof(tempfont)); 
+        X_spi_read(hu_font[c], &tempfont, sizeof(tempfont)/4); 
         w = SHORT (tempfont.width);
         if (cx+w > SCREENWIDTH)
             break;
@@ -1996,7 +1996,7 @@ void M_Drawer (void)
 
     inhelpscreens = false;
     patch_t tempfont; 
-    X_spi_read(hu_font[0], &tempfont, sizeof(tempfont));
+    X_spi_read(hu_font[0], &tempfont, sizeof(tempfont)/4);
     
     // Horiz. & Vertically center string and print it.
     if (messageToPrint)

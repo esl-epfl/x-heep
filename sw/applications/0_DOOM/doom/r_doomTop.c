@@ -91,7 +91,7 @@ angle_t                 clipangle;
 // flattening the arc to a flat projection plane.
 // There will be many angles mapped to the same X. 
 // Was: int viewangletox
-const int                     viewangletox[FINEANGLES/2] = 
+int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__((aligned(16))) viewangletox[FINEANGLES/2] = 
 {320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 
 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 
 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 
@@ -855,8 +855,9 @@ void R_InitTextureMapping (void)
     //
     // Calc focallength
     //  so FIELDOFVIEW angles covers SCREENWIDTH.
+    fixed_t tanangle = read_finetangent(FINEANGLES/4+FIELDOFVIEW/2); 
     focallength = FixedDiv (centerxfrac,
-                            finetangent[FINEANGLES/4+FIELDOFVIEW/2] );
+                            tanangle );
     
     /*
     PRINTF("viewangletox = {");

@@ -1316,6 +1316,17 @@ void D_DoomMain (void)
 
     //I_AtExit(D_Endoom, false); //Useless 
     
+    /*
+    fixed_t test = read_finetangent(0); 
+    printf("test : %i\n", test); 
+    test = read_finetangent(1); 
+    printf("test : %i\n", test); 
+    test = read_finetangent(2); 
+    printf("test : %i\n", test); 
+    test = read_finetangent(3); 
+    printf("test : %i\n", test); 
+    */
+
     // print banner
 
     I_PrintBanner(DOOM_PACKAGE_STRING);

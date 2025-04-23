@@ -53,11 +53,14 @@
 #define HU_TITLE_CHEX   (mapnames_chex[(gameepisode-1)*9+gamemap-1])
 #define HU_TITLEHEIGHT  1
 #define HU_TITLEX       0
-#define HU_TITLEY       (167 - SHORT(hu_font[0]->height))
+// X-HEEP comment : The elements of hu_font are adresses in flash so we cant define HU_TITLEY like this  
+//#define HU_TITLEY       (167 - SHORT(hu_font[0]->height)) 
+
 
 #define HU_INPUTTOGGLE  't'
 #define HU_INPUTX       HU_MSGX
-#define HU_INPUTY       (HU_MSGY + HU_MSGHEIGHT*(SHORT(hu_font[0]->height) +1))
+// X-HEEP comment : The elements of hu_font are adresses in flash so we cant define HU_INPUTY like this 
+//#define HU_INPUTY       (HU_MSGY + HU_MSGHEIGHT*(SHORT(hu_font[0]->height) +1))
 #define HU_INPUTWIDTH   64
 #define HU_INPUTHEIGHT  1
 
@@ -373,37 +376,38 @@ void HU_Start(void)
     int         i;
     char*       s;
 
-    printf("In HU_start, before first if \n");
     if (headsupactive)
         HU_Stop();
 
+   
     plr = &players[consoleplayer];
     message_on = false;
     fps_on     = true;
     message_dontfuckwithme = false;
     message_nottobefuckedwith = false;
     // chat_on = false; // NRFD-TODO: chat
-
+   
     // create the message widget
-    printf("In HU_start, before HUlib_initSText \n");
     HUlib_initSText(&w_message,
                     HU_MSGX, HU_MSGY, HU_MSGHEIGHT,
                     hu_font,
                     HU_FONTSTART, &message_on);
 
-    printf("In HU_start, before HUlib_initSText \n");
     HUlib_initSText(&w_fps,
-                    /*x*/ 270, /*y*/ 0, HU_MSGHEIGHT,
+                    270, 0, HU_MSGHEIGHT,
                     hu_font,
                     HU_FONTSTART, &fps_on);
+    
 
-    printf("In HU_start, before  HUlib_initTextLine \n");
     // create the map title widget
+    /* X-HEEP debug 
+    patch_t tempfont;
+    X_spi_read(hu_font[0], &tempfont, sizeof(tempfont)/4); 
+    const int hu_titley = (167 - SHORT(tempfont.height));  
     HUlib_initTextLine(&w_title,
-                       HU_TITLEX, HU_TITLEY,
+                       HU_TITLEX, hu_titley,
                        hu_font,
-                       HU_FONTSTART); //problem here 
-    printf("In HU_start, before  switch \n");
+                       HU_FONTSTART); 
     switch ( logical_gamemission )
     {
       case doom:
@@ -422,6 +426,7 @@ void HU_Start(void)
          s = "Unknown level";
          break;
     }
+    */
 
     /* NRFD-EXCLUDE: Chex
     if (logical_gamemission == doom && gameversion == exe_chex)
@@ -432,11 +437,11 @@ void HU_Start(void)
 
     // dehacked substitution to get modified level name
 
-    printf("In HU_start, before  deh \n");
+    /* X-HEEP debug
     s = DEH_String(s);
-    printf("In HU_start, before  HUlib_addCharToTextLine \n");
     while (*s)
         HUlib_addCharToTextLine(&w_title, *(s++));
+    */
 
     /* NRFD-TODO: Chat
     // create the chat widget

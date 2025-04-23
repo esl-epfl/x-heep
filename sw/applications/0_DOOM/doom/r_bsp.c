@@ -33,6 +33,8 @@
 #include "doomstat.h"
 #include "r_state.h"
 
+#include "x_spi.h"
+
 //#include "r_local.h"
 
 
@@ -311,8 +313,8 @@ void R_AddLine (seg_t*  line)
     // but not necessarily visible.
     angle1 = (angle1+ANG90)>>ANGLETOFINESHIFT;
     angle2 = (angle2+ANG90)>>ANGLETOFINESHIFT;
-    x1 = viewangletox[angle1];
-    x2 = viewangletox[angle2];
+    x1 = read_viewangletox(angle1);
+    x2 = read_viewangletox(angle2);
 
     // Does not cross a pixel?
     if (x1 == x2)
@@ -465,8 +467,8 @@ boolean R_CheckBBox (fixed_t*   bspcoord)
     //  (adjacent pixels are touching).
     angle1 = (angle1+ANG90)>>ANGLETOFINESHIFT;
     angle2 = (angle2+ANG90)>>ANGLETOFINESHIFT;
-    sx1 = viewangletox[angle1];
-    sx2 = viewangletox[angle2];
+    sx1 = read_viewangletox(angle1);
+    sx2 = read_viewangletox(angle2);
 
     // Does not cross a pixel.
     if (sx1 == sx2)

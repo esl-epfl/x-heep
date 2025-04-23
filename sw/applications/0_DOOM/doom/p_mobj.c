@@ -798,10 +798,10 @@ void P_SpawnPlayer (mapthing_t* mthing)
     {
         // wake up the status bar
         ST_Start ();
-        PRINTF("P_SpawnPlayer before HU\n");
         // wake up the heads up text
         HU_Start ();            
     }
+    PRINTF("P_SpawnPlayer end\n");
 }
 
 
@@ -847,8 +847,11 @@ void P_SpawnMapThing (mapthing_t* mthing)
         playerstarts[mthing->type-1] = *mthing;
         PRINTF("In P_SpawnMapThing before if (!deathmatch)\n");
         if (!deathmatch)
+        {
             P_SpawnPlayer (mthing);
-
+        }
+        
+        PRINTF("In P_SpawnMapThing before return\n");
         return;
     }
 

@@ -105,7 +105,7 @@ extern player_t*        viewplayer;
 // ?
 extern angle_t          clipangle;
 
-extern const int        viewangletox[FINEANGLES/2];
+extern int32_t          viewangletox[FINEANGLES/2]; //X-HEEP comment: viewangletox is stored in flash it must be read using read_viewangletox
 extern const angle_t    xtoviewangle[SCREENWIDTH+1];
 //extern fixed_t                finetangent[FINEANGLES/2];
 

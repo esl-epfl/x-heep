@@ -13,5 +13,7 @@ void X_spi_write_sector(uint32_t address, uint32_t* sect_data);
 uint32_t X_spi_alloc_sector();  
 int32_t read_finesine(uint32_t index); 
 int32_t read_finecosine(uint32_t index); 
+int32_t read_finetangent(uint32_t index); 
+int32_t read_viewangletox(uint32_t index); 
 
 #endif // X_SPI_H
