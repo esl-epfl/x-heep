@@ -320,6 +320,8 @@ test:
 	$(RM) test/*.log
 	python3 test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
 	@echo "You can also find the output in test/test_apps/test_apps.log"
+	python3 test/test_x_heep_gen/test_peripherals.py
+	@echo "You can also find the peripheral test outputs in test/test_x_heep_gen/outputs"
 
 
 ## Builds the specified app, loads it into the programmer's flash and then opens picocom to see the output
