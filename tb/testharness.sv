@@ -299,6 +299,16 @@ module testharness #(
       .dma_done_o(dma_busy)
   );
 
+  dlc dlc_i (
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .dlc_xing_intr_o(),
+      .reg_req_i(ext_periph_slv_req[testharness_pkg::DLC_IDX]),
+      .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::DLC_IDX]),
+      .hw_fifo_req_i(hw_fifo_req),
+      .hw_fifo_resp_o(hw_fifo_resp)
+  );
+
   // Testbench external bus
   // ----------------------
   // The external bus connects the external peripherals among them and to

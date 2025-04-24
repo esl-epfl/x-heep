@@ -7,9 +7,9 @@
 /**
 * @file   test_ecg.h
 * @brief  
-	ECG, sampled at 0.001 kHz.
+	ECG, sampled at 5 kHz.
 	The data is encoded in 12 bits, signed, of amplitude 2047 LSBs
-	The input data has a data rate of 0 kbps
+	The input data has a data rate of 60 kbps
 	The signal is passed through a digital LC (dLC) block. 
 	Each level is 16 LSBs wide (i.e. the 4 less significant bits are ignored).
 * @date   2025-04-02

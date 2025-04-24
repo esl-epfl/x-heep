@@ -7,15 +7,17 @@
 // Date: 17/02/2025
 // Description: Digital Level Crossing Block
 
-module dlc (
+module dlc #(
+    parameter int RW_FIFO_DEPTH_W = 4
+)(
     input logic clk_i,
     input logic rst_ni,
     // interrupt
     output logic dlc_xing_intr_o,
-    // width of the level window (it must be a power of 2)
+    // Register interface (connected to the external peripheral bus)
     input reg_pkg::reg_req_t reg_req_i,
     output reg_pkg::reg_rsp_t reg_rsp_o,
-    // fifo interface
+    // hw fifo interface (connected to the DMA)
     input hw_fifo_pkg::hw_fifo_req_t hw_fifo_req_i,
     output hw_fifo_pkg::hw_fifo_resp_t hw_fifo_resp_o
 );
@@ -75,11 +77,11 @@ module dlc (
   logic [15:0] add_one_op2;
   logic [15:0] add_one_res;
 
-  // ------------------------- Sample Skip Counter
+  // ------------------------- Sample Difference Counter
 
-  logic [15:0] skip_cnt;  // skip counter for the number of samples that have been skipped
-  logic skip_cnt_en;  // skip counter enable signal
-  logic skip_cnt_rst;  // skip counter reset signal
+  logic [15:0] sdiff_cnt;  // Sample difference counter for the number of samples that have passed
+  logic sdiff_cnt_en;  // Sample difference counter enable signal
+  logic sdiff_cnt_rst;  // Sample differene counter reset signal
   logic [15:0] dt_out;  // delta time actual output
 
   // ------------------------- Delta Levels Management
@@ -89,8 +91,6 @@ module dlc (
   logic dlvl_ovf;  // delta levels overflow bit
   logic [15:0] dlvl_out;  // delta levels actual output
   logic [15:0] ovf_dwn_cnt;  // overflow down counter
-  //logic [15:0] ovf_dwn_cnt_n;  // next value of the overflow down counter
-  //logic [15:0] ovf_dwn_cnt_op1;  // operand 1 of the overflow down counter
   logic check_end_ovf;  // '1' if overflow data must not be sent anymore
   logic dir;  // direction of the delta levels
   logic dir_reg;  // direction register
@@ -120,7 +120,7 @@ module dlc (
         /* 
         delta time has overflowed
       */
-      end else if (skip_cnt_en && (skip_cnt == reg_dt_mask)) begin
+      end else if (sdiff_cnt_en && (sdiff_cnt == reg_dt_mask)) begin
         dlc_state_n = DLC_DT_OVF;
       end else begin
         dlc_state_n = DLC_RUN;
@@ -156,7 +156,7 @@ module dlc (
 
   /* Hardware Read Fifo */
   fifo_v3 #(
-      .DEPTH(4),
+      .DEPTH(RW_FIFO_DEPTH_W),
       .FALL_THROUGH(1'b0),
       .DATA_WIDTH(16)
   ) hw_r_fifo_i (
@@ -177,7 +177,7 @@ module dlc (
 
   /* Hardware Write Fifo */
   fifo_v3 #(
-      .DEPTH(4),
+      .DEPTH(RW_FIFO_DEPTH_W),
       .FALL_THROUGH(1'b0),
       .DATA_WIDTH(16)
   ) hw_w_fifo_i (
@@ -262,7 +262,7 @@ module dlc (
           -> the dlc state is DLC_RUN and a crossing is detected (standard crossing case)
           -> delta levels have just overflowed (dlvl_ovf) or the state is DLC_DLVL_OVF
              (this means that the overflow data is being pushed to hw write fifo)
-          -> delta time has overflowed (skip_cnt_ovf) and the state is DLC_DT_OVF
+          -> delta time has overflowed (sdiff_cnt_ovf) and the state is DLC_DT_OVF
              (this means that the overflow data is waiting to being pushed to hw write fifo
               as soon as the hw write fifo is not full anymore)
 
@@ -283,10 +283,6 @@ module dlc (
   */
 
   always_comb begin
-    add_res = $signed(add_op1) - $signed(add_op2);
-  end
-
-  always_comb begin
     if (hw_r_fifo_pop && dlc_state == DLC_RUN) begin
       add_op1 = din_lvl;
       add_op2 = curr_lvl;
@@ -299,14 +295,16 @@ module dlc (
     end
   end
 
+  assign  add_res = $signed(add_op1) - $signed(add_op2);
+
   // ------------------------- Shared 16-bit +1 Adder
   /*
-    The adder is used both for incrementing delta-time and for generating the absolute valuie of delta-levels.
+    The adder is used both for incrementing delta-time and for generating the absolute value of delta-levels.
   */
 
   always_comb begin
-    if (skip_cnt_en) begin
-      add_one_op1 = skip_cnt;
+    if (sdiff_cnt_en) begin
+      add_one_op1 = sdiff_cnt;
       add_one_op2 = 16'd1;
     end else begin
       add_one_op1 = dlvl[15] ? (~dlvl) : dlvl;
@@ -341,7 +339,7 @@ module dlc (
   /* 
     Threshold updating:
       the current level is updated only when a crossing is detected and the dLC is in DLC_RUN state.
-      the current level is updated with the the input data level.
+      the current level is updated with the input data level.
   */
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
@@ -355,67 +353,64 @@ module dlc (
     end
   end
 
-  // ------------------------- Sample Skip Counter
+  // ------------------------- Sample difference Counter
 
   always_comb begin
     /*
-      Skip counter enable:
-        the skip counter is enabled when no crossing happened and the hw read fifo is being popped.
-        This means that the skip counter is incremented only when a crossing is not detected on a valid input data.
+      sample difference counter enable:
+        the sample difference counter is enabled when no crossing happened and the hw read fifo is being popped.
+        This means that the sample difference counter is incremented only when a crossing is not detected on a valid input data.
     */
-    skip_cnt_en = !xing && hw_r_fifo_pop;
+    sdiff_cnt_en = !xing && hw_r_fifo_pop;
 
     /*
-      Skip counter reset:
-        the skip counter is reset when a crossing is detected or the skip counter has overflowed.
+      sample difference counter reset:
+        the sample difference counter is reset when a crossing is detected or the sample difference counter has overflowed.
     */
-    skip_cnt_rst = (xing && !dlvl_ovf) || (dlc_state == DLC_DT_OVF && !hw_w_fifo_full) || (dlc_state == DLC_DLVL_OVF);
+    sdiff_cnt_rst = (xing && !dlvl_ovf) || (dlc_state == DLC_DT_OVF && !hw_w_fifo_full) || (dlc_state == DLC_DLVL_OVF);
   end
 
-  // Sample Skip 16-bit Counter
+  // Sample difference 16-bit Counter
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (~rst_ni) begin
-      skip_cnt <= 16'd0;
+      sdiff_cnt <= 16'd0;
     end else begin
       if (reg_bypass == 1'b0) begin
         if (dlc_state == DLC_DLVL_OVF) begin
           if (check_end_ovf == 1'b1) begin
-            skip_cnt <= 16'd1;
+            sdiff_cnt <= 16'd1;
           end else begin
-            skip_cnt <= 16'd0;
+            sdiff_cnt <= 16'd0;
           end
-        end else if (skip_cnt_rst == 1'b1) begin
-          skip_cnt <= 16'd1;
-        end else if (skip_cnt_en == 1'b1) begin
-          skip_cnt <= add_one_res;
+        end else if (sdiff_cnt_rst == 1'b1) begin
+          sdiff_cnt <= 16'd1;
+        end else if (sdiff_cnt_en == 1'b1) begin
+          sdiff_cnt <= add_one_res;
         end else begin
-          skip_cnt <= skip_cnt;
+          sdiff_cnt <= sdiff_cnt;
         end
       end
     end
   end
 
   /* Delta Time Output:
-      -> if the skip counter has overflowed
-         delta time output is set to the skip counter mask (all 1s).
-      -> if delta levels have just overflowed, delta time is the sample skip counter value.
+      -> if the sample difference counter has overflowed
+         delta time output is set to the sample difference counter mask (all 1s).
+      -> if delta levels have just overflowed, delta time is the sample difference counter value.
       -> if delta levels have overflowed and a stall due to them is happening, delta time is 0
          because more than one packets must be sent to represent one data, but they should appear
          one right after the other, with zero time interval.
-      -> if the delta levels are valid, delta time is the sample skip counter value.
+      -> if the delta levels are valid, delta time is the sample difference counter value.
   */
   always_comb begin
-    if (dlc_state == DLC_DT_OVF) begin  // skip cnt overflow or stall due to it
+    if (dlc_state == DLC_DT_OVF) begin  // sample difference cnt overflow or stall due to it
       dt_out = reg_dt_mask;
     end else begin
-      dt_out = skip_cnt;  // standard run case
+      dt_out = sdiff_cnt;  // standard run case
     end
   end
 
   // ------------------------- Delta Levels Management
-  //logic ovf_pos;
-  //logic ovf_neg;
-
   always_comb begin
     // delta levels direction is the sign of the delta levels
     dir = dlvl[15];
