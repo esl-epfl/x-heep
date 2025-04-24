@@ -411,7 +411,6 @@ module dlc #(
   end
 
   // ------------------------- Delta Levels Management
-  
   always_comb begin
     // delta levels direction is the sign of the delta levels
     dir = dlvl[15];

@@ -227,10 +227,10 @@ module testharness #(
       .gpio_11_io(gpio[11]),
       .gpio_12_io(gpio[12]),
       .gpio_13_io(gpio[13]),
-      .gpio_14_io(gpio[14]),
-      .gpio_15_io(gpio[15]),
-      .gpio_16_io(gpio[16]),
-      .gpio_17_io(gpio[17]),
+      .spi_slave_sck_io(spi_sck),
+      .spi_slave_cs_io(spi_csb[0]),
+      .spi_slave_miso_io(spi_sd_io[1]),
+      .spi_slave_mosi_io(spi_sd_io[0]),
       .spi_flash_sck_io(spi_flash_sck),
       .spi_flash_cs_0_io(spi_flash_csb[0]),
       .spi_flash_cs_1_io(spi_flash_csb[1]),
@@ -320,7 +320,7 @@ module testharness #(
       .clk_i                   (clk_i),
       .rst_ni                  (rst_ni),
       .addr_map_i              (EXT_XBAR_ADDR_RULES),
-      .default_idx_i           (SLOW_MEMORY_IDX[LOG_EXT_XBAR_NSLAVE-1:0]),
+      .default_idx_i           (SLOW_MEMORY0_IDX[LOG_EXT_XBAR_NSLAVE-1:0]),
       .heep_core_instr_req_i   (heep_core_instr_req),
       .heep_core_instr_resp_o  (heep_core_instr_resp),
       .heep_core_data_req_i    (heep_core_data_req),
@@ -426,13 +426,19 @@ module testharness #(
   assign jtag_tdo_o     = !JTAG_DPI ? mux_jtag_tdo : '0;
 
   // External xbar slave example port
-  obi_req_t  slow_ram_slave_req;
-  obi_resp_t slow_ram_slave_resp;
+  obi_req_t  [EXT_XBAR_NSLAVE-1:0] slow_ram_slave_req;
+  obi_resp_t [EXT_XBAR_NSLAVE-1:0] slow_ram_slave_resp;
 
 `ifndef SIM_SYSTEMC
 
-  assign slow_ram_slave_req              = ext_slave_req[SLOW_MEMORY_IDX];
-  assign ext_slave_resp[SLOW_MEMORY_IDX] = slow_ram_slave_resp;
+  assign slow_ram_slave_req[SLOW_MEMORY0_IDX] = ext_slave_req[SLOW_MEMORY0_IDX];
+  assign ext_slave_resp[SLOW_MEMORY0_IDX]     = slow_ram_slave_resp[SLOW_MEMORY0_IDX];
+
+  assign slow_ram_slave_req[SLOW_MEMORY1_IDX] = ext_slave_req[SLOW_MEMORY1_IDX];
+  assign ext_slave_resp[SLOW_MEMORY1_IDX]     = slow_ram_slave_resp[SLOW_MEMORY1_IDX];
+
+
+
 `else
 
   obi_req_t  ext_systemc_req;
@@ -456,35 +462,40 @@ module testharness #(
     if (USE_EXTERNAL_DEVICE_EXAMPLE) begin : gen_USE_EXTERNAL_DEVICE_EXAMPLE
 
 `ifndef SIM_SYSTEMC
-      obi_pkg::obi_req_t  slave_fifoout_req;
-      obi_pkg::obi_resp_t slave_fifoout_resp;
-
-      //this FIFO makes the slow memory even more slower in terms of latency
-      obi_fifo obi_fifo_i (
-          .clk_i,
-          .rst_ni,
-          .producer_req_i (slow_ram_slave_req),
-          .producer_resp_o(slow_ram_slave_resp),
-          .consumer_req_o (slave_fifoout_req),
-          .consumer_resp_i(slave_fifoout_resp)
-      );
 
       // External xbar slave memory example
       slow_memory #(
           .NumWords (8192),
           .DataWidth(32'd32)
-      ) slow_ram_i (
+      ) slow_ram0_i (
           .clk_i,
           .rst_ni,
-          .req_i(slave_fifoout_req.req),
-          .we_i(slave_fifoout_req.we),
-          .addr_i(slave_fifoout_req.addr[15:2]),
-          .wdata_i(slave_fifoout_req.wdata),
-          .be_i(slave_fifoout_req.be),
+          .req_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].req),
+          .we_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].we),
+          .addr_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].addr[15:2]),
+          .wdata_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].wdata),
+          .be_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].be),
           // output ports
-          .gnt_o(slave_fifoout_resp.gnt),
-          .rdata_o(slave_fifoout_resp.rdata),
-          .rvalid_o(slave_fifoout_resp.rvalid)
+          .gnt_o(slow_ram_slave_resp[SLOW_MEMORY0_IDX].gnt),
+          .rdata_o(slow_ram_slave_resp[SLOW_MEMORY0_IDX].rdata),
+          .rvalid_o(slow_ram_slave_resp[SLOW_MEMORY0_IDX].rvalid)
+      );
+
+      slow_memory #(
+          .NumWords (8192),
+          .DataWidth(32'd32)
+      ) slow_ram1_i (
+          .clk_i,
+          .rst_ni,
+          .req_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].req),
+          .we_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].we),
+          .addr_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].addr[15:2]),
+          .wdata_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].wdata),
+          .be_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].be),
+          // output ports
+          .gnt_o(slow_ram_slave_resp[SLOW_MEMORY1_IDX].gnt),
+          .rdata_o(slow_ram_slave_resp[SLOW_MEMORY1_IDX].rdata),
+          .rvalid_o(slow_ram_slave_resp[SLOW_MEMORY1_IDX].rvalid)
       );
 `endif
 
@@ -516,6 +527,16 @@ module testharness #(
           .dma_done_intr_o(memcopy_intr),
           .dma_window_intr_o(),
           .dma_done_o()
+      );
+
+      dlc dlc_i (
+          .clk_i(clk_i),
+          .rst_ni(rst_ni),
+          .dlc_xing_intr_o(),
+          .reg_req_i(ext_periph_slv_req[testharness_pkg::DLC_IDX]),
+          .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::DLC_IDX]),
+          .hw_fifo_req_i(hw_fifo_req),
+          .hw_fifo_resp_o(hw_fifo_resp)
       );
 
       simple_accelerator #(
@@ -641,17 +662,6 @@ module testharness #(
       );
 `endif
 
-`ifndef VERILATOR
-      // Flash used as an example device with an SPI interface
-      spiflash flash_device_i (
-          .csb(spi_csb[0]),
-          .clk(spi_sck),
-          .io0(spi_sd_io[0]),  // MOSI
-          .io1(spi_sd_io[1]),  // MISO
-          .io2(spi_sd_io[2]),
-          .io3(spi_sd_io[3])
-      );
-`endif
 
       if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px) && X_EXT != 0) begin: gen_fpu_ss_wrapper
         fpu_ss_wrapper #(
