@@ -9,7 +9,7 @@
 
 module dlc #(
     parameter int RW_FIFO_DEPTH_W = 4
-)(
+) (
     input logic clk_i,
     input logic rst_ni,
     // interrupt
@@ -295,7 +295,7 @@ module dlc #(
     end
   end
 
-  assign  add_res = $signed(add_op1) - $signed(add_op2);
+  assign add_res = $signed(add_op1) - $signed(add_op2);
 
   // ------------------------- Shared 16-bit +1 Adder
   /*
