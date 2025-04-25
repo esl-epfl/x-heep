@@ -1,7 +1,8 @@
 #ifndef X_SPI_H
 #define X_SPI_H
 #include <stdint.h>
-
+#include "doomtype.h"
+#include "tables.h"
 #define WAD_START_ADDRESS 1024*1024
 #define SECT_LEN          4096         // Length bytes of a sector
 
@@ -15,5 +16,10 @@ int32_t read_finesine(uint32_t index);
 int32_t read_finecosine(uint32_t index); 
 int32_t read_finetangent(uint32_t index); 
 int32_t read_viewangletox(uint32_t index); 
+angle_t read_xtoviewangle(uint32_t index);
+angle_t read_tantoangle(uint32_t index); 
+byte read_gammatable(uint32_t Xindex,uint32_t Yindex); 
+
+
 
 #endif // X_SPI_H

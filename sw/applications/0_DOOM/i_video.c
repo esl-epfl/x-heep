@@ -394,9 +394,9 @@ void I_SetPalette (byte *doompalette)
 
         X_spi_read(doompalette, &tempdoompalette, 1);
 
-        uint8_t r = gammatable[usegamma][(tempdoompalette >> 0)  & 0xFF] & ~3;
-        uint8_t g = gammatable[usegamma][(tempdoompalette >> 8)  & 0xFF] & ~3;
-        uint8_t b = gammatable[usegamma][(tempdoompalette >> 16) & 0xFF] & ~3;
+        uint8_t r = read_gammatable(usegamma,(tempdoompalette >> 0)  & 0xFF) & ~3;
+        uint8_t g = read_gammatable(usegamma,(tempdoompalette >> 8)  & 0xFF) & ~3;
+        uint8_t b = read_gammatable(usegamma,(tempdoompalette >> 16) & 0xFF) & ~3;
         doompalette += 3; 
 
         display_pal[i*4+0] = r;
