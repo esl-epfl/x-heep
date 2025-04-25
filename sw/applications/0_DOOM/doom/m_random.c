@@ -21,6 +21,8 @@
 // Returns a 0-255 number
 //
 
+#include <stdint.h>
+
 static const unsigned char rndtable[256] = {
     0,   8, 109, 220, 222, 241, 149, 107,  75, 248, 254, 140,  16,  66 ,
     74,  21, 211,  47,  80, 242, 154,  27, 205, 128, 161,  89,  77,  36 ,
@@ -43,8 +45,8 @@ static const unsigned char rndtable[256] = {
     120, 163, 236, 249
 };
 
-int	rndindex = 0;
-int	prndindex = 0;
+uint8_t	rndindex = 0;
+uint8_t	prndindex = 0;
 
 // Which one is deterministic?
 int P_Random (void)

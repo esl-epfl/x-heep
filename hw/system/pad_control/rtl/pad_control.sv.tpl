@@ -66,7 +66,9 @@ module pad_control #(
 
 % if pads_attributes != None:
 % for pad in total_pad_list:
+% if pad.pad_type == 'input' or pad.pad_type == 'output' or pad.pad_type == 'inout':
   assign pad_attributes_o[${pad.localparam}] = reg2hw.pad_attribute_${pad.name.lower()}.q;
+% endif
 % endfor
 % endif
 

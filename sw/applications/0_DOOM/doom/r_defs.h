@@ -289,8 +289,8 @@ sector_t *SegFrontSector(seg_t *seg);
 sector_t *SegBackSector(seg_t *seg); 
 angle_t SegAngle(seg_t *seg);
 fixed_t SegOffset(seg_t *seg);
-vertex_t *SegV1(seg_t *seg);
-vertex_t *SegV2(seg_t *seg);
+vertex_t SegV1(seg_t *seg);
+vertex_t SegV2(seg_t *seg);
 line_t *SegLineDef(seg_t *seg);
 side_t *SegSideDef(seg_t *seg);
 

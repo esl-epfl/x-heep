@@ -51,13 +51,34 @@ int main(int argc, char *argv[])
     heep_init_lfsr();
 
     //test 1
-    for(int i=0;i<BUFF_LEN;i++) {
+    for(int i=0;i<BUFF_LEN;i+=4) {
         ext_memory[i] = i;
+        ext_memory[i+1] = i+1;
+        ext_memory[i+2] = i+2;
+        ext_memory[i+3] = i+3;
     }
 
-    for(int i=0;i<BUFF_LEN;i++){
-        if (ext_memory[i] != i) {
-            printf("%d) T1: exp. %x, got %x (@%x)\n",i, i,ext_memory[i],&ext_memory[i]);
+    for(int i=0;i<BUFF_LEN;i+=4){
+
+        uint32_t ext_memory_i0 = ext_memory[i];
+        uint32_t ext_memory_i1 = ext_memory[i+1];
+        uint32_t ext_memory_i2 = ext_memory[i+2];
+        uint32_t ext_memory_i3 = ext_memory[i+3];
+
+        if (ext_memory_i0 != i) {
+            printf("%d) T1: exp. %x, got %x (@%x)\n",i, i,ext_memory_i0,&ext_memory[i]);
+            errors++;
+        }
+        if (ext_memory_i1 != i+1) {
+            printf("%d) T1: exp. %x, got %x (@%x)\n",i+1, i+1,ext_memory_i1,&ext_memory[i+1]);
+            errors++;
+        }
+        if (ext_memory_i2 != i+2) {
+            printf("%d) T1: exp. %x, got %x (@%x)\n",i+2, i+2,ext_memory_i0,&ext_memory[i+2]);
+            errors++;
+        }
+        if (ext_memory_i3 != i+3) {
+            printf("%d) T1: exp. %x, got %x (@%x)\n",i+3, i+2,ext_memory_i3,&ext_memory[i+3]);
             errors++;
         }
     }
@@ -114,8 +135,12 @@ int main(int argc, char *argv[])
         }
     }
 
+#if defined(TARGET_SIM)
+
+    //ADD here DMA tests
 
 
+#endif
 
     return errors;
 

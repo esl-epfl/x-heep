@@ -2,13 +2,13 @@
 
 ## Introduction
 
-**VerifHeep** is a Python library designed to provide various methods for implementing a verification and testing environment tailored specifically for X-Heep.
+**VerifHeep** is a Python library designed to provide various methods for implementing a verification and testing environment tailored specifically for X-Heep. You can find it in `test/verifheep`.
 
 In particular, VerifHeep enables **on FPGA** verification, testing and performance estimation, offering a tenfold speed improvement compared to traditional simulation tools like Verilator or QuestaSim. 
 This library employs a _software-based_ verification approach, meaning it conducts its tests by compiling a specific software application, running it on the target unit, and analyzing the results. The user is required to develop an application that can test and verify the target unit and display the data in accordance with specific formats.
 
 This library has been developed with a focus on verifying and characterizing external accelerators, such as the _im2col Smart Peripheral Controller_ (SPC). 
-In fact, the `scripts/examples` folder contains the verification environment for this very accelerator, `im2col_spc_verification.py`, along with `im2col_spc_plotter.py` to plot the acquired data. 
+In fact, the `test/verifheep/examples` folder contains the verification environment for this very accelerator, `im2col_spc_verification.py`, along with `im2col_spc_plotter.py` to plot the acquired data. 
 Users are encouraged to refer to this file as a real-world example of how to use the library and can use it as starting point to develop their own verification environment.
 
 > :warning: Make sure to follow the preliminary steps explained in `im2col_spc_verification.py` in order to test it!

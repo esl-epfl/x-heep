@@ -107,7 +107,7 @@ module dma_obiread_fsm
       end else if (dma_done_i == 1'b1) begin
         dma_src_cnt_d1 <= '0;
         dma_src_cnt_d2 <= '0;
-      end else if (data_in_gnt == 1'b1) begin
+      end else if (data_in_gnt && data_in_req) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
           dma_src_cnt_d1 <= dma_src_cnt_d1 - 1;
@@ -137,7 +137,7 @@ module dma_obiread_fsm
     end else begin
       if (dma_start == 1'b1) begin
         trsp_src_ptr_reg <= reg2hw.src_ptr.q + dma_src_d1_inc;
-      end else if (data_in_gnt == 1'b1 && dma_conf_2d == 1'b1 && read_ptr_update_sel == 1'b1 &&
+      end else if ((data_in_gnt && data_in_req) && dma_conf_2d == 1'b1 && read_ptr_update_sel == 1'b1 &&
                     (dma_src_cnt_d1 == 1 && |dma_src_cnt_d2 == 1'b1)) begin
         trsp_src_ptr_reg <= trsp_src_ptr_reg + dma_src_d1_inc;
       end
@@ -151,7 +151,7 @@ module dma_obiread_fsm
     end else begin
       if (dma_start == 1'b1) begin
         read_ptr_reg <= reg2hw.src_ptr.q;
-      end else if (data_in_gnt == 1'b1) begin
+      end else if (data_in_gnt && data_in_req) begin
         if (dma_conf_1d == 1'b1) begin
           /* Increase the pointer by the amount written in ptr_inc */
           read_ptr_reg <= read_ptr_reg + dma_src_d1_inc;

@@ -1,8 +1,10 @@
 #include "ST7789_driver.h"
 #include "soc_ctrl_structs.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+
 
 
 #include "spi_host_regs.h"
@@ -10,9 +12,12 @@
 
 #include "core_v_mini_mcu.h"
 
+
 //#define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
     
 spi_host_t_old ST7789_spi_LCD;
+
+
 
 /*
  * Private function definitions
@@ -35,7 +40,9 @@ static void ST7789_configure_spi(void);
     //PRINTF("SPI CLK DIV: %d\n", clk_div);
     // SPI Configuration
     // Configure chip 0 (flash memory)
+
     const uint32_t chip_cfg = spi_create_configopts_old((spi_configopts_t_old){
+
         .clkdiv     = clk_div,
         .csnidle    = 0xF,
         .csntrail   = 0xF,
@@ -45,7 +52,9 @@ static void ST7789_configure_spi(void);
         .cpol       = 0
     });
 
+
     spi_set_configopts_old(&ST7789_spi_LCD, 0, chip_cfg);
+
 }
 
  /*
@@ -71,11 +80,14 @@ uint8_t ST7789_spi_init(){
     // Enable SPI output
     spi_output_enable_old(&ST7789_spi_LCD, true);
 
+
     // Configure SPI connection on CSID 0
     ST7789_configure_spi();
 
     // Set CSID
+
     spi_set_csid_old(&ST7789_spi_LCD, 0);
+
     ST7789_milli_delay(100);
 
     return 0;
@@ -144,12 +156,16 @@ uint8_t ST7789_display_init(void)
     //PRINTF("ST7789_DISPON 0x29\n");
 	ST7789_milli_delay(500);
     
+
     printf("Display Initialization Done \n");
+
     return 0;
 }
 
 
+
 spi_host_t_old  ST7789_get_spi_host(void)
+
 {
     return ST7789_spi_LCD;
 }
@@ -193,6 +209,7 @@ void ST7789_set_adress_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2
 void ST7789_spi_write_command(uint8_t command)
 {
     gpio_write(GPIO_SPI_DC, DC_COMMAND);
+
     spi_write_word_old(&ST7789_spi_LCD, command);
     ST7789_milli_delay(10);
     //PRINTF("SPI HOST ADDRESS = %x\n", ST7789_spi_LCD.base_addr);
@@ -208,11 +225,13 @@ void ST7789_spi_write_command(uint8_t command)
     // Load segment parameters to COMMAND register
     spi_set_command_old(&ST7789_spi_LCD, cmd);
 
+
 }
 
 void ST7789_spi_write_data(uint8_t data)
 {
     gpio_write(GPIO_SPI_DC, DC_DATA);
+
     spi_write_word_old(&ST7789_spi_LCD, data);
     spi_wait_for_ready_old(&ST7789_spi_LCD);
      // Set up segment parameters -> send command and address
@@ -224,12 +243,14 @@ void ST7789_spi_write_data(uint8_t data)
     });
     // Load segment parameters to COMMAND register
     spi_set_command_old(&ST7789_spi_LCD, cmd);
+
 }
 
 void ST7789_spi_write_data_2B(uint16_t data)
 {
     gpio_write(GPIO_SPI_DC, DC_DATA);
     data = ((data >> 8 & 0x00FF) | (data << 8 & 0xFF00));
+
     spi_write_word_old(&ST7789_spi_LCD, data);
     //PRINTF("SPI WRITE DATA = %x\n", data);
 
@@ -243,6 +264,7 @@ void ST7789_spi_write_data_2B(uint16_t data)
     });
     // Load segment parameters to COMMAND register
     spi_set_command_old(&ST7789_spi_LCD, cmd_read_1);
+
 }
 
 uint32_t ST7789_test_write_pixel(uint16_t x, uint16_t y, uint16_t color) {
@@ -282,7 +304,9 @@ void ST7789_fill_picture(uint16_t* colors)
             }
         }
     }
+
     printf(" i = %d\n", i);
+
 }
 
 void ST7789_test_fill_picture_with_shift(uint16_t* colors, uint8_t verticalShift, uint8_t horizontalShift)

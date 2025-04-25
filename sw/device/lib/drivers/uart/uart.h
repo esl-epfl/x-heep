@@ -18,6 +18,8 @@
 extern "C" {
 #endif
 
+#define NCO_WIDTH 16
+
 /**
  * Initialization parameters for UART.
  *
@@ -31,6 +33,10 @@ typedef struct uart {
    * The desired baudrate of the UART.
    */
   uint32_t baudrate;
+  /**
+  * The NCO to control the baudrate
+  */
+  uint64_t nco;
   /**
    * The peripheral clock frequency (used to compute the UART baudrate divisor).
    */
