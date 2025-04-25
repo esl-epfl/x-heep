@@ -100,8 +100,8 @@ gameaction_t    gameaction;
 gamestate_t     gamestate;
 skill_t         gameskill;
 boolean         respawnmonsters;
-int             gameepisode;
-int             gamemap;
+uint8_t         gameepisode;
+uint8_t         gamemap;
 
 // If non-zero, exit the level after this number of minutes.
 
@@ -1260,27 +1260,27 @@ G_CheckSpot
         switch (an)
         {
             case 4096:  // -4096:
-                xa = finetangent[2048];    // finecosine[-4096]
-                ya = finetangent[0];       // finesine[-4096]
+                xa = read_finetangent(2048);    // finecosine[-4096]
+                ya = read_finetangent(0);       // finesine[-4096]
                 break;
             case 5120:  // -3072:
-                xa = finetangent[3072];    // finecosine[-3072]
-                ya = finetangent[1024];    // finesine[-3072]
+                xa = read_finetangent(3072);    // finecosine[-3072]
+                ya = read_finetangent(1024);    // finesine[-3072]
                 break;
             case 6144:  // -2048:
-                xa = finesine[0];          // finecosine[-2048]
-                ya = finetangent[2048];    // finesine[-2048]
+                xa = read_finesine(0);          // finecosine[-2048]
+                ya = read_finetangent(2048);    // finesine[-2048]
                 break;
             case 7168:  // -1024:
-                xa = finesine[1024];       // finecosine[-1024]
-                ya = finetangent[3072];    // finesine[-1024]
+                xa = read_finesine(1024);       // finecosine[-1024]
+                ya = read_finetangent(3072);    // finesine[-1024]
                 break;
             case 0:
             case 1024:
             case 2048:
             case 3072:
-                xa = finecosine[an];
-                ya = finesine[an];
+                xa = read_finecosine(an);
+                ya = read_finesine(an);
                 break;
             default:
                 I_Error("G_CheckSpot: unexpected angle %d\n", an);
@@ -1780,8 +1780,8 @@ void G_DoSaveGame (void)
 // consoleplayer, displayplayer, playeringame[] should be set.
 //
 skill_t d_skill;
-int     d_episode;
-int     d_map;
+uint8_t     d_episode;
+uint8_t     d_map;
 
 void
 G_DeferedInitNew
@@ -2250,7 +2250,10 @@ void G_DoPlayDemo (void)
     demobuffer = W_CacheLumpNum(lumpnum, PU_STATIC);
     demo_p = demobuffer;
 
-    demoversion = *demo_p++;
+    uint32_t temp_demo_version; 
+    X_spi_read(demo_p, &temp_demo_version, 1);
+    demoversion = ((temp_demo_version >> 0)  & 0xFF); 
+    demo_p += 1; 
 
     longtics = false;
 
@@ -2320,6 +2323,8 @@ void G_DoPlayDemo (void)
 
     usergame = false;
     demoplayback = true;
+
+    PRINTF("In G_DoPlayDemo at the end\n");
 }
 
 //

@@ -123,7 +123,7 @@ void A_SpawnSound();
 void A_SpawnFly();
 void A_BrainExplode();
 
-
+// X-HEEP comment : store in flash ? 
 const state_t states[NUMSTATES] = {
     {SPR_TROO,0,-1,{NULL},S_NULL},      // S_NULL
     {SPR_SHTG,4,0,{A_Light0},S_NULL},   // S_LIGHTDONE

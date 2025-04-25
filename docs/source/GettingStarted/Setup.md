@@ -4,7 +4,7 @@ There are two ways of setting up X-HEEP. You can either use the provided docker 
 
 ## Docker setup
 
-A docker image containing all the required software dependancies is available on [github-packages](https://github.com/orgs/esl-epfl/packages/container/package/x-heep-toolchain).
+A docker image containing all the required software dependencies is available on [github-packages](https://github.com/orgs/esl-epfl/packages/container/package/x-heep-toolchain).
 
 It is only required to install docker and pull the image.
 
@@ -34,33 +34,40 @@ The docker setup has certain limitations. For example, the following are not sup
 
 ### 1. OS requirements
 
-To use `X-HEEP`, first make sure you have the following apt packages, or install them as:
+To use `X-HEEP`, first you will need to install some OS dependencies.
 
+The following command `apt` command should install every required package (tested on an Ubuntu 22.04 distribution):
 ```bash
-sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf make cmake flex bison libexpat-dev gawk tree xterm python3-venv python3-dev
+sudo apt install autoconf automake autotools-dev curl python3 python3-pip python3-tomli libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev ninja-build git cmake libglib2.0-dev libslirp-dev help2man perl make g++ libfl2 libfl-dev zlibc zlib1g zlib1g-dev ccache mold libgoogle-perftools-dev numactl
 ```
 
-In general, have a look at the [Install required software](https://opentitan.org/guides/getting_started/index.html) section of the OpenTitan documentation.
+Errors occurring when installing the following packages may be ignored:
+```bash
+libfl2 libfl-dev zlibc zlib1g zlib1g-dev
+```
+
+Links for the packages relative to each software can also be found under the corresponding section of this guide. In general, make sure to have a look at the [Check system requirements](https://opentitan.org/book/doc/getting_started/index.html) section of the OpenTitan documentation.
 
 ### 2. Python
 
-We rely on either (a) `miniconda`, or (b) `virtual environment` enviroment.
+We rely on either (a) `miniconda`, or (b) `virtual environment` environment.
 
-Choose between `2.a` or `2.b` to setup your enviroment.
+Choose between `2.a` or `2.b` to setup your environment.
 
 #### 2.a Miniconda
 
-Install [Miniconda](https://docs.anaconda.com/miniconda/install/#quick-command-line-install) python 3.8 version by downloading an older version and selecting the latest `py38` version [here](https://repo.anaconda.com/miniconda/). Then, create the Conda enviroment:
+Install [Miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions) python 3.8 version by downloading an older version and selecting the latest `py38` version [here](https://repo.anaconda.com/miniconda/). Then, create the Conda environment from inside the x-heep folder:
 
 ```bash
 make conda
 ```
 
-You need to do it only the first time, then just activate the environment everytime you work with `X-HEEP` as
+You need to do it only the first time, then just activate the environment every time you work with `X-HEEP` as
 
 ```bash
 conda activate core-v-mini-mcu
 ```
+or put the command directly in the `~/.bashrc` file.
 
 #### 2.b Virtual Environment
 
@@ -70,7 +77,7 @@ Install the python virtual environment just as:
 make venv
 ```
 
-You need to do it only the first time, then just activate the environment everytime you work with `X-HEEP` as
+You need to do it only the first time, then just activate the environment every time you work with `X-HEEP` as
 
 ```bash
 source .venv/bin/activate
@@ -78,18 +85,21 @@ source .venv/bin/activate
 
 ### 3. Install the RISC-V Compiler:
 
+The RISC-V compiler requires the [following packages](https://github.com/riscv-collab/riscv-gnu-toolchain) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The GitHub page contains instructions for other linux distributions.
+
+Then the installation can proceed with the following commands :
 ```
 git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
 cd riscv-gnu-toolchain
 ./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
 make
 ```
-
-Then, you need to set the `RISCV` environment variable. Also consider adding it to your `~/.bashrc` or equivalent so that it's set automatically in the future, like this:
+You need to set the `RISCV` environment variable like this:
 
 ```
 export RISCV=/home/$USER/tools/riscv
 ```
+Also consider adding it to your `~/.bashrc` or equivalent so that it's set automatically in the future. 
 
 Optionally you can also compile with clang/LLVM instead of gcc. For that you must install the clang compiler into the same `RISCV` path. The binaries of gcc and clang do not collide so you can have both residing in the same `RISCV` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV` when building LLVM. This can be accomplished by doing the following:
 
@@ -104,9 +114,15 @@ cmake --build . --target install
 
 ### 4. Install Verilator:
 
-Note that Verilator 4.210 will not build with GCC 12.0 or later, so it will need to be built with an older toolchain.
+Verilator requires the [following packages](https://verilator.org/guide/latest/install.html) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The [documentation](https://verilator.org/guide/latest/install.html) page contains instructions for other linux distributions. 
 
+```{note}
+Verilator 4.210 will not build with GCC 12.0 or later, so it will need to be built with an older toolchain.
 ```
+
+To proceed with the installation, use the following command:
+
+```bash
 export VERILATOR_VERSION=4.210
 
 git clone https://github.com/verilator/verilator.git

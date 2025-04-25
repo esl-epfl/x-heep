@@ -181,25 +181,25 @@ typedef struct
 
 typedef struct
 {
-    int     epsd;   // episode # (0-2)
+    uint8_t     epsd;   // episode # (0-2)
 
     // if true, splash the secret level
     boolean didsecret;
     
     // previous and next levels, origin 0
-    int     last;
-    int     next;   
+    char     last;
+    char     next;   
     
-    int     maxkills;
-    int     maxitems;
-    int     maxsecret;
-    int     maxfrags;
+    short     maxkills;
+    short     maxitems;
+    short     maxsecret;
+    short     maxfrags;
 
     // the par time
     int     partime;
     
     // index of this player in game
-    int     pnum;   
+    short     pnum;   
 
     wbplayerstruct_t    plyr[MAXPLAYERS];
 

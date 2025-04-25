@@ -47,6 +47,7 @@
 
 #include "x_buttons.h"
 #include "d_doomTop.h"
+#include "x_cache.h"
 /*
 #include "nrf.h"
 
@@ -161,9 +162,11 @@ int main(int argc, char *argv[])
 
     //N_qspi_init();
 
+    /*
     if (!no_sdcard) {
         //N_fs_init();
     }
+    */
 
     X_ButtonsInit();
     X_init_spi();
@@ -171,6 +174,8 @@ int main(int argc, char *argv[])
     //N_I2S_init();
 
     //M_ArgvInit();
+    
+    cache_init(2048); //X-HEEP comment : increase this number when you have more space 
 
     D_DoomMain();
 

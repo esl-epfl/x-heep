@@ -52,7 +52,7 @@ HUlib_initTextLine
   int			y,
   patch_t**		f, // X-HEEP comment : The elements of f are adresses in flash they must be read using X_spi_read
   int			sc )
-{
+{ 
     t->x = x;
     t->y = y;
     t->f = f; // X-HEEP comment : The elements of t->f are adresses in flash they must be read using X_spi_read
@@ -64,10 +64,11 @@ boolean
 HUlib_addCharToTextLine
 ( hu_textline_t*	t,
   char			ch )
-{
-
+{ 
     if (t->len == HU_MAXLINELENGTH)
-	return false;
+    { 
+        return false;
+    }
     else
     {
 	t->l[t->len++] = ch;
@@ -178,21 +179,20 @@ HUlib_initSText
 {
 
     int i;
-
+    
     s->h = h;
     s->on = on;
     s->laston = true;
     s->cl = 0;
+ 
     patch_t tempfont;
-    X_spi_read(font[0], &tempfont, sizeof(tempfont)); 
+    X_spi_read(font[0], &tempfont, sizeof(tempfont)/4); 
     for (i=0;i<h;i++)
     {
         HUlib_initTextLine(&s->l[i],
             x, y - i*(SHORT(tempfont.height)+1),
             font, startchar);
     }
-	
-
 }
 
 void HUlib_addLineToSText(hu_stext_t* s)

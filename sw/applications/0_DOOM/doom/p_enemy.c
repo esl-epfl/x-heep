@@ -1063,8 +1063,10 @@ void A_Tracer (mobj_t* actor)
     }
         
     exact = actor->angle>>ANGLETOFINESHIFT;
-    actor->momx = FixedMul (actor->info->speed, finecosine[exact]);
-    actor->momy = FixedMul (actor->info->speed, finesine[exact]);
+    fixed_t sineval = read_finesine(exact);
+    fixed_t cosval = read_finecosine(exact);
+    actor->momx = FixedMul (actor->info->speed, cosval);
+    actor->momy = FixedMul (actor->info->speed, sineval);
     
     // change slope
     dist = P_AproxDistance (dest->x - actor->x,
@@ -1266,8 +1268,10 @@ void A_Fire (mobj_t* actor)
     an = dest->angle >> ANGLETOFINESHIFT;
 
     P_UnsetThingPosition (actor);
-    actor->x = dest->x + FixedMul (24*FRACUNIT, finecosine[an]);
-    actor->y = dest->y + FixedMul (24*FRACUNIT, finesine[an]);
+    fixed_t sineval = read_finesine(an);
+    fixed_t cosval = read_finecosine(an);
+    actor->x = dest->x + FixedMul (24*FRACUNIT, cosval);
+    actor->y = dest->y + FixedMul (24*FRACUNIT, sineval);
     actor->z = dest->z;
     P_SetThingPosition (actor);
 }
@@ -1326,10 +1330,12 @@ void A_VileAttack (mobj_t* actor)
 
     if (!fire)
         return;
-                
+    
+    fixed_t sineval = read_finesine(an);
+    fixed_t cosval = read_finecosine(an);
     // move the fire between the vile and the player
-    fire->x = actor->target->x - FixedMul (24*FRACUNIT, finecosine[an]);
-    fire->y = actor->target->y - FixedMul (24*FRACUNIT, finesine[an]);  
+    fire->x = actor->target->x - FixedMul (24*FRACUNIT, cosval);
+    fire->y = actor->target->y - FixedMul (24*FRACUNIT, sineval);  
     P_RadiusAttack (fire, actor, 70 );
 }
 
@@ -1367,8 +1373,10 @@ void A_FatAttack1 (mobj_t* actor)
     mo = P_SpawnMissile (actor, target, MT_FATSHOT);
     mo->angle += FATSPREAD;
     an = mo->angle >> ANGLETOFINESHIFT;
-    mo->momx = FixedMul (mo->info->speed, finecosine[an]);
-    mo->momy = FixedMul (mo->info->speed, finesine[an]);
+    fixed_t sineval = read_finesine(an);
+    fixed_t cosval = read_finecosine(an);
+    mo->momx = FixedMul (mo->info->speed, cosval);
+    mo->momy = FixedMul (mo->info->speed, sineval);
 }
 
 void A_FatAttack2 (mobj_t* actor)
@@ -1386,8 +1394,10 @@ void A_FatAttack2 (mobj_t* actor)
     mo = P_SpawnMissile (actor, target, MT_FATSHOT);
     mo->angle -= FATSPREAD*2;
     an = mo->angle >> ANGLETOFINESHIFT;
-    mo->momx = FixedMul (mo->info->speed, finecosine[an]);
-    mo->momy = FixedMul (mo->info->speed, finesine[an]);
+    fixed_t sineval = read_finesine(an);
+    fixed_t cosval = read_finecosine(an);
+    mo->momx = FixedMul (mo->info->speed, cosval);
+    mo->momy = FixedMul (mo->info->speed, sineval);
 }
 
 void A_FatAttack3 (mobj_t*      actor)
@@ -1403,14 +1413,18 @@ void A_FatAttack3 (mobj_t*      actor)
     mo = P_SpawnMissile (actor, target, MT_FATSHOT);
     mo->angle -= FATSPREAD/2;
     an = mo->angle >> ANGLETOFINESHIFT;
-    mo->momx = FixedMul (mo->info->speed, finecosine[an]);
-    mo->momy = FixedMul (mo->info->speed, finesine[an]);
+    fixed_t sineval = read_finesine(an);
+    fixed_t cosval = read_finecosine(an);
+    mo->momx = FixedMul (mo->info->speed, cosval);
+    mo->momy = FixedMul (mo->info->speed, sineval);
 
     mo = P_SpawnMissile (actor, target, MT_FATSHOT);
     mo->angle += FATSPREAD/2;
     an = mo->angle >> ANGLETOFINESHIFT;
-    mo->momx = FixedMul (mo->info->speed, finecosine[an]);
-    mo->momy = FixedMul (mo->info->speed, finesine[an]);
+    sineval = read_finesine(an);
+    cosval = read_finecosine(an);
+    mo->momx = FixedMul (mo->info->speed, cosval);
+    mo->momy = FixedMul (mo->info->speed, sineval);
 }
 
 
@@ -1435,8 +1449,10 @@ void A_SkullAttack (mobj_t* actor)
     //S_StartSound (actor, actor->info->attacksound);
     A_FaceTarget (actor);
     an = actor->angle >> ANGLETOFINESHIFT;
-    actor->momx = FixedMul (SKULLSPEED, finecosine[an]);
-    actor->momy = FixedMul (SKULLSPEED, finesine[an]);
+    fixed_t sineval = read_finesine(an);
+    fixed_t cosval = read_finecosine(an);
+    actor->momx = FixedMul (SKULLSPEED, cosval);
+    actor->momy = FixedMul (SKULLSPEED, sineval);
     dist = P_AproxDistance (dest->x - actor->x, dest->y - actor->y);
     dist = dist / SKULLSPEED;
     
@@ -1489,9 +1505,10 @@ A_PainShootSkull
     prestep =
         4*FRACUNIT
         + 3*(actor->info->radius + mobjinfo[MT_SKULL].radius)/2;
-    
-    x = actor->x + FixedMul (prestep, finecosine[an]);
-    y = actor->y + FixedMul (prestep, finesine[an]);
+    fixed_t sineval = read_finesine(an);
+    fixed_t cosval = read_finecosine(an);
+    x = actor->x + FixedMul (prestep, cosval);
+    y = actor->y + FixedMul (prestep, sineval);
     z = actor->z + 8*FRACUNIT;
                 
     newmobj = P_SpawnMobj (x , y, z, MT_SKULL);

@@ -31,6 +31,7 @@
 
 #include "r_local.h"
 #include "r_sky.h"
+#include "x_spi.h"
 
 
 
@@ -187,8 +188,10 @@ R_MapPlane
     
     length = FixedMul (distance,distscale[x1]);
     angle = (viewangle + xtoviewangle[x1])>>ANGLETOFINESHIFT;
-    ds_xfrac = viewx + FixedMul(finecosine[angle], length);
-    ds_yfrac = -viewy - FixedMul(finesine[angle], length);
+    fixed_t sineval = read_finesine(angle); 
+    fixed_t cosval = read_finecosine(angle); 
+    ds_xfrac = viewx + FixedMul(cosval, length);
+    ds_yfrac = -viewy - FixedMul(sineval, length);
 
     if (fixedcolormap)
         ds_colormap = fixedcolormap;
@@ -237,10 +240,12 @@ void R_ClearPlanes (void)
 
     // left to right mapping
     angle = (viewangle-ANG90)>>ANGLETOFINESHIFT;
-        
+    
+    fixed_t sineval = read_finesine(angle); 
+    fixed_t cosval = read_finecosine(angle); 
     // scale will be unit scale at SCREENWIDTH/2 distance
-    basexscale = FixedDiv (finecosine[angle],centerxfrac);
-    baseyscale = -FixedDiv (finesine[angle],centerxfrac);
+    basexscale = FixedDiv (cosval,centerxfrac);
+    baseyscale = -FixedDiv (sineval,centerxfrac);
 }
 
 
