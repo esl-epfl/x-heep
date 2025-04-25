@@ -36,10 +36,10 @@ int main(int argc, char *argv[])
 
 
     for(int i=0;i<100;i++) {
-        (GPIO_TOGGLE, true);
+        gpio_write(GPIO_TOGGLE, true);
         for(int i=0;i<10;i++) asm volatile("nop");
         gpio_write(GPIO_TOGGLE, false);
-        for(int i=0;i<10;i++) asgpio_writem volatile("nop");
+        for(int i=0;i<10;i++) asm volatile("nop");
     }
 
     PRINTF("Success.\n");
