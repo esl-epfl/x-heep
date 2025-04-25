@@ -801,7 +801,6 @@ void P_SpawnPlayer (mapthing_t* mthing)
         // wake up the heads up text
         HU_Start ();            
     }
-    PRINTF("P_SpawnPlayer end\n");
 }
 
 
@@ -839,23 +838,19 @@ void P_SpawnMapThing (mapthing_t* mthing)
         return;
     }
         
-    PRINTF("In P_SpawnMapThing before third if\n");
     // check for players specially
     if (mthing->type <= 4)
     {
         // save spots for respawning in network games
         playerstarts[mthing->type-1] = *mthing;
-        PRINTF("In P_SpawnMapThing before if (!deathmatch)\n");
         if (!deathmatch)
         {
             P_SpawnPlayer (mthing);
         }
         
-        PRINTF("In P_SpawnMapThing before return\n");
         return;
     }
 
-    PRINTF("In P_SpawnMapThing before fourth if\n");
     // check for apropriate skill level
     if (!netgame && (mthing->options & 16) )
         return;
@@ -901,7 +896,6 @@ void P_SpawnMapThing (mapthing_t* mthing)
     else
         z = ONFLOORZ;
     
-    PRINTF("In P_SpawnMapThing before P_SpawnMobj\n");
     mobj = P_SpawnMobj (x,y,z, i);
     // mobj->spawnpoint = *mthing; // NRFD-TODO: nightmare
 

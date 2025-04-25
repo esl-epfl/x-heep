@@ -386,7 +386,7 @@ void HU_Start(void)
     message_dontfuckwithme = false;
     message_nottobefuckedwith = false;
     // chat_on = false; // NRFD-TODO: chat
-   
+
     // create the message widget
     HUlib_initSText(&w_message,
                     HU_MSGX, HU_MSGY, HU_MSGHEIGHT,
@@ -400,7 +400,7 @@ void HU_Start(void)
     
 
     // create the map title widget
-    /* X-HEEP debug 
+   
     patch_t tempfont;
     X_spi_read(hu_font[0], &tempfont, sizeof(tempfont)/4); 
     const int hu_titley = (167 - SHORT(tempfont.height));  
@@ -426,7 +426,6 @@ void HU_Start(void)
          s = "Unknown level";
          break;
     }
-    */
 
     /* NRFD-EXCLUDE: Chex
     if (logical_gamemission == doom && gameversion == exe_chex)
@@ -437,11 +436,9 @@ void HU_Start(void)
 
     // dehacked substitution to get modified level name
 
-    /* X-HEEP debug
     s = DEH_String(s);
     while (*s)
         HUlib_addCharToTextLine(&w_title, *(s++));
-    */
 
     /* NRFD-TODO: Chat
     // create the chat widget

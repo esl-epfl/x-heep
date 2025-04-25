@@ -545,7 +545,6 @@ void P_LoadThings (int lump)
         spawnthing.type = SHORT(temp_mt.type);
         spawnthing.options = SHORT(temp_mt.options);
         P_SpawnMapThing(&spawnthing);
-        printf("P_LoadThings : In loop after P_SpawnMapThing\n");
     }
 
     //W_ReleaseLumpNum(lump); //useless

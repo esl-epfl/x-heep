@@ -184,17 +184,15 @@ HUlib_initSText
     s->on = on;
     s->laston = true;
     s->cl = 0;
-    
+ 
     patch_t tempfont;
-    X_spi_read(font[0], &tempfont, sizeof(tempfont)); //problem here probably comes from font[0]
-    /*
+    X_spi_read(font[0], &tempfont, sizeof(tempfont)/4); 
     for (i=0;i<h;i++)
     {
         HUlib_initTextLine(&s->l[i],
             x, y - i*(SHORT(tempfont.height)+1),
             font, startchar);
     }
-    */
 }
 
 void HUlib_addLineToSText(hu_stext_t* s)
