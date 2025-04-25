@@ -34,6 +34,7 @@ static void print_exc_msg(const char *msg) {
 
 // Below functions are default weak exception handlers meant to be overriden
 __attribute__((weak)) void handler_exception(void) {
+  printf("!!! Exception triggered !!!\n");
   uint32_t mcause;
   exc_id_t exc_cause;
 
@@ -83,6 +84,7 @@ __attribute__((weak)) void handler_irq_timer(void) {
 __attribute__((weak)) void handler_irq_external(void) {
   printf("External IRQ triggered!\n");
   while (1) {
+    printf("External IRQ triggered!\n");
   }
 }
 
