@@ -89,7 +89,6 @@ void cache_free() {
         cache_entry_t *entry = my_cache.buckets[i];
         while (entry) {
             cache_entry_t *next = entry->next;
-            free(entry->key);
             free(entry->data);
             free(entry);
             entry = next;

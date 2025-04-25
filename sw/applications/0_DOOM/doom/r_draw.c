@@ -360,7 +360,7 @@ const int     fuzzoffset[FUZZTABLE] =
     FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF 
 }; 
 
-int     fuzzpos = 0; 
+uint8_t     fuzzpos = 0; 
 
 
 //

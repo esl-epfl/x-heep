@@ -91,7 +91,7 @@ angle_t                 clipangle;
 // flattening the arc to a flat projection plane.
 // There will be many angles mapped to the same X. 
 // Was: int viewangletox
-const int                     viewangletox[FINEANGLES/2] = 
+int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__((aligned(16))) viewangletox[FINEANGLES/2] = 
 {320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 
 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 
 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 
@@ -509,14 +509,14 @@ R_PointOnSegSide
     fixed_t     left;
     fixed_t     right;
 
-    vertex_t *v1 = SegV1(line);
-    vertex_t *v2 = SegV2(line);
+    vertex_t v1 = SegV1(line);
+    vertex_t v2 = SegV2(line);
 
-    lx = v1->x;
-    ly = v1->y;
+    lx = v1.x;
+    ly = v1.y;
         
-    ldx = v2->x - lx;
-    ldy = v2->y - ly;
+    ldx = v2.x - lx;
+    ldy = v2.y - ly;
         
     if (!ldx)
     {
@@ -709,8 +709,9 @@ R_PointToDist
         
     angle = (tantoangle[frac>>DBITS]+ANG90) >> ANGLETOFINESHIFT;
 
+    fixed_t sineval = read_finesine(angle); 
     // use as cosine
-    dist = FixedDiv (dx, finesine[angle] );     
+    dist = FixedDiv (dx, sineval);     
         
     return dist;
 }
@@ -779,8 +780,8 @@ fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
     angleb = ANG90 + (visangle-rw_normalangle);
 
     // both sines are allways positive
-    sinea = finesine[anglea>>ANGLETOFINESHIFT]; 
-    sineb = finesine[angleb>>ANGLETOFINESHIFT];
+    sinea = read_finesine(anglea>>ANGLETOFINESHIFT); 
+    sineb = read_finesine(angleb>>ANGLETOFINESHIFT);
     num = FixedMul(projection,sineb)<<detailshift;
     den = FixedMul(rw_distance,sinea);
 
@@ -854,8 +855,9 @@ void R_InitTextureMapping (void)
     //
     // Calc focallength
     //  so FIELDOFVIEW angles covers SCREENWIDTH.
+    fixed_t tanangle = read_finetangent(FINEANGLES/4+FIELDOFVIEW/2); 
     focallength = FixedDiv (centerxfrac,
-                            finetangent[FINEANGLES/4+FIELDOFVIEW/2] );
+                            tanangle );
     
     /*
     PRINTF("viewangletox = {");
@@ -1175,8 +1177,8 @@ void R_SetupFrame (player_t* player)
 
     viewz = player->viewz;
     
-    viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
-    viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];
+    viewsin = read_finesine(viewangle>>ANGLETOFINESHIFT);
+    viewcos = read_finecosine(viewangle>>ANGLETOFINESHIFT);
         
     sscount = 0;
         

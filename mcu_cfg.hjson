@@ -9,12 +9,13 @@
 
     linker_script: {
         stack_size: 0x800
-        heap_size: 0xA00
+        heap_size: 0xC000
     }
 
     debug: {
         address: 0x10000000
         length:  0x00100000
+        has_spi_slave: "yes"
     }
 
     ao_peripherals: {

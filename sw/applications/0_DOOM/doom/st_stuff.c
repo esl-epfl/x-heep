@@ -384,7 +384,7 @@ short      st_faceindex = 0;
 static short      keyboxes[3]; 
 
 // a random number per tick
-static int      st_randomnumber;  
+static uint8_t    st_randomnumber;  
 
 /* NRFD-TODO: Cheat
 cheatseq_t cheat_mus = CHEAT("idmus", 2);
@@ -957,7 +957,7 @@ void ST_Ticker (void)
 
 }
 
-static int st_palette = 0;
+static uint8_t st_palette = 0;
 
 void ST_doPaletteStuff(void)
 {

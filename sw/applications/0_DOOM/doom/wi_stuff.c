@@ -333,7 +333,7 @@ anim_state_t anim_states[10];
 static int              acceleratestage;
 
 // wbs->pnum
-static int              me;
+static uint8_t         me;
 
  // specifies current state
 static stateenum_t      state;
@@ -344,10 +344,10 @@ static wbstartstruct_t* wbs;
 static wbplayerstruct_t* plrs;  // wbs->plyr[]
 
 // used for general timing
-static int              cnt;  
+static uint8_t             cnt;  
 
 // used for timing of background animation
-static int              bcnt;
+static uint8_t              bcnt;
 
 // signals to refresh everything for one frame
 static int              firstrefresh; 
@@ -1386,7 +1386,7 @@ void WI_drawNetgameStats(void)
 }
 */
 
-static int      sp_state;
+static uint8_t      sp_state;
 
 void WI_initStats(void)
 {

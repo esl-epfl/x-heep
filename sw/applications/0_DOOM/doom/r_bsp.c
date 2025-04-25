@@ -33,6 +33,8 @@
 #include "doomstat.h"
 #include "r_state.h"
 
+#include "x_spi.h"
+
 //#include "r_local.h"
 
 
@@ -267,10 +269,10 @@ void R_AddLine (seg_t*  line)
     curline = line;
 
     // OPTIMIZE: quickly reject orthogonal back sides.
-    vertex_t *v1 = SegV1(line);
-    vertex_t *v2 = SegV2(line);
-    angle1 = R_PointToAngle (v1->x, v1->y);
-    angle2 = R_PointToAngle (v2->x, v2->y);
+    vertex_t v1 = SegV1(line);
+    vertex_t v2 = SegV2(line);
+    angle1 = R_PointToAngle (v1.x, v1.y);
+    angle2 = R_PointToAngle (v2.x, v2.y);
     
     // Clip to view edges.
     // OPTIMIZE: make constant out of 2*clipangle (FIELDOFVIEW).
@@ -311,8 +313,8 @@ void R_AddLine (seg_t*  line)
     // but not necessarily visible.
     angle1 = (angle1+ANG90)>>ANGLETOFINESHIFT;
     angle2 = (angle2+ANG90)>>ANGLETOFINESHIFT;
-    x1 = viewangletox[angle1];
-    x2 = viewangletox[angle2];
+    x1 = read_viewangletox(angle1);
+    x2 = read_viewangletox(angle2);
 
     // Does not cross a pixel?
     if (x1 == x2)
@@ -465,8 +467,8 @@ boolean R_CheckBBox (fixed_t*   bspcoord)
     //  (adjacent pixels are touching).
     angle1 = (angle1+ANG90)>>ANGLETOFINESHIFT;
     angle2 = (angle2+ANG90)>>ANGLETOFINESHIFT;
-    sx1 = viewangletox[angle1];
-    sx2 = viewangletox[angle2];
+    sx1 = read_viewangletox(angle1);
+    sx2 = read_viewangletox(angle2);
 
     // Does not cross a pixel.
     if (sx1 == sx2)

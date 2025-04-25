@@ -46,14 +46,14 @@
 #define ANGLETOFINESHIFT	19		
 
 // Effective size is 10240.
-extern const fixed_t finesine[5*FINEANGLES/4];
+extern int32_t finesine[10240]; //X-HEEP comment: finesine is stored in flash it must be read using read_finesine
 
 // Re-use data, is just PI/2 pahse shift.
-extern const fixed_t *finecosine;
+//extern const fixed_t *finecosine;
 
 
 // Effective size is 4096.
-extern const fixed_t finetangent[FINEANGLES/2];
+extern int32_t finetangent[FINEANGLES/2]; //X-HEEP comment: finetangent is stored in flash it must be read using read_finetangent
 
 // Gamma correction tables.
 extern const byte gammatable[5][256];

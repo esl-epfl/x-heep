@@ -288,8 +288,8 @@ typedef struct  __attribute__((packed))
     fixed_t     high;
     short       wait;
     short       count;
-    plat_e      status;
-    plat_e      oldstatus;
+    uint8_t     status;
+    uint8_t     oldstatus;
     boolean     crush;
     short       tag;
     plattype_e  type;

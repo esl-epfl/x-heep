@@ -739,7 +739,7 @@ void P_RespawnSpecials (void)
 //
 void P_SpawnPlayer (mapthing_t* mthing)
 {
-    // PRINTF("P_SpawnPlayer\n");
+    //PRINTF("P_SpawnPlayer\n");
     player_t*           p;
     fixed_t             x;
     fixed_t             y;
@@ -793,7 +793,7 @@ void P_SpawnPlayer (mapthing_t* mthing)
     if (deathmatch)
         for (i=0 ; i<NUMCARDS ; i++)
             p->cards[i] = true;
-                        
+    
     if (mthing->type-1 == consoleplayer)
     {
         // wake up the status bar
@@ -844,8 +844,10 @@ void P_SpawnMapThing (mapthing_t* mthing)
         // save spots for respawning in network games
         playerstarts[mthing->type-1] = *mthing;
         if (!deathmatch)
+        {
             P_SpawnPlayer (mthing);
-
+        }
+        
         return;
     }
 
@@ -867,7 +869,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
     for (i=0 ; i< NUMMOBJTYPES ; i++)
         if (mthing->type == mobjinfo[i].doomednum)
             break;
-        
+    
     if (i==NUMMOBJTYPES)
         I_Error ("P_SpawnMapThing: Unknown type %i at (%i, %i)",
                  mthing->type,
@@ -1051,8 +1053,10 @@ P_SpawnMissile
 
     th->angle = an;
     an >>= ANGLETOFINESHIFT;
-    th->momx = FixedMul (th->info->speed, finecosine[an]);
-    th->momy = FixedMul (th->info->speed, finesine[an]);
+    fixed_t sineval = read_finesine(an);
+    fixed_t cosval = read_finecosine(an); 
+    th->momx = FixedMul (th->info->speed, cosval);
+    th->momy = FixedMul (th->info->speed, sineval);
         
     dist = P_AproxDistance (dest->x - source->x, dest->y - source->y);
     dist = dist / th->info->speed;
@@ -1117,10 +1121,12 @@ P_SpawnPlayerMissile
 
     th->target = source;
     th->angle = an;
+    fixed_t sineval = read_finesine(an>>ANGLETOFINESHIFT);
+    fixed_t cosval = read_finecosine(an>>ANGLETOFINESHIFT); 
     th->momx = FixedMul( th->info->speed,
-                         finecosine[an>>ANGLETOFINESHIFT]);
+                         cosval);
     th->momy = FixedMul( th->info->speed,
-                         finesine[an>>ANGLETOFINESHIFT]);
+                         sineval);
     th->momz = FixedMul( th->info->speed, slope);
 
     P_CheckMissileSpawn (th);

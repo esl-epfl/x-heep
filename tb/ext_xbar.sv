@@ -29,6 +29,7 @@ module ext_xbar #(
 );
   import obi_pkg::*;
   import core_v_mini_mcu_pkg::*;
+  import testharness_pkg::*;
 
   localparam int unsigned LOG_XBAR_NSLAVE = XBAR_NSLAVE > 1 ? $clog2(XBAR_NSLAVE) : 32'd1;
 
@@ -38,8 +39,8 @@ module ext_xbar #(
   localparam int unsigned RESP_AGG_DATA_WIDTH = 32;
 
   //Address Decoder
-  logic [XBAR_NMASTER-1:0][LOG_XBAR_NSLAVE-1:0] port_sel;
-
+  logic [XBAR_NMASTER-1:0][LOG_XBAR_NSLAVE-1:0] port_sel, pre_port_sel;
+  logic [XBAR_NMASTER-1:0][31:0] post_master_req_addr;
   // Neck crossbar
   obi_req_t neck_req;
   obi_resp_t neck_resp;
@@ -70,7 +71,7 @@ module ext_xbar #(
         ) addr_decode_i (
             .addr_i(master_req_i[i].addr),
             .addr_map_i(addr_map_i),
-            .idx_o(port_sel[i]),
+            .idx_o(pre_port_sel[i]),
             .dec_valid_o(),
             .dec_error_o(),
             .en_default_idx_i(1'b1),
@@ -78,11 +79,24 @@ module ext_xbar #(
         );
       end
 
+      for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot
+        always_comb begin
+          port_sel[j] = pre_port_sel[j];
+          post_master_req_addr[j] = master_req_i[j].addr;
+          if (pre_port_sel[j] == SLOW_MEMORY0_IDX[LOG_XBAR_NSLAVE-1:0]) begin
+            port_sel[j] = SLOW_MEMORY0_IDX[LOG_XBAR_NSLAVE-1:0] +
+                $unsigned(master_req_i[j].addr[2:2]);
+            post_master_req_addr[j] = {master_req_i[j].addr[31:3], 3'h0};
+          end
+
+        end
+      end
+
       // Unroll OBI structs
       for (genvar i = 0; i < XBAR_NMASTER; i++) begin : gen_unroll_master
         assign master_req_req[i] = master_req_i[i].req;
         assign master_req_out_data[i] = {
-          master_req_i[i].we, master_req_i[i].be, master_req_i[i].addr, master_req_i[i].wdata
+          master_req_i[i].we, master_req_i[i].be, post_master_req_addr[i], master_req_i[i].wdata
         };
         assign master_resp_o[i].gnt = master_resp_gnt[i];
         assign master_resp_o[i].rdata = master_resp_rdata[i];
@@ -98,7 +112,7 @@ module ext_xbar #(
 
       //Crossbar instantiation
       xbar_varlat #(
-          .AggregateGnt(1),
+          .AggregateGnt(0),
           .NumIn(XBAR_NMASTER),
           .NumOut(XBAR_NSLAVE),
           .ReqDataWidth(REQ_AGG_DATA_WIDTH),

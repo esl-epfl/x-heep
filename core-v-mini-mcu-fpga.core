@@ -45,17 +45,27 @@ filesets:
     files:
     - hw/fpga/constraints/nexys/pin_assign.xdc
     - hw/fpga/constraints/nexys/constraints.xdc
+    - hw/fpga/constraints/common/spi_slave.xdc
+    - hw/fpga/constraints/common/jtag.xdc
+    - hw/fpga/constraints/common/sync.xdc
     file_type: xdc
 
   xdc-fpga-pynq-z2:
     files:
     - hw/fpga/constraints/pynq-z2/pin_assign.xdc
     - hw/fpga/constraints/pynq-z2/constraints.xdc
+    - hw/fpga/constraints/common/spi_slave.xdc
+    - hw/fpga/constraints/common/jtag.xdc
+    - hw/fpga/constraints/common/sync.xdc
     file_type: xdc
 
   xdc-fpga-zcu104:
     files:
     - hw/fpga/constraints/zcu104/pin_assign.xdc
+    - hw/fpga/constraints/zcu104/constraints.xdc
+    - hw/fpga/constraints/common/spi_slave.xdc
+    - hw/fpga/constraints/common/jtag.xdc
+    - hw/fpga/constraints/common/sync.xdc
     file_type: xdc
 
 

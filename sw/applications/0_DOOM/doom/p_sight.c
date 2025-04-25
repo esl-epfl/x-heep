@@ -26,6 +26,8 @@
 // State.
 #include "r_state.h"
 
+#include "x_spi.h"
+
 //
 // P_CheckSight
 //
@@ -323,7 +325,10 @@ P_CheckSight
     bitnum = 1 << (pnum&7);
 
     // Check in REJECT table.
-    if (rejectmatrix[bytenum]&bitnum)
+    uint32_t temp_reject_data; 
+    X_spi_read(rejectmatrix[bytenum], &temp_reject_data, 1); 
+
+    if ((temp_reject_data & 0xFF)&bitnum)
     {
         sightcounts[0]++;
 
