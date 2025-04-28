@@ -29,6 +29,8 @@ from x_heep_gen.peripherals.user_peripherals import (
 
 
 def config():
+    # All user peripherals are included
+
     system = XHeep(BusType.NtoM)
     system.add_ram_banks([32] * 2)
     system.add_ram_banks_il(2, 64, "data_interleaved")
@@ -50,6 +52,7 @@ def config():
     user_peripheral_domain.add_peripheral(I2C(0x00030000))
     user_peripheral_domain.add_peripheral(RV_timer(0x00040000))
     user_peripheral_domain.add_peripheral(SPI2(0x00050000))
+    user_peripheral_domain.add_peripheral(PDM2PCM())
     user_peripheral_domain.add_peripheral(
         I2S()
     )  # If no address is provided, the peripheral will be automatically added where there is space.

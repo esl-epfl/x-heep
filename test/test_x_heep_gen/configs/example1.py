@@ -29,6 +29,8 @@ from x_heep_gen.peripherals.user_peripherals import (
 
 
 def config():
+    # Usual system, with every peripheral except PDM2PCM
+
     system = XHeep(BusType.NtoM)
     system.add_ram_banks([32] * 2)
     system.add_ram_banks_il(2, 64, "data_interleaved")
