@@ -141,7 +141,7 @@ mcu-gen:
 	bash -c "cd hw/system/pad_control; source pad_control_gen.sh; cd ../../../"
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir $(LINK_FOLDER) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --linker_script $(LINK_FOLDER)/link_flash_exec.ld.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir $(LINK_FOLDER) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --linker_script $(LINK_FOLDER)/link_flash_load.ld.tpl
-	$(PYTHON) ./util/structs_periph_gen.py
+	$(PYTHON) ./util/structs_periph_gen.py --cfg_peripherals $(MCU_CFG_PERIPHERALS)
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/fpga/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/fpga/sram_wrapper.sv.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/fpga/scripts/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/fpga/scripts/generate_sram.tcl.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir sw/device/lib/crt/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv sw/device/lib/crt/crt0.S.tpl
@@ -260,6 +260,8 @@ vivado-fpga:
 vivado-fpga-nobuild:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
 
+## Loads the generated bitstream into the FPGA
+## @param FPGA_BOARD=nexys-a7-100t,pynq-z2,zcu104
 vivado-fpga-pgm:
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/$(FPGA_BOARD)-vivado pgm
 
@@ -318,6 +320,21 @@ test:
 	$(RM) test/*.log
 	python3 test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
 	@echo "You can also find the output in test/test_apps/test_apps.log"
+	python3 test/test_x_heep_gen/test_peripherals.py
+	@echo "You can also find the peripheral test outputs in test/test_x_heep_gen/outputs"
+
+
+## Builds the specified app, loads it into the programmer's flash and then opens picocom to see the output
+## @param PROJECT=<folder_name_of_the_project_to_be_built>
+run-fpga-flash-load:
+	$(MAKE) app LINKER=flash_load TARGET=pynq-z2
+	$(MAKE) flash-prog || { \
+		echo "\033[0;31mTry holding the RESET button on the FPGA while loading the flash.\033[0m"; \
+		exit 1; \
+	}
+	@echo "\033[0;33mYou can exit Picocom with ctrl+A, ctrl+Q\033[0m";
+	@echo "\033[0;33mPress the RESET button on the FPGA to start the program\033[0m";
+	picocom -b 9600 -r -l --imap lfcrlf /dev/serial/by-id/usb-FTDI_Quad_RS232-HS-if02-port0;
 
 ## @section Cleaning commands
 

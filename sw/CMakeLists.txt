@@ -41,6 +41,13 @@ if(NOT WIN32)
   set(BoldWhite   "${Esc}[1;37m")
 endif()
 
+# Necessary when cross-compiling with clang+GCC. Otherwise the compiler
+# complains that it cannot compiler a simple test program. Has to be
+# set before the project() command.
+if (${COMPILER} MATCHES "clang")
+  set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+endif()
+
 # set the project name
 project(${PROJECT} ASM C CXX)
 
@@ -478,6 +485,9 @@ endif()
 #######################################################################
 #      SET CUSTOM COMMANDS
 #######################################################################
+
+# Set CMAKE_OBJDUMP to the GCC objdump since we always link with GCC
+set(CMAKE_OBJDUMP "${RISCV}/bin/${COMPILER_PREFIX}elf-objdump")
 
 # Post processing command to create a disassembly file
 add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
