@@ -233,12 +233,19 @@ def load_peripherals_config(system: XHeep, config_path: str):
     for name, fields in config.items():
         # Base Peripherals
         if name == "ao_peripherals":
-            base_peripherals = BasePeripheralDomain(
-                int(fields["address"], 16), int(fields["length"], 16)
+            base_peripherals = (
+                BasePeripheralDomain(
+                    int(fields["address"], 16), int(fields["length"], 16)
+                )
+                if not system.are_base_peripherals_configured()
+                else None
             )
             # iterate over all peripherals and create corresponding objects
             for peripheral_name, peripheral_config in fields.items():
                 if peripheral_name == "address" or peripheral_name == "length":
+                    continue
+                # Skip if peripheral was already added by python configuration
+                if system.is_base_peripheral_included(peripheral_name):
                     continue
 
                 offset = int(peripheral_config["offset"], 16)
@@ -282,18 +289,30 @@ def load_peripherals_config(system: XHeep, config_path: str):
                 else:
                     raise ValueError(f"Peripheral {peripheral_name} does not exist.")
                 # Adding peripheral to domain
-                base_peripherals.add_peripheral(peripheral)
+                if base_peripherals is not None:
+                    base_peripherals.add_peripheral(peripheral)
+                else:
+                    # TODO : add peripheral to system --> add a function in system to add a peripheral, or add a function to get the domain ?
+                    pass
 
-            # All peripherals in configuration filehave been added
-            system.add_peripheral_domain(base_peripherals)
+            if base_peripherals is not None:
+                # All peripherals in configuration filehave been added
+                system.add_peripheral_domain(base_peripherals)
         # User Peripherals
         elif name == "peripherals":
-            user_peripherals = UserPeripheralDomain(
-                int(fields["address"], 16), int(fields["length"], 16)
+            user_peripherals = (
+                UserPeripheralDomain(
+                    int(fields["address"], 16), int(fields["length"], 16)
+                )
+                if not system.are_user_peripherals_configured()
+                else None
             )
             # iterate over all peripherals and create corresponding objects
             for peripheral_name, peripheral_config in fields.items():
                 if peripheral_name == "address" or peripheral_name == "length":
+                    continue
+                # Skip if peripheral was already added by python configuration
+                if system.is_user_peripheral_included(peripheral_name):
                     continue
 
                 offset = int(peripheral_config["offset"], 16)
@@ -327,9 +346,14 @@ def load_peripherals_config(system: XHeep, config_path: str):
                 else:
                     raise ValueError(f"Peripheral {peripheral_name} does not exist.")
                 # Adding peripheral to domain
-                user_peripherals.add_peripheral(peripheral)
+                if user_peripherals is not None:
+                    user_peripherals.add_peripheral(peripheral)
+                else:
+                    # TODO : add peripheral to system --> add a function in system to add a peripheral, or add a function to get the domain ?
+                    pass
             # All peripherals in configuration file have been added
-            system.add_peripheral_domain(user_peripherals)
+            if user_peripherals is not None:
+                system.add_peripheral_domain(user_peripherals)
 
 
 def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
