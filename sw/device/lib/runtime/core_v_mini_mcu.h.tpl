@@ -27,38 +27,33 @@ extern "C" {
 #define DEBUG_END_ADDRESS (DEBUG_START_ADDRESS + DEBUG_SIZE)
 
 //always-on peripherals
-#define AO_PERIPHERAL_START_ADDRESS 0x${ao_peripheral_start_address}
-#define AO_PERIPHERAL_SIZE 0x${ao_peripheral_size_address}
+#define AO_PERIPHERAL_START_ADDRESS 0x${f"{xheep.get_base_peripherals_base_address() & 0xFFFFFFFF:08X}"}
+#define AO_PERIPHERAL_SIZE 0x${f"{xheep.get_base_peripherals_length() & 0xFFFFFFFF:08X}"}
 #define AO_PERIPHERAL_END_ADDRESS (AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE)
 
-% for name, peripheral in ao_peripherals.items():
-#define ${name.upper()}_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${peripheral['offset']})
-#define ${name.upper()}_SIZE 0x${peripheral['length']}
-#define ${name.upper()}_END_ADDRESS (${name.upper()}_START_ADDRESS + ${name.upper()}_SIZE)
-#define ${name.upper()}_IDX ${loop.index}
+% for peripheral in xheep.get_base_peripherals():
+#define ${peripheral.get_name().upper()}_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"})
+#define ${peripheral.get_name().upper()}_SIZE 0x${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"}
+#define ${peripheral.get_name().upper()}_END_ADDRESS (${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE)
+#define ${peripheral.get_name().upper()}_IDX ${loop.index}
 
 %endfor
 
-#define DMA_CH_NUM ${dma_ch_count}
-#define DMA_CH_SIZE 0x${dma_ch_size}
-#define DMA_NUM_MASTER_PORTS ${num_dma_master_ports}
+#define DMA_CH_NUM ${hex(xheep.get_dma()[0].get_num_channels())[2:]}
+#define DMA_CH_SIZE 0x${hex(xheep.get_dma()[0].get_ch_length())[2:]}
+#define DMA_NUM_MASTER_PORTS ${hex(xheep.get_dma()[0].get_num_master_ports())[2:]}
 
 //switch-on/off peripherals
-#define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
-#define PERIPHERAL_SIZE 0x${peripheral_size_address}
+#define PERIPHERAL_START_ADDRESS 0x${f"{xheep.get_user_peripherals_base_address() & 0xFFFFFFFF:08X}"}
+#define PERIPHERAL_SIZE 0x${f"{xheep.get_user_peripherals_length() & 0xFFFFFFFF:08X}"}
 #define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)
 
-% for name, peripheral in peripherals.items():
-#define ${name.upper()}_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${peripheral['offset']})
-#define ${name.upper()}_SIZE 0x${peripheral['length']}
-#define ${name.upper()}_END_ADDRESS (${name.upper()}_START_ADDRESS + ${name.upper()}_SIZE)
-#define ${name.upper()}_IDX ${loop.index + len(ao_peripherals.items())}
-% if "yes" in peripheral['is_included']:
-#define ${name.upper()}_IS_INCLUDED
-
-%else:
-
-% endif
+% for peripheral in xheep.get_user_peripherals():
+#define ${peripheral.get_name().upper()}_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"})
+#define ${peripheral.get_name().upper()}_SIZE 0x${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"}
+#define ${peripheral.get_name().upper()}_END_ADDRESS (${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE)
+#define ${peripheral.get_name().upper()}_IDX ${loop.index + len(xheep.get_base_peripherals())}
+#define ${peripheral.get_name().upper()}_IS_INCLUDED
 %endfor
 
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}

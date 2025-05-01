@@ -293,7 +293,7 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_PLIC_IDX])
   );
 
-% if 'rv_plic' in peripherals and peripherals['rv_plic']['is_included'] == 'yes':
+% if xheep.is_user_peripheral_included('rv_plic'):
   rv_plic rv_plic_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -315,7 +315,7 @@ module peripheral_subsystem
   assign plic_tl_d2h = '0;
 % endif
 
-% if 'spi_host' in peripherals and peripherals['spi_host']['is_included'] == 'yes':
+% if xheep.is_user_peripheral_included('spi_host'):
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -355,7 +355,7 @@ module peripheral_subsystem
 
 
 
-% if 'gpio' in peripherals and peripherals['gpio']['is_included'] == 'yes':
+% if xheep.is_user_peripheral_included('gpio'):
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -395,7 +395,7 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
   );
 
-% if 'i2c' in peripherals and peripherals['i2c']['is_included'] == 'yes':
+% if xheep.is_user_peripheral_included('i2c'):
   i2c i2c_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -465,7 +465,7 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
   );
 
-% if 'rv_timer' in peripherals and peripherals['rv_timer']['is_included'] == 'yes':
+% if xheep.is_user_peripheral_included('rv_timer'):
   rv_timer rv_timer_2_3_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -480,7 +480,7 @@ module peripheral_subsystem
   assign rv_timer_3_intr_o = '0;
 % endif
 
-% if 'spi2' in peripherals and peripherals['spi2']['is_included'] == 'yes':
+% if xheep.is_user_peripheral_included('spi2'):
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -516,7 +516,7 @@ module peripheral_subsystem
   assign spi2_intr_event = '0;
 % endif
 
-% if 'pdm2pcm' in peripherals and peripherals['pdm2pcm']['is_included'] == 'yes':
+% if xheep.is_user_peripheral_included('pdm2pcm'):
   pdm2pcm #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -535,7 +535,7 @@ module peripheral_subsystem
 
   assign pdm2pcm_clk_en_o = 1;
 
-% if 'i2s' in peripherals and peripherals['i2s']['is_included'] == 'yes':
+% if xheep.is_user_peripheral_included('i2s'):
   i2s #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
