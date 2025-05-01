@@ -100,7 +100,7 @@ class UserPeripheralDomain(PeripheralDomain):
     Length :       0x00100000
     """
 
-    def __init__(self):
+    def __init__(self, base_address: int = 0x30000000, length: int = 0x00100000):
         """
         Initialize the user peripheral domain.
         Base address : 0x30000000
@@ -110,8 +110,8 @@ class UserPeripheralDomain(PeripheralDomain):
         """
         super().__init__(
             name="User",
-            base_address=0x30000000,
-            length=0x00100000,
+            base_address=base_address,
+            length=length,
         )
 
     def add_peripheral(self, peripheral: UserPeripheral):

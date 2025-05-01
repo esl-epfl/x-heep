@@ -1,6 +1,7 @@
 # Base Peripherals (mandatory peripherals)
 from .abstractions import BasePeripheral, DataConfiguration, PeripheralDomain
 from copy import deepcopy
+import math
 
 # Base Peripherals Classes
 
@@ -53,6 +54,7 @@ class DMA(BasePeripheral, DataConfiguration):
     Default configuration file: ./hw/ip/dma/data/dma.hjson
 
     :param int ch_length: The length of each channel in the DMA.
+    :param int length: The length of the DMA.
     :param int num_channels: The number of channels in the DMA.
     :param int num_master_ports: The number of master ports in the DMA.
     :param int num_channels_per_master_port: The number of channels per master port in the DMA.
@@ -64,6 +66,7 @@ class DMA(BasePeripheral, DataConfiguration):
     def __init__(
         self,
         address: int = None,
+        length: int = None,
         ch_length: int = 0x100,
         num_channels: int = 0x1,
         num_master_ports: int = 0x1,
@@ -73,12 +76,13 @@ class DMA(BasePeripheral, DataConfiguration):
         Initialize the DMA peripheral.
 
         :param int address: The virtual (in peripheral domain) memory address of the dma.
+        :param int length: The length of the DMA.
         :param int ch_length: The length of each channel in the DMA.
         :param int num_channels: The number of channels in the DMA.
         :param int num_master_ports: The number of master ports in the DMA.
         :param int num_channels_per_master_port: The number of channels per master port in the DMA.
         """
-        super().__init__(address)
+        super().__init__(address, length)
         self._ch_length = ch_length
         self._num_channels = num_channels
         self._num_master_ports = num_master_ports
@@ -131,6 +135,53 @@ class DMA(BasePeripheral, DataConfiguration):
         Get the number of channels per master port in the DMA.
         """
         return self._num_channels_per_master_port
+
+    def get_xbar_array(self):
+        """
+        Get the DMA xbar array.
+        """
+        if self.get_num_master_ports() > 1:
+            # Computation of full_masters_xbars
+            temp_full_masters_xbars = math.floor(
+                self.get_num_channels() / self.get_num_channels_per_master_port()
+            )
+            if (
+                temp_full_masters_xbars < self.get_num_master_ports()
+                and temp_full_masters_xbars * self.get_num_channels_per_master_port()
+                == self.get_num_channels()
+            ):
+                full_masters_xbars = temp_full_masters_xbars - 1
+            else:
+                full_masters_xbars = temp_full_masters_xbars
+            last = self.get_num_channels_per_master_port() * full_masters_xbars
+
+            # Array initialization
+            array_xbar_gen = [0] * self.get_num_master_ports()
+
+            # Computation of the number of xbar channels for each master port
+            for i in range(self.get_num_master_ports()):
+                if i < full_masters_xbars:
+                    array_xbar_gen[i] = self.get_num_channels_per_master_port()
+                else:
+                    array_xbar_gen[i] = min(
+                        self.get_num_channels() - last,
+                        self.get_num_channels()
+                        - last
+                        - (self.get_num_master_ports() - i - 1),
+                    )
+                    last = last + array_xbar_gen[i]
+
+            if sum(array_xbar_gen) != self.get_num_channels() or 0 in array_xbar_gen:
+                exit("Error in the DMA xbar generation: wrong parameters")
+
+            print(", ".join(map(str, array_xbar_gen)))
+            return ", ".join(map(str, array_xbar_gen))
+        else:
+            if self.get_num_channels_per_master_port() != self.get_num_channels():
+                exit(
+                    "With 1 master port, the number of DMA channels per master port has to be equal to the number of DMA channels"
+                )
+            return "default: 1"
 
 
 class Power_manager(BasePeripheral, DataConfiguration):
@@ -225,7 +276,7 @@ class BasePeripheralDomain(PeripheralDomain):
         UART(),
     ]
 
-    def __init__(self):
+    def __init__(self, base_address: int = 0x20000000, length: int = 0x00100000):
         """
         Initialize the base peripheral domain.
         Base address : 0x20000000
@@ -235,8 +286,8 @@ class BasePeripheralDomain(PeripheralDomain):
         """
         super().__init__(
             name="Base",
-            base_address=0x20000000,
-            length=0x00100000,
+            base_address=base_address,
+            length=length,
         )
 
     def add_peripheral(self, peripheral: BasePeripheral):

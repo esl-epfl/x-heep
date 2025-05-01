@@ -80,7 +80,7 @@ class DataConfiguration(ABC):
 
         :param str config_path: The path to the hjson file that describes the peripheral. If the path does not exist, a FileNotFoundError will be raised.
         """
-        if not path.exists(config_path):
+        if not path.exists(config_path) and not path.exists(config_path + ".tpl"):
             raise FileNotFoundError(f"The config file {config_path} does not exist")
         self._config_path = config_path
 
