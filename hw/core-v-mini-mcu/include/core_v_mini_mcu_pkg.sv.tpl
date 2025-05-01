@@ -161,6 +161,7 @@ package core_v_mini_mcu_pkg;
 % for peripheral in base_peripheral_domain.get_peripherals():
   localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${hex(peripheral.get_address())[2:]};
   localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${hex(peripheral.get_length())[2:]};
+
   localparam logic [31:0] ${peripheral.get_name().upper()}_END_ADDRESS = ${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE;
   localparam logic [31:0] ${peripheral.get_name().upper()}_IDX = 32'd${loop.index};
   
@@ -205,7 +206,9 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] ${peripheral.get_name().upper()}_IDX = 32'd${loop.index};
   
 % endfor
+
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
+
 % for peripheral in user_peripheral_domain.get_peripherals():
       '{ idx: ${peripheral.get_name().upper()}_IDX, start_addr: ${peripheral.get_name().upper()}_START_ADDRESS, end_addr: ${peripheral.get_name().upper()}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor

@@ -293,7 +293,7 @@ module peripheral_subsystem
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_PLIC_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_PLIC_IDX])
   );
-
+  
   rv_plic rv_plic_i (
       .clk_i(clk_cg),
       .rst_ni,
