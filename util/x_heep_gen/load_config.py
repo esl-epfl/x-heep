@@ -245,7 +245,10 @@ def load_peripherals_config(system: XHeep, config_path: str):
                 if peripheral_name == "address" or peripheral_name == "length":
                     continue
                 # Skip if peripheral was already added by python configuration
-                if system.is_base_peripheral_included(peripheral_name):
+                if (
+                    system.are_base_peripherals_configured()
+                    and system.is_base_peripheral_included(peripheral_name)
+                ):
                     continue
 
                 offset = int(peripheral_config["offset"], 16)
@@ -312,7 +315,10 @@ def load_peripherals_config(system: XHeep, config_path: str):
                 if peripheral_name == "address" or peripheral_name == "length":
                     continue
                 # Skip if peripheral was already added by python configuration
-                if system.is_user_peripheral_included(peripheral_name):
+                if (
+                    system.are_user_peripherals_configured()
+                    and system.is_user_peripheral_included(peripheral_name)
+                ):
                     continue
 
                 offset = int(peripheral_config["offset"], 16)
