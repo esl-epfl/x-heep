@@ -178,6 +178,16 @@ class PeripheralDomain(ABC):
             else [deepcopy(p) for p in self._peripherals]
         )
 
+    def contains_peripheral(self, peripheral_name: str):
+        """
+        Check if the peripheral domain contains a peripheral with the given name.
+
+        :param str peripheral_name: The name of the peripheral to check (case sensitive).
+        :return: True if the peripheral domain contains a peripheral with the given name, False otherwise.
+        :rtype: bool
+        """
+        return any(p.get_name() == peripheral_name for p in self._peripherals)
+
     # Build function
 
     def build(self):

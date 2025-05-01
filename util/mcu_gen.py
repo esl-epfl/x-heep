@@ -1487,12 +1487,12 @@ def main():
 
     Where : 
     hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl -> done
-    hw/core-v-mini-mcu/system_bus.sv.tpl
-    sw/device/lib/runtime/core_v_mini_mcu.h.tpl
-    hw/ip/power_manager/data/power_manager.sv.tpl
-    hw/core-v-mini-mcu/peripheral_subsystem.sv.tpl
-    hw/core-v-mini-mcu/core_v_mini_mcu.sv.tpl
-    hw/ip/power_manager/data/power_manager.hjson.tpl
+    hw/core-v-mini-mcu/system_bus.sv.tpl -> done
+    sw/device/lib/runtime/core_v_mini_mcu.h.tpl -> done
+    hw/ip/power_manager/data/power_manager.hjson.tpl -> done
+    hw/core-v-mini-mcu/peripheral_subsystem.sv.tpl -> done
+    hw/core-v-mini-mcu/core_v_mini_mcu.sv.tpl -> done
+    hw/ip/power_manager/rtl/power_manager.sv.tpl
     """
 
     kwargs = {
