@@ -779,7 +779,6 @@ def generate_xheep(args):
         exit("debug start address must be greater than 0x10000")
 
     debug_size_address = string2int(obj["debug"]["length"])
-
     ext_slave_start_address = string2int(obj["ext_slaves"]["address"])
     ext_slave_size_address = string2int(obj["ext_slaves"]["length"])
 
