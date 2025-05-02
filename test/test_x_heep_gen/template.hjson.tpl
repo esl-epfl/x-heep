@@ -53,6 +53,23 @@
     zero_padding_en: "${dma.get_zero_padding()}"
     dma_xbar_masters_array: "${dma.get_xbar_array()}"
 
+
+<%
+    dma = xheep.get_dma()[0]
+%>
+
+    dma_ch_count: "${dma.get_num_channels()}"
+    dma_ch_size: "${dma.get_ch_length()}"
+    num_dma_master_ports: "${dma.get_num_master_ports()}"
+    num_dma_xbar_channels_per_master_port: "${dma.get_num_channels_per_master_port()}"
+    dma_xbar_masters_array: "${dma.get_xbar_array()}"
+    fifo_depth: "${dma.get_fifo_depth()}"
+    addr_mode_en: "${dma.get_addr_mode()}"
+    subaddr_mode_en: "${dma.get_subaddr_mode()}"
+    hw_fifo_mode_en: "${dma.get_hw_fifo_mode()}"
+    zero_padding_en: "${dma.get_zero_padding()}"
+    dma_xbar_masters_array: "${dma.get_xbar_array()}"
+
     // Optional Peripherals
     peripheral_start_address: "${user_peripheral_domain.get_start_address()}"
     peripheral_size_address: "${user_peripheral_domain.get_length()}"
@@ -67,6 +84,7 @@
         }
         % endfor
     }
+
     peripherals_count: ${len(user_peripheral_domain.get_peripherals())}
 
     %if pdm2pcm != None:
