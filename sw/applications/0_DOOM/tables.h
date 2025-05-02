@@ -36,7 +36,6 @@
 
 #include "doomtype.h"
 
-
 #include "m_fixed.h"
 	
 #define FINEANGLES		8192
@@ -57,7 +56,7 @@ extern int32_t finesine[10240]; //X-HEEP comment: finesine is stored in flash it
 extern int32_t finetangent[FINEANGLES/2]; //X-HEEP comment: finetangent is stored in flash it must be read using read_finetangent
 
 // Gamma correction tables.
-extern byte gammatable[5][256];
+extern const byte gammatable[5][256];
 
 // Binary Angle Measument, BAM.
 
@@ -85,9 +84,7 @@ typedef unsigned angle_t;
 // Effective size is 2049;
 // The +1 size is to handle the case when x==y
 //  without additional checking.
-extern angle_t tantoangle[SLOPERANGE+1];
-
-
+extern const angle_t tantoangle[SLOPERANGE+1];
 
 
 // Utility function,

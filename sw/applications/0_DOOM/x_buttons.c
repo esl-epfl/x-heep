@@ -18,17 +18,17 @@
 #define GPIO_TB_IN_DOWN  9
 #define GPIO_TB_IN_LEFT  11
 #define GPIO_TB_IN_RIGHT 12
-#define GPIO_TB_IN_A     13
-#define GPIO_TB_IN_B     14
+#define GPIO_TB_IN_B     13
+#define GPIO_TB_IN_A     14
 
 // --- Private variables ---
 static const uint32_t gpio_tb[6] = {
     GPIO_TB_IN_UP, GPIO_TB_IN_DOWN, GPIO_TB_IN_LEFT,
-    GPIO_TB_IN_RIGHT, GPIO_TB_IN_A, GPIO_TB_IN_B
+    GPIO_TB_IN_RIGHT, GPIO_TB_IN_B, GPIO_TB_IN_A
 };
 
 static const char button_map[6] = {
-    KEY_UPARROW, KEY_DOWNARROW, KEY_LEFTARROW, KEY_RIGHTARROW, 'h', 'j'
+    KEY_UPARROW, KEY_DOWNARROW, KEY_LEFTARROW, KEY_RIGHTARROW, 'h', KEY_ENTER
 };
 
 static bool button_prev_state[6] = {1, 1, 1, 1, 1, 1};
@@ -121,12 +121,13 @@ void button_right_handler(void) {
 }
 
 void button_a_handler(void) {
-    x_button_common_handler(4);
+    printf("A\n");
+    x_button_common_handler(5);
     gpio_intr_clear_stat(GPIO_TB_IN_A);
 }
 
 void button_b_handler(void) {
-    x_button_common_handler(5);
+    x_button_common_handler(4);
     gpio_intr_clear_stat(GPIO_TB_IN_B);
 }
 

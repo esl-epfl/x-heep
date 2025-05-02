@@ -1326,35 +1326,6 @@ void D_DoomMain (void)
     test = read_finetangent(3); 
     printf("test : %i\n", test); 
     */
-   byte gamma_test;
-
-gamma_test = read_gammatable(0, 0); 
-printf("gamma[0][0] : %u\n", gamma_test);
-
-gamma_test = read_gammatable(0, 1); 
-printf("gamma[0][1] : %u\n", gamma_test);
-
-gamma_test = read_gammatable(1, 0); 
-printf("gamma[1][0] : %u\n", gamma_test);
-
-gamma_test = read_gammatable(1, 1); 
-printf("gamma[1][1] : %u\n", gamma_test);
-
-angle_t test_angle;
-
-// Test read_xtoviewangle
-printf("Testing read_xtoviewangle:\n");
-for (int i = 0; i < 4; i++) {
-    test_angle = read_xtoviewangle(i);
-    printf("xtoviewangle[%d] : %u\n", i, test_angle);
-}
-
-// Test read_tantoangle
-printf("Testing read_tantoangle:\n");
-for (int i = 0; i < 4; i++) {
-    test_angle = read_tantoangle(i);
-    printf("tantoangle[%d] : %u\n", i, test_angle);
-}
 
     // print banner
 

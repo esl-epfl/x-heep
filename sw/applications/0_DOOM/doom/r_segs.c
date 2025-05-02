@@ -294,7 +294,7 @@ void R_RenderSegLoop (void)
         if (segtextured)
         {
             // calculate texture offset
-            angle = (rw_centerangle + read_xtoviewangle(rw_x))>>ANGLETOFINESHIFT;
+            angle = (rw_centerangle + xtoviewangle[rw_x])>>ANGLETOFINESHIFT;
             fixed_t tanangle = read_finetangent(angle); 
             texturecolumn = rw_offset-FixedMul(tanangle,rw_distance);
             texturecolumn >>= FRACBITS;
@@ -461,11 +461,11 @@ R_StoreWallRange
     
     // calculate scale at both ends and step
     ds_p->scale1 = rw_scale = 
-        R_ScaleFromGlobalAngle (viewangle + read_xtoviewangle(start));
+        R_ScaleFromGlobalAngle (viewangle + xtoviewangle[start]);
     
     if (stop > start )
     {
-        ds_p->scale2 = R_ScaleFromGlobalAngle (viewangle + read_xtoviewangle(stop));
+        ds_p->scale2 = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[stop]);
         ds_p->scalestep = rw_scalestep = 
             (ds_p->scale2 - rw_scale) / (stop-start);
     }

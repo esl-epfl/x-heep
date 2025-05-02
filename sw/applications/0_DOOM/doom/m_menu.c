@@ -77,8 +77,8 @@ const int                     showMessages = 1;
         
 
 // Blocky mode, has default, 0 = high, 1 = normal
-const int                     detailLevel = 0;
-const int                     screenblocks = 10;
+const int                     detailLevel = 1;
+const int                     screenblocks = 11;
 
 // temp for screenblocks (0-9)
 byte                     screenSize;
@@ -119,8 +119,9 @@ static boolean          joypadSave = false; // was the save action initiated by 
 boolean                 inhelpscreens;
 boolean                 menuactive;
 
-#define SKULLXOFF               -32
-#define LINEHEIGHT              16
+#define SKULLXOFF               -32/2
+//#define LINEHEIGHT              16/2
+#define LINEHEIGHT 8
 
 extern boolean          sendpause;
 
@@ -263,7 +264,7 @@ menu_t  MainDef =
     NULL,
     MainMenu,
     M_DrawMainMenu,
-    97,64,
+    97/2,64/2,
     0
 };
 
@@ -294,7 +295,7 @@ menu_t  EpiDef =
     &MainDef,           // previous menu
     EpisodeMenu,        // menuitem_t ->
     M_DrawEpisode,      // drawing routine ->
-    48,63,              // x,y
+    48/2,63/2,              // x,y
     ep1                 // lastOn
 };
 
@@ -326,7 +327,7 @@ menu_t  NewDef =
     &EpiDef,            // previous menu
     NewGameMenu,        // menuitem_t ->
     M_DrawNewGame,      // drawing routine ->
-    48,63,              // x,y
+    48/2,63/2,              // x,y
     hurtme              // lastOn
 };
 
@@ -457,7 +458,7 @@ const menu_t  LoadDef =
     &MainDef,
     LoadMenu,
     M_DrawLoad,
-    80,54,
+    80/2,54/2,
     0
 };
 
@@ -480,7 +481,7 @@ const menu_t  SaveDef =
     &MainDef,
     SaveMenu,
     M_DrawSave,
-    80,54,
+    80/2,54/2,
     0
 };
 
@@ -526,7 +527,7 @@ void M_DrawLoad(void)
 {
     int             i;
         
-    V_DrawPatchDirect(72, 28, 
+    V_DrawPatchDirect(72/2, 28/2, 
                       W_CacheLumpName(DEH_String("M_LOADG"), PU_CACHE));
 
     /* NRFD-TODO: save game
@@ -547,17 +548,17 @@ void M_DrawSaveLoadBorder(int x,int y)
 {
     int             i;
         
-    V_DrawPatchDirect(x - 8, y + 7,
+    V_DrawPatchDirect(x/2 - 8/2, y/2 + 7/2,
                       W_CacheLumpName(DEH_String("M_LSLEFT"), PU_CACHE));
         
-    for (i = 0;i < 24;i++)
+    for (i = 0;i < 24/2;i++)
     {
-        V_DrawPatchDirect(x, y + 7,
+        V_DrawPatchDirect(x/2, y/2 + 7/2,
                           W_CacheLumpName(DEH_String("M_LSCNTR"), PU_CACHE));
-        x += 8;
+        x += 8/2;
     }
 
-    V_DrawPatchDirect(x, y + 7, 
+    V_DrawPatchDirect(x/2, y/2 + 7/2, 
                       W_CacheLumpName(DEH_String("M_LSRGHT"), PU_CACHE));
 }
 
@@ -783,18 +784,18 @@ void M_DrawReadThis(void)
 
     if (read_this_num == 0) {
         // commercial
-        skull_offset_x = 330;
-        skull_offset_y = 165;
+        skull_offset_x = 330/2;
+        skull_offset_y = 165/2;
         V_DrawPatchDirect(0, 0, W_CacheLumpName(DEH_String("HELP"), PU_CACHE));
     }
     if (read_this_num == 1) {
-        skull_offset_x = 280;
-        skull_offset_y = 185;
+        skull_offset_x = 280/2;
+        skull_offset_y = 185/2;
         V_DrawPatchDirect(0, 0, W_CacheLumpName(DEH_String("HELP2"), PU_CACHE));
     }
     if (read_this_num == 2) {
-        skull_offset_x = 330;
-        skull_offset_y = 175;
+        skull_offset_x = 330/2;
+        skull_offset_y = 175/2;
         V_DrawPatchDirect(0, 0, W_CacheLumpName(DEH_String("HELP1"), PU_CACHE));
     }
 }
@@ -866,7 +867,7 @@ X-HEEP COMMENT END */
 //
 void M_DrawMainMenu(void)
 {
-    V_DrawPatchDirect(94, 2,
+    V_DrawPatchDirect(94/2, 2/2,
                       W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
 }
 
@@ -878,12 +879,13 @@ void M_DrawMainMenu(void)
 //
 void M_DrawNewGame(void)
 {
-    V_DrawPatchDirect(96, 14, W_CacheLumpName(DEH_String("M_NEWG"), PU_CACHE));
-    V_DrawPatchDirect(54, 38, W_CacheLumpName(DEH_String("M_SKILL"), PU_CACHE));
+    V_DrawPatchDirect(96/2, 14/2, W_CacheLumpName(DEH_String("M_NEWG"), PU_CACHE));
+    V_DrawPatchDirect(54/2, 38/2, W_CacheLumpName(DEH_String("M_SKILL"), PU_CACHE));
 }
 
 void M_NewGame(int choice)
 {
+    printf("NEW GAME");
     if (netgame && !demoplayback)
     {
         M_StartMessage(DEH_String(NEWGAME),NULL,false);
@@ -906,7 +908,7 @@ uint8_t     epi;
 
 void M_DrawEpisode(void)
 {
-    V_DrawPatchDirect(54, 38, W_CacheLumpName(DEH_String("M_EPISOD"), PU_CACHE));
+    V_DrawPatchDirect(54/2, 38/2, W_CacheLumpName(DEH_String("M_EPISOD"), PU_CACHE));
 }
 
 void M_VerifyNightmare(int key)
@@ -955,14 +957,14 @@ const char *msgNames[2] = {"M_MSGOFF","M_MSGON"};
 
 void M_DrawOptions(void)
 {
-    V_DrawPatchDirect(108, 15, W_CacheLumpName(DEH_String("M_OPTTTL"),
+    V_DrawPatchDirect(108/2, 15/2, W_CacheLumpName(DEH_String("M_OPTTTL"),
                                                PU_CACHE));
         
-    V_DrawPatchDirect(OptionsDef.x + 175, OptionsDef.y + LINEHEIGHT * detail,
+    V_DrawPatchDirect(OptionsDef.x + 175/2, OptionsDef.y + LINEHEIGHT * detail/2,
                       W_CacheLumpName(DEH_String((char*)detailNames[detailLevel]),
                                       PU_CACHE));
 
-    V_DrawPatchDirect(OptionsDef.x + 120, OptionsDef.y + LINEHEIGHT * messages,
+    V_DrawPatchDirect(OptionsDef.x + 120/2, OptionsDef.y + LINEHEIGHT * messages,
                       W_CacheLumpName(DEH_String((char*)msgNames[showMessages]),
                                       PU_CACHE));
 
@@ -970,7 +972,7 @@ void M_DrawOptions(void)
     // M_DrawThermo(OptionsDef.x, OptionsDef.y + LINEHEIGHT * (mousesens + 1),
     //              10, mouseSensitivity);
 
-    M_DrawThermo(OptionsDef.x,OptionsDef.y+LINEHEIGHT*(scrnsize+1),
+    M_DrawThermo(OptionsDef.x,OptionsDef.y +LINEHEIGHT*(scrnsize+1),
                  9,screenSize);
 }
 
@@ -1202,10 +1204,10 @@ void M_SizeDisplay(int choice)
         }
         break;
     }
-        
+     */   
 
     R_SetViewSize (screenblocks, detailLevel);
-    */
+    
 }
 
 
@@ -2002,7 +2004,7 @@ void M_Drawer (void)
     if (messageToPrint)
     {
         start = 0;
-        y = SCREENHEIGHT/2 - M_StringHeight(messageString) / 2;
+        y = SCREENHEIGHT - M_StringHeight(messageString) ;
         while (messageString[start] != '\0')
         {
             int foundnewline = 0;
@@ -2030,7 +2032,7 @@ void M_Drawer (void)
                 start += strlen(string);
             }
 
-            x = SCREENWIDTH/2 - M_StringWidth(string) / 2;
+            x = SCREENWIDTH - M_StringWidth(string) ;
             M_WriteText(x, y, string);
             y += SHORT(tempfont.height);
         }

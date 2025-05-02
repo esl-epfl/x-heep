@@ -12,7 +12,6 @@
 #include "csr_registers.h"
 #include "tables.h"
 #include "r_state.h"
-     
 
 // =========================== VARS & DEFS ==================================
 // Flash w25q128jw SPI commands
@@ -258,27 +257,6 @@ int32_t read_viewangletox(uint32_t index)
 {
     int32_t value;
     X_spi_read(&viewangletox[index], &value, sizeof(value)/4);
-    return value;
-}
-
-angle_t read_xtoviewangle(uint32_t index)
-{
-    int32_t value;
-    X_spi_read(&xtoviewangle[index], &value, sizeof(value)/4);
-    return value;
-}
-
-angle_t read_tantoangle(uint32_t index)
-{
-    int32_t value;
-    X_spi_read(&tantoangle[index], &value, sizeof(value)/4);
-    return value;
-}
-
-byte read_gammatable(uint32_t Xindex, uint32_t Yindex)
-{
-    int32_t value;
-    X_spi_read(&gammatable[Xindex][Yindex], &value, sizeof(value)/4);
     return value;
 }
 

@@ -1864,8 +1864,7 @@ int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__((aligne
 
 //const fixed_t *finecosine = &finesine[FINEANGLES/4];
 
-//const angle_t tantoangle[2049] =
-angle_t __attribute__((section(".xheep_data_flash_only"))) __attribute__((aligned(16))) tantoangle[2049] =
+const angle_t tantoangle[2049] =
 {
     0,333772,667544,1001315,1335086,1668857,2002626,2336395,
     2670163,3003929,3337694,3671457,4005219,4338979,4672736,5006492,
@@ -2127,8 +2126,7 @@ angle_t __attribute__((section(".xheep_data_flash_only"))) __attribute__((aligne
 };
 
 // Now where did these came from?
-//const byte gammatable[5][256] =
-byte __attribute__((section(".xheep_data_flash_only"))) __attribute__((aligned(16))) gammatable[5][256] =
+const byte gammatable[5][256] =
 {
     {
         1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
