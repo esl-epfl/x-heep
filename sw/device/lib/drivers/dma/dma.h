@@ -227,8 +227,7 @@ typedef enum
     parameters. This generates a circular mode in the source and/or destination
     pointing to memory.  */
     DMA_TRANS_MODE_ADDRESS = DMA_MODE_MODE_VALUE_ADDRESS_MODE, /*!< In this mode, the destination address is read from the address port! */
-    DMA_TRANS_MODE_SUBADDRESS = DMA_MODE_MODE_VALUE_SUBADDRESS_MODE,
-    DMA_TRANS_MODE_HW_FIFO = DMA_MODE_MODE_VALUE_HW_FIFO_MODE,
+
     DMA_TRANS_MODE__size,       /*!< Not used, only for sanity checks. */
 } dma_trans_mode_t;
 
@@ -448,7 +447,7 @@ static inline void write_register( uint32_t  p_val,
  * @param dma_peri Pointer to a register address following the dma structure. By
  * default (peri == NULL), the integrated DMA will be used.
  */
-void dma_init( dma *dma_peri);
+void dma_init( dma *dma_instance);
 
 /**
  * @brief Creates a transaction that can be loaded into the DMA.

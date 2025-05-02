@@ -76,9 +76,6 @@ module ao_peripheral_subsystem
     output logic                                                      dma_done_intr_o,
     output logic                                                      dma_window_intr_o,
 
-    output hw_fifo_pkg::hw_fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
-    input  hw_fifo_pkg::hw_fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
-
     // External PADs
     output reg_req_t pad_req_o,
     input  reg_rsp_t pad_resp_i,
@@ -412,8 +409,6 @@ module ao_peripheral_subsystem
       .dma_write_resp_i,
       .dma_addr_req_o,
       .dma_addr_resp_i,
-      .hw_fifo_req_o,
-      .hw_fifo_resp_i,
       .global_trigger_slot_i(dma_global_trigger_slots),
       .ext_trigger_slot_i(dma_ext_trigger_slots),
       .ext_dma_stop_i(ext_dma_stop_i),

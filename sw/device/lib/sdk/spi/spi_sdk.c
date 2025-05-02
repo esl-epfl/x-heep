@@ -903,8 +903,10 @@ void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn,
 
     // Wait for the SPI peripheral to be ready before writing a command segment.
     spi_wait_for_ready(peri->instance);
+
     // Write command segment. This immediately triggers the SPI peripheral into action.
-    spi_issue_next_seg(peri);
+    spi_issue_next_seg(peri); 
+
 }
 
 void spi_wait_transaction_done(spi_peripheral_t* peri) 
@@ -943,6 +945,7 @@ void spi_issue_next_seg(spi_peripheral_t* peri)
 {
     const spi_segment_t seg = peri->txn.segments[peri->scnt];
     peri->scnt++;
+
     // Construct our word command to be passed to HAL
     uint32_t cmd_reg = spi_create_command((spi_command_t) {
         .len       = seg.len - 1, // -1 because of SPI Host IP specifications
@@ -950,8 +953,9 @@ void spi_issue_next_seg(spi_peripheral_t* peri)
         .speed     = bitfield_read(seg.mode, DIR_SPD_MASK, SPD_INDEX),
         .direction = bitfield_read(seg.mode, DIR_SPD_MASK, DIR_INDEX),
     });
+
     // Since all checks were already made we do not need to check the result of function
-    spi_set_command(peri->instance, cmd_reg);
+    spi_set_command(peri->instance, cmd_reg); 
 }
 
 void spi_reset_peri(spi_peripheral_t* peri) 

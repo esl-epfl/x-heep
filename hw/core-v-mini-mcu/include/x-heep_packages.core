@@ -14,7 +14,6 @@ filesets:
     - obi_pkg.sv
     - reg_pkg.sv
     - power_manager_pkg.sv
-    - hw_fifo_pkg.sv
     - core_v_mini_mcu_pkg.sv
     file_type: systemVerilogSource
 
