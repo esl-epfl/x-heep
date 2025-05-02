@@ -1,4 +1,5 @@
 ## Writes down all kwargs from mcu_gen, but only peripheral related ones should be checked
+<%! from x_heep_gen.peripherals.abstractions import DataConfiguration %>
 
 {
     // CPU configuration
@@ -18,39 +19,43 @@
     }
 
     // AO Peripherals
-    ao_peripheral_start_address: "${ao_peripheral_start_address}"
-    ao_peripheral_size_address: "${ao_peripheral_size_address}"
+    ao_peripheral_start_address: "${xheep.get_base_peripherals_base_address()}"
+    ao_peripheral_size_address: "${xheep.get_base_peripherals_length()}"
     ao_peripherals: {
-        % for name, info in ao_peripherals.items():
-        ${name}: {
-            % for key, value in info.items():
-            ${key}: "${value}"
-            % endfor
+        % for peripheral in xheep.get_base_peripherals():
+        ${peripheral.get_name()}: {
+            offset: ${peripheral.get_address()}
+            size: ${peripheral.get_length()}
+            %if isinstance(peripheral, DataConfiguration):
+            config_path: ${peripheral.get_config_path()}
+            %endif
         }
         % endfor
     }
-    ao_peripherals_count: ${ao_peripherals_count}
+    ao_peripherals_count: ${len(xheep.get_base_peripherals())}
 
     // DMA Configuration
-    dma_ch_count: "${dma_ch_count}"
-    dma_ch_size: "${dma_ch_size}"
-    num_dma_master_ports: "${num_dma_master_ports}"
-    num_dma_xbar_channels_per_master_port: "${num_dma_xbar_channels_per_master_port}"
-    dma_xbar_masters_array: "${dma_xbar_masters_array}"
+    dma_ch_count: "${xheep.get_dma()[0].get_num_channels()}"
+    dma_ch_size: "${xheep.get_dma()[0].get_ch_length()}"
+    num_dma_master_ports: "${xheep.get_dma()[0].get_num_master_ports()}"
+    num_dma_xbar_channels_per_master_port: "${xheep.get_dma()[0].get_num_channels_per_master_port()}"
+    dma_xbar_masters_array: "${xheep.get_dma()[0].get_xbar_array()}"
 
     // Optional Peripherals
-    peripheral_start_address: "${peripheral_start_address}"
-    peripheral_size_address: "${peripheral_size_address}"
+    peripheral_start_address: "${xheep.get_user_peripherals_base_address()}"
+    peripheral_size_address: "${xheep.get_base_peripherals_length()}"
     peripherals: {
-        % for name, info in peripherals.items():
-        ${name}: {
-            % for key, value in info.items():
-            ${key}: "${value}"
-            % endfor
+        % for peripheral in xheep.get_user_peripherals():
+        ${peripheral.get_name()}: {
+            offset: ${peripheral.get_address()}
+            size: ${peripheral.get_length()}
+            %if isinstance(peripheral, DataConfiguration):
+            config_path: ${peripheral.get_config_path()}
+            %endif
         }
         % endfor
     }
-    peripherals_count: ${peripherals_count}
+    peripherals_count: ${len(xheep.get_user_peripherals())}
 
     // External Slaves and Flash Memory
     ext_slaves: {
