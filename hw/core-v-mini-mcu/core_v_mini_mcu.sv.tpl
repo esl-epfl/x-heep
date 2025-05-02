@@ -312,6 +312,7 @@ ${pad.core_v_mini_mcu_interface}
       .spi_slave_sck_i(spi_slave_sck_i),
       .spi_slave_cs_i(spi_slave_cs_i),
       .spi_slave_miso_o(spi_slave_miso_o),
+      .spi_slave_miso_oe_o(spi_slave_miso_oe_o),
       .spi_slave_mosi_i(spi_slave_mosi_i),
       .debug_core_req_o(debug_req),
       .debug_ndmreset_no(debug_reset_n),
