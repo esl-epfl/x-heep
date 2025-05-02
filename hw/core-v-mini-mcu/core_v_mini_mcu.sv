@@ -169,6 +169,8 @@ module core_v_mini_mcu
     output logic gpio_15_oe_o,
 
     output logic spi_slave_miso_o,
+    input  logic spi_slave_miso_i,
+    output logic spi_slave_miso_oe_o,
     output logic gpio_16_o,
     input  logic gpio_16_i,
     output logic gpio_16_oe_o,
@@ -566,6 +568,7 @@ module core_v_mini_mcu
       .spi_slave_sck_i(spi_slave_sck_i),
       .spi_slave_cs_i(spi_slave_cs_i),
       .spi_slave_miso_o(spi_slave_miso_o),
+      .spi_slave_miso_oe_o(spi_slave_miso_oe_o),
       .spi_slave_mosi_i(spi_slave_mosi_i),
       .debug_core_req_o(debug_req),
       .debug_ndmreset_no(debug_reset_n),
