@@ -160,6 +160,8 @@ module debug_subsystem
     assign dm_resp             = dbg_spi_resp[0];
     assign spi_slave_resp      = dbg_spi_resp[1];
 
+    // To prevent the spi slave from keeping the MISO signal high
+    // when it is not its turn to speak
     assign spi_slave_miso_oe_o = ~spi_slave_cs_i;
 
     // 2-to-1 crossbar
