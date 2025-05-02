@@ -72,7 +72,7 @@ int main(){
     uint16_t i;
 
     // Initialize the SPI host. 
-    if( spi_host_init(spi_host1)!= SPI_FLAG_SUCCESS) return EXIT_FAILURE;
+    if( spi_host_init(spi_host1, 0)!= SPI_FLAG_SUCCESS) return EXIT_FAILURE;
 
     // Use the SPI Host SDK to write into the SPI slave.
     // In the SPI Slave SDK there are the needed SPI HOST functions to control the SPI Slave. 

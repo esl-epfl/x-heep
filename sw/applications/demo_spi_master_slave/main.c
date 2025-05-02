@@ -178,7 +178,7 @@ int main(){
         #endif
 
         // Initilize the SPI host IP
-        if( spi_host_init(spi_host1)!= SPI_FLAG_SUCCESS) return EXIT_FAILURE;
+        if( spi_host_init(spi_host1, 0)!= SPI_FLAG_SUCCESS) return EXIT_FAILURE;
 
         // We will request chunks of chunk_w words. 
         // We will repeat the process N times until we have read the entirety of the buffer. 
