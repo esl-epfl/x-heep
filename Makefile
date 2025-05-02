@@ -22,12 +22,14 @@ include Makefile.venv
 # FUSESOC and Python values (default)
 ifndef CONDA_DEFAULT_ENV
 $(info USING VENV)
-FUSESOC = $(PWD)/$(VENV)/fusesoc
-PYTHON  = $(PWD)/$(VENV)/python
+FUSESOC 	= $(PWD)/$(VENV)/fusesoc
+PYTHON  	= $(PWD)/$(VENV)/python
+RV_PROFILE 	= $(PWD)/$(VENV)/rv_profile
 else
 $(info USING MINICONDA $(CONDA_DEFAULT_ENV))
-FUSESOC := $(shell which fusesoc)
-PYTHON  := $(shell which python)
+FUSESOC 	:= $(shell which fusesoc)
+PYTHON  	:= $(shell which python)
+RV_PROFILE  := $(shell which rv_profile)
 endif
 
 # Project options are based on the app to be build (default - hello_world)
@@ -145,6 +147,7 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/fpga/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/fpga/sram_wrapper.sv.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/fpga/scripts/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/fpga/scripts/generate_sram.tcl.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir sw/device/lib/crt/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv sw/device/lib/crt/crt0.S.tpl
+	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir util/profile/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv util/profile/run_profile.sh.tpl
 	$(MAKE) verible
 
 ## Display mcu_gen.py help
@@ -336,6 +339,12 @@ run-fpga-flash-load:
 	@echo "\033[0;33mPress the RESET button on the FPGA to start the program\033[0m";
 	picocom -b 9600 -r -l --imap lfcrlf /dev/serial/by-id/usb-FTDI_Quad_RS232-HS-if02-port0;
 
+## @section Profiling
+## Run the profiling on a RTL simulation generating a flamegraph.
+.PHONY: profile
+profile:
+	bash util/profile/run_profile.sh $(RV_PROFILE)
+
 ## @section Cleaning commands
 
 ## Clean the CMake build folder
@@ -345,6 +354,7 @@ app-clean:
 	else\
 		$(MAKE) app-restore;\
 	fi
+
 
 ## Removes the CMake build folder
 app-restore:
