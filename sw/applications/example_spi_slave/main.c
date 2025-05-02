@@ -5,6 +5,21 @@
 #include "spi_host.h"
 #include "spi_slave_sdk.h"
 
+
+/*
+Connections to test on the pynq-z2 FPGA
+____________________________________________________
+         [GD][  ][  ](Sy)(Ck)[  ][  ][  ][  ][Vd]   |
+         [  ][  ][  ][  ][  ][  ](Cs)[  ][  ][  ]   | 
+                                                    |
+ [  ][  ][  ][  ](Mo)(Mi)[  ][  ]                   |
+                                                    |
+                            |(Mi)[  ]           ____|
+                    Master->|(Ck)(Mo)           |   
+                            |(Cs)[  ]           | PMODs
+*/
+
+
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA 1
 #define PRINTF_IN_SIM 0

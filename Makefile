@@ -327,7 +327,7 @@ test:
 ## Builds the specified app, loads it into the programmer's flash and then opens picocom to see the output
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
 run-fpga-flash-load:
-	$(MAKE) app LINKER=flash_load TARGET=pynq-z2
+	$(MAKE) app LINKER=flash_load TARGET=pynq-z2 PROJECT=$(PROJECT)
 	$(MAKE) flash-prog || { \
 		echo "\033[0;31mTry holding the RESET button on the FPGA while loading the flash.\033[0m"; \
 		exit 1; \

@@ -42,7 +42,7 @@
  4.e) You can restart the demo by resetting the master. 
  4.f) You can invert the roles by resetting both and releasing first the former slave.
 ____________________________________________________
-         [  ][  ][  ](Sy)(Ck)[  ][  ][  ][  ][  ]   |
+         [GD][  ][  ](Sy)(Ck)[  ][  ][  ][  ][Vd]   |
          [  ][  ][  ][  ][  ][  ](Cs)[  ][  ][  ]   | 
                                                     |
  [  ][  ][  ][  ](Mo)(Mi)[  ][  ]                   |
@@ -51,6 +51,7 @@ ____________________________________________________
                     Master->|(Ck)(Mo)           |   
                             |(Cs)[  ]           | PMODs
 
+To self-test you can connect the Sy to Vd (3V3)
 
 Disclaimer: 
 The FPGAs can have different bitstreams as long as the pinout remains the same. 
