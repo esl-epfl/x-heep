@@ -15,8 +15,6 @@
 module dma_buffer_fifos
   import fifo_pkg::*;
 #(
-    parameter int HW_FIFO_MODE_EN = 1,
-    parameter int ADDR_MODE_EN = 1,
     parameter int FIFO_DEPTH = 4
 ) (
     input logic clk_i,
@@ -96,36 +94,37 @@ module dma_buffer_fifos
   endgenerate
 
   /* Generate Read Address Mode FIFOs */
-  generate
-    if (ADDR_MODE_EN == 1) begin
-      /* Read address mode FIFO */
-      fifo_v3 #(
-          .DEPTH(FIFO_DEPTH),
-          .FALL_THROUGH(1'b1)
-      ) dma_read_addr_fifo_i (
-          .clk_i,
-          .rst_ni,
-          .flush_i(read_addr_fifo_req_i.flush),
-          .testmode_i(1'b0),
-          .full_o(read_addr_fifo_resp_o.full),
-          .empty_o(read_addr_fifo_resp_o.empty),
-          .usage_o(read_addr_fifo_usage),
-          .data_o(read_addr_fifo_resp_o.data),
-          .data_i(read_addr_fifo_req_i.data),
-          .push_i(read_addr_fifo_req_i.push),
-          .pop_i(read_addr_fifo_req_i.pop)
-      );
+`ifdef ADDR_MODE_EN
 
-      assign read_addr_fifo_resp_o.alm_full = (read_addr_fifo_usage == LastFifoUsage[AddrFifoDepth-1:0]);
+  /* Read address mode FIFO */
+  fifo_v3 #(
+      .DEPTH(FIFO_DEPTH),
+      .FALL_THROUGH(1'b1)
+  ) dma_read_addr_fifo_i (
+      .clk_i,
+      .rst_ni,
+      .flush_i(read_addr_fifo_req_i.flush),
+      .testmode_i(1'b0),
+      .full_o(read_addr_fifo_resp_o.full),
+      .empty_o(read_addr_fifo_resp_o.empty),
+      .usage_o(read_addr_fifo_usage),
+      .data_o(read_addr_fifo_resp_o.data),
+      .data_i(read_addr_fifo_req_i.data),
+      .push_i(read_addr_fifo_req_i.push),
+      .pop_i(read_addr_fifo_req_i.pop)
+  );
 
-    end else begin
-      /* Tie to 0s the Address mode signals */
-      assign read_addr_fifo_resp_o.full     = 0;
-      assign read_addr_fifo_resp_o.empty    = 0;
-      assign read_addr_fifo_resp_o.alm_full = 0;
-      assign read_addr_fifo_resp_o.data     = '0;
-    end
-  endgenerate
+  assign read_addr_fifo_resp_o.alm_full = (read_addr_fifo_usage == LastFifoUsage[AddrFifoDepth-1:0]);
+
+`else
+
+  /* Tie to 0s the Address mode signals */
+  assign read_addr_fifo_resp_o.full     = 0;
+  assign read_addr_fifo_resp_o.empty    = 0;
+  assign read_addr_fifo_resp_o.alm_full = 0;
+  assign read_addr_fifo_resp_o.data     = '0;
+
+`endif
 
   /* Write FIFO */
   fifo_v3 #(
@@ -146,40 +145,42 @@ module dma_buffer_fifos
   );
 
   /* HW FIFO connection, which can substitute the write FIFO when that mode is on */
-  generate
-    assign write_fifo_resp.alm_full = (write_fifo_usage == LastFifoUsage[AddrFifoDepth-1:0]);
+  assign write_fifo_resp.alm_full = (write_fifo_usage == LastFifoUsage[AddrFifoDepth-1:0]);
 
-    if (HW_FIFO_MODE_EN == 1) begin
-      always_comb begin
-        if (hw_fifo_mode) begin
-          hw_fifo_req_o = write_fifo_req_i;
-          write_fifo_resp_o = hw_fifo_resp_i;
+`ifdef HW_FIFO_MODE_EN
 
-          write_fifo_req.flush = 0;
-          write_fifo_req.data = '0;
-          write_fifo_req.push = 0;
-          write_fifo_req.pop = 0;
-        end else begin
-          write_fifo_req = write_fifo_req_i;
-          write_fifo_resp_o = write_fifo_resp;
+  always_comb begin
+    if (hw_fifo_mode) begin
+      hw_fifo_req_o        = write_fifo_req_i;
+      write_fifo_resp_o    = hw_fifo_resp_i;
 
-          hw_fifo_req_o.flush = 0;
-          hw_fifo_req_o.data = '0;
-          hw_fifo_req_o.push = 0;
-          hw_fifo_req_o.pop = 0;
-        end
-      end
+      write_fifo_req.flush = 1'b0;
+      write_fifo_req.data  = '0;
+      write_fifo_req.push  = 1'b0;
+      write_fifo_req.pop   = 1'b0;
     end else begin
-      assign write_fifo_req = write_fifo_req_i;
-      assign write_fifo_resp_o = write_fifo_resp;
+      write_fifo_req      = write_fifo_req_i;
+      write_fifo_resp_o   = write_fifo_resp;
 
-      /* Tie to 0s the HW FIFO mode signals */
-      assign hw_fifo_req_o.flush = 0;
-      assign hw_fifo_req_o.data = '0;
-      assign hw_fifo_req_o.push = 0;
-      assign hw_fifo_req_o.pop = 0;
+      hw_fifo_req_o.flush = 1'b0;
+      hw_fifo_req_o.data  = '0;
+      hw_fifo_req_o.push  = 1'b0;
+      hw_fifo_req_o.pop   = 1'b0;
     end
-  endgenerate
+  end
+
+`else
+
+  assign write_fifo_req      = write_fifo_req_i;
+  assign write_fifo_resp_o   = write_fifo_resp;
+
+  /* Tie to 0s the HW FIFO mode signals */
+  assign hw_fifo_req_o.flush = 1'b0;
+  assign hw_fifo_req_o.data  = '0;
+  assign hw_fifo_req_o.push  = 1'b0;
+  assign hw_fifo_req_o.pop   = 1'b0;
+
+`endif
 
   assign read_fifo_pop = read_fifo_pop_i;
   assign read_bundle_push = read_fifo_req_i.push;

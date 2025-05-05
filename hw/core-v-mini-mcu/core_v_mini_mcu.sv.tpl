@@ -63,6 +63,7 @@ ${pad.core_v_mini_mcu_interface}
     input fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_done_i,
 
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
@@ -451,6 +452,7 @@ ${pad.core_v_mini_mcu_interface}
       .ext_dma_slot_tx_i,
       .ext_dma_slot_rx_i,
       .ext_dma_stop_i,
+      .hw_fifo_done_i,
       .dma_done_o
   );
 

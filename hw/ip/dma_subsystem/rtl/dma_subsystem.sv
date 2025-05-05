@@ -42,6 +42,7 @@ module dma_subsystem
     input logic [EXT_SLOT_NUM-1:0] ext_trigger_slot_i,
 
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_done_i,
 
     output dma_done_intr_o,
     output dma_window_intr_o,
@@ -93,10 +94,6 @@ module dma_subsystem
           .obi_req_t(obi_pkg::obi_req_t),
           .obi_resp_t(obi_pkg::obi_resp_t),
           .SLOT_NUM(GLOBAL_SLOT_NUM + 2),
-          .HW_FIFO_MODE_EN(core_v_mini_mcu_pkg::DMA_HW_FIFO_MODE),
-          .ADDR_MODE_EN(core_v_mini_mcu_pkg::DMA_ADDR_MODE),
-          .SUBADDR_MODE_EN(core_v_mini_mcu_pkg::DMA_SUBADDR_MODE),
-          .ZERO_PADDING_EN(core_v_mini_mcu_pkg::DMA_ZERO_PADDING),
           .FIFO_DEPTH(core_v_mini_mcu_pkg::DMA_FIFO_DEPTH),
           .RVALID_FIFO_DEPTH(RVALID_FIFO_DEPTH)
       ) dma_i (
@@ -104,6 +101,7 @@ module dma_subsystem
           .rst_ni,
           .clk_gate_en_ni(clk_gate_en_ni[i]),
           .ext_dma_stop_i(ext_dma_stop_i[i]),
+          .hw_fifo_done_i(hw_fifo_done_i[i]),
           .reg_req_i(submodules_req[i]),
           .reg_rsp_o(submodules_rsp[i]),
           .dma_read_req_o(xbar_read_req[i]),

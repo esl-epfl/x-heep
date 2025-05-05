@@ -12,6 +12,7 @@ filesets:
     depend:
       - pulp-platform.org::common_cells
     files:
+    - data/dma_conf.svh: { include_file: true }
     - rtl/dma_reg_pkg.sv
     - rtl/dma_reg_top.sv
     - rtl/dma_units/dma_processing_unit.sv

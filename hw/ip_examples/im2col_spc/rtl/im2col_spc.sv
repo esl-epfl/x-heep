@@ -35,7 +35,7 @@ module im2col_spc
   import im2col_spc_reg_pkg::*;
   import dma_reg_pkg::*;
 
-  //`define DISABLE_MODULE
+  `define DISABLE_MODULE
 
 `ifndef DISABLE_MODULE
   /*_________________________________________________________________________________________________________________________________ */

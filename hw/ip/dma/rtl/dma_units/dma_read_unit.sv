@@ -39,7 +39,6 @@ module dma_read_unit
 
     output logic [31:0] read_buffer_input_o,
 
-    output logic dma_read_unit_done_o,
     output logic general_buffer_flush_o
 );
 
@@ -225,7 +224,6 @@ module dma_read_unit
     dma_read_unit_n_state = dma_read_unit_state;
 
     buffer_flush = 1'b0;
-    dma_read_unit_done_o = 1'b0;
 
     unique case (dma_read_unit_state)
 
@@ -244,13 +242,11 @@ module dma_read_unit
             // 1D DMA case
             if (|dma_src_cnt_d1 == 1'b0) begin
               dma_read_unit_n_state = DMA_READ_UNIT_IDLE;
-              dma_read_unit_done_o  = 1'b1;
             end
           end else if (dma_conf_2d == 1'b1) begin
             // 2D DMA case: exit only if both 1d and 2d counters are at 0
             if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} && |dma_src_cnt_d2 == 1'b0) begin
               dma_read_unit_n_state = DMA_READ_UNIT_IDLE;
-              dma_read_unit_done_o  = 1'b1;
             end
           end
         end else begin

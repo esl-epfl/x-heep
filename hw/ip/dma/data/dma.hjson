@@ -115,7 +115,7 @@
       ]
     }
     { name:     "SLOT"
-      desc:     '''The DMA will wait for the signal 
+      desc:     '''The DMA will wait for the signal
                    connected to the selected trigger_slots to be high
                    on the read and write side respectively'''
       swaccess: "rw"
@@ -273,7 +273,7 @@
       ]
     }
     { name:    "INTERRUPT_EN"
-      desc:    '''Interrupt Enable Register 
+      desc:    '''Interrupt Enable Register
                   (Only the interrupt with the lowest id will be triggered)'''
       swaccess: "rw"
       hwaccess: "hro"
@@ -292,15 +292,6 @@
       resval:        0
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
-      ]
-    }
-    { name:    "HW_FIFO_DONE_OVERRIDE"
-      desc:    '''Flag to override the write-unit-based done signal logic'''
-      swaccess: "rw"
-      hwaccess: "hro"
-      resval:   0
-      fields: [
-        { bits: "0", name: "FLAG", desc: "Set to enable read-unit-based done logic" }
       ]
     }
     { name:    "WINDOW_IFR"

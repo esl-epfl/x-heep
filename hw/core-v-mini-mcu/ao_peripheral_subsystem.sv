@@ -117,6 +117,7 @@ module ao_peripheral_subsystem
     input  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
     input  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
     input  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
+    input  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_done_i,
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
 
 );
@@ -418,6 +419,7 @@ module ao_peripheral_subsystem
       .global_trigger_slot_i(dma_global_trigger_slots),
       .ext_trigger_slot_i(dma_ext_trigger_slots),
       .ext_dma_stop_i(ext_dma_stop_i),
+      .hw_fifo_done_i,
       .dma_done_intr_o(dma_done_intr_o),
       .dma_window_intr_o(dma_window_intr_o),
       .dma_done_o(dma_done_o)

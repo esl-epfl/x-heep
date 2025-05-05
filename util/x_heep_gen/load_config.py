@@ -6,10 +6,11 @@ import hjson
 from .linker_section import LinkerSection
 from .system import BusType, Override, XHeep
 
+
 def to_int(input) -> Union[int, None]:
     if type(input) is int:
         return input
-    
+
     if type(input) is str:
         base = 10
         if len(input) >= 2:
@@ -37,32 +38,37 @@ def ram_list(l: "List[int]", entry):
     """
     if type(l) is not list:
         raise TypeError("l should be of type list")
-    
+
     if type(entry) is int:
         l.append(entry)
         return
-    
+
     if type(entry) is list:
         for i in entry:
             ram_list(l, i)
         return
-    
+
     if type(entry) is hjson.OrderedDict:
         num = 1
         if "num" in entry:
             if type(entry["num"]) is not int:
-                raise RuntimeError("if the num field is present in ram configuration it should be an integer")
+                raise RuntimeError(
+                    "if the num field is present in ram configuration it should be an integer"
+                )
             num = entry["num"]
-        
+
         if "sizes" in entry:
             for _ in range(num):
                 ram_list(l, entry["sizes"])
             return
         else:
-            raise RuntimeError("dictionaries in continuous ram configuration sections should at least have a sizes entry")
-    
-    raise RuntimeError("entries in ram configuration should either be integer, lists, or dictionaries")
+            raise RuntimeError(
+                "dictionaries in continuous ram configuration sections should at least have a sizes entry"
+            )
 
+    raise RuntimeError(
+        "entries in ram configuration should either be integer, lists, or dictionaries"
+    )
 
 
 def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
@@ -82,7 +88,7 @@ def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
     for key, value in mem.items():
         if type(value) is not hjson.OrderedDict:
             raise RuntimeError("Ram configuration entries should be dictionaries")
-        
+
         section_name = ""
         if "auto_section" in value and value["auto_section"] == "auto":
             section_name = key
@@ -93,22 +99,27 @@ def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
             if type(t) is not str:
                 raise RuntimeError("ram type should be a string")
             if t != "continuous" and t != "interleaved":
-                raise RuntimeError(f"ram type should be continuous or interleaved not {t}")
-        
+                raise RuntimeError(
+                    f"ram type should be continuous or interleaved not {t}"
+                )
+
         if t == "interleaved":
             if "num" not in value or type(value["num"]) is not int:
-                raise RuntimeError("The num field is required for interleaved ram section and should be an integer")
-            
+                raise RuntimeError(
+                    "The num field is required for interleaved ram section and should be an integer"
+                )
+
             if "size" not in value or type(value["size"]) is not int:
-                raise RuntimeError("The size field is required for interleaved ram section and should be an integer")
-            
+                raise RuntimeError(
+                    "The size field is required for interleaved ram section and should be an integer"
+                )
+
             system.add_ram_banks_il(int(value["num"]), int(value["size"]), section_name)
 
         elif t == "continuous":
             banks: List[int] = []
             ram_list(banks, value)
             system.add_ram_banks(banks, section_name)
-
 
 
 def load_linker_config(system: XHeep, config: list):
@@ -122,31 +133,31 @@ def load_linker_config(system: XHeep, config: list):
     """
     if type(config) is not list:
         raise RuntimeError("Linker Section configuraiton should be a list.")
-    
+
     for l in config:
         if type(l) is not hjson.OrderedDict:
             raise RuntimeError("Sections should be represented as Dictionaries")
         if "name" not in l:
             raise RuntimeError("All sections should have names")
-        
+
         if "start" not in l:
             raise RuntimeError("All sections should have a start")
-        
+
         name = l["name"]
         start = to_int(l["start"])
 
         if type(name) is not str:
             raise RuntimeError("Section names should be strings")
-        
+
         if name == "":
             raise RuntimeError("Section names should not be empty")
-        
+
         if type(start) is not int:
             raise RuntimeError("The start of a section should be an integer")
-        
+
         if "size" in l and "end" in l:
             raise RuntimeError("Each section should only specify end or size.")
-        
+
         end = 0
         if "size" in l:
             size = to_int(l["size"])
@@ -155,7 +166,7 @@ def load_linker_config(system: XHeep, config: list):
             if size <= 0:
                 raise RuntimeError("Section sizes should be strictly positive")
             end = start + size
-        
+
         elif "end" in l:
             end = to_int(l["end"])
             if end is None:
@@ -164,10 +175,8 @@ def load_linker_config(system: XHeep, config: list):
                 raise RuntimeError("Sections should end after their start")
         else:
             end = None
-        
+
         system.add_linker_section(LinkerSection(name, start, end))
-
-
 
 
 def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
@@ -200,7 +209,7 @@ def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
         raise RuntimeError("No memory configuration found")
     if bus_config is None:
         raise RuntimeError("No bus type configuration found")
-    
+
     ram_start = 0
     if ram_address_config is not None:
         if type(ram_address_config) is not int:
@@ -219,7 +228,6 @@ def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
     return system
 
 
-
 def _chk_purep(f):
     """
     Helper to check the type is `PurePath`
@@ -229,7 +237,6 @@ def _chk_purep(f):
     """
     if not isinstance(f, PurePath):
         raise TypeError("parameter should be of type PurePath")
-
 
 
 def load_cfg_hjson_file(f: PurePath, override: Optional[Override] = None) -> XHeep:
@@ -245,8 +252,7 @@ def load_cfg_hjson_file(f: PurePath, override: Optional[Override] = None) -> XHe
     _chk_purep(f)
 
     with open(f, "r") as file:
-         return load_cfg_hjson(file.read(), override)
-    
+        return load_cfg_hjson(file.read(), override)
 
 
 def load_cfg_script_file(f: PurePath) -> XHeep:
@@ -269,7 +275,6 @@ def load_cfg_script_file(f: PurePath) -> XHeep:
     spec.loader.exec_module(mod)
 
     return mod.config()
-    
 
 
 def load_cfg_file(f: PurePath, override: Optional[Override] = None) -> XHeep:
@@ -286,8 +291,8 @@ def load_cfg_file(f: PurePath, override: Optional[Override] = None) -> XHeep:
 
     if f.suffix == ".hjson":
         return load_cfg_hjson_file(f, override)
-    
+
     if f.suffix == ".py":
         return load_cfg_script_file(f)
-    
+
     raise RuntimeError(f"unsupported file extension {f.suffix}")

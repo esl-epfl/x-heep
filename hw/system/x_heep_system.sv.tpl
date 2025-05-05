@@ -60,6 +60,7 @@ module x_heep_system
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_done_i,
 
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
@@ -157,6 +158,7 @@ ${pad.core_v_mini_mcu_bonding}
     .ext_dma_write_resp_i,
     .ext_dma_addr_req_o,
     .ext_dma_addr_resp_i,
+    .hw_fifo_done_i,
     .ext_dma_stop_i,
     .hw_fifo_req_o,
     .hw_fifo_resp_i,
