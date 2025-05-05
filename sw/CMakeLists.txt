@@ -377,7 +377,11 @@ else()
     -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
   ")
 endif()
-set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
+
+if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "rv32imc_xtheadmatrix0p1")
+  set(CMAKE_C_FLAGS "${COMPILER_LINKER_FLAGS} -menable-experimental-extensions")
+endif()
+
 set(CMAKE_CXX_FLAGS ${COMPILER_LINKER_FLAGS})
 
 
