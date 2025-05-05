@@ -131,8 +131,8 @@ module testharness #(
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_rsp;
 
-  fifo_req_t hw_fifo_req;
-  fifo_resp_t hw_fifo_resp;
+  fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req;
+  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp;
 
   reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
   reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
@@ -534,8 +534,8 @@ module testharness #(
           .dlc_done_o(dlc_done),
           .reg_req_i(ext_periph_slv_req[testharness_pkg::DLC_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::DLC_IDX]),
-          .hw_fifo_req_i(hw_fifo_req),
-          .hw_fifo_resp_o(hw_fifo_resp)
+          .hw_fifo_req_i(hw_fifo_req[0]),
+          .hw_fifo_resp_o(hw_fifo_resp[0])
       );
 
       simple_accelerator #(
@@ -554,21 +554,19 @@ module testharness #(
           .acc_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER3_IDX])
       );
 
-      if (DMA_ZERO_PADDING == 1) begin
-        im2col_spc im2col_spc_i (
-            .clk_i,
-            .rst_ni,
+      im2col_spc im2col_spc_i (
+          .clk_i,
+          .rst_ni,
 
-            .aopb2im2col_resp_i(ext_ao_peripheral_resp[0]),
-            .im2col2aopb_req_o (ext_ao_peripheral_req[0]),
+          .aopb2im2col_resp_i(ext_ao_peripheral_resp[0]),
+          .im2col2aopb_req_o (ext_ao_peripheral_req[0]),
 
-            .reg_req_i(ext_periph_slv_req[testharness_pkg::IM2COL_SPC_IDX]),
-            .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::IM2COL_SPC_IDX]),
+          .reg_req_i(ext_periph_slv_req[testharness_pkg::IM2COL_SPC_IDX]),
+          .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::IM2COL_SPC_IDX]),
 
-            .dma_done_i(dma_busy),
-            .im2col_spc_done_int_o(im2col_spc_done_int_o)
-        );
-      end
+          .dma_done_i(dma_busy),
+          .im2col_spc_done_int_o(im2col_spc_done_int_o)
+      );
 
       // AMS external peripheral
       ams #(
@@ -688,9 +686,12 @@ module testharness #(
       end
 
     end else begin : gen_DONT_USE_EXTERNAL_DEVICE_EXAMPLE
-      assign slow_ram_slave_resp.gnt = '0;
-      assign slow_ram_slave_resp.rdata = '0;
-      assign slow_ram_slave_resp.rvalid = '0;
+      assign slow_ram_slave_resp[0].gnt = '0;
+      assign slow_ram_slave_resp[0].rdata = '0;
+      assign slow_ram_slave_resp[0].rvalid = '0;
+      assign slow_ram_slave_resp[1].gnt = '0;
+      assign slow_ram_slave_resp[1].rdata = '0;
+      assign slow_ram_slave_resp[1].rvalid = '0;
 
       assign ext_periph_slv_req = '0;
       assign ext_periph_slv_rsp = '0;

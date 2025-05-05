@@ -34,10 +34,9 @@ module im2col_spc
   import dma_if_pkg::*;
   import im2col_spc_reg_pkg::*;
   import dma_reg_pkg::*;
+  `include "dma_conf.svh"
 
-  `define DISABLE_MODULE
-
-`ifndef DISABLE_MODULE
+`ifdef ZERO_PADDING_EN
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Parameter definition */

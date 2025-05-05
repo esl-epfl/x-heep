@@ -148,10 +148,6 @@ package core_v_mini_mcu_pkg;
 % endif
  
   localparam int DMA_FIFO_DEPTH = ${dma_fifo_depth};
-  localparam int DMA_ADDR_MODE = ${dma_addr_mode};
-  localparam int DMA_SUBADDR_MODE = ${dma_subaddr_mode};
-  localparam int DMA_HW_FIFO_MODE = ${dma_hw_fifo_mode};
-  localparam int DMA_ZERO_PADDING = ${dma_zero_padding};
   
 % for peripheral, addr in ao_peripherals.items():
   localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};

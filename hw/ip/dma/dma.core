@@ -12,7 +12,6 @@ filesets:
     depend:
       - pulp-platform.org::common_cells
     files:
-    - data/dma_conf.svh: { include_file: true }
     - rtl/dma_reg_pkg.sv
     - rtl/dma_reg_top.sv
     - rtl/dma_units/dma_processing_unit.sv
@@ -24,8 +23,12 @@ filesets:
     - rtl/dma_units/dma_buffer_unit/dma_buffer_unit.sv
     - rtl/dma.sv
     file_type: systemVerilogSource
+  
+  headers:
+    files:
+    - data/dma_conf.svh: { is_include_file: true }
+    file_type: systemVerilogSource
 
 targets:
   default:
-    filesets:
-    - files_rtl
+    filesets: [files_rtl, headers]

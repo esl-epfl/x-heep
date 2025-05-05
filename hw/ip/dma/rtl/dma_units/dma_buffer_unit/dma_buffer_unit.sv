@@ -32,6 +32,7 @@ module dma_buffer_unit
     input  fifo_resp_t hw_fifo_resp_i,
     output fifo_req_t  hw_fifo_req_o
 );
+  `include "dma_conf.svh"
 
   logic hw_fifo_mode;
 

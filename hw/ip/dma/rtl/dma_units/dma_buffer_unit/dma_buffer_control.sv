@@ -29,6 +29,7 @@ module dma_buffer_control
 
     output logic [31:0] read_buffer_output_o
 );
+  `include "dma_conf.svh"
   dma_reg2hw_t reg2hw;
 
   logic dma_start;

@@ -35,6 +35,7 @@ module dma_buffer_fifos
     input  fifo_resp_t hw_fifo_resp_i,
     output fifo_req_t  hw_fifo_req_o
 );
+  `include "dma_conf.svh"
   localparam int unsigned LastFifoUsage = FIFO_DEPTH - 1;
   localparam int unsigned AddrFifoDepth = (FIFO_DEPTH > 1) ? $clog2(FIFO_DEPTH) : 1;
 
