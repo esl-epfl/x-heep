@@ -167,9 +167,12 @@ module pdm_core #(
   assign data = r_data ? 'h1 : {WIDTH{1'b1}};
 
   // Instantiation sequence
-  // ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐
-  // │Intgs├─►Decim├─►Combs├─►Hlfbd├─►Decim├─►Hlfbd├─►Decim├─► FIR │
-  // └─────┘ └─────┘ └─────┘ └─────┘ └─────┘ └─────┘ └─────┘ └─────┘
+  //┌───────────────────────┐                                       
+  //│       CIC Filter      │                                       
+  //│┌─────┐ ┌─────┐ ┌─────┐│┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐
+  //││Intgs├─►Decim├─►Combs├│►Hlfbd├─►Decim├─►Hlfbd├─►Decim├─► FIR │
+  //│└─────┘ └─────┘ └─────┘│└─────┘ └─────┘ └─────┘ └─────┘ └─────┘
+  //└───────────────────────┘                                       
   // (made with asciiflow.com)
 
   cic_integrators #(STAGES_CIC, WIDTH) cic_integrators_inst (

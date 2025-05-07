@@ -298,6 +298,8 @@
       ]
     }
 % endif
+
+    // WINDOW
     { window: {
         name: "RXDATA"
         items: "1"
