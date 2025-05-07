@@ -22,7 +22,7 @@ jobs:
           sed 's/is_included: "no"/is_included: "yes"/' -i mcu_cfg.hjson
 
           # Activate the CIC filter verison of the PDM2PCM
-          sed 's/cic_only: 0x0/cic_only: 0x0/' -i mcu_cfg.hjson
+          sed 's/cic_only: 0x0/cic_only: 0x1/' -i mcu_cfg.hjson
 
           sed 's/num_channels:   0x1/num_channels:   0x4/' -i mcu_cfg.hjson
           sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i mcu_cfg.hjson
