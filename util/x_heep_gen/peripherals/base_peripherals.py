@@ -68,6 +68,7 @@ class DMA(BasePeripheral, DataConfiguration):
         num_channels: int = 0x1,
         num_master_ports: int = 0x1,
         num_channels_per_master_port: int = 0x1,
+        fifo_depth: int = 0x4
     ):
         """
         Initialize the DMA peripheral.
@@ -83,6 +84,7 @@ class DMA(BasePeripheral, DataConfiguration):
         self._num_channels = num_channels
         self._num_master_ports = num_master_ports
         self._num_channels_per_master_port = num_channels_per_master_port
+        self._fifo_depth = fifo_depth
 
     def set_ch_length(self, value: int):
         """
