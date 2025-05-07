@@ -42,7 +42,7 @@
  4.e) You can restart the demo by resetting the master. 
  4.f) You can invert the roles by resetting both and releasing first the former slave.
 ____________________________________________________
-         [  ][  ][  ](Sy)(Ck)[  ][  ][  ][  ][  ]   |
+         [GD][  ][  ](Sy)(Ck)[  ][  ][  ][  ][Vd]   |
          [  ][  ][  ][  ][  ][  ](Cs)[  ][  ][  ]   | 
                                                     |
  [  ][  ][  ][  ](Mo)(Mi)[  ][  ]                   |
@@ -51,6 +51,7 @@ ____________________________________________________
                     Master->|(Ck)(Mo)           |   
                             |(Cs)[  ]           | PMODs
 
+To self-test you can connect the Sy to Vd (3V3)
 
 Disclaimer: 
 The FPGAs can have different bitstreams as long as the pinout remains the same. 
@@ -177,7 +178,7 @@ int main(){
         #endif
 
         // Initilize the SPI host IP
-        if( spi_host_init(spi_host1)!= SPI_FLAG_SUCCESS) return EXIT_FAILURE;
+        if( spi_host_init(spi_host1, 0)!= SPI_FLAG_SUCCESS) return EXIT_FAILURE;
 
         // We will request chunks of chunk_w words. 
         // We will repeat the process N times until we have read the entirety of the buffer. 

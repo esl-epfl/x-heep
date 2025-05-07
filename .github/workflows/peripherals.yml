@@ -1,0 +1,22 @@
+name: Test peripherals
+on: [push, pull_request]
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+    name: Test peripherals (Same output between hjson and python configuration). All must pass.
+    steps:
+      - name: Checkout the pushed code. 
+        uses: actions/checkout@v3
+      - name: Configure the job container and simulate all apps
+        run: |
+          # Create the virtual environment and install the requirements. 
+          conda init bash
+          source /root/.bashrc
+          conda activate core-v-mini-mcu
+          make clean-all
+
+          # Run the test script
+          python3 test/test_x_heep_gen/test_peripherals.py

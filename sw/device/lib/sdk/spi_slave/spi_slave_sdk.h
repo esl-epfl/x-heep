@@ -41,7 +41,7 @@ typedef enum {
     SPI_SLAVE_FLAG_SIZE_OF_DATA_EXCEEDED    = 0x0004, 
 } spi_flags_e;
 
-spi_flags_e spi_host_init(spi_host_t* host);
+spi_flags_e spi_host_init(spi_host_t* host, uint8_t csid);
 spi_flags_e spi_slave_write(spi_host_t* host, uint8_t* write_addr, uint8_t* read_ptr, uint16_t length_B);
 uint16_t spi_slave_request_read( spi_host_t* host, uint8_t* read_address, uint16_t length_B, uint8_t dummy_cycles );
 void spi_slave_send_dummy_cycles( spi_host_t* host, uint8_t dummy_cycles );

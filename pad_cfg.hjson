@@ -120,7 +120,7 @@
             type: inout
             mux: {
                 spi_slave_miso: {
-                    type: output
+                    type: inout
                 }
                 gpio_16: {
                     type: inout
