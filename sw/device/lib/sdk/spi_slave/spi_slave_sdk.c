@@ -15,7 +15,7 @@
 /*
 * Initilize the SPI Host
 */
-spi_flags_e spi_host_init(spi_host_t* host) {
+spi_flags_e spi_host_init(spi_host_t* host, uint8_t csid) {
  
     // Enable spi host device
     if( spi_set_enable(host, true) != SPI_FLAG_SUCCESS) return SPI_HOST_FLAG_NOT_INIT;
@@ -32,9 +32,9 @@ spi_flags_e spi_host_init(spi_host_t* host) {
         .cpha       = 0,
         .cpol       = 0            
     });
-    spi_set_configopts(host, 0, chip_cfg);;
+    spi_set_configopts(host, csid, chip_cfg);
 
-    if(spi_set_csid(host, 0) != SPI_FLAG_SUCCESS) return SPI_HOST_FLAG_CSID_INVALID;
+    if(spi_set_csid(host, csid) != SPI_FLAG_SUCCESS) return SPI_HOST_FLAG_CSID_INVALID;
 
     return SPI_FLAG_SUCCESS; // Success
 }
