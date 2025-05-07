@@ -519,7 +519,7 @@ module peripheral_subsystem
 % if 'pdm2pcm' in peripherals and peripherals['pdm2pcm']['is_included'] == 'yes':
   pdm2pcm #(
       .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
   ) pdm2pcm_i (
       .clk_i(clk_cg),
       .rst_ni,
