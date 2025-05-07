@@ -31,6 +31,11 @@ hw/ip/power_manager/data/power_manager.hjson
 hw/ip/power_manager/rtl/power_manager.sv
 hw/ip/power_manager/rtl/power_manager_reg_top.sv
 hw/ip/power_manager/rtl/power_manager_reg_pkg.sv
+hw/ip/pdm2pcm/data/pdm2pcm.hjson
+hw/ip/pdm2pcm/rtl/pdm2pcm.sv
+hw/ip/pdm2pcm/rtl/pdm_core.sv
+hw/ip/pdm2pcm/rtl/pdm2pcm_reg_top.sv
+hw/ip/pdm2pcm/rtl/pdm2pcm_reg_pkg.sv
 hw/system/pad_control/data/pad_control.hjson
 hw/system/pad_control/rtl/pad_control.sv
 hw/system/pad_control/rtl/pad_control_reg_pkg.sv
