@@ -146,12 +146,12 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/ip/pdm2pcm/data --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/ip/pdm2pcm/data/pdm2pcm.hjson.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/ip/pdm2pcm/rtl --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/ip/pdm2pcm/rtl/pdm2pcm.sv.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/ip/pdm2pcm/rtl --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/ip/pdm2pcm/rtl/pdm_core.sv.tpl
-	bash -c "cd hw/ip/pdm2pcm; source pdm2pcm.sh; cd ../../../"
 	$(PYTHON) ./util/structs_periph_gen.py --cfg_peripherals $(MCU_CFG_PERIPHERALS)
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/fpga/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/fpga/sram_wrapper.sv.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/fpga/scripts/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv hw/fpga/scripts/generate_sram.tcl.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir sw/device/lib/crt/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv sw/device/lib/crt/crt0.S.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir util/profile/ --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --tpl-sv util/profile/run_profile.sh.tpl
+	bash -c "cd hw/ip/pdm2pcm; source pdm2pcm.sh; cd ../../../"
 	$(MAKE) verible
 
 ## Display mcu_gen.py help
