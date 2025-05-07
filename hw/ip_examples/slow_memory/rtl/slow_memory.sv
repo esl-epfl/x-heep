@@ -52,6 +52,8 @@ module slow_memory #(
   slow_memory_fsm_e state_q, state_n;
 
   int random1, random2;
+  logic random3;
+  logic sample_req;
 
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_
     if (~rst_ni) begin
@@ -64,19 +66,21 @@ module slow_memory #(
       mem_wdata_q <= '0;
       mem_be_q <= '0;
     end else begin
-      random1 <= $random();
-      random2 <= $random();
+      random1   <= $random();
+      random2   <= $random();
+      random3   <= ($random() % 2) != 0;
       counter_q <= counter_n;
-      rvalid_q <= rvalid_n;
-      state_q <= state_n;
-      mem_req_q <= mem_req_n;
-      mem_we_q <= mem_we_n;
-      mem_addr_q <= mem_addr_n;
-      mem_wdata_q <= mem_wdata_n;
-      mem_be_q <= mem_be_n;
+      rvalid_q  <= rvalid_n;
+      state_q   <= state_n;
+      if (sample_req) begin
+        mem_req_q <= mem_req_n;
+        mem_we_q <= mem_we_n;
+        mem_addr_q <= mem_addr_n;
+        mem_wdata_q <= mem_wdata_n;
+        mem_be_q <= mem_be_n;
+      end
     end
   end
-
 
   always_comb begin
     gnt_o       = 1'b0;
@@ -94,25 +98,38 @@ module slow_memory #(
     mem_addr_n  = mem_addr_q;
     mem_wdata_n = mem_wdata_q;
     mem_be_n    = mem_be_q;
+    sample_req  = 1'b0;
+
     unique case (state_q)
 
       READY: begin
         rvalid_n = 1'b0;
+        gnt_o = random1[0];
         if (req_i) begin
-          gnt_o = random1[0];
           if (gnt_o) begin
-            state_n     = WAIT_RVALID;
-            counter_n   = random2[4:0] + 1;
-            mem_req_n   = req_i;
-            mem_we_n    = we_i;
-            mem_addr_n  = addr_i;
-            mem_wdata_n = wdata_i;
-            mem_be_n    = be_i;
+            counter_n = random3 ? random2[4:0] : '0;
+            if (counter_n == 0) begin
+              mem_req   = req_i;
+              mem_we    = we_i;
+              mem_addr  = addr_i;
+              mem_wdata = wdata_i;
+              mem_be    = be_i;
+              rvalid_n  = 1'b1;
+            end else begin
+              sample_req  = 1'b1;
+              mem_req_n   = req_i;
+              mem_we_n    = we_i;
+              mem_addr_n  = addr_i;
+              mem_wdata_n = wdata_i;
+              mem_be_n    = be_i;
+              state_n     = WAIT_RVALID;
+            end
           end
         end
       end
 
       WAIT_RVALID: begin
+        gnt_o = 1'b0;
         if (counter_q == 1) begin
           mem_req = mem_req_q;
           mem_we = mem_we_q;
