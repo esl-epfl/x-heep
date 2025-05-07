@@ -101,6 +101,9 @@ filesets:
     depend:
     - openhwgroup.org:systems:core-v-mini-mcu-fpga
     files:
+    - hw/ip_examples/dlc/rtl/dlc_reg_pkg.sv
+    - hw/ip_examples/dlc/rtl/dlc_reg_top.sv
+    - hw/ip_examples/dlc/rtl/dlc.sv
     - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
     file_type: systemVerilogSource
 

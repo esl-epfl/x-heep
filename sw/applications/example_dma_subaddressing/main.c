@@ -272,15 +272,11 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma
     // Validate, load and launch DMA transaction
     dma_config_flags_t res;
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    printf("res = %d\n", res);
     res = dma_load_transaction(&trans);
-    printf("res = %d\n", res);
     res = dma_launch(&trans);
-    printf("res = %d\n", res);
 
     // Wait for DMA to finish transaction
     while(!dma_is_ready(0));
-    printf("AAA\n");
 
     uint32_t result = check_result(test_buffer, len, dma_data_type, sign_extend);
 

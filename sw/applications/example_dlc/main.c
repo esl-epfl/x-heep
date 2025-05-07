@@ -23,9 +23,9 @@
 #define PRINTF_IN_FPGA 1
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+        #define PRINTF(fmt, ...)    PRINTF(fmt, ## __VA_ARGS__)
 #elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+    #define PRINTF(fmt, ...)    PRINTF(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
 #endif
@@ -39,6 +39,8 @@ int main() {
 
     // dLC results buffer
     int16_t dlc_results[500];
+
+    PRINTF("Starting dLC test\n\r");
     
     // dLC programming registers
     uint32_t* dlvl_log_level_width    = DLC_START_ADDRESS + DLC_DLVL_LOG_LEVEL_WIDTH_REG_OFFSET;
@@ -118,10 +120,11 @@ int main() {
     {
         if(dlc_results[i] != lc_data_for_storage_data[i])
         {
-            printf("Error at position %d: dlc result is %d, golden result is %d\n", i, dlc_results[i], lc_data_for_storage_data[i]);
+            PRINTF("Error at position %d: dlc result is %d, golden result is %d\n", i, dlc_results[i], lc_data_for_storage_data[i]);
             return EXIT_FAILURE;
         }
     }
 
+    PRINTF("Success!\n\r");
     return EXIT_SUCCESS;
 }

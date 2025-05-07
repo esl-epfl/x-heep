@@ -70,6 +70,10 @@ module xilinx_core_v_mini_mcu_wrapper
 
 );
 
+  import fifo_pkg::*;
+  import addr_map_rule_pkg::*;
+  import core_v_mini_mcu_pkg::*;
+
   wire                               clk_gen;
   logic [                      31:0] exit_value;
   wire                               rst_n;
@@ -117,6 +121,23 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 `endif
 
+  logic dlc_done;
+  fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req;
+  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp;
+  reg_pkg::reg_req_t ext_periph_slv_req;
+  reg_pkg::reg_rsp_t ext_periph_slv_rsp;
+
+  dlc dlc_i (
+      .clk_i(clk_gen),
+      .rst_ni(rst_n),
+      .dlc_xing_intr_o(),
+      .dlc_done_o(dlc_done),
+      .reg_req_i(ext_periph_slv_req),
+      .reg_rsp_o(ext_periph_slv_rsp),
+      .hw_fifo_req_i(hw_fifo_req[0]),
+      .hw_fifo_resp_o(hw_fifo_resp[0])
+  );
+
   x_heep_system #(
       .X_EXT(X_EXT),
       .COREV_PULP(COREV_PULP),
@@ -144,8 +165,8 @@ module xilinx_core_v_mini_mcu_wrapper
       .ext_dma_write_resp_i('0),
       .ext_dma_addr_req_o(),
       .ext_dma_addr_resp_i('0),
-      .ext_peripheral_slave_req_o(),
-      .ext_peripheral_slave_resp_i('0),
+      .ext_peripheral_slave_req_o(ext_periph_slv_req),
+      .ext_peripheral_slave_resp_i(ext_periph_slv_rsp),
       .ext_ao_peripheral_req_i('0),
       .ext_ao_peripheral_resp_o(),
       .external_subsystem_powergate_switch_no(),
@@ -214,7 +235,10 @@ module xilinx_core_v_mini_mcu_wrapper
       .i2s_ws_io(i2s_ws_io),
       .i2s_sd_io(i2s_sd_io),
       .ext_dma_slot_tx_i('0),
-      .ext_dma_slot_rx_i('0)
+      .ext_dma_slot_rx_i('0),
+      .hw_fifo_done_i({{(core_v_mini_mcu_pkg::DMA_CH_NUM - 1) {1'b0}}, dlc_done}),
+      .hw_fifo_req_o(hw_fifo_req),
+      .hw_fifo_resp_i(hw_fifo_resp)
   );
 
   assign exit_value_o = exit_value[0];
