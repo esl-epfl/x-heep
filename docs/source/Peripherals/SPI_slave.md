@@ -38,7 +38,7 @@ This amount is stored in the `REG_0` of the SPI slave IP and is set by seding a 
 |----------|----------|
 | `DUMMY_CYCLES` | `0x11` |
 
-```{info}
+```{note}
 If this command is not sent, the default value is used: 32 cycles. 
 ```
 
