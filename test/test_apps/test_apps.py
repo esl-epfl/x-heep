@@ -38,9 +38,9 @@ BLACKLIST = [
     "example_spi_write",
     "example_dma_subaddressing",
     "example_pdm2pcm" 
-    # This last app was testing a wrong version of the PDM2PCM acting only as a CIC filter. 
-    # When fixed, it not passes anymore. Need to be updated. (TODO)
 ]
+# TODO : The example_pdm2pcm app is testing a wrong version of the PDM2PCM acting only as a CIC filter. 
+#        When fixed, it not passes anymore. Need to be updated.
 
 # Blacklist of apps to skip with verilator
 VERILATOR_BLACKLIST = []
