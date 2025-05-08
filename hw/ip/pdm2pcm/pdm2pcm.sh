@@ -9,7 +9,7 @@
 PERIPHERAL_NAME=pdm2pcm
 
 REG_DIR=$(dirname -- $0)
-ROOT=$(realpath "$(dirname -- $0)/../../..")
+ROOT=$(readlink -f "$(dirname -- $0)/../../..")
 REGTOOL=$ROOT/hw/vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py
 HJSON_FILE=$REG_DIR/data/$PERIPHERAL_NAME.hjson
 RTL_DIR=$REG_DIR/rtl
