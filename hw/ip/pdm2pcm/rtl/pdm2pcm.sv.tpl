@@ -29,11 +29,13 @@ module pdm2pcm #(
 
   logic              [               15:0]     par_clkdiv_idx;
   logic              [                3:0]     par_decim_idx_combs;
+% if peripherals['pdm2pcm']['cic_only'] == '0':
   logic              [                4:0]     par_decim_idx_hfbd2;
   logic              [                5:0]     par_decim_idx_fir;
   logic              [               17:0]     coeffs_hb1          [ 0:3];
   logic              [               17:0]     coeffs_hb2          [ 0:6];
   logic              [               17:0]     coeffs_fir          [0:13];
+% endif
 
   logic              [FIFO_ADDR_WIDTH-1:0]     fifo_usage;
 
@@ -65,6 +67,7 @@ module pdm2pcm #(
   assign hw2reg.status.empty.de = 1;
   assign par_clkdiv_idx = reg2hw.clkdividx.q;
   assign par_decim_idx_combs = reg2hw.decimcic.q;
+% if peripherals['pdm2pcm']['cic_only'] == '0':
   assign par_decim_idx_hfbd2 = reg2hw.decimhb1.q;
   assign par_decim_idx_fir = reg2hw.decimhb2.q;
 
@@ -101,18 +104,23 @@ module pdm2pcm #(
           reg2hw.fircoef12.q,
           reg2hw.fircoef13.q
       };
+% endif
 
   pdm_core #() pdm_core_i (
       .clk_i,
       .rstn_i(rst_ni),
       .en_i(reg2hw.control.enabl.q),
       .par_decim_idx_combs,
+% if peripherals['pdm2pcm']['cic_only'] == '0':
       .par_decim_idx_hfbd2,
       .par_decim_idx_fir,
+% endif
       .par_clkdiv_idx,
+% if peripherals['pdm2pcm']['cic_only'] == '0':
       .coeffs_hb1,
       .coeffs_hb2,
       .coeffs_fir,
+% endif
       .pdm_clk_o,
       .pdm_i,
       .pcm_o(pcm),

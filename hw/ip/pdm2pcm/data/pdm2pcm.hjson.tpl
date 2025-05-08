@@ -68,6 +68,7 @@
         { bits: "3:0", name: "COUNT", desc: "Set the samples count" }
       ]
     }
+% if peripherals['pdm2pcm']['cic_only'] == '0':
     { name:     "DECIMHB1"
       desc:     "Samples count after which to decimate after the first halfband filter."
       swaccess: "rw"
@@ -296,6 +297,9 @@
         { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
+% endif
+
+    // WINDOW
     { window: {
         name: "RXDATA"
         items: "1"
