@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 EPFL
+ * Copyright 2025 EPFL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
+ * Author: Jérémie Moullet <jeremie.moullet@epfl.ch>, EPFL, STI-SEL
  */
 
 #include <stdio.h>
@@ -26,7 +26,7 @@
 #include "groundtruth.h"
 
 #ifndef PDM2PCM_IS_INCLUDED
-  #error ( "This app does NOT work as the PDM2PCM peripheral is not included" )
+  #error ( "This app does NOT work as the PDM2PCM peripheral is not included." )
 #endif
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
@@ -43,10 +43,9 @@
 
 int main(int argc, char *argv[])
 {
-    // TODO : This app is testing a wrong version of the PDM2PCM acting only as a CIC filter. 
-    // When fixed, it not passes anymore. Need to be updated with new groundtruth.
 
-    PRINTF("PDM2PCM DEMO\n\r");
+
+    PRINTF("CIC DEMO\n\r");
     PRINTF(" > Start\n\r");
 
     mmio_region_t pdm2pcm_base_addr = mmio_region_from_addr((uintptr_t)PDM2PCM_START_ADDRESS);
@@ -55,36 +54,6 @@ int main(int argc, char *argv[])
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_REACHCOUNT_REG_OFFSET, 1);
 
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMCIC_REG_OFFSET, 15);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB1_REG_OFFSET, 31);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB2_REG_OFFSET, 63);
-
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF00_REG_OFFSET, 1);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF01_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF02_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF03_REG_OFFSET, 0);
-
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF00_REG_OFFSET, 1);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF01_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF02_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF03_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF04_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF05_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF06_REG_OFFSET, 0);
-
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF00_REG_OFFSET, 1);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF01_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF02_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF03_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF04_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF05_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF06_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF07_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF08_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF09_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF10_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF11_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF12_REG_OFFSET, 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF13_REG_OFFSET, 0);
 
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CONTROL_REG_OFFSET  , 1);
 

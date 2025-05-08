@@ -51,4 +51,5 @@ Index
    /Extending/index
    /Testing/index
    /Peripherals/index
+   /ExternalPeripherals/index
    /ASIC/index
