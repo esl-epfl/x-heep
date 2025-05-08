@@ -6,31 +6,32 @@
  * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
  *                         <tommaso.terzano@gmail.com>
  *  
- * Info: Padding FSM for DMA channel.
+ * Info: Processing unit for DMA channel.
  */
 
-module dma_padding_fsm
+module dma_processing_unit
   import dma_reg_pkg::*;
 #(
 ) (
     input logic clk_i,
     input logic rst_ni,
+
     input dma_reg2hw_t reg2hw_i,
-    input logic dma_padding_fsm_on_i,
+
+    input logic dma_processing_unit_on_i,
+
     input logic dma_start_i,
-    input logic read_fifo_empty_i,
-    input logic write_fifo_full_i,
-    input logic write_fifo_alm_full_i,
-    input logic [31:0] data_read_i,
 
-    input  logic hw_fifo_mode_i,
-    input  logic hw_w_fifo_push_i,
-    output logic hw_r_fifo_push_padding_o,
+    input logic read_buffer_empty_i,
+    input logic write_buffer_full_i,
+    input logic write_buffer_alm_full_i,
 
-    output logic padding_fsm_done_o,
-    output logic write_fifo_push_o,
-    output logic read_fifo_pop_o,
-    output logic [31:0] data_write_o
+    input logic [31:0] read_buffer_output_i,
+
+    output logic write_buffer_push_o,
+    output logic read_buffer_pop_o,
+
+    output logic [31:0] write_buffer_input_o
 );
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -38,6 +39,7 @@ module dma_padding_fsm
   /* Parameter definition */
 
   import dma_reg_pkg::*;
+  `include "dma_conf.svh"
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -47,12 +49,13 @@ module dma_padding_fsm
   dma_reg2hw_t reg2hw;
 
   /* General signals */
-  logic read_fifo_en;
-  logic write_fifo_en;
+  logic processing_unit_done;
+  logic read_buffer_en;
+  logic write_buffer_en;
   logic pad_on;
-  logic read_fifo_empty;
-  logic write_fifo_full;
-  logic write_fifo_alm_full;
+  logic read_buffer_empty;
+  logic write_buffer_full;
+  logic write_buffer_alm_full;
   logic dma_start;
   logic [16:0] dma_cnt_d1;
   logic [16:0] dma_cnt_d2;
@@ -98,10 +101,6 @@ module dma_padding_fsm
 
   /*_________________________________________________________________________________________________________________________________ */
 
-  /* Module instantiation */
-
-  /*_________________________________________________________________________________________________________________________________ */
-
   /* FSMs instantiation */
 
   /* Padding FSM state update */
@@ -110,8 +109,7 @@ module dma_padding_fsm
       pad_state_q <= PAD_IDLE;
     end else begin
       /* Advance in the FSM only if the write FIFO is available */
-      // ----------------- add hw_w_fifo_full_i == 1'b0
-      if (write_fifo_en == 1'b1 && dma_padding_fsm_on_i == 1'b1 && padding_fsm_done_o == 1'b0) begin
+      if (write_buffer_en == 1'b1 && dma_processing_unit_on_i == 1'b1 && processing_unit_done == 1'b0) begin
         pad_state_q <= pad_state_d;
       end
     end
@@ -124,7 +122,7 @@ module dma_padding_fsm
     unique case (pad_state_q)
       PAD_IDLE: begin
         /* If the padding is done, stay idle */
-        if (padding_fsm_done_o == 1'b1) begin
+        if (processing_unit_done == 1'b1) begin
           pad_state_d = PAD_IDLE;
         end else begin
           if (idle_to_top_ex) begin
@@ -199,25 +197,22 @@ module dma_padding_fsm
 
   /* Data transfer */
   always_comb begin : proc_data_transfer
-    data_write_o = '0;
-    write_fifo_push_o = 1'b0;
-    read_fifo_pop_o = 1'b0;
-    hw_r_fifo_push_padding_o = 1'b0;
+    write_buffer_input_o = '0;
+    write_buffer_push_o = 1'b0;
+    read_buffer_pop_o = 1'b0;
 
-    if (dma_padding_fsm_on_i == 1'b1 && padding_fsm_done_o == 1'b0) begin
+    if (dma_processing_unit_on_i == 1'b1 && processing_unit_done == 1'b0) begin
       /* 
        * If we need to pad, there is no need to wait for the read fifo to have some values.
        * If we don't have to pad, we need to wait for the read fifo to be not empty.
        * In both cases, we need to wait for the write fifo to have some space.
        */
-      if (hw_fifo_mode_i == 1'b1 & pad_on == 1'b1) begin
-        hw_r_fifo_push_padding_o = 1'b1;
-      end else if (pad_on == 1'b1 & write_fifo_en == 1'b1) begin
-        write_fifo_push_o = 1'b1;
-      end else if (read_fifo_en == 1'b1 & write_fifo_en == 1'b1) begin
-        data_write_o = data_read_i;
-        write_fifo_push_o = 1'b1;
-        read_fifo_pop_o = 1'b1;
+      if (pad_on == 1'b1 & write_buffer_en == 1'b1) begin
+        write_buffer_push_o = 1'b1;
+      end else if (read_buffer_en == 1'b1 & write_buffer_en == 1'b1) begin
+        write_buffer_input_o = read_buffer_output_i;
+        write_buffer_push_o = 1'b1;
+        read_buffer_pop_o = 1'b1;
       end
     end
   end
@@ -231,13 +226,12 @@ module dma_padding_fsm
       if (dma_start == 1'b1) begin
         dma_cnt_d1 <= ({1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q});
         dma_cnt_d2 <= {1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_top.q} + {11'h0, reg2hw.pad_bottom.q};
-      end else if (padding_fsm_done_o == 1'b1) begin
+      end else if (processing_unit_done == 1'b1) begin
         dma_cnt_d1 <= '0;
         dma_cnt_d2 <= '0;
-      end else if ((dma_padding_fsm_on_i == 1'b1 && padding_fsm_done_o == 1'b0) & 
-                   ((hw_fifo_mode_i == 1'b1 & hw_w_fifo_push_i == 1'b1) ||
-                    (pad_on == 1'b1 & write_fifo_en == 1'b1 ) ||
-                   (read_fifo_en == 1'b1 & write_fifo_en == 1'b1))) begin
+      end else if ((dma_processing_unit_on_i == 1'b1 && processing_unit_done == 1'b0) & 
+                   ((pad_on == 1'b1 & write_buffer_en == 1'b1 ) ||
+                   (read_buffer_en == 1'b1 & write_buffer_en == 1'b1))) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
           dma_cnt_d1 <= dma_cnt_d1 - 1;
@@ -261,9 +255,9 @@ module dma_padding_fsm
   /* Signal assignments */
 
   /* Renaming */
-  assign read_fifo_empty = read_fifo_empty_i;
-  assign write_fifo_full = write_fifo_full_i;
-  assign write_fifo_alm_full = write_fifo_alm_full_i;
+  assign read_buffer_empty = read_buffer_empty_i;
+  assign write_buffer_full = write_buffer_full_i;
+  assign write_buffer_alm_full = write_buffer_alm_full_i;
   assign dma_start = dma_start_i;
   assign reg2hw = reg2hw_i;
   assign dma_conf_1d = reg2hw.dim_config.q == 0;
@@ -273,69 +267,77 @@ module dma_padding_fsm
   assign pad_on = (pad_state_q != PAD_IDLE && pad_state_q != TOP_PAD_DONE && pad_state_q != LEFT_PAD_DONE && pad_state_q != RIGHT_PAD_DONE && pad_state_q != BOTTOM_PAD_DONE);
 
   /* Read FIFO pop signal */
-  assign read_fifo_en = (read_fifo_empty == 1'b0);
+  assign read_buffer_en = (read_buffer_empty == 1'b0);
 
   /* Write FIFO push signal */
-  assign write_fifo_en = (write_fifo_full == 1'b0 && write_fifo_alm_full == 1'b0);
+  assign write_buffer_en = (write_buffer_full == 1'b0 && write_buffer_alm_full == 1'b0);
 
   /* Padding done signal */
-  assign padding_fsm_done_o = ((dma_conf_2d == 1'b1 && |dma_cnt_d2 == 1'b0 && dma_padding_fsm_on_i == 1'b1)
-                                | (dma_conf_1d == 1'b1 && |dma_cnt_d1 == 1'b0 && dma_padding_fsm_on_i == 1'b1));
+  assign processing_unit_done = ((dma_conf_2d == 1'b1 && |dma_cnt_d2 == 1'b0 && dma_processing_unit_on_i == 1'b1)
+                                | (dma_conf_1d == 1'b1 && |dma_cnt_d1 == 1'b0 && dma_processing_unit_on_i == 1'b1));
 
   /* Padding FSM conditions assignments */
-  assign idle_to_top_ex = {|reg2hw.pad_top.q == 1'b1 && dma_padding_fsm_on_i == 1'b1};
+  assign idle_to_top_ex = {
+    |reg2hw.pad_top.q == 1'b1 && dma_processing_unit_on_i == 1'b1 
+    && !(dma_cnt_d1 == 1 && dma_cnt_d2 == 1 && !({1'h0, reg2hw.size_d1.q} == 1 && {1'h0, reg2hw.size_d2.q} == 1))
+  };
   assign idle_to_left_ex = {
-    |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b1 && dma_padding_fsm_on_i == 1'b1
+    |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b1 && dma_processing_unit_on_i == 1'b1 
+    && !(dma_cnt_d1 == 1 && dma_cnt_d2 == 1 && !({1'h0, reg2hw.size_d1.q} == 1 && {1'h0, reg2hw.size_d2.q} == 1))
   };
   assign idle_to_right_ex = {
-    write_fifo_push_o == 1'b1 && |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 
+    write_buffer_push_o == 1'b1 && |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 
                       && dma_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + 1)
+    && !(dma_cnt_d1 == 1 && dma_cnt_d2 == 1 && !({1'h0, reg2hw.size_d1.q} == 1 && {1'h0, reg2hw.size_d2.q} == 1))
+    && !(dma_cnt_d1 == 1 && dma_cnt_d2 == 1 && !({1'h0, reg2hw.size_d1.q} == 1 && {1'h0, reg2hw.size_d2.q} == 1))
   };
   assign idle_to_bottom_ex = {
-    write_fifo_push_o == 1'b1 && |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 
+    write_buffer_push_o == 1'b1 && |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 
                       && dma_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1
+    && !(dma_cnt_d1 == 1 && dma_cnt_d2 == 1 && !({1'h0, reg2hw.size_d1.q} == 1 && {1'h0, reg2hw.size_d2.q} == 1))
+    && !(dma_cnt_d1 == 1 && dma_cnt_d2 == 1 && !({1'h0, reg2hw.size_d1.q} == 1 && {1'h0, reg2hw.size_d2.q} == 1))
   };
   assign top_ex_to_top_dn = {
-    write_fifo_push_o == 1'b1 && dma_cnt_d2 == ( {1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1 && |reg2hw.pad_left.q == 1'b0
+    write_buffer_push_o == 1'b1 && dma_cnt_d2 == ( {1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1 && |reg2hw.pad_left.q == 1'b0
   };
   assign top_ex_to_left_ex = {
-    write_fifo_push_o == 1'b1 && dma_cnt_d2 == ({1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1 && |reg2hw.pad_left.q == 1'b1
+    write_buffer_push_o == 1'b1 && dma_cnt_d2 == ({1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1 && |reg2hw.pad_left.q == 1'b1
   };
   assign top_dn_to_right_ex = {
-    write_fifo_push_o == 1'b1 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 && dma_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + 1)
+    write_buffer_push_o == 1'b1 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 && dma_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + 1)
   };
   assign top_dn_to_bottom_ex = {
-    write_fifo_push_o == 1'b1 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 && dma_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1
+    write_buffer_push_o == 1'b1 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 && dma_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1
   };
   assign top_dn_to_idle = {
     |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b0 && dma_cnt_d2 == 1 && dma_cnt_d1 == 1
   };
   assign left_ex_to_left_dn = {
-    write_fifo_push_o == 1'b1 && dma_cnt_d1 == ({1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_right.q} + 1)
+    write_buffer_push_o == 1'b1 && dma_cnt_d1 == ({1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_right.q} + 1)
   };
   assign left_dn_to_left_ex = {
-    write_fifo_push_o == 1'b1 && dma_cnt_d1 == 1 && dma_cnt_d2 != (1'b1 + {11'h0, reg2hw.pad_bottom.q}) && |reg2hw.pad_right.q == 1'b0
+    write_buffer_push_o == 1'b1 && dma_cnt_d1 == 1 && dma_cnt_d2 != (1'b1 + {11'h0, reg2hw.pad_bottom.q}) && |reg2hw.pad_right.q == 1'b0
   };
   assign left_dn_to_right_ex = {
-    write_fifo_push_o == 1'b1 && |reg2hw.pad_right.q == 1'b1 && dma_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + 1)
+    write_buffer_push_o == 1'b1 && |reg2hw.pad_right.q == 1'b1 && dma_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + 1)
   };
   assign left_dn_to_bottom_ex = {
-    write_fifo_push_o == 1'b1 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 && dma_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1
+    write_buffer_push_o == 1'b1 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 && dma_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1
   };
   assign left_dn_to_idle = {
     |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b0 && dma_cnt_d2 == 1 && dma_cnt_d1 == 1
   };
   assign right_ex_to_right_dn = {
-    write_fifo_push_o == 1'b1 && dma_cnt_d1 == 1 && dma_cnt_d2 != ({11'h0, reg2hw.pad_bottom.q} + 1) && |reg2hw.pad_left.q == 1'b0
+    write_buffer_push_o == 1'b1 && dma_cnt_d1 == 1 && dma_cnt_d2 != ({11'h0, reg2hw.pad_bottom.q} + 1) && |reg2hw.pad_left.q == 1'b0
   };
   assign right_ex_to_left_ex = {
-    write_fifo_push_o == 1'b1 && dma_cnt_d1 == 1 && dma_cnt_d2 != ({11'h0, reg2hw.pad_bottom.q} + 1) && |reg2hw.pad_left.q == 1'b1
+    write_buffer_push_o == 1'b1 && dma_cnt_d1 == 1 && dma_cnt_d2 != ({11'h0, reg2hw.pad_bottom.q} + 1) && |reg2hw.pad_left.q == 1'b1
   };
   assign right_ex_to_bottom_ex = {
-    write_fifo_push_o == 1'b1 && |reg2hw.pad_bottom.q == 1'b1 && dma_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1
+    write_buffer_push_o == 1'b1 && |reg2hw.pad_bottom.q == 1'b1 && dma_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + 1) && dma_cnt_d1 == 1
   };
   assign right_dn_to_right_ex = {
-    write_fifo_push_o == 1'b1 && dma_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + 1) && |reg2hw.pad_left.q == 1'b0
+    write_buffer_push_o == 1'b1 && dma_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + 1) && |reg2hw.pad_left.q == 1'b0
   };
   assign right_dn_to_idle = {|reg2hw.pad_bottom.q == 1'b0 && dma_cnt_d2 == 1 && dma_cnt_d1 == 1};
   assign bottom_ex_to_idle = {dma_cnt_d1 == 1 && dma_cnt_d2 == 1 && dma_cnt_d1 == 1};

@@ -115,7 +115,7 @@
       ]
     }
     { name:     "SLOT"
-      desc:     '''The DMA will wait for the signal 
+      desc:     '''The DMA will wait for the signal
                    connected to the selected trigger_slots to be high
                    on the read and write side respectively'''
       swaccess: "rw"
@@ -273,7 +273,7 @@
       ]
     }
     { name:    "INTERRUPT_EN"
-      desc:    '''Interrupt Enable Register 
+      desc:    '''Interrupt Enable Register
                   (Only the interrupt with the lowest id will be triggered)'''
       swaccess: "rw"
       hwaccess: "hro"
@@ -303,24 +303,6 @@
       resval:        0
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for window done interrupt" }
-      ]
-    }
-    { name:     "HW_FIFO_MODE_SIGN_EXT"
-      desc:     '''In HW_FIFO_MODE, is the input data to be sign extended before sending it to the hw read fifo?
-                    (The input of the hw read fifo is on 32 bits, which could be wider than the src data type)'''
-      swaccess: "rw"
-      hwaccess: "hro"
-      resval:        0
-      
-      fields: [
-        { bits: "0"
-          name: "HW_FIFO_SIGNED"
-          desc: "Extend the sign to 32 bits"
-          enum: [
-            { value: "0", name: "NO_EXTEND", desc: "Does not extend the sign"}
-            { value: "1", name: "EXTEND", desc: "Extends the sign"}
-          ]
-        }
       ]
     }
   ]

@@ -34,7 +34,9 @@ module im2col_spc
   import dma_if_pkg::*;
   import im2col_spc_reg_pkg::*;
   import dma_reg_pkg::*;
+  `include "dma_conf.svh"
 
+`ifdef ZERO_PADDING_EN
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Parameter definition */
@@ -620,4 +622,5 @@ module im2col_spc
   /* DMA channel offset */
   assign dma_ch_offset = reg2hw.spc_ch_offset.q;
 
+`endif
 endmodule

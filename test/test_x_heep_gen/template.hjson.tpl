@@ -36,6 +36,11 @@
     dma_ch_size: "${dma_ch_size}"
     num_dma_master_ports: "${num_dma_master_ports}"
     num_dma_xbar_channels_per_master_port: "${num_dma_xbar_channels_per_master_port}"
+    fifo_depth: "${dma_fifo_depth}"
+    addr_mode_en: "${dma_addr_mode}"
+    subaddr_mode_en: "${dma_subaddr_mode}"
+    hw_fifo_mode_en: "${dma_hw_fifo_mode}"
+    zero_padding_en: "${dma_zero_padding}"
     dma_xbar_masters_array: "${dma_xbar_masters_array}"
 
     // Optional Peripherals

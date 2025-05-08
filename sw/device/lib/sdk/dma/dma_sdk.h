@@ -45,6 +45,7 @@ extern "C"
     DMA_PERI->DST_DATA_TYPE = (uint32_t)(DST_TYPE & DMA_DST_DATA_TYPE_DATA_TYPE_MASK);        \
     DMA_PERI->SIGN_EXT = (uint32_t)SIGNED;
 
+#if DMA_ADDR_MODE
 #define DMA_COPY_ADDR(ADDR, SRC, SIZE, DMA_PERI)                                                        \
     DMA_PERI->INTERRUPT_EN = (uint32_t)0x1;                                                             \
     DMA_PERI->SRC_PTR  = (uint32_t)SRC;                                                                 \
@@ -52,7 +53,7 @@ extern "C"
     DMA_PERI->ADDR_PTR = (uint32_t)ADDR;                                                                \
     DMA_PERI->MODE = (uint32_t)(DMA_TRANS_MODE_ADDRESS & DMA_MODE_MODE_MASK);                           \
     DMA_PERI->SRC_DATA_TYPE = (uint32_t)(DMA_DATA_TYPE_WORD & DMA_SRC_DATA_TYPE_DATA_TYPE_MASK);
-
+#endif
 
 #define DMA_WAIT(CH)                          \
     while (!dma_is_ready(CH))                 \

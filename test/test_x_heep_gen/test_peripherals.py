@@ -49,6 +49,11 @@ class PeripheralsDescription:
         self.num_dma_xbar_channels_per_master_port = content[
             "num_dma_xbar_channels_per_master_port"
         ]
+        self.fifo_depth = content["fifo_depth"]
+        self.addr_mode_en = content["addr_mode_en"]
+        self.subaddr_mode_en = content["subaddr_mode_en"]
+        self.hw_fifo_mode_en = content["hw_fifo_mode_en"]
+        self.zero_padding_en = content["zero_padding_en"]
         self.dma_xbar_masters_array = content["dma_xbar_masters_array"]
         self.peripheral_start_address = content["peripheral_start_address"]
         self.peripheral_size_address = content["peripheral_size_address"]

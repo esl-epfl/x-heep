@@ -46,11 +46,13 @@ module testharness #(
 
   import obi_pkg::*;
   import reg_pkg::*;
+  import fifo_pkg::*;
   import testharness_pkg::*;
   import addr_map_rule_pkg::*;
   import core_v_mini_mcu_pkg::*;
 
   localparam AO_SPC_NUM = 1;
+  localparam AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1;
   localparam SWITCH_ACK_LATENCY = 15;
   localparam EXT_XBAR_NMASTER_RND = USE_EXTERNAL_DEVICE_EXAMPLE ? testharness_pkg::EXT_XBAR_NMASTER : 1;
   localparam HEEP_EXT_XBAR_NMASTER = USE_EXTERNAL_DEVICE_EXAMPLE ? testharness_pkg::EXT_XBAR_NMASTER : 0;
@@ -93,6 +95,9 @@ module testharness #(
   // Im2col SPC interrupt signal
   logic im2col_spc_done_int_o;
 
+  // dLC done signal
+  logic dlc_done;
+
   // External DMA slots
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx;
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx;
@@ -126,8 +131,8 @@ module testharness #(
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_rsp;
 
-  hw_fifo_pkg::hw_fifo_req_t hw_fifo_req;
-  hw_fifo_pkg::hw_fifo_resp_t hw_fifo_resp;
+  fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req;
+  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp;
 
   reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
   reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
@@ -155,8 +160,8 @@ module testharness #(
   ) ext_if ();
 
   // External SPC interface signals
-  reg_req_t [AO_SPC_NUM-1:0] ext_ao_peripheral_req;
-  reg_rsp_t [AO_SPC_NUM-1:0] ext_ao_peripheral_resp;
+  reg_req_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_req;
+  reg_rsp_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_resp;
 
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_busy;
 
@@ -199,7 +204,8 @@ module testharness #(
       .FPU(FPU),
       .ZFINX(ZFINX),
       .X_EXT(X_EXT),
-      .EXT_XBAR_NMASTER(HEEP_EXT_XBAR_NMASTER)
+      .EXT_XBAR_NMASTER(HEEP_EXT_XBAR_NMASTER),
+      .AO_SPC_NUM(AO_SPC_NUM)
   ) x_heep_system_i (
       .clk_i,
       .rst_ni,
@@ -296,6 +302,7 @@ module testharness #(
       .ext_dma_slot_tx_i(ext_dma_slot_tx),
       .ext_dma_slot_rx_i(ext_dma_slot_rx),
       .ext_dma_stop_i('0),
+      .hw_fifo_done_i({{(core_v_mini_mcu_pkg::DMA_CH_NUM - 1) {1'b0}}, dlc_done}),
       .dma_done_o(dma_busy)
   );
 
@@ -503,6 +510,7 @@ module testharness #(
           .rst_ni,
           .clk_gate_en_ni('1),
           .ext_dma_stop_i('0),
+          .hw_fifo_done_i('0),
           .reg_req_i(ext_periph_slv_req[testharness_pkg::MEMCOPY_CTRL_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::MEMCOPY_CTRL_IDX]),
           .dma_read_req_o(ext_master_req[testharness_pkg::EXT_MASTER0_IDX]),
@@ -523,10 +531,11 @@ module testharness #(
           .clk_i(clk_i),
           .rst_ni(rst_ni),
           .dlc_xing_intr_o(),
+          .dlc_done_o(dlc_done),
           .reg_req_i(ext_periph_slv_req[testharness_pkg::DLC_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::DLC_IDX]),
-          .hw_fifo_req_i(hw_fifo_req),
-          .hw_fifo_resp_o(hw_fifo_resp)
+          .hw_fifo_req_i(hw_fifo_req[0]),
+          .hw_fifo_resp_o(hw_fifo_resp[0])
       );
 
       simple_accelerator #(
@@ -677,9 +686,12 @@ module testharness #(
       end
 
     end else begin : gen_DONT_USE_EXTERNAL_DEVICE_EXAMPLE
-      assign slow_ram_slave_resp.gnt = '0;
-      assign slow_ram_slave_resp.rdata = '0;
-      assign slow_ram_slave_resp.rvalid = '0;
+      assign slow_ram_slave_resp[0].gnt = '0;
+      assign slow_ram_slave_resp[0].rdata = '0;
+      assign slow_ram_slave_resp[0].rvalid = '0;
+      assign slow_ram_slave_resp[1].gnt = '0;
+      assign slow_ram_slave_resp[1].rdata = '0;
+      assign slow_ram_slave_resp[1].rvalid = '0;
 
       assign ext_periph_slv_req = '0;
       assign ext_periph_slv_rsp = '0;

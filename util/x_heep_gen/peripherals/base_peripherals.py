@@ -68,6 +68,11 @@ class DMA(BasePeripheral, DataConfiguration):
         num_channels: int = 0x1,
         num_master_ports: int = 0x1,
         num_channels_per_master_port: int = 0x1,
+        fifo_depth: int = 0x4,
+        addr_mode: str = "yes",
+        subaddr_mode: str = "yes",
+        hw_fifo_mode: str = "yes",
+        zero_padding: str = "yes",
     ):
         """
         Initialize the DMA peripheral.
@@ -83,6 +88,11 @@ class DMA(BasePeripheral, DataConfiguration):
         self._num_channels = num_channels
         self._num_master_ports = num_master_ports
         self._num_channels_per_master_port = num_channels_per_master_port
+        self._fifo_depth = fifo_depth
+        self._addr_mode = addr_mode
+        self._subaddr_mode = subaddr_mode
+        self._hw_fifo_mode = hw_fifo_mode
+        self._zero_padding = zero_padding
 
     def set_ch_length(self, value: int):
         """
@@ -131,6 +141,90 @@ class DMA(BasePeripheral, DataConfiguration):
         Get the number of channels per master port in the DMA.
         """
         return self._num_channels_per_master_port
+    
+    def get_fifo_depth(self):
+        """
+        Get the depth of the DMA FIFO.
+        """
+        return self._fifo_depth
+  
+    def set_fifo_depth(self, value: int):
+        """
+        Set the depth of the DMA FIFO.
+        """
+        self._fifo_depth = value
+    
+    def set_addr_mode(self, value: str):
+        """
+        Set the address mode of the DMA.
+        """
+        if value not in ["yes", "no"]:
+            raise ValueError("Invalid address mode. Must be 'yes' or 'no'.")
+        
+        if value == "yes":
+            self._addr_mode = True
+        else:
+            self._addr_mode = False
+  
+    def get_addr_mode(self):
+        """
+        Get the address mode of the DMA.
+        """
+        return self._addr_mode
+    
+    def set_subaddr_mode(self, value: str):
+        """
+        Set the subaddress mode of the DMA.
+        """
+        if value not in ["yes", "no"]:
+            raise ValueError("Invalid subaddress mode. Must be 'yes' or 'no'.")
+        
+        if value == "yes":
+            self._subaddr_mode = True
+        else:
+            self._subaddr_mode = False
+
+    def get_subaddr_mode(self):
+        """
+        Get the subaddress mode of the DMA.
+        """
+        return self._subaddr_mode
+
+    def set_hw_fifo_mode(self, value: str):
+        """
+        Set the hardware FIFO mode of the DMA.
+        """
+        if value not in ["yes", "no"]:
+            raise ValueError("Invalid hardware FIFO mode. Must be 'yes' or 'no'.")
+        
+        if value == "yes":
+            self._hw_fifo_mode = True
+        else:
+            self._hw_fifo_mode = False
+
+    def get_hw_fifo_mode(self):
+        """
+        Get the hardware FIFO mode of the DMA.
+        """
+        return self._hw_fifo_mode
+  
+    def set_zero_padding(self, value: str):
+        """
+        Set the zero padding mode of the DMA.
+        """
+        if value not in ["yes", "no"]:
+            raise ValueError("Invalid zero padding mode. Must be 'yes' or 'no'.")
+        
+        if value == "yes":
+            self._zero_padding = True
+        else:
+            self._zero_padding = False
+
+    def get_zero_padding(self):
+        """
+        Get the zero padding mode of the DMA.
+        """
+        return self._zero_padding
 
 
 class Power_manager(BasePeripheral, DataConfiguration):

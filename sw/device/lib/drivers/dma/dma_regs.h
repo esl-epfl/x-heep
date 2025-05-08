@@ -187,11 +187,6 @@ extern "C" {
 #define DMA_WINDOW_IFR_REG_OFFSET 0x64
 #define DMA_WINDOW_IFR_FLAG_BIT 0
 
-// In HW_FIFO_MODE, is the input data to be sign extended before sending it
-// to the hw read fifo?
-#define DMA_HW_FIFO_MODE_SIGN_EXT_REG_OFFSET 0x68
-#define DMA_HW_FIFO_MODE_SIGN_EXT_HW_FIFO_SIGNED_BIT 0
-
 #ifdef __cplusplus
 }  // extern "C"
 #endif

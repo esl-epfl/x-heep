@@ -23,9 +23,9 @@
 #define PRINTF_IN_FPGA 1
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+        #define PRINTF(fmt, ...)    PRINTF(fmt, ## __VA_ARGS__)
 #elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+    #define PRINTF(fmt, ...)    PRINTF(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
 #endif
@@ -39,6 +39,8 @@ int main() {
 
     // dLC results buffer
     int16_t dlc_results[500];
+
+    PRINTF("Starting dLC test\n\r");
     
     // dLC programming registers
     uint32_t* dlvl_log_level_width    = DLC_START_ADDRESS + DLC_DLVL_LOG_LEVEL_WIDTH_REG_OFFSET;
@@ -47,6 +49,7 @@ int main() {
     uint32_t* dlvl_mask               = DLC_START_ADDRESS + DLC_DLVL_MASK_REG_OFFSET;
     uint32_t* dt_mask                 = DLC_START_ADDRESS + DLC_DT_MASK_REG_OFFSET;
     uint32_t* dlc_rnw                 = DLC_START_ADDRESS + DLC_READNOTWRITE_REG_OFFSET;
+    uint32_t* dlc_size                = DLC_START_ADDRESS + DLC_TRANS_SIZE_REG_OFFSET;
     
     // dLC programming
     // dlvl_format: if set to '1' the result data for delta-levels are in two's complement format
@@ -66,11 +69,11 @@ int main() {
     // dlc_rnw: if set to '1' the dLC decrements DMA downcounter each time it reads data from the HW_READ_FIFO
     //          if set to '0' the dLC decrements DMA downcounter each time it write data to the HW_WRITE_FIFO
     *dlc_rnw = 1;
+    *dlc_size = 3748;
 
-
-    dma_target_t tgt_src;
-    dma_target_t tgt_dst;
-    dma_trans_t trans;
+    dma_target_t static tgt_src;
+    dma_target_t static tgt_dst;
+    dma_trans_t static trans;
 
     tgt_src.ptr = (uint8_t *) ecg_data;
     tgt_src.inc_d1_du = 1;
@@ -117,10 +120,11 @@ int main() {
     {
         if(dlc_results[i] != lc_data_for_storage_data[i])
         {
-            printf("Error at position %d: dlc result is %d, golden result is %d\n", i, dlc_results[i], lc_data_for_storage_data[i]);
+            PRINTF("Error at position %d: dlc result is %d, golden result is %d\n", i, dlc_results[i], lc_data_for_storage_data[i]);
             return EXIT_FAILURE;
         }
     }
 
+    PRINTF("Success!\n\r");
     return EXIT_SUCCESS;
 }

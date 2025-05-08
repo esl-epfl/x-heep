@@ -9,6 +9,14 @@
   ]
   regwidth: "32"
   registers: [
+    { name:     "TRANS_SIZE"
+      desc:     "Size of the transaction"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "15:0", name: "SIZE", desc: "size" },
+      ]
+    }
     { name:     "DLVL_LOG_LEVEL_WIDTH"
       desc:     "Log2 of the level width"
       swaccess: "rw"

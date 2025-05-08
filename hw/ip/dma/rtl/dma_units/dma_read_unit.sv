@@ -6,35 +6,40 @@
  * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
  *                         <tommaso.terzano@gmail.com>
  *  
- * Info: Reading FSM for DMA channel, controls the input FIFO.
+ * Info: Read unit for the DMA channel, controls the input FIFO.
  */
 
-module dma_obiread_fsm
+module dma_read_unit
   import dma_reg_pkg::*;
 #(
+    parameter int RVALID_FIFO_DEPTH = 1
 ) (
     input logic clk_i,
     input logic rst_ni,
+
     input dma_reg2hw_t reg2hw_i,
+
     input logic dma_start_i,
     input logic dma_done_i,
-    input logic ext_dma_stop_i,
-    input logic read_fifo_full_i,
-    input logic read_fifo_alm_full_i,
+    input logic dma_done_override_i,
+
     input logic wait_for_rx_i,
 
-    input logic hw_r_fifo_full_i,
-    input logic hw_fifo_mode_i,
+    input logic read_buffer_full_i,
+    input logic read_buffer_alm_full_i,
 
-    input logic data_in_gnt_i,
-    input logic data_in_rvalid_i,
+    input logic        data_in_gnt_i,
+    input logic        data_in_rvalid_i,
     input logic [31:0] data_in_rdata_i,
-    output logic [31:0] fifo_input_o,
-    output logic data_in_req_o,
-    output logic data_in_we_o,
-    output logic [3:0] data_in_be_o,
+
+    output logic        data_in_req_o,
+    output logic        data_in_we_o,
+    output logic [ 3:0] data_in_be_o,
     output logic [31:0] data_in_addr_o,
-    output logic read_fifo_flush_o
+
+    output logic [31:0] read_buffer_input_o,
+
+    output logic general_buffer_flush_o
 );
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -42,6 +47,9 @@ module dma_obiread_fsm
   /* Parameter definition */
 
   import dma_reg_pkg::*;
+  `include "dma_conf.svh"
+  localparam int unsigned LastFifoUsage = RVALID_FIFO_DEPTH - 1;
+  localparam int unsigned AddrFifoDepth = (RVALID_FIFO_DEPTH > 1) ? $clog2(RVALID_FIFO_DEPTH) : 1;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -58,23 +66,29 @@ module dma_obiread_fsm
   } dma_data_type_t;
 
   enum logic {
-    DMA_READ_FSM_IDLE,
-    DMA_READ_FSM_ON
+    DMA_READ_UNIT_IDLE,
+    DMA_READ_UNIT_ON
   }
-      dma_read_fsm_state, dma_read_fsm_n_state;
+      dma_read_unit_state, dma_read_unit_n_state;
+
+  logic dma_start;
+  logic dma_done_override;
 
   logic data_in_gnt;
-  logic fifo_full;
-  logic fifo_alm_full;
-  logic fifo_flush;
-  logic dma_start;
-  logic ext_dma_stop;
-  logic read_ptr_update_sel;
-  logic dma_conf_1d;
-  logic dma_conf_2d;
   logic data_in_rvalid;
 
+  logic buffer_full;
+  logic buffer_alm_full;
+  logic buffer_flush;
+
+  logic read_ptr_update_sel;
+
+  logic dma_conf_1d;
+  logic dma_conf_2d;
+
   logic wait_for_rx;
+
+  logic subaddr_mode;
 
   logic [16:0] dma_src_cnt_d1;
   logic [16:0] dma_src_cnt_d2;
@@ -88,15 +102,21 @@ module dma_obiread_fsm
   logic [31:0] data_in_addr;
   logic [31:0] data_in_rdata;
 
-  logic [31:0] read_ptr_valid_reg;
+  logic data_req_cond;
+
+  logic [1:0] read_data_offset;
+  logic [AddrFifoDepth-1:0] read_data_offset_usage;
+  logic read_data_offset_full;
+  logic read_data_offset_alm_full;
+
   logic [31:0] dma_src_d1_inc;
   logic [31:0] dma_src_d2_inc;
 
   /* FIFO signals */
-  logic [31:0] fifo_input;
+  logic [31:0] read_buffer_input;
 
   dma_data_type_t src_data_type;
-  logic hw_fifo_sign_extend;
+  logic sign_ext;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -117,7 +137,7 @@ module dma_obiread_fsm
       if (dma_start == 1'b1) begin
         dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q};
         dma_src_cnt_d2 <= {1'h0, reg2hw.size_d2.q};
-      end else if (dma_done_i == 1'b1) begin
+      end else if (dma_done_i == 1'b1 || dma_done_override == 1'b1) begin
         dma_src_cnt_d1 <= '0;
         dma_src_cnt_d2 <= '0;
       end else if (data_in_gnt && data_in_req) begin
@@ -193,149 +213,112 @@ module dma_obiread_fsm
   // FSM state update
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_fsm_state
     if (~rst_ni) begin
-      dma_read_fsm_state <= DMA_READ_FSM_IDLE;
+      dma_read_unit_state <= DMA_READ_UNIT_IDLE;
     end else begin
-      dma_read_fsm_state <= dma_read_fsm_n_state;
+      dma_read_unit_state <= dma_read_unit_n_state;
     end
   end
 
   // Read master FSM
-  always_comb begin : proc_dma_read_fsm_logic
+  always_comb begin : proc_dma_read_unit_logic
 
-    dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
+    dma_read_unit_n_state = dma_read_unit_state;
 
-    data_in_req = '0;
-    data_in_we = '0;
-    data_in_be = '0;
-    data_in_addr = '0;
+    buffer_flush = 1'b0;
 
-    fifo_flush = 1'b0;
+    unique case (dma_read_unit_state)
 
-    unique case (dma_read_fsm_state)
-
-      DMA_READ_FSM_IDLE: begin
+      DMA_READ_UNIT_IDLE: begin
         // Wait for start signal
         if (dma_start == 1'b1) begin
-          dma_read_fsm_n_state = DMA_READ_FSM_ON;
-        end else begin
-          dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
+          buffer_flush = 1'b1;
+          dma_read_unit_n_state = DMA_READ_UNIT_ON;
         end
       end
       // Read one word
-      DMA_READ_FSM_ON: begin
+      DMA_READ_UNIT_ON: begin
         // If all input data read exit
-        if (ext_dma_stop == 1'b0) begin
+        if (dma_done_override == 1'b0) begin
           if (dma_conf_1d == 1'b1) begin
             // 1D DMA case
             if (|dma_src_cnt_d1 == 1'b0) begin
-              dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
-            end else begin
-              dma_read_fsm_n_state = DMA_READ_FSM_ON;
-              // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0 && (~(hw_r_fifo_full_i && hw_fifo_mode_i))) begin
-                data_in_req  = 1'b1;
-                data_in_we   = 1'b0;
-                data_in_be   = 4'b1111;  // always read all bytes
-                data_in_addr = read_ptr_reg;
-              end
+              dma_read_unit_n_state = DMA_READ_UNIT_IDLE;
             end
           end else if (dma_conf_2d == 1'b1) begin
             // 2D DMA case: exit only if both 1d and 2d counters are at 0
             if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} && |dma_src_cnt_d2 == 1'b0) begin
-              dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
-            end else begin
-              // The read operation is the same in both cases
-              dma_read_fsm_n_state = DMA_READ_FSM_ON;
-              // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0 && (~(hw_r_fifo_full_i && hw_fifo_mode_i))) begin
-                data_in_req  = 1'b1;
-                data_in_we   = 1'b0;
-                data_in_be   = 4'b1111;  // always read all bytes
-                data_in_addr = read_ptr_reg;
-              end
+              dma_read_unit_n_state = DMA_READ_UNIT_IDLE;
             end
           end
         end else begin
-          dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
+          dma_read_unit_n_state = DMA_READ_UNIT_IDLE;
         end
       end
     endcase
   end
 
-  // Only update read_ptr_valid_reg when the data is stored in the fifo.
-  // Since every input grant is followed by a rvalid, the read_ptr_valid_reg is a mere sample of the read_ptr_reg
-  // synched with the rvalid signal.
-  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_ptr_valid_in_reg
-    if (~rst_ni) begin
-      read_ptr_valid_reg <= '0;
-    end else begin
-      if (dma_start == 1'b1) begin
-        read_ptr_valid_reg <= reg2hw.src_ptr.q;
-      end else if (data_in_rvalid == 1'b1) begin
-        read_ptr_valid_reg <= read_ptr_reg;
+  /* Request logic of the read FSM */
+  always_comb begin : proc_req_fsm_state_logic
+    data_in_req = 0;
+
+    if (dma_read_unit_state == DMA_READ_UNIT_ON) begin
+      if (data_req_cond == 1'b1) begin
+        data_in_req = 1;
       end
     end
   end
 
-  // Input data shift: shift the input data to be on the LSB of the fifo
+  /* This small FIFO is used to hold the last 2 LSBs of the read address.
+   * Each time that a GNT is received, the current address is pushed.
+   * Each time that a RVALID is received, the value is popped.
+   * This feature enables the DMA to support outstanding transactions, 
+   * when in the future this feature will be added to X-HEEP.
+   */
+  fifo_v3 #(
+      .DEPTH(RVALID_FIFO_DEPTH),
+      .FALL_THROUGH(1'b1),
+      .DATA_WIDTH(2)
+  ) dma_read_data_offset_fifo_i (
+      .clk_i,
+      .rst_ni,
+      .flush_i(buffer_flush),
+      .testmode_i(1'b0),
+      .full_o(read_data_offset_full),
+      .empty_o(),
+      .usage_o(read_data_offset_usage),
+      .data_i(read_ptr_reg[1:0]),
+      .push_i(data_in_gnt && data_in_req),
+      .data_o(read_data_offset),
+      .pop_i(data_in_rvalid)
+  );
+
+  /* This logic is used to put extract relevant data from the word read and to perform sign extension */
   always_comb begin : proc_input_data
+    read_buffer_input = data_in_rdata;
 
-    fifo_input[7:0]   = data_in_rdata[7:0];
-    fifo_input[15:8]  = data_in_rdata[15:8];
-    fifo_input[23:16] = data_in_rdata[23:16];
-    fifo_input[31:24] = data_in_rdata[31:24];
-
-    /*
-      In case of hw fifo mode, depending on the source data type, the input data to the hw read fifo
-      could be also a half word or a byte, which could also be signed extended before being written into the hw read fifo.
-    */
-
-    if (hw_fifo_mode_i) begin
-
-      case (read_ptr_valid_reg[1:0])
+    if (subaddr_mode == 1'b0) begin
+      case (read_data_offset)
         2'b00: begin
-          case (src_data_type)
-            DMA_DATA_TYPE_BYTE:
-            fifo_input[31:8] = (hw_fifo_sign_extend) ? {24{data_in_rdata[7]}} : {24{1'b0}};
-            DMA_DATA_TYPE_HALF_WORD:
-            fifo_input[31:16] = (hw_fifo_sign_extend) ? {16{data_in_rdata[15]}} : {16{1'b0}};
-            default: ;
-          endcase
+          if (src_data_type == DMA_DATA_TYPE_BYTE) begin
+            read_buffer_input = {{24{sign_ext & data_in_rdata[7]}}, data_in_rdata[7:0]};
+          end else if (src_data_type == DMA_DATA_TYPE_HALF_WORD) begin
+            read_buffer_input = {{16{sign_ext & data_in_rdata[15]}}, data_in_rdata[15:0]};
+          end
         end
+        // Only BYTE could cause the address to be 01
         2'b01: begin
-          fifo_input[31:8] = (hw_fifo_sign_extend) ? {24{data_in_rdata[15]}} : {24{1'b0}};
-          fifo_input[7:0]  = data_in_rdata[15:8];
+          read_buffer_input = {{24{sign_ext & data_in_rdata[15]}}, data_in_rdata[15:8]};
         end
-        2'b10: begin
-          case (src_data_type)
-            DMA_DATA_TYPE_BYTE: begin
-              fifo_input[31:8] = (hw_fifo_sign_extend) ? {24{data_in_rdata[23]}} : {24{1'b0}};
-              fifo_input[7:0]  = data_in_rdata[23:16];
-            end
-            DMA_DATA_TYPE_HALF_WORD: begin
-              fifo_input[31:16] = (hw_fifo_sign_extend) ? {16{data_in_rdata[31]}} : {16{1'b0}};
-              fifo_input[15:0]  = data_in_rdata[31:16];
-            end
-            default: ;
-          endcase
-        end
-        2'b11: begin
-          fifo_input[31:8] = (hw_fifo_sign_extend) ? {24{data_in_rdata[31]}} : {24{1'b0}};
-          fifo_input[7:0]  = data_in_rdata[31:24];
-        end
-      endcase
-
-    end else begin
-      case (read_ptr_valid_reg[1:0])
-        2'b00: ;
-        2'b01: fifo_input[7:0] = data_in_rdata[15:8];
 
         2'b10: begin
-          fifo_input[7:0]  = data_in_rdata[23:16];
-          fifo_input[15:8] = data_in_rdata[31:24];
+          if (src_data_type == DMA_DATA_TYPE_BYTE) begin
+            read_buffer_input = {{24{sign_ext & data_in_rdata[23]}}, data_in_rdata[23:16]};
+          end else if (src_data_type == DMA_DATA_TYPE_HALF_WORD) begin
+            read_buffer_input = {{16{sign_ext & data_in_rdata[31]}}, data_in_rdata[31:16]};
+          end
         end
-
-        2'b11: fifo_input[7:0] = data_in_rdata[31:24];
+        // Again, only BYTE could cause the address to be 01
+        2'b11: read_buffer_input = {{24{sign_ext & data_in_rdata[31]}}, data_in_rdata[31:24]};
       endcase
     end
   end
@@ -343,15 +326,31 @@ module dma_obiread_fsm
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Signal assignments */
-  assign hw_fifo_sign_extend = reg2hw.hw_fifo_mode_sign_ext.q;
+  assign sign_ext = reg2hw_i.sign_ext.q;
+  assign data_in_we = 0;
+  assign data_in_be = 4'b1111;
+  assign data_in_addr = read_ptr_reg;
+
+  generate
+    if (RVALID_FIFO_DEPTH != 1) begin
+      assign read_data_offset_alm_full = (read_data_offset_usage == LastFifoUsage[AddrFifoDepth-1:0]);
+      assign data_req_cond = (buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
+                          read_data_offset_full == 1'b0 && read_data_offset_alm_full == 1'b0 &&
+                          wait_for_rx == 1'b0);
+    end else begin
+      assign read_data_offset_alm_full = 1'b0;
+      assign data_req_cond = (buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
+                          wait_for_rx == 1'b0);
+    end
+  endgenerate
 
   /* Renaming */
   assign reg2hw = reg2hw_i;
   assign data_in_gnt = data_in_gnt_i;
-  assign fifo_full = read_fifo_full_i;
-  assign fifo_alm_full = read_fifo_alm_full_i;
+  assign buffer_full = read_buffer_full_i;
+  assign buffer_alm_full = read_buffer_alm_full_i;
   assign dma_start = dma_start_i;
-  assign ext_dma_stop = ext_dma_stop_i;
+  assign dma_done_override = dma_done_override_i;
   assign read_ptr_update_sel = reg2hw.dim_inv.q;
   assign dma_conf_1d = reg2hw.dim_config.q == 0;
   assign dma_conf_2d = reg2hw.dim_config.q == 1;
@@ -359,11 +358,12 @@ module dma_obiread_fsm
   assign data_in_addr_o = data_in_addr;
   assign data_in_req_o = data_in_req;
   assign data_in_we_o = data_in_we;
-  assign read_fifo_flush_o = fifo_flush;
+  assign general_buffer_flush_o = buffer_flush;
   assign wait_for_rx = wait_for_rx_i;
   assign data_in_rvalid = data_in_rvalid_i;
   assign data_in_rdata = data_in_rdata_i;
-  assign fifo_input_o = fifo_input;
+  assign read_buffer_input_o = read_buffer_input;
   assign src_data_type = dma_data_type_t'(reg2hw.src_data_type.q);
+  assign subaddr_mode = reg2hw.mode.q == 3;
 
 endmodule

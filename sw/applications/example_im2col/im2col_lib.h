@@ -15,8 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "im2col_golden.h"
-#include "im2col_input.h"
+#include "im2col_data.h"
 #include "im2col.h"
 #include "dma.h"
 #include "im2col_spc_regs.h"
@@ -96,17 +95,20 @@
 #define N_PATCHES_H ((IH + (TOP_PAD + BOTTOM_PAD) - FH)/ STRIDE_D2 + 1)
 #define N_PATCHES_W ((IW + (RIGHT_PAD + LEFT_PAD) - FW)/ STRIDE_D1 + 1)
 
-#define ADPT_PAD_BOTTOM (STRIDE_D2 * (N_PATCHES_H - 1) + FH - (TOP_PAD + IH))
-#define ADPT_PAD_RIGHT (STRIDE_D1 * (N_PATCHES_W - 1) + FW - (LEFT_PAD + IW))
+// Difference between the first element of the last patch along H and the H size of the image
+#define LAST_PATCH_H (STRIDE_D2 * (N_PATCHES_H - 1) - TOP_PAD - IH)
+
+// Difference between the first element of the last patch along W and the W size of the image
+#define LAST_PATCH_W (STRIDE_D1 * (N_PATCHES_W - 1) - LEFT_PAD - IW)
 
 #define CH_COL (CH * FH * FW)
 
 #define OH_NCHW (CH * FH * FW * BATCH)
 #define OW_NCHW (N_PATCHES_H) * (N_PATCHES_W)
 
-#define START_ID 0
+#define START_ID 1
 
-#define TEST_EN 0
+#define TEST_EN 1
 
 // Computations for 2D DMA
 #define SRC_INC_D2 (STRIDE_D2 * IW - (FW - 1 + (STRIDE_D1 - 1) * (FW - 1)))

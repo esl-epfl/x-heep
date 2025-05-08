@@ -45,6 +45,12 @@
             num_master_ports: 0x1
             num_channels_per_master_port: 0x1
             path:    "./hw/ip/dma/data/dma.hjson"
+            fifo_depth: 0x4
+            addr_mode_en: "no"
+            subaddr_mode_en: "yes"
+            hw_fifo_mode_en: "no"
+            zero_padding_en: "yes"
+            path:    "./hw/ip/dma/data/dma.hjson"
         }
         power_manager: {
             offset:  0x00040000
