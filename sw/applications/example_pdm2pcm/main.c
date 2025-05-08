@@ -25,9 +25,6 @@
 #include "mmio.h"
 #include "groundtruth.h"
 
-// TODO : This app is testing a wrong version of the PDM2PCM acting only as a CIC filter. 
-// When fixed, it not passes anymore. Need to be updated with new groundtruth.
-
 #ifndef PDM2PCM_IS_INCLUDED
   #error ( "This app does NOT work as the PDM2PCM peripheral is not included" )
 #endif
@@ -46,7 +43,8 @@
 
 int main(int argc, char *argv[])
 {
-
+    // TODO : This app is testing a wrong version of the PDM2PCM acting only as a CIC filter. 
+    // When fixed, it not passes anymore. Need to be updated with new groundtruth.
 
     PRINTF("PDM2PCM DEMO\n\r");
     PRINTF(" > Start\n\r");
