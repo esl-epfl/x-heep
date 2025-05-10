@@ -80,7 +80,7 @@ class DataConfiguration(ABC):
 
         :param str config_path: The path to the hjson file that describes the peripheral. If the path does not exist, a FileNotFoundError will be raised.
         """
-        if not path.exists(config_path):
+        if not path.exists(config_path) and not path.exists(config_path + ".tpl"):
             raise FileNotFoundError(f"The config file {config_path} does not exist")
         self._config_path = config_path
 
@@ -177,6 +177,16 @@ class PeripheralDomain(ABC):
             if self._peripherals is None or len(self._peripherals) == 0
             else [deepcopy(p) for p in self._peripherals]
         )
+
+    def contains_peripheral(self, peripheral_name: str):
+        """
+        Check if the peripheral domain contains a peripheral with the given name.
+
+        :param str peripheral_name: The name of the peripheral to check (case sensitive).
+        :return: True if the peripheral domain contains a peripheral with the given name, False otherwise.
+        :rtype: bool
+        """
+        return any(p.get_name() == peripheral_name for p in self._peripherals)
 
     # Build function
 

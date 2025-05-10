@@ -338,12 +338,28 @@ class XHeep:
         """
         return self._base_peripheral_domain.get_peripherals()
 
+    def is_base_peripheral_included(self, peripheral_name: str):
+        """
+        :param str peripheral_name: The name of the peripheral to check (case sensitive).
+        :return: True if the peripheral is included, False otherwise.
+        :rtype: bool
+        """
+        return self._base_peripheral_domain.contains_peripheral(peripheral_name)
+
     def get_user_peripherals(self):
         """
         :return: the user peripherals.
         :rtype: List[UserPeripheral]
         """
         return self._user_peripheral_domain.get_peripherals()
+
+    def is_user_peripheral_included(self, peripheral_name: str):
+        """
+        :param str peripheral_name: The name of the peripheral to check (case sensitive).
+        :return: True if the peripheral is included, False otherwise.
+        :rtype: bool
+        """
+        return self._user_peripheral_domain.contains_peripheral(peripheral_name)
 
     def get_dma(self):
         """
