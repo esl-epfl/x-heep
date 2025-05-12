@@ -122,7 +122,7 @@
 #define TEST_DATA_FLASH_PTR test_data_flash
 
 /* Mask for direct register operations example */
-#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ))
+#define DMA_CSR_REG_MIE_MASK (( 1 << 30 ) |( 1 << 19 ) | (1 << 11 ))
 
 /* Transposition example def */
 #define TRANSPOSITION_EN 1
@@ -244,10 +244,6 @@ int main()
 
     /* The DMA channels are initialized (i.e. Any current transaction is cleaned.) */
     dma_init(NULL);
-
-    plic_Init();
-    plic_irq_set_priority( DMA_WINDOW_INTR, 1);
-    plic_irq_set_enabled(  DMA_WINDOW_INTR, kPlicToggleEnabled);
 
     /* Enable global interrupts */
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);

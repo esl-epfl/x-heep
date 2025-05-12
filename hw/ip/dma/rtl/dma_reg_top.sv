@@ -114,9 +114,12 @@ module dma_reg_top #(
   logic sign_ext_qs;
   logic sign_ext_wd;
   logic sign_ext_we;
-  logic [2:0] mode_qs;
-  logic [2:0] mode_wd;
+  logic [1:0] mode_qs;
+  logic [1:0] mode_wd;
   logic mode_we;
+  logic hw_fifo_en_qs;
+  logic hw_fifo_en_wd;
+  logic hw_fifo_en_we;
   logic dim_config_qs;
   logic dim_config_wd;
   logic dim_config_we;
@@ -564,9 +567,9 @@ module dma_reg_top #(
   // R[mode]: V(False)
 
   prim_subreg #(
-      .DW      (3),
+      .DW      (2),
       .SWACCESS("RW"),
-      .RESVAL  (3'h0)
+      .RESVAL  (2'h0)
   ) u_mode (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -585,6 +588,33 @@ module dma_reg_top #(
 
       // to register interface (read)
       .qs(mode_qs)
+  );
+
+
+  // R[hw_fifo_en]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_hw_fifo_en (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(hw_fifo_en_we),
+      .wd(hw_fifo_en_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.hw_fifo_en.q),
+
+      // to register interface (read)
+      .qs(hw_fifo_en_qs)
   );
 
 
@@ -891,7 +921,7 @@ module dma_reg_top #(
 
 
 
-  logic [25:0] addr_hit;
+  logic [26:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_SRC_PTR_OFFSET);
@@ -909,17 +939,18 @@ module dma_reg_top #(
     addr_hit[12] = (reg_addr == DMA_DST_DATA_TYPE_OFFSET);
     addr_hit[13] = (reg_addr == DMA_SIGN_EXT_OFFSET);
     addr_hit[14] = (reg_addr == DMA_MODE_OFFSET);
-    addr_hit[15] = (reg_addr == DMA_DIM_CONFIG_OFFSET);
-    addr_hit[16] = (reg_addr == DMA_DIM_INV_OFFSET);
-    addr_hit[17] = (reg_addr == DMA_PAD_TOP_OFFSET);
-    addr_hit[18] = (reg_addr == DMA_PAD_BOTTOM_OFFSET);
-    addr_hit[19] = (reg_addr == DMA_PAD_RIGHT_OFFSET);
-    addr_hit[20] = (reg_addr == DMA_PAD_LEFT_OFFSET);
-    addr_hit[21] = (reg_addr == DMA_WINDOW_SIZE_OFFSET);
-    addr_hit[22] = (reg_addr == DMA_WINDOW_COUNT_OFFSET);
-    addr_hit[23] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
-    addr_hit[24] = (reg_addr == DMA_TRANSACTION_IFR_OFFSET);
-    addr_hit[25] = (reg_addr == DMA_WINDOW_IFR_OFFSET);
+    addr_hit[15] = (reg_addr == DMA_HW_FIFO_EN_OFFSET);
+    addr_hit[16] = (reg_addr == DMA_DIM_CONFIG_OFFSET);
+    addr_hit[17] = (reg_addr == DMA_DIM_INV_OFFSET);
+    addr_hit[18] = (reg_addr == DMA_PAD_TOP_OFFSET);
+    addr_hit[19] = (reg_addr == DMA_PAD_BOTTOM_OFFSET);
+    addr_hit[20] = (reg_addr == DMA_PAD_RIGHT_OFFSET);
+    addr_hit[21] = (reg_addr == DMA_PAD_LEFT_OFFSET);
+    addr_hit[22] = (reg_addr == DMA_WINDOW_SIZE_OFFSET);
+    addr_hit[23] = (reg_addr == DMA_WINDOW_COUNT_OFFSET);
+    addr_hit[24] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
+    addr_hit[25] = (reg_addr == DMA_TRANSACTION_IFR_OFFSET);
+    addr_hit[26] = (reg_addr == DMA_WINDOW_IFR_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -952,7 +983,8 @@ module dma_reg_top #(
                (addr_hit[22] & (|(DMA_PERMIT[22] & ~reg_be))) |
                (addr_hit[23] & (|(DMA_PERMIT[23] & ~reg_be))) |
                (addr_hit[24] & (|(DMA_PERMIT[24] & ~reg_be))) |
-               (addr_hit[25] & (|(DMA_PERMIT[25] & ~reg_be)))));
+               (addr_hit[25] & (|(DMA_PERMIT[25] & ~reg_be))) |
+               (addr_hit[26] & (|(DMA_PERMIT[26] & ~reg_be)))));
   end
 
   assign src_ptr_we = addr_hit[0] & reg_we & !reg_error;
@@ -1002,38 +1034,41 @@ module dma_reg_top #(
   assign sign_ext_wd = reg_wdata[0];
 
   assign mode_we = addr_hit[14] & reg_we & !reg_error;
-  assign mode_wd = reg_wdata[2:0];
+  assign mode_wd = reg_wdata[1:0];
 
-  assign dim_config_we = addr_hit[15] & reg_we & !reg_error;
+  assign hw_fifo_en_we = addr_hit[15] & reg_we & !reg_error;
+  assign hw_fifo_en_wd = reg_wdata[0];
+
+  assign dim_config_we = addr_hit[16] & reg_we & !reg_error;
   assign dim_config_wd = reg_wdata[0];
 
-  assign dim_inv_we = addr_hit[16] & reg_we & !reg_error;
+  assign dim_inv_we = addr_hit[17] & reg_we & !reg_error;
   assign dim_inv_wd = reg_wdata[0];
 
-  assign pad_top_we = addr_hit[17] & reg_we & !reg_error;
+  assign pad_top_we = addr_hit[18] & reg_we & !reg_error;
   assign pad_top_wd = reg_wdata[5:0];
 
-  assign pad_bottom_we = addr_hit[18] & reg_we & !reg_error;
+  assign pad_bottom_we = addr_hit[19] & reg_we & !reg_error;
   assign pad_bottom_wd = reg_wdata[5:0];
 
-  assign pad_right_we = addr_hit[19] & reg_we & !reg_error;
+  assign pad_right_we = addr_hit[20] & reg_we & !reg_error;
   assign pad_right_wd = reg_wdata[5:0];
 
-  assign pad_left_we = addr_hit[20] & reg_we & !reg_error;
+  assign pad_left_we = addr_hit[21] & reg_we & !reg_error;
   assign pad_left_wd = reg_wdata[5:0];
 
-  assign window_size_we = addr_hit[21] & reg_we & !reg_error;
+  assign window_size_we = addr_hit[22] & reg_we & !reg_error;
   assign window_size_wd = reg_wdata[12:0];
 
-  assign interrupt_en_transaction_done_we = addr_hit[23] & reg_we & !reg_error;
+  assign interrupt_en_transaction_done_we = addr_hit[24] & reg_we & !reg_error;
   assign interrupt_en_transaction_done_wd = reg_wdata[0];
 
-  assign interrupt_en_window_done_we = addr_hit[23] & reg_we & !reg_error;
+  assign interrupt_en_window_done_we = addr_hit[24] & reg_we & !reg_error;
   assign interrupt_en_window_done_wd = reg_wdata[1];
 
-  assign transaction_ifr_re = addr_hit[24] & reg_re & !reg_error;
+  assign transaction_ifr_re = addr_hit[25] & reg_re & !reg_error;
 
-  assign window_ifr_re = addr_hit[25] & reg_re & !reg_error;
+  assign window_ifr_re = addr_hit[26] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin
@@ -1098,51 +1133,55 @@ module dma_reg_top #(
       end
 
       addr_hit[14]: begin
-        reg_rdata_next[2:0] = mode_qs;
+        reg_rdata_next[1:0] = mode_qs;
       end
 
       addr_hit[15]: begin
-        reg_rdata_next[0] = dim_config_qs;
+        reg_rdata_next[0] = hw_fifo_en_qs;
       end
 
       addr_hit[16]: begin
-        reg_rdata_next[0] = dim_inv_qs;
+        reg_rdata_next[0] = dim_config_qs;
       end
 
       addr_hit[17]: begin
-        reg_rdata_next[5:0] = pad_top_qs;
+        reg_rdata_next[0] = dim_inv_qs;
       end
 
       addr_hit[18]: begin
-        reg_rdata_next[5:0] = pad_bottom_qs;
+        reg_rdata_next[5:0] = pad_top_qs;
       end
 
       addr_hit[19]: begin
-        reg_rdata_next[5:0] = pad_right_qs;
+        reg_rdata_next[5:0] = pad_bottom_qs;
       end
 
       addr_hit[20]: begin
-        reg_rdata_next[5:0] = pad_left_qs;
+        reg_rdata_next[5:0] = pad_right_qs;
       end
 
       addr_hit[21]: begin
-        reg_rdata_next[12:0] = window_size_qs;
+        reg_rdata_next[5:0] = pad_left_qs;
       end
 
       addr_hit[22]: begin
-        reg_rdata_next[7:0] = window_count_qs;
+        reg_rdata_next[12:0] = window_size_qs;
       end
 
       addr_hit[23]: begin
+        reg_rdata_next[7:0] = window_count_qs;
+      end
+
+      addr_hit[24]: begin
         reg_rdata_next[0] = interrupt_en_transaction_done_qs;
         reg_rdata_next[1] = interrupt_en_window_done_qs;
       end
 
-      addr_hit[24]: begin
+      addr_hit[25]: begin
         reg_rdata_next[0] = transaction_ifr_qs;
       end
 
-      addr_hit[25]: begin
+      addr_hit[26]: begin
         reg_rdata_next[0] = window_ifr_qs;
       end
 

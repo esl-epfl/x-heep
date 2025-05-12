@@ -232,9 +232,6 @@ typedef enum
     #if DMA_SUBADDR_MODE
     DMA_TRANS_MODE_SUBADDRESS = DMA_MODE_MODE_VALUE_SUBADDRESS_MODE,
     #endif
-    #if DMA_HW_FIFO_MODE
-    DMA_TRANS_MODE_HW_FIFO = DMA_MODE_MODE_VALUE_HW_FIFO_MODE,
-    #endif
     DMA_TRANS_MODE__size,       /*!< Not used, only for sanity checks. */
 } dma_trans_mode_t;
 
@@ -374,7 +371,7 @@ typedef struct
     #endif
 
     #if DMA_HW_FIFO_MODE
-    uint8_t             dma_done_override;
+    uint8_t             hw_fifo_en;
     #endif
     dma_data_type_t     src_type;   /*!< Source data type to use. One is chosen among
     the targets. */
@@ -406,15 +403,16 @@ typedef struct
 /****************************************************************************/
 
 /**
- * @brief Attends the plic interrupt.
+ * @brief This is a non-weak implementation of the function declared in
+ * fast_intr_ctrl.c
  */
-__attribute__((optimize("O0"))) void handler_irq_dma( uint32_t id );
+__attribute__((optimize("O0"))) void fic_irq_dma_window(void);
 
 /**
  * @brief This is a non-weak implementation of the function declared in
  * fast_intr_ctrl.c
  */
-__attribute__((optimize("O0"))) void fic_irq_dma(void);
+__attribute__((optimize("O0"))) void fic_irq_dma_done(void);
 
 /**
  * @brief Writes a given value into the specified register. Its operation

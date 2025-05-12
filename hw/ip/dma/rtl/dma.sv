@@ -573,7 +573,7 @@ module dma
 
   assign circular_mode = reg2hw.mode.q == 1;
   assign address_mode = reg2hw.mode.q == 2;
-  assign hw_fifo_mode = reg2hw.mode.q == 4;
+  assign hw_fifo_mode = reg2hw.hw_fifo_en.q;
 
   assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
   assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));

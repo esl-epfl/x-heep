@@ -67,7 +67,7 @@ extern "C" {
 #define DLC_INTERRUPT_EN_REG_OFFSET 0x20
 #define DLC_INTERRUPT_EN_EN_BIT 0
 
-// Interrupt bit set whena crossing is detected
+// Interrupt bit set when a crossing is detected
 #define DLC_XING_INTR_REG_OFFSET 0x24
 #define DLC_XING_INTR_XING_BIT 0
 

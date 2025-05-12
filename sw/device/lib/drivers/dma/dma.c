@@ -58,9 +58,14 @@ extern "C"
 #define DMA_STATIC_ASSERT(expr, msg)// _Static_assert(!expr, msg);
 
 /**
- * Returns the mask to enable/disable DMA interrupts.
+ * Returns the mask to enable/disable DMA transaction done interrupts.
  */
-#define DMA_CSR_REG_MIE_MASK (( 1 << 19 )) // 19 is DMA fast interrupt bit in MIE CSR
+#define DMA_DONE_CSR_REG_MIE_MASK (( 1 << 19 )) // 19 is DMA fast interrupt bit in MIE CSR
+
+/**
+ * Returns the mask to enable/disable DMA window interrupts.
+ */
+#define DMA_WINDOW_CSR_REG_MIE_MASK (( 1 << 30 )) // 30 is DMA fast interrupt bit in MIE CSR
 
 /**
  * Mask to determine if an address is multiple of 4 (Word aligned).
@@ -261,7 +266,7 @@ uint16_t dma_hp_win_intr_counter = 0;
 /**                                                                        **/
 /****************************************************************************/
 
-void handler_irq_dma(uint32_t id)
+void fic_irq_dma_window(void)
 {
     /* 
      * Find out which channel raised the interrupt and call
@@ -304,7 +309,7 @@ void handler_irq_dma(uint32_t id)
     return;
 }
 
-void fic_irq_dma(void)
+void fic_irq_dma_done(void)
 {
     /* 
      * Find out which channel raised the interrupt and call
@@ -831,14 +836,16 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
      * fast DMA interrupt.
      */
     dma_subsys_per[channel].peri->INTERRUPT_EN = INTR_EN_NONE;
-    CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+    CSR_CLEAR_BITS(CSR_REG_MIE, DMA_DONE_CSR_REG_MIE_MASK );
+    CSR_CLEAR_BITS(CSR_REG_MIE, DMA_WINDOW_CSR_REG_MIE_MASK );
 
     if( dma_subsys_per[channel].trans->end != DMA_TRANS_END_POLLING )
     {
         /* Enable global interrupt. */
-        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 );
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
         /* Enable machine-level fast interrupt. */
-        CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+        CSR_SET_BITS(CSR_REG_MIE, DMA_DONE_CSR_REG_MIE_MASK );
+        CSR_SET_BITS(CSR_REG_MIE, DMA_WINDOW_CSR_REG_MIE_MASK );
 
         /* Enable the transaction interrupt for the channel by setting the corresponding bit in Transaction IFR */
         write_register(  
@@ -1030,6 +1037,20 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     dma_subsys_per[channel].peri->WINDOW_SIZE =   dma_subsys_per[channel].trans->win_du
                             ? dma_subsys_per[channel].trans->win_du
                             : dma_subsys_per[channel].trans->size_d1_du;
+
+    /* 
+     * ENABLE THE HW FIFO (IF ENABLED)
+     */
+    #if DMA_HW_FIFO_MODE
+    if( dma_subsys_per[channel].trans->hw_fifo_en == 1)
+    {
+      write_register(  1,
+                    DMA_HW_FIFO_EN_REG_OFFSET,
+                    0x1,
+                    DMA_HW_FIFO_EN_HW_FIFO_MODE_BIT,
+                    dma_subsys_per[channel].peri );
+    }
+    #endif
 
     /* 
      * SET THE DIMENSIONALITY

@@ -84,7 +84,7 @@ module dma_buffer_unit
       .read_buffer_output_o(read_buffer_output)
   );
 
-  assign hw_fifo_mode = reg2hw_i.mode.q == 4;
+  assign hw_fifo_mode = reg2hw_i.hw_fifo_en.q;
 
   /* Due to the read FIFOs structure, thie pop signal is actually overridden by read_fifo_pop */
   assign read_fifo_req.pop = 1'b0;

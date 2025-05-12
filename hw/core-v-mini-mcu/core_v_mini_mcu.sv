@@ -516,7 +516,7 @@ module core_v_mini_mcu
   };
 
   assign fast_intr = {
-    1'b0,
+    dma_window_intr,
     gpio_ao_intr,
     spi_flash_intr,
     spi_intr,
@@ -732,7 +732,6 @@ module core_v_mini_mcu
       .uart_intr_rx_break_err_i(uart_intr_rx_break_err),
       .uart_intr_rx_timeout_i(uart_intr_rx_timeout),
       .uart_intr_rx_parity_err_i(uart_intr_rx_parity_err),
-      .dma_window_intr_i(dma_window_intr),
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),

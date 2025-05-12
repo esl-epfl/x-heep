@@ -203,7 +203,6 @@
             intr_host_timeout:       48
             spi2_intr_event:         49
             i2s_intr_event:          50
-            dma_window_intr:         51
         }
     }
 }

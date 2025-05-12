@@ -188,18 +188,28 @@
       hwaccess: "hro"
       resval:   0
       fields: [
-        { bits: "2:0", name: "MODE"
+        { bits: "1:0", name: "MODE"
           desc: "DMA operation mode"
           enum: [
             { value: "0", name: "LINEAR_MODE", desc: "Transfers data linearly"}
             { value: "1", name: "CIRCULAR_MODE", desc: "Transfers data in circular mode"}
             { value: "2", name: "ADDRESS_MODE", desc: "Transfers data using as destination address the data from ADD_PTR"}
             { value: "3", name: "SUBADDRESS_MODE", desc: "Implements transferring of data when SRC_PTR is fixed and related to a peripheral"}
-            { value: "4", name: "HW_FIFO_MODE", desc: "Mode for exploting external stream accelerators"}
           ]
         }
       ]
     }
+    % if dma_hw_fifo_mode:
+    { name:     "HW_FIFO_EN"
+      desc:     '''Enable the HW FIFO mode'''
+      swaccess: "rw"
+      hwaccess: "hro"
+      resval:   0
+      fields: [
+        { bits: "0", name: "HW_FIFO_MODE", desc: "Mode for exploting external stream accelerators"}
+      ]
+    }
+    % endif
     { name:     "DIM_CONFIG"
       desc:     '''Set the dimensionality of the DMA'''
       swaccess: "rw"
