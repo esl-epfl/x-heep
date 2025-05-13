@@ -335,7 +335,18 @@ The previous parameters, including the register offsets, can be found at `sw/dev
     - 1: _circular mode_
     - 2: _address mode_
     - 3: _subaddress mode_
-    - 4: _hardware fifo mode_
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 1 ----|---- 0 : 0 ----|
+|--- Reserved ---|---- HW_FIFO_MODE ---|</code></pre>
+</div>
+
+- **HW_FIFO_MODE**
+  - _SW access_: rw
+  - _Description_: enables the HW FIFO mode, i.e. tighly-coupled accelerators
+
 
 <hr>
 
@@ -578,7 +589,7 @@ If senseless configurations are input to functions, assertions may halt the whol
 
 #### Transaction modes
 
-There are five different transaction modes:
+There are four different transaction modes:
 
 **Single Mode:** The default mode, where the DMA channel will perform the copy from the source target to the destination, and trigger an interrupt once done.
 
@@ -589,16 +600,14 @@ In this mode it's possible to perform only 1D transactions.
 
 **Subaddress Mode:** In this mode, the DMA can be configured to transfer words, half words or bytes from Flash to the destination target via the SPI slot. This mode is particularly useful as it allows the DMA to sequentially read the half words or bytes composing the word retrieved from Flash, and forward them to the appropriate location in the destination target. The key difference between Subaddress Mode and Single Mode in terms of SPI-Flash interaction lies in how data is handled. In Single Mode, when the destination data type is set to `Half-Word` or `Byte`, the DMA writes only the least significant half-word or byte from the word fetched via SPI. In contrast, Subaddress Mode ensures that each half-word or byte within the fetched word is considered and transferred correctly to the destination.
 
-**Hardware Fifo Mode:** In this mode, the DMA fetches data from the source target and forwards it directly to an external accelerator tightly coupled with the DMA itself. Using this interface, the DMA can interact with an external streaming accelerator through input/output FIFOs. Once data is written in the accelerator's input fifo, the accelerator is in charge of popping from it and processing the data. In the end, results must be pushed into the accelerator's output fifo. 
-From the DMA point of view, the only necessary step is to select this mode, as the transaction itself is exactly identical to any other transaction.
+#### Tighly-Coupled FIFO-Based Accelerator Interface
+
+By setting the correct enable register, the DMA can fetch data from the source target and forwards it directly to an external accelerator tightly coupled with the DMA itself. Using this interface, the DMA can interact with an external streaming accelerator through input/output FIFOs. Once data is written in the accelerator's input fifo, the accelerator is in charge of popping from it and processing the data. In the end, results must be pushed into the accelerator's output fifo.
   
 
 #### Windows
 
-In order to process information as it arrives, the application can define a _window size_ (smaller than the _transaction size_). Every time the DMA has finished sending that amount of information, it will trigger an interrupt through the PLIC.
-
-> :warning: If the window size is a multiple of the transaction size, upon finishing the transaction there will be first an interrupt for the whole transaction (through the FIC), and then an interrupt for the window (through the PLIC, which is slower).
-
+In order to process information as it arrives, the application can define a _window size_ (smaller than the _transaction size_). Every time the DMA has finished sending that amount of information, it will trigger an interrupt through the FIC.
   
   
 
