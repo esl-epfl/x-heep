@@ -271,6 +271,7 @@
                   Set to 0 to disable.'''
       swaccess: "rw"
       hwaccess: "hro"
+      hwqe:     "true" // enable `qe` latched signal of software write pulse
       resval:   0
       fields: [
         { bits: "12:0", name: "WINDOW_SIZE", desc: ""}

@@ -799,7 +799,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.window_size.qe),
       .q (reg2hw.window_size.q),
 
       // to register interface (read)

@@ -72,7 +72,10 @@ package dma_reg_pkg;
 
   typedef struct packed {logic [5:0] q;} dma_reg2hw_pad_left_reg_t;
 
-  typedef struct packed {logic [12:0] q;} dma_reg2hw_window_size_reg_t;
+  typedef struct packed {
+    logic [12:0] q;
+    logic        qe;
+  } dma_reg2hw_window_size_reg_t;
 
   typedef struct packed {logic [7:0] q;} dma_reg2hw_window_count_reg_t;
 
@@ -107,29 +110,29 @@ package dma_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_src_ptr_reg_t src_ptr;  // [283:252]
-    dma_reg2hw_dst_ptr_reg_t dst_ptr;  // [251:220]
-    dma_reg2hw_addr_ptr_reg_t addr_ptr;  // [219:188]
-    dma_reg2hw_size_d1_reg_t size_d1;  // [187:171]
-    dma_reg2hw_size_d2_reg_t size_d2;  // [170:155]
-    dma_reg2hw_status_reg_t status;  // [154:151]
-    dma_reg2hw_src_ptr_inc_d1_reg_t src_ptr_inc_d1;  // [150:145]
-    dma_reg2hw_src_ptr_inc_d2_reg_t src_ptr_inc_d2;  // [144:122]
-    dma_reg2hw_dst_ptr_inc_d1_reg_t dst_ptr_inc_d1;  // [121:116]
-    dma_reg2hw_dst_ptr_inc_d2_reg_t dst_ptr_inc_d2;  // [115:93]
-    dma_reg2hw_slot_reg_t slot;  // [92:61]
-    dma_reg2hw_src_data_type_reg_t src_data_type;  // [60:59]
-    dma_reg2hw_dst_data_type_reg_t dst_data_type;  // [58:57]
-    dma_reg2hw_sign_ext_reg_t sign_ext;  // [56:56]
-    dma_reg2hw_mode_reg_t mode;  // [55:54]
-    dma_reg2hw_hw_fifo_en_reg_t hw_fifo_en;  // [53:53]
-    dma_reg2hw_dim_config_reg_t dim_config;  // [52:52]
-    dma_reg2hw_dim_inv_reg_t dim_inv;  // [51:51]
-    dma_reg2hw_pad_top_reg_t pad_top;  // [50:45]
-    dma_reg2hw_pad_bottom_reg_t pad_bottom;  // [44:39]
-    dma_reg2hw_pad_right_reg_t pad_right;  // [38:33]
-    dma_reg2hw_pad_left_reg_t pad_left;  // [32:27]
-    dma_reg2hw_window_size_reg_t window_size;  // [26:14]
+    dma_reg2hw_src_ptr_reg_t src_ptr;  // [284:253]
+    dma_reg2hw_dst_ptr_reg_t dst_ptr;  // [252:221]
+    dma_reg2hw_addr_ptr_reg_t addr_ptr;  // [220:189]
+    dma_reg2hw_size_d1_reg_t size_d1;  // [188:172]
+    dma_reg2hw_size_d2_reg_t size_d2;  // [171:156]
+    dma_reg2hw_status_reg_t status;  // [155:152]
+    dma_reg2hw_src_ptr_inc_d1_reg_t src_ptr_inc_d1;  // [151:146]
+    dma_reg2hw_src_ptr_inc_d2_reg_t src_ptr_inc_d2;  // [145:123]
+    dma_reg2hw_dst_ptr_inc_d1_reg_t dst_ptr_inc_d1;  // [122:117]
+    dma_reg2hw_dst_ptr_inc_d2_reg_t dst_ptr_inc_d2;  // [116:94]
+    dma_reg2hw_slot_reg_t slot;  // [93:62]
+    dma_reg2hw_src_data_type_reg_t src_data_type;  // [61:60]
+    dma_reg2hw_dst_data_type_reg_t dst_data_type;  // [59:58]
+    dma_reg2hw_sign_ext_reg_t sign_ext;  // [57:57]
+    dma_reg2hw_mode_reg_t mode;  // [56:55]
+    dma_reg2hw_hw_fifo_en_reg_t hw_fifo_en;  // [54:54]
+    dma_reg2hw_dim_config_reg_t dim_config;  // [53:53]
+    dma_reg2hw_dim_inv_reg_t dim_inv;  // [52:52]
+    dma_reg2hw_pad_top_reg_t pad_top;  // [51:46]
+    dma_reg2hw_pad_bottom_reg_t pad_bottom;  // [45:40]
+    dma_reg2hw_pad_right_reg_t pad_right;  // [39:34]
+    dma_reg2hw_pad_left_reg_t pad_left;  // [33:28]
+    dma_reg2hw_window_size_reg_t window_size;  // [27:14]
     dma_reg2hw_window_count_reg_t window_count;  // [13:6]
     dma_reg2hw_interrupt_en_reg_t interrupt_en;  // [5:4]
     dma_reg2hw_transaction_ifr_reg_t transaction_ifr;  // [3:2]

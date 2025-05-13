@@ -454,7 +454,7 @@ module dma
       window_counter <= '0;
     end else begin
       if (|reg2hw.window_size.q) begin
-        if (dma_start | dma_done) begin
+        if ( (circular_mode && reg2hw.window_size.qe) || (~circular_mode && (dma_start | dma_done))) begin
           window_counter <= '0;
         end else if (data_out_gnt) begin
           if (window_event) begin
