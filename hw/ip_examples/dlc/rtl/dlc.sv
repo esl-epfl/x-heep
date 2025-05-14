@@ -104,7 +104,7 @@ module dlc #(
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (~rst_ni) begin
-      trans_counter <= reg2hw.trans_size.q;
+      trans_counter <= '0;
     end else begin
       if (hw_fifo_req_i.flush) begin
         trans_counter <= reg2hw.trans_size.q;
