@@ -27,6 +27,7 @@
 data_t output_data[OH_NCHW*OW_NCHW];
 data_t* input_image_ptr = &input_image_nchw[0];
 data_t* output_data_ptr = &output_data[0];
+dma *trash_peri = dma_peri(2);
 
 char im2col_done = 0;
 int ifr_status;
@@ -219,13 +220,9 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 {
                     n_zeros_left = 0;
                 }
-                else if ( (LEFT_PAD - w_offset) % STRIDE_D1 == 0 )
-                {
-                    n_zeros_left = (LEFT_PAD - w_offset) / STRIDE_D1;
-                }
                 else
                 {
-                    n_zeros_left = (LEFT_PAD - w_offset) / STRIDE_D1 + 1;
+                    n_zeros_left = 1 + (LEFT_PAD - w_offset -1) / STRIDE_D1;
                 }
 
                 /* Computing the number of zeros on the top */
@@ -235,13 +232,9 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 {
                     n_zeros_top = 0;
                 }
-                else if ( (TOP_PAD - h_offset) % STRIDE_D2 == 0 )
-                {
-                    n_zeros_top = (TOP_PAD - h_offset) / STRIDE_D2;
-                }
                 else
                 {
-                    n_zeros_top = (TOP_PAD - h_offset) / STRIDE_D2 + 1;
+                    n_zeros_top = 1 + (TOP_PAD - h_offset - 1) / STRIDE_D2;
                 }
 
                 /* Computing the number of zeros on the right */
@@ -249,17 +242,13 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                 /* by removing the elements of the row uncovered by the sliding filter */
                 
-                if (fw_minus_w_offset >= RIGHT_PAD || ADPT_PAD_RIGHT == 0)
+                if (LAST_PATCH_W + w_offset + 1 <= 0)
                 {
                     n_zeros_right = 0;
                 }
-                else if ( (ADPT_PAD_RIGHT - (fw_minus_w_offset)) % STRIDE_D1 == 0 )
-                {
-                    n_zeros_right = (ADPT_PAD_RIGHT - (fw_minus_w_offset)) / STRIDE_D1;
-                }
                 else
                 {
-                    n_zeros_right = (ADPT_PAD_RIGHT - (fw_minus_w_offset)) / STRIDE_D1 + 1;
+                  n_zeros_right = 1 + (LAST_PATCH_W + w_offset)/STRIDE_D1;
                 }
 
                 /* Computing the number of zeros on the bottom */
@@ -267,23 +256,21 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                 /* by removing the elements of the row uncovered by the sliding filter */
 
-                if (fh_minus_h_offset >= BOTTOM_PAD || ADPT_PAD_BOTTOM == 0)
+                if (LAST_PATCH_H + h_offset + 1 <= 0)
                 {
                     n_zeros_bottom = 0;
                 }
-                else if ( (ADPT_PAD_BOTTOM - (fh_minus_h_offset)) % STRIDE_D2 == 0)
-                {
-                    n_zeros_bottom = (ADPT_PAD_BOTTOM - (fh_minus_h_offset)) / STRIDE_D2;
-                }
                 else
                 {
-                    n_zeros_bottom = (ADPT_PAD_BOTTOM - (fh_minus_h_offset)) / STRIDE_D2 + 1;
+                    n_zeros_bottom = 1 + (LAST_PATCH_H + h_offset)/STRIDE_D2;
                 }
 
                 /* Compute the number of elements to transfer */
                 size_transfer = N_PATCHES_W - n_zeros_left - n_zeros_right;
                 size_transfer_d2 = N_PATCHES_H - n_zeros_top - n_zeros_bottom;
 
+                PRINTF_DEB("\n\rLAST_PATCH_H: %d, LAST_PATCH_H + h_offset + 1 - IH: %d", LAST_PATCH_H, LAST_PATCH_H + h_offset + 1 - IH);
+                PRINTF_DEB("\n\rLAST_PATCH_W: %d, LAST_PATCH_W + w_offset + 1 - IW: %d", LAST_PATCH_W, LAST_PATCH_W + w_offset + 1 - IW);
                 PRINTF_DEB("\n\rn_zeros_left: %d, n_zeros_right: %d, n_zeros_top: %d, n_zeros_bottom: %d", n_zeros_left, n_zeros_right, n_zeros_top, n_zeros_bottom);
                 PRINTF_DEB("\n\rsize_transfer: %d, size_transfer_d2: %d\n\r", size_transfer, size_transfer_d2);
     
@@ -404,8 +391,8 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
           .right_pad = RIGHT_PAD,
           .top_pad = TOP_PAD,
           .bottom_pad = BOTTOM_PAD,
-          .adpt_pad_right = ADPT_PAD_RIGHT,
-          .adpt_pad_bottom = ADPT_PAD_BOTTOM,
+          .last_patch_w = LAST_PATCH_W,
+          .last_patch_h = LAST_PATCH_H,
           .datatype = INPUT_DATATYPE
         };
 
@@ -455,7 +442,7 @@ int verify()
           {    
               if (golden_im2col_nchw[i*OW_NCHW + j] != output_data[i*OW_NCHW + j])
               {
-                  PRINTF("ERROR: Golden: %d, Output: %d, at %d %d %x\n\r", golden_im2col_nchw[i*OW_NCHW + j], output_data[i*OW_NCHW + j], i, j, &output_data[i*OW_NCHW + j]);
+                  PRINTF_DEB("ERROR: Golden: %d, Output: %d, at %d %d %x\n\r", golden_im2col_nchw[i*OW_NCHW + j], output_data[i*OW_NCHW + j], i, j, &output_data[i*OW_NCHW + j]);
                   errors ++;
               }
           }

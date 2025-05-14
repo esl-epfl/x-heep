@@ -913,7 +913,7 @@ def main():
             if isinstance(info, dict):
                 new_info = {}
                 for k, v in info.items():
-                    if k != "is_included":
+                    if "0x" in v:
                         new_info[k] = string2int(v)
                     else:
                         new_info[k] = v
@@ -954,6 +954,12 @@ def main():
         num_dma_master_ports = dma.get_num_master_ports()
         # Number of masters for each slave of the DMA NtoM xbar
         num_dma_xbar_channels_per_master_port = dma.get_num_channels_per_master_port()
+        # Generating DMA subsystem configuration
+        dma_fifo_depth = dma.get_fifo_depth()
+        dma_addr_mode = dma.get_addr_mode()
+        dma_subaddr_mode = dma.get_subaddr_mode()
+        dma_hw_fifo_mode = dma.get_hw_fifo_mode()
+        dma_zero_padding = dma.get_zero_padding()
     else:
         base_peripherals = extract_peripherals(discard_path(obj["ao_peripherals"]))
         base_peripherals_count = len(base_peripherals)
@@ -965,6 +971,12 @@ def main():
         num_dma_xbar_channels_per_master_port = int(
             base_peripherals["dma"]["num_channels_per_master_port"]
         )
+        # Generating DMA subsystem configuration
+        dma_fifo_depth = int(base_peripherals["dma"]["fifo_depth"], 16)
+        dma_addr_mode = 0 if base_peripherals["dma"]["addr_mode_en"] == "no" else 1
+        dma_subaddr_mode = 0 if base_peripherals["dma"]["subaddr_mode_en"] == "no" else 1
+        dma_hw_fifo_mode = 0 if base_peripherals["dma"]["hw_fifo_mode_en"] == "no" else 1
+        dma_zero_padding = 0 if base_peripherals["dma"]["zero_padding_en"] == "no" else 1
 
     if dma_ch_count > 256 or dma_ch_count == 0:
         exit("Number of DMA channels has to be between 0 and 256, excluded")
@@ -1024,7 +1036,7 @@ def main():
                 "With 1 master port, the number of DMA channels per master port has to be equal to the number of DMA channels"
             )
         dma_xbar_array = "default: 1"
-
+    
     if xheep.are_user_peripherals_configured():
         user_peripheral_start_address = xheep.get_user_peripherals_base_address()
         user_peripheral_size_address = xheep.get_user_peripherals_length()
@@ -1604,6 +1616,11 @@ def main():
         "ao_peripherals_count": base_peripherals_count,
         "dma_ch_count": dma_ch_count,
         "dma_ch_size": dma_ch_size,
+        "dma_fifo_depth": dma_fifo_depth,
+        "dma_addr_mode": dma_addr_mode,
+        "dma_subaddr_mode": dma_subaddr_mode,
+        "dma_hw_fifo_mode": dma_hw_fifo_mode,
+        "dma_zero_padding": dma_zero_padding,
         "num_dma_master_ports": num_dma_master_ports,
         "num_dma_xbar_channels_per_master_port": num_dma_xbar_channels_per_master_port,
         "dma_xbar_masters_array": dma_xbar_array,

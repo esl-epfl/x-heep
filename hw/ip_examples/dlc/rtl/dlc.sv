@@ -18,8 +18,10 @@ module dlc #(
     input reg_pkg::reg_req_t reg_req_i,
     output reg_pkg::reg_rsp_t reg_rsp_o,
     // hw fifo interface (connected to the DMA)
-    input hw_fifo_pkg::hw_fifo_req_t hw_fifo_req_i,
-    output hw_fifo_pkg::hw_fifo_resp_t hw_fifo_resp_o
+    input fifo_pkg::fifo_req_t hw_fifo_req_i,
+    output fifo_pkg::fifo_resp_t hw_fifo_resp_o,
+    // done signal
+    output logic dlc_done_o
 );
 
   // Signals Declaration
@@ -59,7 +61,6 @@ module dlc #(
   logic [15:0] reg_dlvl_mask;  // mask for delta levels, it has as many 1s as the number of bits for the delta levels
   logic [15:0] reg_dt_mask;  // mask for delta time, it has as many 1s as the number of bits for the delta time
   logic reg_dlvl_twoscomp_n_sgnmod;  // if '1' delta levels are in 2s complement, else sign|abs_value
-  logic reg_rnw;  // base response push on read/write data
   logic reg_bypass;  // bypass mode
 
   // ------------------------- Level Crossing Logic
@@ -67,6 +68,7 @@ module dlc #(
   logic [15:0] curr_lvl;  // current level
   logic xing;  // crossing signal asserted when a crossing occurs
   logic signed [15:0] din_lvl;  // input data level
+  logic [15:0] trans_counter;  // transaction counter
 
   // ------------------------- Adder I/O Operands
 
@@ -99,6 +101,20 @@ module dlc #(
   logic [16:0] dlc_output;  // dLC output packet
 
   // ------------------------- FSM
+
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (~rst_ni) begin
+      trans_counter <= '0;
+    end else begin
+      if (hw_fifo_req_i.flush) begin
+        trans_counter <= reg2hw.trans_size.q;
+      end else if (hw_fifo_req_i.push) begin
+        trans_counter <= trans_counter - 1;
+      end
+    end
+  end
+
+  assign dlc_done_o = (trans_counter == 0);
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (~rst_ni) begin
@@ -173,7 +189,8 @@ module dlc #(
       .pop_i(hw_r_fifo_pop)
   );
 
-  assign hw_fifo_resp_o.full = hw_r_fifo_full || (hw_r_fifo_usage == 2'd3);
+  assign hw_fifo_resp_o.full = hw_r_fifo_full;
+  assign hw_fifo_resp_o.alm_full = hw_r_fifo_usage == 2'd3;
 
   /* Hardware Write Fifo */
   fifo_v3 #(
@@ -225,7 +242,6 @@ module dlc #(
   /*
     Response 'Push' Configuration
   */
-  assign reg_rnw = reg2hw.readnotwrite.q;
   assign reg_bypass = reg2hw.bypass.q;
 
   // ------------------------- Fifo Control Logic
@@ -245,13 +261,6 @@ module dlc #(
       hw_r_fifo_pop = 1'b1;
     end
   end
-
-  /*
-    Response dLC Push:
-      -> if 1, the dma downcounter in dma_padding_fsm downcounts each time data is read from the HW Read Fifo
-      -> if 0, the dma downcounter in dma_padding_fsm downcounts each time data is written into the HW Write Fifo      
-  */
-  assign hw_fifo_resp_o.push = reg_rnw ? hw_r_fifo_pop : hw_w_fifo_push;
 
   // Management of pushing to HW Write FIFO
   always_comb begin

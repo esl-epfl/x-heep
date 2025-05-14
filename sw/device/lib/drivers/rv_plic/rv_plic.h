@@ -76,10 +76,6 @@
  */
 #define I2S_ID          I2S_INTR_EVENT
 
-/**
- * ID of the DMA interrupt request line
-*/
-#define DMA_ID          DMA_WINDOW_INTR
 
 /**
  * ID of the external interrupt request lines

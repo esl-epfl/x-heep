@@ -226,9 +226,12 @@ typedef enum
     re-loaded automatically (no need to call dma_trans_load), with the same
     parameters. This generates a circular mode in the source and/or destination
     pointing to memory.  */
+    #if DMA_ADDR_MODE
     DMA_TRANS_MODE_ADDRESS = DMA_MODE_MODE_VALUE_ADDRESS_MODE, /*!< In this mode, the destination address is read from the address port! */
+    #endif
+    #if DMA_SUBADDR_MODE
     DMA_TRANS_MODE_SUBADDRESS = DMA_MODE_MODE_VALUE_SUBADDRESS_MODE,
-    DMA_TRANS_MODE_HW_FIFO = DMA_MODE_MODE_VALUE_HW_FIFO_MODE,
+    #endif
     DMA_TRANS_MODE__size,       /*!< Not used, only for sanity checks. */
 } dma_trans_mode_t;
 
@@ -349,18 +352,27 @@ typedef struct
     copied. */
     dma_target_t*       dst;   /*!< Target to where the data will be
     copied. */
+    #if DMA_ADDR_MODE
     dma_target_t*       src_addr; /*!< Target from where the dst address will be
     copied. - only valid in address mode */
+    #endif
     uint16_t            inc_b;  /*!< A common increment in case both targets
     need to use one same increment. */
     uint32_t            size_d1_du; /*!< The size of the transfer along D1, in data units */
     uint32_t            size_d2_du; /*!< The size of the transfer along D2, in data units */
     dma_dim_t           dim; /*!< Sets the dimensionality of the
     DMA, either 1D or 2D. */
+    
+    #if DMA_ZERO_PADDING
     uint8_t             pad_top_du; /*!< Padding at the top of the 2D transfer. */
     uint8_t             pad_bottom_du; /*!< Padding at the bottom of the 2D transfer. */
     uint8_t             pad_left_du; /*!< Padding at the left of the 2D transfer. */
     uint8_t             pad_right_du; /*!< Padding at the right of the 2D transfer. */
+    #endif
+
+    #if DMA_HW_FIFO_MODE
+    uint8_t             hw_fifo_en;
+    #endif
     dma_data_type_t     src_type;   /*!< Source data type to use. One is chosen among
     the targets. */
     dma_data_type_t     dst_type;   /*!< Destination data type to use. One is chosen among
@@ -391,15 +403,16 @@ typedef struct
 /****************************************************************************/
 
 /**
- * @brief Attends the plic interrupt.
+ * @brief This is a non-weak implementation of the function declared in
+ * fast_intr_ctrl.c
  */
-__attribute__((optimize("O0"))) void handler_irq_dma( uint32_t id );
+__attribute__((optimize("O0"))) void fic_irq_dma_window(void);
 
 /**
  * @brief This is a non-weak implementation of the function declared in
  * fast_intr_ctrl.c
  */
-__attribute__((optimize("O0"))) void fic_irq_dma(void);
+__attribute__((optimize("O0"))) void fic_irq_dma_done(void);
 
 /**
  * @brief Writes a given value into the specified register. Its operation

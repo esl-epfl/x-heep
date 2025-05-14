@@ -101,12 +101,20 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_timer_2(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_timer_3(void);
 
 /**
- * @brief Fast dma irq handler. The first entry point when dma interrupt
+ * @brief Fast dma done irq handler. The first entry point when dma transaction done
+ * interrupt is recieved through fic.
+ * This function clear the responsible bit in FAST_INTR_PENDING then call a 
+ * function that can be overriden inside peripherals.
+ */
+INTERRUPT_HANDLER_ABI void handler_irq_fast_dma_done(void);
+
+/**
+ * @brief Fast dma irq handler. The first entry point when dma window done interrupt
  * is recieved through fic.
  * This function clear the responsible bit in FAST_INTR_PENDING then call a 
  * function that can be overriden inside peripherals.
  */
-INTERRUPT_HANDLER_ABI void handler_irq_fast_dma(void);
+INTERRUPT_HANDLER_ABI void handler_irq_fast_dma_window(void);
 
 /**
  * @brief Fast spi irq handler. The first entry point when spi interrupt
@@ -249,7 +257,12 @@ __attribute__((weak, optimize("O0"))) void fic_irq_timer_3(void)
     /* Users should implement their non-weak version */
 }
 
-__attribute__((weak, optimize("O0"))) void fic_irq_dma(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_dma_done(void)
+{
+    /* Users should implement their non-weak version */
+}
+
+__attribute__((weak, optimize("O0"))) void fic_irq_dma_window(void)
 {
     /* Users should implement their non-weak version */
 }
@@ -334,12 +347,20 @@ void handler_irq_fast_timer_3(void)
     fic_irq_timer_3();
 }
 
-void handler_irq_fast_dma(void)
+void handler_irq_fast_dma_done(void)
 {
     // The interrupt is cleared.
-    clear_fast_interrupt(kDma_fic_e);
+    clear_fast_interrupt(kDma_done_fic_e);
     // call the weak fic handler
-    fic_irq_dma();
+    fic_irq_dma_done();
+}
+
+void handler_irq_fast_dma_window(void)
+{
+    // The interrupt is cleared.
+    clear_fast_interrupt(kDma_window_fic_e);
+    // call the weak fic handler
+    fic_irq_dma_window();
 }
 
 void handler_irq_fast_spi(void)

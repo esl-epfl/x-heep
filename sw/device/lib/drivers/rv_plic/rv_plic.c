@@ -406,10 +406,6 @@ void plic_reset_handlers_list(void)
     {
       handlers[i] = &handler_irq_i2s;
     }
-    else if ( i == DMA_ID)
-    {
-      handlers[i] = &handler_irq_dma;
-    }
     else
     {
       handlers[i] = &handler_irq_dummy;
