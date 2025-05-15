@@ -96,21 +96,21 @@ class UserPeripheralDomain(PeripheralDomain):
     """
     Domain for user peripherals. All user peripherals must be added.
 
-    Base address : 0x30000000
-    Length :       0x00100000
+    Start address : 0x30000000
+    Length :        0x00100000
     """
 
-    def __init__(self, base_address: int = 0x30000000, length: int = 0x00100000):
+    def __init__(self, start_address: int = 0x30000000, length: int = 0x00100000):
         """
         Initialize the user peripheral domain.
-        Base address : 0x30000000
+        Start address : 0x30000000
         Length :       0x00100000
 
         At the beginning, there is no base peripheral. All non-added peripherals will be added during build().
         """
         super().__init__(
             name="User",
-            base_address=base_address,
+            start_address=start_address,
             length=length,
         )
 

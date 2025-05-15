@@ -2,6 +2,12 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%
+    user_peripheral_domain = xheep.get_user_peripheral_domain()
+    base_peripheral_domain = xheep.get_base_peripheral_domain()
+    dma = base_peripheral_domain.get_dma()
+%>
+
 #ifndef COREV_MINI_MCU_H_
 #define COREV_MINI_MCU_H_
 
@@ -26,12 +32,12 @@ extern "C" {
 #define DEBUG_SIZE 0x${debug_size_address}
 #define DEBUG_END_ADDRESS (DEBUG_START_ADDRESS + DEBUG_SIZE)
 
-//always-on peripherals
-#define AO_PERIPHERAL_START_ADDRESS 0x${f"{xheep.get_base_peripherals_base_address() & 0xFFFFFFFF:08X}"}
-#define AO_PERIPHERAL_SIZE 0x${f"{xheep.get_base_peripherals_length() & 0xFFFFFFFF:08X}"}
+// base peripherals
+#define AO_PERIPHERAL_START_ADDRESS 0x${f"{base_peripheral_domain.get_start_address() & 0xFFFFFFFF:08X}"}
+#define AO_PERIPHERAL_SIZE 0x${f"{base_peripheral_domain.get_length() & 0xFFFFFFFF:08X}"}
 #define AO_PERIPHERAL_END_ADDRESS (AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE)
 
-% for peripheral in xheep.get_base_peripherals():
+% for peripheral in base_peripheral_domain.get_peripherals():
 #define ${peripheral.get_name().upper()}_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"})
 #define ${peripheral.get_name().upper()}_SIZE 0x${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"}
 #define ${peripheral.get_name().upper()}_END_ADDRESS (${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE)
@@ -39,20 +45,20 @@ extern "C" {
 
 %endfor
 
-#define DMA_CH_NUM ${hex(xheep.get_dma()[0].get_num_channels())[2:]}
-#define DMA_CH_SIZE 0x${hex(xheep.get_dma()[0].get_ch_length())[2:]}
-#define DMA_NUM_MASTER_PORTS ${hex(xheep.get_dma()[0].get_num_master_ports())[2:]}
+#define DMA_CH_NUM ${hex(dma.get_num_channels())[2:]}
+#define DMA_CH_SIZE 0x${hex(dma.get_ch_length())[2:]}
+#define DMA_NUM_MASTER_PORTS ${hex(dma.get_num_master_ports())[2:]}
 
-//switch-on/off peripherals
-#define PERIPHERAL_START_ADDRESS 0x${f"{xheep.get_user_peripherals_base_address() & 0xFFFFFFFF:08X}"}
-#define PERIPHERAL_SIZE 0x${f"{xheep.get_user_peripherals_length() & 0xFFFFFFFF:08X}"}
+// user peripherals
+#define PERIPHERAL_START_ADDRESS 0x${f"{user_peripheral_domain.get_start_address() & 0xFFFFFFFF:08X}"}
+#define PERIPHERAL_SIZE 0x${f"{user_peripheral_domain.get_length() & 0xFFFFFFFF:08X}"}
 #define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)
 
-% for peripheral in xheep.get_user_peripherals():
+% for peripheral in user_peripheral_domain.get_peripherals():
 #define ${peripheral.get_name().upper()}_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"})
 #define ${peripheral.get_name().upper()}_SIZE 0x${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"}
 #define ${peripheral.get_name().upper()}_END_ADDRESS (${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE)
-#define ${peripheral.get_name().upper()}_IDX ${loop.index + len(xheep.get_base_peripherals())}
+#define ${peripheral.get_name().upper()}_IDX ${loop.index + len(base_peripheral_domain.get_peripherals())}
 #define ${peripheral.get_name().upper()}_IS_INCLUDED
 %endfor
 

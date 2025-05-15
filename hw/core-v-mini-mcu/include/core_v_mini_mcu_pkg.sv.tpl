@@ -13,6 +13,12 @@
  *
  */
 
+<%
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
+  base_peripheral_domain = xheep.get_base_peripheral_domain()
+  dma = base_peripheral_domain.get_dma()
+%>
+
 package core_v_mini_mcu_pkg;
 
   import addr_map_rule_pkg::*;
@@ -42,7 +48,7 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] DMA_WRITE_P0_IDX = 4;
   localparam logic [31:0] DMA_ADDR_P0_IDX = 5;
  
-  localparam SYSTEM_XBAR_NMASTER = ${3 + int(hex(xheep.get_dma()[0].get_num_master_ports())[2:])*3};
+  localparam SYSTEM_XBAR_NMASTER = ${3 + int(dma.get_num_master_ports())*3};
 
   // Internal slave memory map and index
   // -----------------------------------
@@ -82,13 +88,13 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] DEBUG_END_ADDRESS = DEBUG_START_ADDRESS + DEBUG_SIZE;
   localparam logic[31:0] DEBUG_IDX = 32'd${xheep.ram_numbanks() + 1};
 
-  localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h${f"{xheep.get_base_peripherals_base_address() & 0xFFFFFFFF:08X}"};
-  localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h${f"{xheep.get_base_peripherals_length() & 0xFFFFFFFF:08X}"};
+  localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h${f"{base_peripheral_domain.get_start_address() & 0xFFFFFFFF:08X}"};
+  localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h${f"{base_peripheral_domain.get_length() & 0xFFFFFFFF:08X}"};
   localparam logic[31:0] AO_PERIPHERAL_END_ADDRESS = AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE;
   localparam logic[31:0] AO_PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 2};
 
-  localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h${f"{xheep.get_user_peripherals_base_address() & 0xFFFFFFFF:08X}"};
-  localparam logic[31:0] PERIPHERAL_SIZE = 32'h${f"{xheep.get_user_peripherals_length() & 0xFFFFFFFF:08X}"};
+  localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h${f"{user_peripheral_domain.get_start_address() & 0xFFFFFFFF:08X}"};
+  localparam logic[31:0] PERIPHERAL_SIZE = 32'h${f"{user_peripheral_domain.get_length() & 0xFFFFFFFF:08X}"};
   localparam logic[31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
   localparam logic[31:0] PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 3};
 
@@ -133,22 +139,22 @@ package core_v_mini_mcu_pkg;
   };
 
 ######################################################################
-## Automatically add all always on peripherals listed
+## Automatically add all base peripherals listed
 ######################################################################
-  // always-on peripherals
+  // base peripherals
   // ---------------------
-  localparam AO_PERIPHERALS = ${len(xheep.get_base_peripherals())};
-  localparam DMA_CH_NUM = ${hex(xheep.get_dma()[0].get_num_channels())[2:]};
-  localparam DMA_CH_SIZE = 32'h${hex(xheep.get_dma()[0].get_ch_length())[2:]};
-  localparam DMA_NUM_MASTER_PORTS = ${hex(xheep.get_dma()[0].get_num_master_ports())[2:]};
+  localparam AO_PERIPHERALS = ${len(base_peripheral_domain.get_peripherals())};
+  localparam DMA_CH_NUM = ${hex(dma.get_num_channels())[2:]};
+  localparam DMA_CH_SIZE = 32'h${hex(dma.get_ch_length())[2:]};
+  localparam DMA_NUM_MASTER_PORTS = ${hex(dma.get_num_master_ports())[2:]};
 
-% if xheep.get_dma()[0].get_num_master_ports() > 1:
-  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${xheep.get_dma()[0].get_xbar_array()[::-1]}};
+% if dma.get_num_master_ports() > 1:
+  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()[::-1]}};
 % else:
-  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${xheep.get_dma()[0].get_xbar_array()}};
+  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()}};
 % endif
 
-% for peripheral in xheep.get_base_peripherals():
+% for peripheral in base_peripheral_domain.get_peripherals():
   localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"};
   localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"};
   localparam logic [31:0] ${peripheral.get_name().upper()}_END_ADDRESS = ${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE;
@@ -157,7 +163,7 @@ package core_v_mini_mcu_pkg;
 % endfor
 
   localparam addr_map_rule_t [AO_PERIPHERALS-1:0] AO_PERIPHERALS_ADDR_RULES = '{
-% for peripheral in xheep.get_base_peripherals():
+% for peripheral in base_peripheral_domain.get_peripherals():
       '{ idx: ${peripheral.get_name().upper()}_IDX, start_addr: ${peripheral.get_name().upper()}_START_ADDRESS, end_addr: ${peripheral.get_name().upper()}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor
   };
@@ -165,16 +171,16 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
 
   // Relative DMA channels addresses
-% for i in range(xheep.get_dma()[0].get_num_channels()):
-  localparam logic [7:0] DMA_CH${i}_START_ADDRESS = 8'h${hex(int(hex(xheep.get_dma()[0].get_ch_length())[2:], 16)*(i) >> 8)[2:]};
-  localparam logic [7:0] DMA_CH${i}_SIZE = 8'h${hex(int(hex(xheep.get_dma()[0].get_ch_length())[2:], 16) >> 8)[2:]};
+% for i in range(dma.get_num_channels()):
+  localparam logic [7:0] DMA_CH${i}_START_ADDRESS = 8'h${hex(int(hex(dma.get_ch_length())[2:], 16)*(i) >> 8)[2:]};
+  localparam logic [7:0] DMA_CH${i}_SIZE = 8'h${hex(int(hex(dma.get_ch_length())[2:], 16) >> 8)[2:]};
   localparam logic [7:0] DMA_CH${i}_END_ADDRESS = DMA_CH${i}_START_ADDRESS + DMA_CH${i}_SIZE;
   localparam logic [7:0] DMA_CH${i}_IDX = 8'd${i};
 
 % endfor
 
   localparam addr_map_rule_8bit_t [DMA_CH_NUM-1:0] DMA_ADDR_RULES = '{
-  % for i in range(xheep.get_dma()[0].get_num_channels()):
+  % for i in range(dma.get_num_channels()):
       '{ idx: DMA_CH${i}_IDX, start_addr: DMA_CH${i}_START_ADDRESS, end_addr: DMA_CH${i}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor
   };
@@ -182,13 +188,13 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned DMA_CH_PORT_SEL_WIDTH = DMA_CH_NUM > 1 ? $clog2(DMA_CH_NUM) : 32'd1;
 
 ######################################################################
-## Automatically add all peripherals listed
+## Automatically add all user peripherals listed
 ######################################################################
-  // switch-on/off peripherals
+  // user peripherals
   // -------------------------
-  localparam PERIPHERALS = ${len(xheep.get_user_peripherals())};
+  localparam PERIPHERALS = ${len(user_peripheral_domain.get_peripherals())};
 
-% for peripheral in xheep.get_user_peripherals():
+% for peripheral in user_peripheral_domain.get_peripherals():
   localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"};
   localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"};
   localparam logic [31:0] ${peripheral.get_name().upper()}_END_ADDRESS = ${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE;
@@ -196,7 +202,7 @@ package core_v_mini_mcu_pkg;
   
 % endfor
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
-% for peripheral in xheep.get_user_peripherals():
+% for peripheral in user_peripheral_domain.get_peripherals():
       '{ idx: ${peripheral.get_name().upper()}_IDX, start_addr: ${peripheral.get_name().upper()}_START_ADDRESS, end_addr: ${peripheral.get_name().upper()}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor
   };

@@ -894,10 +894,12 @@ def main():
 
     debug_size_address = string2int(obj["debug"]["length"])
 
-    if xheep.get_base_peripherals_base_address() < int("10000", 16):
+    if xheep.get_base_peripheral_domain().get_start_address() < int("10000", 16):
         exit("always on peripheral start address must be greater than 0x10000")
 
-    dma = xheep.get_dma()[0]  # Assuming there is only one DMA peripheral
+    dma = (
+        xheep.get_base_peripheral_domain().get_dma()
+    )  # Assuming there is only one DMA peripheral
 
     if dma.get_num_channels() > 256 or dma.get_num_channels() == 0:
         exit("Number of DMA channels has to be between 0 and 256, excluded")
@@ -922,7 +924,7 @@ def main():
             + ", excluded"
         )
 
-    if xheep.get_user_peripherals_base_address() < int("10000", 16):
+    if xheep.get_user_peripheral_domain().get_start_address() < int("10000", 16):
         exit("user peripheral start address must be greater than 0x10000")
 
     ext_slave_start_address = string2int(obj["ext_slaves"]["address"])

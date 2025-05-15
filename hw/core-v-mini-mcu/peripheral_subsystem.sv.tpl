@@ -2,6 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
+%>
+
 module peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
@@ -293,7 +297,7 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_PLIC_IDX])
   );
 
-% if xheep.is_user_peripheral_included('rv_plic'):
+% if user_peripheral_domain.contains_peripheral('rv_plic'):
   rv_plic rv_plic_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -315,7 +319,7 @@ module peripheral_subsystem
   assign plic_tl_d2h = '0;
 % endif
 
-% if xheep.is_user_peripheral_included('spi_host'):
+% if user_peripheral_domain.contains_peripheral('spi_host'):
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -355,7 +359,7 @@ module peripheral_subsystem
 
 
 
-% if xheep.is_user_peripheral_included('gpio'):
+% if user_peripheral_domain.contains_peripheral('gpio'):
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -395,7 +399,7 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
   );
 
-% if xheep.is_user_peripheral_included('i2c'):
+% if user_peripheral_domain.contains_peripheral('i2c'):
   i2c i2c_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -465,7 +469,7 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
   );
 
-% if xheep.is_user_peripheral_included('rv_timer'):
+% if user_peripheral_domain.contains_peripheral('rv_timer'):
   rv_timer rv_timer_2_3_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -480,7 +484,7 @@ module peripheral_subsystem
   assign rv_timer_3_intr_o = '0;
 % endif
 
-% if xheep.is_user_peripheral_included('spi2'):
+% if user_peripheral_domain.contains_peripheral('spi2'):
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -516,7 +520,7 @@ module peripheral_subsystem
   assign spi2_intr_event = '0;
 % endif
 
-% if xheep.is_user_peripheral_included('pdm2pcm'):
+% if user_peripheral_domain.contains_peripheral('pdm2pcm'):
   pdm2pcm #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -535,7 +539,7 @@ module peripheral_subsystem
 
   assign pdm2pcm_clk_en_o = 1;
 
-% if xheep.is_user_peripheral_included('i2s'):
+% if user_peripheral_domain.contains_peripheral('i2s'):
   i2s #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)

@@ -247,7 +247,9 @@ def load_peripherals_config(system: XHeep, config_path: str):
                 # Skip if peripheral was already added by python configuration
                 if (
                     system.are_base_peripherals_configured()
-                    and system.is_base_peripheral_included(peripheral_name)
+                    and system._base_peripheral_domain.contains_peripheral(
+                        peripheral_name
+                    )
                 ):
                     continue
 
@@ -317,7 +319,9 @@ def load_peripherals_config(system: XHeep, config_path: str):
                 # Skip if peripheral was already added by python configuration
                 if (
                     system.are_user_peripherals_configured()
-                    and system.is_user_peripheral_included(peripheral_name)
+                    and system._user_peripheral_domain.contains_peripheral(
+                        peripheral_name
+                    )
                 ):
                     continue
 

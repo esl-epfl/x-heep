@@ -14,7 +14,7 @@ class Peripheral(ABC):
     """
     Basic description of a peripheral. These peripherals are not linked to a hjson file, they only have a memory range. This class cannot be instantiated.
 
-    :param int address: The virtual (in peripheral domain) memory address of the peripheral, the base address should be known by the creator of the class.
+    :param int address: The virtual (in peripheral domain) memory address of the peripheral, the start address should be known by the creator of the class.
     :param int length: The size taken in memory by the peripheral
     """
 
@@ -109,29 +109,29 @@ class PeripheralDomain(ABC):
     Abstract class representing a peripheral domain. This class cannot be instantiated.
 
     :param str name: The name of the peripheral domain. Convention : starts with a capital letter and is in singular form (no "peripheral domain" at the end)
-    :param int base_address: The base address of the peripheral domain.
+    :param int start_address: The start address of the peripheral domain.
     :param int length: The length of the peripheral domain.
     :param list[Peripheral] peripherals: The list of peripherals in the domain. There can be more than one instance of the same peripheral.
     """
 
     _name: str
-    _base_address: int
+    _start_address: int
     _length: int
     _peripherals: List[
         Peripheral
     ]  # type has to be precised for filtering in validation
 
     @abstractmethod
-    def __init__(self, name: str, base_address: int, length: int):
+    def __init__(self, name: str, start_address: int, length: int):
         """
         Initialize the peripheral domain. Is abstract because each peripheral domain has its own way of initializing without letting the user define start address and length.
 
         :param str name: The name of the peripheral domain. Convention : starts with a capital letter and is in singular form (no "peripheral domain" at the end)
-        :param int base_address: The base address of the peripheral domain.
+        :param int start_address: The start address of the peripheral domain.
         :param int length: The length of the peripheral domain.
         """
         self._name = f"{name} Peripheral Domain"
-        self._base_address = base_address
+        self._start_address = start_address
         self._length = length
         self._peripherals = []
 
@@ -153,12 +153,12 @@ class PeripheralDomain(ABC):
         """
         ...
 
-    def get_base_address(self):
+    def get_start_address(self):
         """
-        :return: The base address of the peripheral domain.
+        :return: The start address of the peripheral domain.
         :rtype: int
         """
-        return self._base_address
+        return self._start_address
 
     def get_length(self):
         """

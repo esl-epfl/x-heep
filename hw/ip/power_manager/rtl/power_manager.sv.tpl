@@ -132,7 +132,7 @@ module power_manager import power_manager_pkg::*; #(
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].clkgate_en_n = ~reg2hw.ram_${bank.name()}_clk_gate.q;
 % endfor
 
-% for channel in range(xheep.get_dma()[0].get_num_channels()):
+% for channel in range(xheep.get_base_peripheral_domain().get_dma().get_num_channels()):
   assign dma_subsystem_pwr_ctrl_o[${channel}].clkgate_en_n = ~reg2hw.dma_ch${channel}_clk_gate.q;
 % endfor
 

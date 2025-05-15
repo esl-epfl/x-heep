@@ -256,7 +256,7 @@ class BasePeripheralDomain(PeripheralDomain):
     """
     Domain for base peripherals. All base peripherals must be added.
 
-    Base address : 0x20000000
+    Start address : 0x20000000
     Length :       0x00100000
     """
 
@@ -276,17 +276,17 @@ class BasePeripheralDomain(PeripheralDomain):
         UART(),
     ]
 
-    def __init__(self, base_address: int = 0x20000000, length: int = 0x00100000):
+    def __init__(self, start_address: int = 0x20000000, length: int = 0x00100000):
         """
         Initialize the base peripheral domain.
-        Base address : 0x20000000
+        Start address : 0x20000000
         Length :       0x00100000
 
         At the beginning, there is no base peripheral. All non-added peripherals will be added during build().
         """
         super().__init__(
             name="Base",
-            base_address=base_address,
+            start_address=start_address,
             length=length,
         )
 
@@ -329,6 +329,30 @@ class BasePeripheralDomain(PeripheralDomain):
         # Add the missing peripherals
         for p in peripherals_to_add:
             self.add_peripheral(p)
+
+    def get_all_dmas(self):
+        """
+        Get the DMA peripherals.
+
+        :return: The DMA peripherals.
+        :rtype: list[DMA]
+        """
+        dmas = []
+        for p in self._peripherals:
+            if isinstance(p, DMA):
+                dmas.append(deepcopy(p))
+        if len(dmas) == 0:
+            raise ValueError("No DMA peripheral found")
+        return dmas
+
+    def get_dma(self):
+        """
+        Get the main DMA peripheral (the first appended DMA peripheral).
+
+        :return: The DMA peripheral.
+        :rtype: DMA
+        """
+        return self.get_all_dmas()[0]
 
     # Validate functions
 
