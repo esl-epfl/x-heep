@@ -45,6 +45,11 @@
     dma_ch_size: "${dma.get_ch_length()}"
     num_dma_master_ports: "${dma.get_num_master_ports()}"
     num_dma_xbar_channels_per_master_port: "${dma.get_num_channels_per_master_port()}"
+    fifo_depth: "${dma.get_fifo_depth()}"
+    addr_mode_en: "${dma.get_addr_mode()}"
+    subaddr_mode_en: "${dma.get_subaddr_mode()}"
+    hw_fifo_mode_en: "${dma.get_hw_fifo_mode()}"
+    zero_padding_en: "${dma.get_zero_padding()}"
     dma_xbar_masters_array: "${dma.get_xbar_array()}"
 
     // Optional Peripherals

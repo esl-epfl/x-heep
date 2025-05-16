@@ -58,9 +58,14 @@ extern "C"
 #define DMA_STATIC_ASSERT(expr, msg)// _Static_assert(!expr, msg);
 
 /**
- * Returns the mask to enable/disable DMA interrupts.
+ * Returns the mask to enable/disable DMA transaction done interrupts.
  */
-#define DMA_CSR_REG_MIE_MASK (( 1 << 19 )) // 19 is DMA fast interrupt bit in MIE CSR
+#define DMA_DONE_CSR_REG_MIE_MASK (( 1 << 19 )) // 19 is DMA fast interrupt bit in MIE CSR
+
+/**
+ * Returns the mask to enable/disable DMA window interrupts.
+ */
+#define DMA_WINDOW_CSR_REG_MIE_MASK (( 1 << 30 )) // 30 is DMA fast interrupt bit in MIE CSR
 
 /**
  * Mask to determine if an address is multiple of 4 (Word aligned).
@@ -261,7 +266,7 @@ uint16_t dma_hp_win_intr_counter = 0;
 /**                                                                        **/
 /****************************************************************************/
 
-void handler_irq_dma(uint32_t id)
+void fic_irq_dma_window(void)
 {
     /* 
      * Find out which channel raised the interrupt and call
@@ -304,7 +309,7 @@ void handler_irq_dma(uint32_t id)
     return;
 }
 
-void fic_irq_dma(void)
+void fic_irq_dma_done(void)
 {
     /* 
      * Find out which channel raised the interrupt and call
@@ -366,7 +371,6 @@ void dma_init( dma *dma_peri )
         /* Clear all values in the DMA registers. */
         dma_subsys_per[i].peri->SRC_PTR        = 0;
         dma_subsys_per[i].peri->DST_PTR        = 0;
-        dma_subsys_per[i].peri->ADDR_PTR       = 0;
         dma_subsys_per[i].peri->SIZE_D1        = 0;
         dma_subsys_per[i].peri->SIZE_D2        = 0;
         dma_subsys_per[i].peri->SRC_PTR_INC_D1 = 0;
@@ -381,11 +385,18 @@ void dma_init( dma *dma_peri )
         dma_subsys_per[i].peri->SIGN_EXT       = 0;
         dma_subsys_per[i].peri->MODE           = 0;
         dma_subsys_per[i].peri->WINDOW_SIZE    = 0;
+        dma_subsys_per[i].peri->INTERRUPT_EN   = 0;
+
+        #if DMA_ADDR_MODE
+        dma_subsys_per[i].peri->ADDR_PTR       = 0;
+        #endif
+
+        #if DMA_ZERO_PADDING
         dma_subsys_per[i].peri->PAD_TOP        = 0;
         dma_subsys_per[i].peri->PAD_BOTTOM     = 0;
         dma_subsys_per[i].peri->PAD_LEFT       = 0;
         dma_subsys_per[i].peri->PAD_RIGHT      = 0;
-        dma_subsys_per[i].peri->INTERRUPT_EN   = 0;
+        #endif
     }
 }
 
@@ -413,12 +424,14 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
     /* The checks request should be a valid request. */
     DMA_STATIC_ASSERT( p_check         < DMA_PERFORM_CHECKS__size,
                        "Check request not valid");
-    /* The padding should be a valid number */
+    /* The padding should be a valid number (if enabled) */
+    #if DMA_ZERO_PADDING
     DMA_STATIC_ASSERT( ((p_trans->pad_top_du >= 0 && p_trans->pad_top_du < 64) && 
                         (p_trans->pad_bottom_du >= 0 && p_trans->pad_bottom_du < 64) && 
                         (p_trans->pad_left_du >= 0 && p_trans->pad_left_du < 64) &&
                         (p_trans->pad_right_du >= 0 && p_trans->pad_right_du < 64)), 
                        "Padding not valid");
+    #endif
     /* The dimensionality should be valid*/
     DMA_STATIC_ASSERT( p_trans->dim < DMA_DIM_CONF__size, "Dimensionality not valid");
 
@@ -473,7 +486,8 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
     /*
      * CHECK IF THERE ARE PADDING INCONSISTENCIES
      */
-
+    
+    #if DMA_ZERO_PADDING
     if (p_check)
     {
         // If the transaction is 1D, check that the top and bottom paddings are set to zero.
@@ -484,6 +498,7 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
             return p_trans->flags;
         }
     }
+    #endif
 
     /*
      * CHECK IF THERE ARE TRIGGER INCONSISTENCIES
@@ -821,14 +836,16 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
      * fast DMA interrupt.
      */
     dma_subsys_per[channel].peri->INTERRUPT_EN = INTR_EN_NONE;
-    CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+    CSR_CLEAR_BITS(CSR_REG_MIE, DMA_DONE_CSR_REG_MIE_MASK );
+    CSR_CLEAR_BITS(CSR_REG_MIE, DMA_WINDOW_CSR_REG_MIE_MASK );
 
     if( dma_subsys_per[channel].trans->end != DMA_TRANS_END_POLLING )
     {
         /* Enable global interrupt. */
-        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 );
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
         /* Enable machine-level fast interrupt. */
-        CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+        CSR_SET_BITS(CSR_REG_MIE, DMA_DONE_CSR_REG_MIE_MASK );
+        CSR_SET_BITS(CSR_REG_MIE, DMA_WINDOW_CSR_REG_MIE_MASK );
 
         /* Enable the transaction interrupt for the channel by setting the corresponding bit in Transaction IFR */
         write_register(  
@@ -853,7 +870,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     }
 
     /*
-     * SET THE PADDING
+     * SET THE PADDING (If enabled)
      */
 
     /*
@@ -861,6 +878,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     * the transaction as a 2D one with a second dimension of 1 du and a second dimension increment of 1 du.
     */
 
+    #if DMA_ZERO_PADDING
     if (p_trans->dim == DMA_DIM_CONF_1D && (p_trans->pad_left_du != 0 || p_trans->pad_right_du != 0))
     {
         p_trans->dim = DMA_DIM_CONF_2D;
@@ -906,11 +924,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
                         DMA_PAD_RIGHT_PAD_OFFSET,
                         dma_subsys_per[channel].peri);
     }
+    #endif
+
     /*
      * SET THE POINTERS
      */
     dma_subsys_per[channel].peri->SRC_PTR = (uint32_t)dma_subsys_per[channel].trans->src->ptr;
 
+    #if DMA_ADDR_MODE
     if(dma_subsys_per[channel].trans->mode != DMA_TRANS_MODE_ADDRESS)
     {
         /*
@@ -924,6 +945,11 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     {
         dma_subsys_per[channel].peri->ADDR_PTR = (uint32_t)dma_subsys_per[channel].trans->src_addr->ptr;
     }
+    #else
+    
+    dma_subsys_per[channel].peri->DST_PTR = (uint32_t)dma_subsys_per[channel].trans->dst->ptr;
+    
+    #endif
 
     /*
      * SET THE TRANSPOSITION MODE
@@ -965,6 +991,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
                         dma_subsys_per[channel].peri );
     }
 
+    #if DMA_ADDR_MODE
     if(dma_subsys_per[channel].trans->mode != DMA_TRANS_MODE_ADDRESS)
     {
         write_register(  get_increment_b_1D( dma_subsys_per[channel].trans->dst, channel),
@@ -982,6 +1009,22 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
                         dma_subsys_per[channel].peri );
         }
     }
+    #else 
+    write_register(  get_increment_b_1D( dma_subsys_per[channel].trans->dst, channel),
+                        DMA_DST_PTR_INC_D1_REG_OFFSET,
+                        DMA_DST_PTR_INC_D1_INC_MASK,
+                        DMA_DST_PTR_INC_D1_INC_OFFSET,
+                        dma_subsys_per[channel].peri );
+        
+    if(dma_subsys_per[channel].trans->dim == DMA_DIM_CONF_2D)
+    {
+        write_register(  get_increment_b_2D( dma_subsys_per[channel].trans->dst, channel),
+                    DMA_DST_PTR_INC_D2_REG_OFFSET,
+                    DMA_DST_PTR_INC_D2_INC_MASK,
+                    DMA_DST_PTR_INC_D2_INC_OFFSET,
+                    dma_subsys_per[channel].peri );
+    }
+    #endif
 
     /*
      * SET THE OPERATION MODE AND WINDOW SIZE
@@ -994,6 +1037,20 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     dma_subsys_per[channel].peri->WINDOW_SIZE =   dma_subsys_per[channel].trans->win_du
                             ? dma_subsys_per[channel].trans->win_du
                             : dma_subsys_per[channel].trans->size_d1_du;
+
+    /* 
+     * ENABLE THE HW FIFO (IF ENABLED)
+     */
+    #if DMA_HW_FIFO_MODE
+    if( dma_subsys_per[channel].trans->hw_fifo_en == 1)
+    {
+      write_register(  1,
+                    DMA_HW_FIFO_EN_REG_OFFSET,
+                    0x1,
+                    DMA_HW_FIFO_EN_HW_FIFO_MODE_BIT,
+                    dma_subsys_per[channel].peri );
+    }
+    #endif
 
     /* 
      * SET THE DIMENSIONALITY
@@ -1012,17 +1069,6 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
                     0x1 << DMA_SIGN_EXT_SIGNED_BIT,
                     DMA_SIGN_EXT_SIGNED_BIT,
                     dma_subsys_per[channel].peri  );
-
-
-    /*
-     * SET THE SIGN EXTENSION BIT
-     */
-    write_register( dma_subsys_per[channel].trans->sign_ext,
-                    DMA_SIGN_EXT_REG_OFFSET,
-                    0x1 << DMA_SIGN_EXT_SIGNED_BIT,
-                    DMA_SIGN_EXT_SIGNED_BIT,
-                    dma_subsys_per[channel].peri  );
-
 
     /*
      * SET TRIGGER SLOTS AND DATA TYPE

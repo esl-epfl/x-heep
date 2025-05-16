@@ -143,6 +143,7 @@ package core_v_mini_mcu_pkg;
 ######################################################################
   // base peripherals
   // ---------------------
+
   localparam AO_PERIPHERALS = ${len(base_peripheral_domain.get_peripherals())};
   localparam DMA_CH_NUM = ${hex(dma.get_num_channels())[2:]};
   localparam DMA_CH_SIZE = 32'h${hex(dma.get_ch_length())[2:]};
@@ -150,9 +151,12 @@ package core_v_mini_mcu_pkg;
 
 % if dma.get_num_master_ports() > 1:
   localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()[::-1]}};
+
 % else:
   localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()}};
 % endif
+
+  localparam int DMA_FIFO_DEPTH = ${dma.get_fifo_depth()};
 
 % for peripheral in base_peripheral_domain.get_peripherals():
   localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"};

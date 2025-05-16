@@ -13,6 +13,8 @@ package dlc_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
+  typedef struct packed {logic [15:0] q;} dlc_reg2hw_trans_size_reg_t;
+
   typedef struct packed {logic [3:0] q;} dlc_reg2hw_dlvl_log_level_width_reg_t;
 
   typedef struct packed {logic [3:0] q;} dlc_reg2hw_dlvl_n_bits_reg_t;
@@ -38,6 +40,7 @@ package dlc_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
+    dlc_reg2hw_trans_size_reg_t trans_size;  // [61:46]
     dlc_reg2hw_dlvl_log_level_width_reg_t dlvl_log_level_width;  // [45:42]
     dlc_reg2hw_dlvl_n_bits_reg_t dlvl_n_bits;  // [41:38]
     dlc_reg2hw_dlvl_mask_reg_t dlvl_mask;  // [37:22]
@@ -55,21 +58,23 @@ package dlc_reg_pkg;
   } dlc_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] DLC_DLVL_LOG_LEVEL_WIDTH_OFFSET = 6'h0;
-  parameter logic [BlockAw-1:0] DLC_DLVL_N_BITS_OFFSET = 6'h4;
-  parameter logic [BlockAw-1:0] DLC_DLVL_MASK_OFFSET = 6'h8;
-  parameter logic [BlockAw-1:0] DLC_DLVL_FORMAT_OFFSET = 6'hc;
-  parameter logic [BlockAw-1:0] DLC_DT_MASK_OFFSET = 6'h10;
-  parameter logic [BlockAw-1:0] DLC_READNOTWRITE_OFFSET = 6'h14;
-  parameter logic [BlockAw-1:0] DLC_BYPASS_OFFSET = 6'h18;
-  parameter logic [BlockAw-1:0] DLC_INTERRUPT_EN_OFFSET = 6'h1c;
-  parameter logic [BlockAw-1:0] DLC_XING_INTR_OFFSET = 6'h20;
+  parameter logic [BlockAw-1:0] DLC_TRANS_SIZE_OFFSET = 6'h0;
+  parameter logic [BlockAw-1:0] DLC_DLVL_LOG_LEVEL_WIDTH_OFFSET = 6'h4;
+  parameter logic [BlockAw-1:0] DLC_DLVL_N_BITS_OFFSET = 6'h8;
+  parameter logic [BlockAw-1:0] DLC_DLVL_MASK_OFFSET = 6'hc;
+  parameter logic [BlockAw-1:0] DLC_DLVL_FORMAT_OFFSET = 6'h10;
+  parameter logic [BlockAw-1:0] DLC_DT_MASK_OFFSET = 6'h14;
+  parameter logic [BlockAw-1:0] DLC_READNOTWRITE_OFFSET = 6'h18;
+  parameter logic [BlockAw-1:0] DLC_BYPASS_OFFSET = 6'h1c;
+  parameter logic [BlockAw-1:0] DLC_INTERRUPT_EN_OFFSET = 6'h20;
+  parameter logic [BlockAw-1:0] DLC_XING_INTR_OFFSET = 6'h24;
 
   // Reset values for hwext registers and their fields
   parameter logic [0:0] DLC_XING_INTR_RESVAL = 1'h0;
 
   // Register index
   typedef enum int {
+    DLC_TRANS_SIZE,
     DLC_DLVL_LOG_LEVEL_WIDTH,
     DLC_DLVL_N_BITS,
     DLC_DLVL_MASK,
@@ -82,16 +87,17 @@ package dlc_reg_pkg;
   } dlc_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] DLC_PERMIT[9] = '{
-      4'b0001,  // index[0] DLC_DLVL_LOG_LEVEL_WIDTH
-      4'b0001,  // index[1] DLC_DLVL_N_BITS
-      4'b0011,  // index[2] DLC_DLVL_MASK
-      4'b0001,  // index[3] DLC_DLVL_FORMAT
-      4'b0011,  // index[4] DLC_DT_MASK
-      4'b0001,  // index[5] DLC_READNOTWRITE
-      4'b0001,  // index[6] DLC_BYPASS
-      4'b0001,  // index[7] DLC_INTERRUPT_EN
-      4'b0001  // index[8] DLC_XING_INTR
+  parameter logic [3:0] DLC_PERMIT[10] = '{
+      4'b0011,  // index[0] DLC_TRANS_SIZE
+      4'b0001,  // index[1] DLC_DLVL_LOG_LEVEL_WIDTH
+      4'b0001,  // index[2] DLC_DLVL_N_BITS
+      4'b0011,  // index[3] DLC_DLVL_MASK
+      4'b0001,  // index[4] DLC_DLVL_FORMAT
+      4'b0011,  // index[5] DLC_DT_MASK
+      4'b0001,  // index[6] DLC_READNOTWRITE
+      4'b0001,  // index[7] DLC_BYPASS
+      4'b0001,  // index[8] DLC_INTERRUPT_EN
+      4'b0001  // index[9] DLC_XING_INTR
   };
 
 endpackage

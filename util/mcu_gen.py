@@ -901,6 +901,22 @@ def main():
         xheep.get_base_peripheral_domain().get_dma()
     )  # Assuming there is only one DMA peripheral
 
+    # Generating DMA subsystem configuration
+    dma_fifo_depth = dma.get_fifo_depth()
+    dma_addr_mode = dma.get_addr_mode()
+    dma_subaddr_mode = dma.get_subaddr_mode()
+    dma_hw_fifo_mode = dma.get_hw_fifo_mode()
+    dma_zero_padding = dma.get_zero_padding()
+
+    """
+    # Generating DMA subsystem configuration
+    dma_fifo_depth = int(base_peripherals["dma"]["fifo_depth"], 16)
+    dma_addr_mode = 0 if base_peripherals["dma"]["addr_mode_en"] == "no" else 1
+    dma_subaddr_mode = 0 if base_peripherals["dma"]["subaddr_mode_en"] == "no" else 1
+    dma_hw_fifo_mode = 0 if base_peripherals["dma"]["hw_fifo_mode_en"] == "no" else 1
+    dma_zero_padding = 0 if base_peripherals["dma"]["zero_padding_en"] == "no" else 1
+    """
+
     if dma.get_num_channels() > 256 or dma.get_num_channels() == 0:
         exit("Number of DMA channels has to be between 0 and 256, excluded")
 

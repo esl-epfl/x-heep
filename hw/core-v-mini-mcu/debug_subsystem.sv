@@ -23,6 +23,7 @@ module debug_subsystem
     input  logic spi_slave_sck_i,
     input  logic spi_slave_cs_i,
     output logic spi_slave_miso_o,
+    output logic spi_slave_miso_oe_o,
     input  logic spi_slave_mosi_i,
 
     output logic debug_ndmreset_no,
@@ -154,10 +155,14 @@ module debug_subsystem
         .obi_master_r_data_i(spi_slave_resp.rdata)
     );
 
-    assign dbg_spi_req[0] = dm_req;
-    assign dbg_spi_req[1] = spi_slave_req;
-    assign dm_resp        = dbg_spi_resp[0];
-    assign spi_slave_resp = dbg_spi_resp[1];
+    assign dbg_spi_req[0]      = dm_req;
+    assign dbg_spi_req[1]      = spi_slave_req;
+    assign dm_resp             = dbg_spi_resp[0];
+    assign spi_slave_resp      = dbg_spi_resp[1];
+
+    // To prevent the spi slave from keeping the MISO signal high
+    // when it is not its turn to speak
+    assign spi_slave_miso_oe_o = ~spi_slave_cs_i;
 
     // 2-to-1 crossbar
     xbar_varlat_n_to_one #(

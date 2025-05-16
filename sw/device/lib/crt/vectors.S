@@ -55,8 +55,8 @@ vector_table:
 	j handler_irq_fast_timer_2
 	// 18 : fast interrupt - timer_3
 	j handler_irq_fast_timer_3
-	// 19 : fast interrupt - dma
-	j handler_irq_fast_dma
+	// 19 : fast interrupt - dma_done
+	j handler_irq_fast_dma_done
 	// 20 : fast interrupt - spi
 	j handler_irq_fast_spi
 	// 21 : fast interrupt - spi_flash
@@ -77,7 +77,9 @@ vector_table:
 	j handler_irq_fast_gpio_6
 	// 29 : fast interrupt - gpio_7
 	j handler_irq_fast_gpio_7
-	// 30 : fast interrupt - unmapped
+  // 30 : fast interrupt - dma_window
+  j handler_irq_fast_dma_window
+	// 31 : fast interrupt - unmapped
 	j __no_irq_handler
 	// 31 : fast interrupt - unmapped - reserved for external accelerators
 	j __no_irq_handler

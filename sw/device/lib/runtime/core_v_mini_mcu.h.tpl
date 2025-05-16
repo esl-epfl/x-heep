@@ -45,9 +45,19 @@ extern "C" {
 
 %endfor
 
+<<<<<<< HEAD
 #define DMA_CH_NUM ${hex(dma.get_num_channels())[2:]}
 #define DMA_CH_SIZE 0x${hex(dma.get_ch_length())[2:]}
 #define DMA_NUM_MASTER_PORTS ${hex(dma.get_num_master_ports())[2:]}
+=======
+#define DMA_CH_NUM ${dma_ch_count}
+#define DMA_CH_SIZE 0x${dma_ch_size}
+#define DMA_NUM_MASTER_PORTS ${num_dma_master_ports}
+#define DMA_ADDR_MODE ${dma_addr_mode}
+#define DMA_SUBADDR_MODE ${dma_subaddr_mode}
+#define DMA_HW_FIFO_MODE ${dma_hw_fifo_mode}
+#define DMA_ZERO_PADDING ${dma_zero_padding}
+>>>>>>> main
 
 // user peripherals
 #define PERIPHERAL_START_ADDRESS 0x${f"{user_peripheral_domain.get_start_address() & 0xFFFFFFFF:08X}"}

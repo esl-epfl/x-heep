@@ -43,7 +43,8 @@
 
 int main(int argc, char *argv[])
 {
-
+    // TODO : This app is testing a wrong version of the PDM2PCM acting only as a CIC filter. 
+    // When fixed, it not passes anymore. Need to be updated with new groundtruth.
 
     PRINTF("PDM2PCM DEMO\n\r");
     PRINTF(" > Start\n\r");
