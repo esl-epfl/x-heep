@@ -266,12 +266,27 @@ def load_peripherals_config(system: XHeep, config_path: str):
                     peripheral = SPI_memio(offset, length)
                 elif peripheral_name == "dma":
                     peripheral = DMA(
-                        offset,
-                        length,
-                        int(peripheral_config["ch_length"], 16),
-                        int(peripheral_config["num_channels"], 16),
-                        int(peripheral_config["num_master_ports"], 16),
-                        int(peripheral_config["num_channels_per_master_port"], 16),
+                        address=offset,
+                        length=length,
+                        ch_length=int(peripheral_config["ch_length"], 16),
+                        num_channels=int(peripheral_config["num_channels"], 16),
+                        num_master_ports=int(peripheral_config["num_master_ports"], 16),
+                        num_channels_per_master_port=int(
+                            peripheral_config["num_channels_per_master_port"], 16
+                        ),
+                        fifo_depth=int(peripheral_config["fifo_depth"], 16),
+                        addr_mode=(
+                            0 if peripheral_config["addr_mode_en"] == "no" else 1
+                        ),
+                        subaddr_mode=(
+                            0 if peripheral_config["subaddr_mode_en"] == "no" else 1
+                        ),
+                        hw_fifo_mode=(
+                            0 if peripheral_config["hw_fifo_mode_en"] == "no" else 1
+                        ),
+                        zero_padding=(
+                            0 if peripheral_config["zero_padding_en"] == "no" else 1
+                        ),
                     )
                     peripheral.custom_configuration(peripheral_config["path"])
                 elif peripheral_name == "power_manager":

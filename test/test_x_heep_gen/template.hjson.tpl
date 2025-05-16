@@ -5,6 +5,7 @@
     user_peripheral_domain = xheep.get_user_peripheral_domain()
     base_peripheral_domain = xheep.get_base_peripheral_domain()
     dma = base_peripheral_domain.get_dma()
+    pdm2pcm = user_peripheral_domain.get_pdm2pcm()
 %>
 
 {
@@ -67,6 +68,16 @@
         % endfor
     }
     peripherals_count: ${len(user_peripheral_domain.get_peripherals())}
+
+    %if pdm2pcm != None:
+    // PDM2PCM configuration
+    %if pdm2pcm.get_cic_mode():
+    pdm2pcm_cic_only = 0x1
+    %else:
+    pdm2pcm_cic_only = 0x0
+    %endif
+    %endif
+
 
     // External Slaves and Flash Memory
     ext_slaves: {

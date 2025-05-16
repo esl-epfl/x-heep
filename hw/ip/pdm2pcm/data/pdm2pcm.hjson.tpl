@@ -68,7 +68,12 @@
         { bits: "3:0", name: "COUNT", desc: "Set the samples count" }
       ]
     }
-% if peripherals['pdm2pcm']['cic_only'] == '0':
+
+<%
+  pdm2pcm = xheep.get_user_peripheral_domain().get_pdm2pcm()
+%>
+
+% if pdm2pcm != None and not pdm2pcm.get_cic_mode() :
     { name:     "DECIMHB1"
       desc:     "Samples count after which to decimate after the first halfband filter."
       swaccess: "rw"
