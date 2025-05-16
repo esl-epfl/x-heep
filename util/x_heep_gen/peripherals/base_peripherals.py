@@ -93,10 +93,10 @@ class DMA(BasePeripheral, DataConfiguration):
         self._num_master_ports = num_master_ports
         self._num_channels_per_master_port = num_channels_per_master_port
         self._fifo_depth = fifo_depth
-        self._addr_mode = addr_mode
-        self._subaddr_mode = subaddr_mode
-        self._hw_fifo_mode = hw_fifo_mode
-        self._zero_padding = zero_padding
+        self._addr_mode = 0 if addr_mode == "no" else 1
+        self._subaddr_mode = 0 if subaddr_mode == "no" else 1
+        self._hw_fifo_mode = 0 if hw_fifo_mode == "no" else 1
+        self._zero_padding = 0 if zero_padding == "no" else 1
 
     def set_ch_length(self, value: int):
         """
@@ -145,48 +145,48 @@ class DMA(BasePeripheral, DataConfiguration):
         Get the number of channels per master port in the DMA.
         """
         return self._num_channels_per_master_port
-    
+
     def get_fifo_depth(self):
         """
         Get the depth of the DMA FIFO.
         """
         return self._fifo_depth
-  
+
     def set_fifo_depth(self, value: int):
         """
         Set the depth of the DMA FIFO.
         """
         self._fifo_depth = value
-    
+
     def set_addr_mode(self, value: str):
         """
         Set the address mode of the DMA.
         """
         if value not in ["yes", "no"]:
             raise ValueError("Invalid address mode. Must be 'yes' or 'no'.")
-        
+
         if value == "yes":
-            self._addr_mode = True
+            self._addr_mode = 1
         else:
-            self._addr_mode = False
-  
+            self._addr_mode = 0
+
     def get_addr_mode(self):
         """
         Get the address mode of the DMA.
         """
         return self._addr_mode
-    
+
     def set_subaddr_mode(self, value: str):
         """
         Set the subaddress mode of the DMA.
         """
         if value not in ["yes", "no"]:
             raise ValueError("Invalid subaddress mode. Must be 'yes' or 'no'.")
-        
+
         if value == "yes":
-            self._subaddr_mode = True
+            self._subaddr_mode = 1
         else:
-            self._subaddr_mode = False
+            self._subaddr_mode = 0
 
     def get_subaddr_mode(self):
         """
@@ -200,29 +200,29 @@ class DMA(BasePeripheral, DataConfiguration):
         """
         if value not in ["yes", "no"]:
             raise ValueError("Invalid hardware FIFO mode. Must be 'yes' or 'no'.")
-        
+
         if value == "yes":
-            self._hw_fifo_mode = True
+            self._hw_fifo_mode = 1
         else:
-            self._hw_fifo_mode = False
+            self._hw_fifo_mode = 0
 
     def get_hw_fifo_mode(self):
         """
         Get the hardware FIFO mode of the DMA.
         """
         return self._hw_fifo_mode
-  
+
     def set_zero_padding(self, value: str):
         """
         Set the zero padding mode of the DMA.
         """
         if value not in ["yes", "no"]:
             raise ValueError("Invalid zero padding mode. Must be 'yes' or 'no'.")
-        
+
         if value == "yes":
-            self._zero_padding = True
+            self._zero_padding = 1
         else:
-            self._zero_padding = False
+            self._zero_padding = 0
 
     def get_zero_padding(self):
         """

@@ -341,7 +341,6 @@ module peripheral_subsystem
       .intr_spi_event_o(spi_intr_event_o)
   );
 % else:
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX] = '0;
   assign spi_sck_o = '0;
   assign spi_sck_en_o = '0;
   assign spi_csb_o = '0;
@@ -375,7 +374,6 @@ module peripheral_subsystem
   assign cio_gpio_o = '0;
   assign cio_gpio_en_o = '0;
   assign gpio_intr = '0;
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_IDX] = '0;
 % endif
 
   reg_to_tlul #(
@@ -506,7 +504,6 @@ module peripheral_subsystem
       .intr_spi_event_o(spi2_intr_event)
   );
 % else:
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI2_IDX] = '0;
   assign spi2_sck_o = '0;
   assign spi2_sck_en_o = '0;
   assign spi2_csb_o = '0;
@@ -529,7 +526,6 @@ module peripheral_subsystem
       .pdm_clk_o(pdm2pcm_clk_o)
   );
 % else:
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX] = '0;
   assign pdm2pcm_clk_o = '0;
 % endif
 
@@ -558,7 +554,6 @@ module peripheral_subsystem
       .i2s_rx_valid_o(i2s_rx_valid_o)
   );
 % else:
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::I2S_IDX] = '0;
 
   assign i2s_sck_oe_o     = 1'b0;
   assign i2s_sck_o        = 1'b0;

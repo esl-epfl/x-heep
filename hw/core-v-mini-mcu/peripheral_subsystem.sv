@@ -442,7 +442,6 @@ module peripheral_subsystem
       .intr_spi_event_o(spi2_intr_event)
   );
 
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX] = '0;
   assign pdm2pcm_clk_o = '0;
 
   assign pdm2pcm_clk_en_o = 1;
