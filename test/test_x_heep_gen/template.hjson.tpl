@@ -71,13 +71,12 @@
 
     %if pdm2pcm != None:
     // PDM2PCM configuration
-    %if pdm2pcm.get_cic_mode():
-    pdm2pcm_cic_only = 0x1
-    %else:
-    pdm2pcm_cic_only = 0x0
+        %if pdm2pcm.get_cic_mode():
+    pdm2pcm_cic_only: 0x1
+        %else:
+    pdm2pcm_cic_only: 0x0
+        %endif
     %endif
-    %endif
-
 
     // External Slaves and Flash Memory
     ext_slaves: {
