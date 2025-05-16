@@ -77,7 +77,7 @@
     pdm2pcm_cic_only: 0x0
         %endif
     %endif
-
+    
     // External Slaves and Flash Memory
     ext_slaves: {
         address: "${ext_slave_start_address}"
