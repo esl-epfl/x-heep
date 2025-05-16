@@ -292,71 +292,36 @@ class XHeep:
 
     def add_peripheral_domain(self, domain: PeripheralDomain):
         """
-        Add a peripheral domain to the system. The domain should already contain all peripherals well configured.
+        Add a peripheral domain to the system. The domain should already contain all peripherals well configured. When adding a domain, a deepcopy is made to avoid side effects.
+
+        :param PeripheralDomain domain: The domain to add.
         """
         if isinstance(domain, BasePeripheralDomain):
-            self._base_peripheral_domain = domain
+            self._base_peripheral_domain = deepcopy(domain)
         elif isinstance(domain, UserPeripheralDomain):
-            self._user_peripheral_domain = domain
+            self._user_peripheral_domain = deepcopy(domain)
         else:
             raise ValueError(
                 "Domain is neither a BasePeripheralDomain nor a UserPeripheralDomain"
             )
 
-    def get_base_peripherals_base_address(self):
+    def get_user_peripheral_domain(self):
         """
-        :return: the base address of the base peripherals.
-        :rtype: int
-        """
-        return self._base_peripheral_domain.get_base_address()
+        Returns a deepcopy of the user peripheral domain.
 
-    def get_base_peripherals_length(self):
+        :return: The user peripheral domain.
+        :rtype: UserPeripheralDomain
         """
-        :return: the length of the base peripheral domain.
-        :rtype: int
-        """
-        return self._base_peripheral_domain.get_length()
+        return deepcopy(self._user_peripheral_domain)
 
-    def get_user_peripherals_base_address(self):
+    def get_base_peripheral_domain(self):
         """
-        :return: the base address of the user peripherals.
-        :rtype: int
-        """
-        return self._user_peripheral_domain.get_base_address()
+        Returns a deepcopy of the base peripheral domain.
 
-    def get_user_peripherals_length(self):
+        :return: The base peripheral domain.
+        :rtype: BasePeripheralDomain
         """
-        :return: the length of the user peripheral domain.
-        :rtype: int
-        """
-        return self._user_peripheral_domain.get_length()
-
-    def get_base_peripherals(self):
-        """
-        :return: a copy of the base peripherals.
-        :rtype: List[BasePeripheral]
-        """
-        return self._base_peripheral_domain.get_peripherals()
-
-    def get_user_peripherals(self):
-        """
-        :return: the user peripherals.
-        :rtype: List[UserPeripheral]
-        """
-        return self._user_peripheral_domain.get_peripherals()
-
-    def get_dma(self):
-        """
-        :return: all dma peripherals.
-        :rtype: List[DMA]
-        """
-        dmas = []
-        for p in self._base_peripheral_domain.get_peripherals():
-            if isinstance(p, DMA):
-                dmas.append(deepcopy(p))
-        if len(dmas) == 0:
-            raise ValueError("No DMA peripheral found")
-        return dmas
+        return deepcopy(self._base_peripheral_domain)
 
     def validate(self) -> bool:
         """
@@ -439,44 +404,44 @@ class XHeep:
         # Check that peripherals domains do not overlap
         if (
             self.are_base_peripherals_configured()
-            and self.get_base_peripherals_base_address()
-            < self.get_user_peripherals_base_address()
-            and self.get_base_peripherals_base_address()
-            + self.get_base_peripherals_length()
-            > self.get_user_peripherals_base_address()
+            and self._base_peripheral_domain.get_start_address()
+            < self._user_peripheral_domain.get_start_address()
+            and self._base_peripheral_domain.get_start_address()
+            + self._base_peripheral_domain.get_length()
+            > self._user_peripheral_domain.get_start_address()
         ):  # base peripheral domain comes before user peripheral domain
             print(
-                f"The base peripheral domain (ends at {self.get_base_peripherals_base_address() + self.get_base_peripherals_length():#08X}) overflows over user peripheral domain (starts at {self.get_user_peripherals_base_address():#08X})."
+                f"The base peripheral domain (ends at {self._base_peripheral_domain.get_start_address() + self._base_peripheral_domain.get_length():#08X}) overflows over user peripheral domain (starts at {self._user_peripheral_domain.get_start_address():#08X})."
             )
             ret = False
         if (
             self.are_user_peripherals_configured()
-            and self.get_user_peripherals_base_address()
-            < self.get_base_peripherals_base_address()
-            and self.get_user_peripherals_base_address()
-            + self.get_user_peripherals_length()
-            > self.get_base_peripherals_base_address()
+            and self._user_peripheral_domain.get_start_address()
+            < self._base_peripheral_domain.get_start_address()
+            and self._user_peripheral_domain.get_start_address()
+            + self._user_peripheral_domain.get_length()
+            > self._base_peripheral_domain.get_start_address()
         ):  # user peripheral domain comes before base peripheral domain
             print(
-                f"The user peripheral domain (ends at {self.get_user_peripherals_base_address() + self.get_user_peripherals_length():#08X}) overflows over base peripheral domain (starts at {self.get_base_peripherals_base_address():#08X})."
+                f"The user peripheral domain (ends at {self._user_peripheral_domain.get_start_address() + self._user_peripheral_domain.get_length():#08X}) overflows over base peripheral domain (starts at {self._base_peripheral_domain.get_start_address():#08X})."
             )
             ret = False
         if (
             self.are_user_peripherals_configured()
             and self.are_base_peripherals_configured()
-            and self.get_user_peripherals_base_address()
-            == self.get_base_peripherals_base_address()
+            and self._user_peripheral_domain.get_start_address()
+            == self._base_peripheral_domain.get_start_address()
         ):  # both domains start at the same address
             print(
-                f"The base peripheral domain and the user peripheral domain should not start at the same address (current addresses are {self.get_base_peripherals_base_address():#08X} and {self.get_user_peripherals_base_address():#08X})."
+                f"The base peripheral domain and the user peripheral domain should not start at the same address (current addresses are {self._base_peripheral_domain.get_start_address():#08X} and {self._user_peripheral_domain.get_start_address():#08X})."
             )
             ret = False
         if (
             self.are_base_peripherals_configured()
-            and self.get_base_peripherals_base_address() < 0x10000
+            and self._base_peripheral_domain.get_start_address() < 0x10000
         ):  # from mcu_gen.py
             print(
-                f"Always on peripheral start address must be greater than 0x10000, current address is {self.get_base_peripherals_base_address():#08X}."
+                f"Always on peripheral start address must be greater than 0x10000, current address is {self._base_peripheral_domain.get_start_address():#08X}."
             )
             ret = False
         return ret

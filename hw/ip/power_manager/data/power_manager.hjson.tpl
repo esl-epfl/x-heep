@@ -223,7 +223,7 @@
       ]
     }
 
-% for channel in range(int(dma_ch_count)):
+% for channel in range(xheep.get_base_peripheral_domain().get_dma().get_num_channels()):
     { name:     "DMA_CH${channel}_CLK_GATE",
       desc:     "Clock-gates the DMA CH${channel}",
       resval:   "0x00000000"
