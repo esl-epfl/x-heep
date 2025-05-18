@@ -88,7 +88,6 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] DEBUG_END_ADDRESS = DEBUG_START_ADDRESS + DEBUG_SIZE;
   localparam logic[31:0] DEBUG_IDX = 32'd${xheep.ram_numbanks() + 1};
 
-<<<<<<< HEAD
   localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h${hex(base_peripheral_domain.get_start_address())[2:]};
   localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h${hex(base_peripheral_domain.get_length())[2:]};
   localparam logic[31:0] AO_PERIPHERAL_END_ADDRESS = AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE;
@@ -96,15 +95,6 @@ package core_v_mini_mcu_pkg;
 
   localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h${hex(user_peripheral_domain.get_start_address())[2:]};
   localparam logic[31:0] PERIPHERAL_SIZE = 32'h${hex(user_peripheral_domain.get_length())[2:]};
-=======
-  localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h${f"{base_peripheral_domain.get_start_address() & 0xFFFFFFFF:08X}"};
-  localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h${f"{base_peripheral_domain.get_length() & 0xFFFFFFFF:08X}"};
-  localparam logic[31:0] AO_PERIPHERAL_END_ADDRESS = AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE;
-  localparam logic[31:0] AO_PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 2};
-
-  localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h${f"{user_peripheral_domain.get_start_address() & 0xFFFFFFFF:08X}"};
-  localparam logic[31:0] PERIPHERAL_SIZE = 32'h${f"{user_peripheral_domain.get_length() & 0xFFFFFFFF:08X}"};
->>>>>>> 01ee01b (refactor: encapsulate peripheral domains)
   localparam logic[31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
   localparam logic[31:0] PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 3};
 
@@ -153,10 +143,9 @@ package core_v_mini_mcu_pkg;
 ######################################################################
   // base peripherals
   // ---------------------
-<<<<<<< HEAD
-
 
   localparam AO_PERIPHERALS = ${len(base_peripheral_domain.get_peripherals())};
+<<<<<<< HEAD
 
 <<<<<<< HEAD
   localparam AO_PERIPHERALS = ${len(base_peripheral_domain.get_peripherals())};
@@ -166,6 +155,11 @@ package core_v_mini_mcu_pkg;
 >>>>>>> 01ee01b (refactor: encapsulate peripheral domains)
   localparam DMA_CH_SIZE = 32'h${hex(dma.get_ch_length())[2:]};
   localparam int DMA_NUM_MASTER_PORTS = ${dma.get_num_master_ports()};
+=======
+  localparam int DMA_CH_NUM = ${hex(dma.get_num_channels())[2:]};
+  localparam DMA_CH_SIZE = 32'h${hex(dma.get_ch_length())[2:]};
+  localparam int DMA_NUM_MASTER_PORTS = ${hex(dma.get_num_master_ports())[2:]};
+>>>>>>> a82c5df (fix: fix template)
 
 % if dma.get_num_master_ports() > 1:
   localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()[::-1]}};
@@ -173,6 +167,7 @@ package core_v_mini_mcu_pkg;
 % else:
   localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()}};
 % endif
+<<<<<<< HEAD
 <<<<<<< HEAD
 
   localparam int DMA_FIFO_DEPTH = ${dma.get_fifo_depth()};
@@ -184,13 +179,12 @@ package core_v_mini_mcu_pkg;
 =======
 <<<<<<< HEAD
  
-  localparam int DMA_FIFO_DEPTH = ${dma.get_fifo_depth()};
-  
-% for peripheral in xheep.get_base_peripherals():
 =======
 
+>>>>>>> a82c5df (fix: fix template)
+  localparam int DMA_FIFO_DEPTH = ${dma.get_fifo_depth()};
+  
 % for peripheral in base_peripheral_domain.get_peripherals():
->>>>>>> d0daffe (refactor: encapsulate peripheral domains)
   localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"};
   localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"};
 >>>>>>> 01ee01b (refactor: encapsulate peripheral domains)
