@@ -37,6 +37,10 @@ hw/ip/pdm2pcm/rtl/pdm2pcm.sv
 hw/ip/pdm2pcm/rtl/pdm_core.sv
 hw/ip/pdm2pcm/rtl/pdm2pcm_reg_top.sv
 hw/ip/pdm2pcm/rtl/pdm2pcm_reg_pkg.sv
+hw/ip/dma/data/dma.hjson
+hw/ip/dma/data/dma_conf.svh
+hw/ip/dma/rtl/dma_reg_pkg.sv
+hw/ip/dma/rtl/dma_reg_top.sv
 hw/system/pad_control/data/pad_control.hjson
 hw/system/pad_control/rtl/pad_control.sv
 hw/system/pad_control/rtl/pad_control_reg_pkg.sv
@@ -55,6 +59,7 @@ sw/device/lib/drivers/power_manager/power_manager_regs.h
 sw/device/lib/drivers/power_manager/power_manager.h
 sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.h
 sw/device/lib/drivers/pad_control/pad_control_regs.h
+sw/device/lib/drivers/dma/dma_regs.h
 sw/device/lib/drivers/**/*_structs.h
 
 # openroad
