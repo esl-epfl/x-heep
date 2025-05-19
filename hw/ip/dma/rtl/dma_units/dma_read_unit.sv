@@ -276,7 +276,7 @@ module dma_read_unit
    */
   fifo_v3 #(
       .DEPTH(RVALID_FIFO_DEPTH),
-      .FALL_THROUGH(1'b1),
+      .FALL_THROUGH(1'b0),
       .DATA_WIDTH(2)
   ) dma_read_data_offset_fifo_i (
       .clk_i,

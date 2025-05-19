@@ -139,7 +139,7 @@ module im2col_spc
   /* DMA FIFO */
   fifo_v3 #(
       .DEPTH(FIFO_DEPTH),
-      .FALL_THROUGH(1'b1),
+      .FALL_THROUGH(1'b0),
       .dtype(dma_if_t)
   ) dma_fifo_i (
       .clk_i,
