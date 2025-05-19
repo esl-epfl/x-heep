@@ -757,7 +757,12 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
          * The window size cannot be larger than the transaction size. Although
          * this would not cause any error, the transaction is rejected because
          * it is likely a mistake.
-         */
+         * UNLESS the transaction is using the circular mode, in which case this
+         * check does not make sense as the window count is carried over different
+         * transactions
+          */
+        if( p_trans->win_du > p_trans->size_d1_du && p_trans->mode != DMA_TRANS_MODE_CIRCULAR )
+
         if( p_trans->win_du > p_trans->size_d1_du )
         {
             p_trans->flags |= DMA_CONFIG_WINDOW_SIZE;
