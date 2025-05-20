@@ -69,7 +69,7 @@ module dma_buffer_fifos
       /* Read FIFO */
       fifo_v3 #(
           .DEPTH(FIFO_DEPTH),
-          .FALL_THROUGH(1'b1),
+          .FALL_THROUGH(1'b0),
           .DATA_WIDTH(8)
       ) dma_read_fifo_i (
           .clk_i,
@@ -100,7 +100,7 @@ module dma_buffer_fifos
   /* Read address mode FIFO */
   fifo_v3 #(
       .DEPTH(FIFO_DEPTH),
-      .FALL_THROUGH(1'b1)
+      .FALL_THROUGH(1'b0)
   ) dma_read_addr_fifo_i (
       .clk_i,
       .rst_ni,
@@ -130,7 +130,7 @@ module dma_buffer_fifos
   /* Write FIFO */
   fifo_v3 #(
       .DEPTH(FIFO_DEPTH),
-      .FALL_THROUGH(1'b1)
+      .FALL_THROUGH(1'b0)
   ) dma_write_fifo_i (
       .clk_i,
       .rst_ni,
