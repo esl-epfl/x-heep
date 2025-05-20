@@ -395,11 +395,32 @@ class PeripheralDomain(ABC):
 
         return return_bool
 
+    def __check_peripheral_domain_bounds(self):
+        """
+        Check if the peripheral domain is within the bounds it can use (being above 0x10000).
+
+        :return: True if the peripheral domain is within the bounds of the memory, False otherwise.
+        :rtype: bool
+        """
+
+        if self.get_start_address() < int("10000", 16):
+            print(
+                f"Peripheral domain {self._name} start address must be greater than 0x10000"
+            )
+            return False
+
+        return True
+
     def validate(self):
         """
-        Validate the peripheral domain. Checks if the paths to the configuration files of the peripherals that have one are valid and if the peripherals do not overlap.
+        Validate the peripheral domain. Checks if the paths to the configuration files of the peripherals that have one are valid, if the peripherals do not overlap and if the peripheral domain is within the bounds.
 
         :return: True if the peripheral domain is valid, False otherwise.
         :rtype: bool
         """
-        return self.__check_paths() and self.__check_peripheral_non_overlap()
+
+        return (
+            self.__check_paths()
+            and self.__check_peripheral_non_overlap()
+            and self.__check_peripheral_domain_bounds()
+        )

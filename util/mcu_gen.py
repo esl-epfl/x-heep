@@ -894,39 +894,6 @@ def main():
 
     debug_size_address = string2int(obj["debug"]["length"])
 
-    if xheep.get_base_peripheral_domain().get_start_address() < int("10000", 16):
-        exit("always on peripheral start address must be greater than 0x10000")
-
-    dma = (
-        xheep.get_base_peripheral_domain().get_dma()
-    )  # Assuming there is only one DMA peripheral
-
-    if dma.get_num_channels() > 256 or dma.get_num_channels() == 0:
-        exit("Number of DMA channels has to be between 0 and 256, excluded")
-
-    if (
-        dma.get_num_master_ports() > dma.get_num_channels()
-        or dma.get_num_master_ports() == 0
-    ):
-        exit(
-            "Number of DMA master ports has to be between 0 and "
-            + str(dma.get_num_channels())
-            + ", 0 excluded"
-        )
-
-    if (
-        dma.get_num_channels_per_master_port() > dma.get_num_channels()
-        and dma.get_num_channels() != 1
-    ) or dma.get_num_channels_per_master_port() == 0:
-        exit(
-            "Number of DMA channels per system bus master ports has to be between 0 and "
-            + str(dma.get_num_channels())
-            + ", excluded"
-        )
-
-    if xheep.get_user_peripheral_domain().get_start_address() < int("10000", 16):
-        exit("user peripheral start address must be greater than 0x10000")
-
     ext_slave_start_address = string2int(obj["ext_slaves"]["address"])
     ext_slave_size_address = string2int(obj["ext_slaves"]["length"])
 

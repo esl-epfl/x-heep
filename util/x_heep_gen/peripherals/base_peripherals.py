@@ -277,6 +277,39 @@ class DMA(BasePeripheral, DataConfiguration):
                 )
             return "default: 1"
 
+    def validate(self):
+        """
+        Checks if the DMA peripheral is valid (number of channels between 0 and 256, master ports between 0 and number of channels, channels per master port between 0 and number of channels, number of channels per master port is not 0 if number of channels is not 1).
+        """
+        valid = True
+        if self.get_num_channels() > 256 or self.get_num_channels() == 0:
+            print("Number of DMA channels has to be between 0 and 256, excluded")
+            valid = False
+
+        if (
+            self.get_num_master_ports() > self.get_num_channels()
+            or self.get_num_master_ports() == 0
+        ):
+            print(
+                "Number of DMA master ports has to be between 0 and "
+                + str(self.get_num_channels())
+                + ", 0 excluded"
+            )
+            valid = False
+
+        if (
+            self.get_num_channels_per_master_port() > self.get_num_channels()
+            and self.get_num_channels() != 1
+        ) or self.get_num_channels_per_master_port() == 0:
+            print(
+                "Number of DMA channels per system bus master ports has to be between 0 and "
+                + str(self.get_num_channels())
+                + ", excluded"
+            )
+            valid = False
+
+        return valid
+
 
 class Power_manager(BasePeripheral, DataConfiguration):
     """
@@ -473,6 +506,13 @@ class BasePeripheralDomain(PeripheralDomain):
 
     def validate(self):
         """
-        Validate the base peripheral domain. Checks if all base peripherals are added, if they don't overlap and if their configuration paths are valid.
+        Validate the base peripheral domain. Checks if all base peripherals are added, if they don't overlap and if their configuration paths are valid. Checks also if dmas are valid.
+
+        :return: True if the base peripheral domain is valid, False otherwise.
+        :rtype: bool
         """
-        return self.__check_all_peripherals_added() and super().validate()
+        dma_valid = True
+        for dma in self.get_all_dmas():
+            dma_valid &= dma.validate()
+
+        return self.__check_all_peripherals_added() and super().validate() and dma_valid
