@@ -145,9 +145,9 @@ package core_v_mini_mcu_pkg;
   // ---------------------
 
   localparam AO_PERIPHERALS = ${len(base_peripheral_domain.get_peripherals())};
-  localparam int DMA_CH_NUM = ${hex(dma.get_num_channels())[2:]};
+  localparam int DMA_CH_NUM = ${dma.get_num_channels()};
   localparam DMA_CH_SIZE = 32'h${hex(dma.get_ch_length())[2:]};
-  localparam int DMA_NUM_MASTER_PORTS = ${hex(dma.get_num_master_ports())[2:]};
+  localparam int DMA_NUM_MASTER_PORTS = ${dma.get_num_master_ports()};
 
 % if dma.get_num_master_ports() > 1:
   localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()[::-1]}};
