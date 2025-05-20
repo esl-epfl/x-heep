@@ -240,84 +240,85 @@ def load_peripherals_config(system: XHeep, config_path: str):
                 if not system.are_base_peripherals_configured()
                 else None
             )
-            # iterate over all peripherals and create corresponding objects
-            for peripheral_name, peripheral_config in fields.items():
-                if peripheral_name == "address" or peripheral_name == "length":
-                    continue
-                # Skip if peripheral was already added by python configuration
-                if (
-                    system.are_base_peripherals_configured()
-                    and system._base_peripheral_domain.contains_peripheral(
-                        peripheral_name
-                    )
-                ):
-                    continue
-
-                offset = int(peripheral_config["offset"], 16)
-                length = int(peripheral_config["length"], 16)
-                if peripheral_name == "soc_ctrl":
-                    peripheral = SOC_ctrl(offset, length)
-                    peripheral.custom_configuration(peripheral_config["path"])
-                elif peripheral_name == "bootrom":
-                    peripheral = Bootrom(offset, length)
-                elif peripheral_name == "spi_flash":
-                    peripheral = SPI_flash(offset, length)
-                elif peripheral_name == "spi_memio":
-                    peripheral = SPI_memio(offset, length)
-                elif peripheral_name == "dma":
-                    peripheral = DMA(
-                        address=offset,
-                        length=length,
-                        ch_length=int(peripheral_config["ch_length"], 16),
-                        num_channels=int(peripheral_config["num_channels"], 16),
-                        num_master_ports=int(peripheral_config["num_master_ports"], 16),
-                        num_channels_per_master_port=int(
-                            peripheral_config["num_channels_per_master_port"], 16
-                        ),
-                        fifo_depth=int(peripheral_config["fifo_depth"], 16),
-                        addr_mode=(
-                            0 if peripheral_config["addr_mode_en"] == "no" else 1
-                        ),
-                        subaddr_mode=(
-                            0 if peripheral_config["subaddr_mode_en"] == "no" else 1
-                        ),
-                        hw_fifo_mode=(
-                            0 if peripheral_config["hw_fifo_mode_en"] == "no" else 1
-                        ),
-                        zero_padding=(
-                            0 if peripheral_config["zero_padding_en"] == "no" else 1
-                        ),
-                    )
-                    peripheral.custom_configuration(peripheral_config["path"])
-                elif peripheral_name == "power_manager":
-                    peripheral = Power_manager(offset, length)
-                    peripheral.custom_configuration(peripheral_config["path"])
-                elif peripheral_name == "rv_timer_ao":
-                    peripheral = RV_timer_ao(offset, length)
-                elif peripheral_name == "fast_intr_ctrl":
-                    peripheral = Fast_intr_ctrl(offset, length)
-                    peripheral.custom_configuration(peripheral_config["path"])
-                elif peripheral_name == "ext_peripheral":
-                    peripheral = Ext_peripheral(offset, length)
-                elif peripheral_name == "pad_control":
-                    peripheral = Pad_control(offset, length)
-                elif peripheral_name == "gpio_ao":
-                    peripheral = GPIO_ao(offset, length)
-                elif peripheral_name == "uart":
-                    peripheral = UART(offset, length)
-                    peripheral.custom_configuration(peripheral_config["path"])
-                else:
-                    raise ValueError(f"Peripheral {peripheral_name} does not exist.")
-                # Adding peripheral to domain
-                if base_peripherals is not None:
-                    base_peripherals.add_peripheral(peripheral)
-                else:
-                    # TODO : add peripheral to system --> add a function in system to add a peripheral, or add a function to get the domain ?
-                    pass
-
             if base_peripherals is not None:
-                # All peripherals in configuration filehave been added
+                # iterate over all peripherals and create corresponding objects
+                for peripheral_name, peripheral_config in fields.items():
+                    if peripheral_name == "address" or peripheral_name == "length":
+                        continue
+                    # Skip if peripheral was already added by python configuration
+                    if (
+                        system.are_base_peripherals_configured()
+                        and system._base_peripheral_domain.contains_peripheral(
+                            peripheral_name
+                        )
+                    ):
+                        continue
+
+                    offset = int(peripheral_config["offset"], 16)
+                    length = int(peripheral_config["length"], 16)
+                    if peripheral_name == "soc_ctrl":
+                        peripheral = SOC_ctrl(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "bootrom":
+                        peripheral = Bootrom(offset, length)
+                    elif peripheral_name == "spi_flash":
+                        peripheral = SPI_flash(offset, length)
+                    elif peripheral_name == "spi_memio":
+                        peripheral = SPI_memio(offset, length)
+                    elif peripheral_name == "dma":
+                        peripheral = DMA(
+                            address=offset,
+                            length=length,
+                            ch_length=int(peripheral_config["ch_length"], 16),
+                            num_channels=int(peripheral_config["num_channels"], 16),
+                            num_master_ports=int(
+                                peripheral_config["num_master_ports"], 16
+                            ),
+                            num_channels_per_master_port=int(
+                                peripheral_config["num_channels_per_master_port"], 16
+                            ),
+                            fifo_depth=int(peripheral_config["fifo_depth"], 16),
+                            addr_mode=(
+                                0 if peripheral_config["addr_mode_en"] == "no" else 1
+                            ),
+                            subaddr_mode=(
+                                0 if peripheral_config["subaddr_mode_en"] == "no" else 1
+                            ),
+                            hw_fifo_mode=(
+                                0 if peripheral_config["hw_fifo_mode_en"] == "no" else 1
+                            ),
+                            zero_padding=(
+                                0 if peripheral_config["zero_padding_en"] == "no" else 1
+                            ),
+                        )
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "power_manager":
+                        peripheral = Power_manager(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "rv_timer_ao":
+                        peripheral = RV_timer_ao(offset, length)
+                    elif peripheral_name == "fast_intr_ctrl":
+                        peripheral = Fast_intr_ctrl(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "ext_peripheral":
+                        peripheral = Ext_peripheral(offset, length)
+                    elif peripheral_name == "pad_control":
+                        peripheral = Pad_control(offset, length)
+                    elif peripheral_name == "gpio_ao":
+                        peripheral = GPIO_ao(offset, length)
+                    elif peripheral_name == "uart":
+                        peripheral = UART(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    else:
+                        raise ValueError(
+                            f"Peripheral {peripheral_name} does not exist."
+                        )
+                    # Adding peripheral to domain
+                    base_peripherals.add_peripheral(peripheral)
+
+                # All peripherals in configuration file have been added
                 system.add_peripheral_domain(base_peripherals)
+
         # User Peripherals
         elif name == "peripherals":
             user_peripherals = (
@@ -327,57 +328,55 @@ def load_peripherals_config(system: XHeep, config_path: str):
                 if not system.are_user_peripherals_configured()
                 else None
             )
-            # iterate over all peripherals and create corresponding objects
-            for peripheral_name, peripheral_config in fields.items():
-                if peripheral_name == "address" or peripheral_name == "length":
-                    continue
-                # Skip if peripheral was already added by python configuration
-                if (
-                    system.are_user_peripherals_configured()
-                    and system._user_peripheral_domain.contains_peripheral(
-                        peripheral_name
-                    )
-                ):
-                    continue
-
-                offset = int(peripheral_config["offset"], 16)
-                length = int(peripheral_config["length"], 16)
-                # Skip if the peripheral is not included
-                if peripheral_config["is_included"] == "no":
-                    continue
-                if peripheral_name == "rv_plic":
-                    peripheral = RV_plic(offset, length)
-                    peripheral.custom_configuration(peripheral_config["path"])
-                elif peripheral_name == "spi_host":
-                    peripheral = SPI_host(offset, length)
-                    peripheral.custom_configuration(peripheral_config["path"])
-                elif peripheral_name == "gpio":
-                    peripheral = GPIO(offset, length)
-                    peripheral.custom_configuration(peripheral_config["path"])
-                elif peripheral_name == "i2c":
-                    peripheral = I2C(offset, length)
-                    peripheral.custom_configuration(peripheral_config["path"])
-                elif peripheral_name == "rv_timer":
-                    peripheral = RV_timer(offset, length)
-                    peripheral.custom_configuration(peripheral_config["path"])
-                elif peripheral_name == "spi2":
-                    peripheral = SPI2(offset, length)
-                elif peripheral_name == "pdm2pcm":
-                    peripheral = PDM2PCM(offset, length)
-                    peripheral.custom_configuration(peripheral_config["path"])
-                elif peripheral_name == "i2s":
-                    peripheral = I2S(offset, length)
-                    peripheral.custom_configuration(peripheral_config["path"])
-                else:
-                    raise ValueError(f"Peripheral {peripheral_name} does not exist.")
-                # Adding peripheral to domain
-                if user_peripherals is not None:
-                    user_peripherals.add_peripheral(peripheral)
-                else:
-                    # TODO : add peripheral to system --> add a function in system to add a peripheral, or add a function to get the domain ?
-                    pass
-            # All peripherals in configuration file have been added
             if user_peripherals is not None:
+                # iterate over all peripherals and create corresponding objects
+                for peripheral_name, peripheral_config in fields.items():
+                    if peripheral_name == "address" or peripheral_name == "length":
+                        continue
+                    # Skip if peripheral was already added by python configuration
+                    if (
+                        system.are_user_peripherals_configured()
+                        and system._user_peripheral_domain.contains_peripheral(
+                            peripheral_name
+                        )
+                    ):
+                        continue
+
+                    offset = int(peripheral_config["offset"], 16)
+                    length = int(peripheral_config["length"], 16)
+                    # Skip if the peripheral is not included
+                    if peripheral_config["is_included"] == "no":
+                        continue
+                    if peripheral_name == "rv_plic":
+                        peripheral = RV_plic(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "spi_host":
+                        peripheral = SPI_host(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "gpio":
+                        peripheral = GPIO(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "i2c":
+                        peripheral = I2C(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "rv_timer":
+                        peripheral = RV_timer(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "spi2":
+                        peripheral = SPI2(offset, length)
+                    elif peripheral_name == "pdm2pcm":
+                        peripheral = PDM2PCM(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "i2s":
+                        peripheral = I2S(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    else:
+                        raise ValueError(
+                            f"Peripheral {peripheral_name} does not exist."
+                        )
+                    # Adding peripheral to domain
+                    user_peripherals.add_peripheral(peripheral)
+                # All peripherals in configuration file have been added
                 system.add_peripheral_domain(user_peripherals)
 
 
