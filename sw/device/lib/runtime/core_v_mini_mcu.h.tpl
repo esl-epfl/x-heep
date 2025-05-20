@@ -33,13 +33,13 @@ extern "C" {
 #define DEBUG_END_ADDRESS (DEBUG_START_ADDRESS + DEBUG_SIZE)
 
 // base peripherals
-#define AO_PERIPHERAL_START_ADDRESS 0x${f"{base_peripheral_domain.get_start_address() & 0xFFFFFFFF:08X}"}
-#define AO_PERIPHERAL_SIZE 0x${f"{base_peripheral_domain.get_length() & 0xFFFFFFFF:08X}"}
+#define AO_PERIPHERAL_START_ADDRESS ${hex(base_peripheral_domain.get_start_address())}
+#define AO_PERIPHERAL_SIZE ${hex(base_peripheral_domain.get_length())}
 #define AO_PERIPHERAL_END_ADDRESS (AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE)
 
 % for peripheral in base_peripheral_domain.get_peripherals():
-#define ${peripheral.get_name().upper()}_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"})
-#define ${peripheral.get_name().upper()}_SIZE 0x${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"}
+#define ${peripheral.get_name().upper()}_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + ${hex(peripheral.get_address())})
+#define ${peripheral.get_name().upper()}_SIZE ${hex(peripheral.get_length())}
 #define ${peripheral.get_name().upper()}_END_ADDRESS (${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE)
 #define ${peripheral.get_name().upper()}_IDX ${loop.index}
 
@@ -54,13 +54,13 @@ extern "C" {
 #define DMA_ZERO_PADDING ${dma.get_zero_padding()}
 
 // user peripherals
-#define PERIPHERAL_START_ADDRESS 0x${f"{user_peripheral_domain.get_start_address() & 0xFFFFFFFF:08X}"}
-#define PERIPHERAL_SIZE 0x${f"{user_peripheral_domain.get_length() & 0xFFFFFFFF:08X}"}
+#define PERIPHERAL_START_ADDRESS ${hex(user_peripheral_domain.get_start_address())}
+#define PERIPHERAL_SIZE ${hex(user_peripheral_domain.get_length())}
 #define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)
 
 % for peripheral in user_peripheral_domain.get_peripherals():
-#define ${peripheral.get_name().upper()}_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"})
-#define ${peripheral.get_name().upper()}_SIZE 0x${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"}
+#define ${peripheral.get_name().upper()}_START_ADDRESS (PERIPHERAL_START_ADDRESS + ${hex(peripheral.get_address())})
+#define ${peripheral.get_name().upper()}_SIZE ${hex(peripheral.get_length())}
 #define ${peripheral.get_name().upper()}_END_ADDRESS (${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE)
 #define ${peripheral.get_name().upper()}_IDX ${loop.index + len(base_peripheral_domain.get_peripherals())}
 #define ${peripheral.get_name().upper()}_IS_INCLUDED

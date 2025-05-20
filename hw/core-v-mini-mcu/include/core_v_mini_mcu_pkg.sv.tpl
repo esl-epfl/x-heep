@@ -88,13 +88,13 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] DEBUG_END_ADDRESS = DEBUG_START_ADDRESS + DEBUG_SIZE;
   localparam logic[31:0] DEBUG_IDX = 32'd${xheep.ram_numbanks() + 1};
 
-  localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h${f"{base_peripheral_domain.get_start_address() & 0xFFFFFFFF:08X}"};
-  localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h${f"{base_peripheral_domain.get_length() & 0xFFFFFFFF:08X}"};
+  localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h${hex(base_peripheral_domain.get_start_address())[2:]};
+  localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h${hex(base_peripheral_domain.get_length())[2:]};
   localparam logic[31:0] AO_PERIPHERAL_END_ADDRESS = AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE;
   localparam logic[31:0] AO_PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 2};
 
-  localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h${f"{user_peripheral_domain.get_start_address() & 0xFFFFFFFF:08X}"};
-  localparam logic[31:0] PERIPHERAL_SIZE = 32'h${f"{user_peripheral_domain.get_length() & 0xFFFFFFFF:08X}"};
+  localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h${hex(user_peripheral_domain.get_start_address())[2:]};
+  localparam logic[31:0] PERIPHERAL_SIZE = 32'h${hex(user_peripheral_domain.get_length())[2:]};
   localparam logic[31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
   localparam logic[31:0] PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 3};
 
@@ -159,8 +159,8 @@ package core_v_mini_mcu_pkg;
   localparam int DMA_FIFO_DEPTH = ${dma.get_fifo_depth()};
 
 % for peripheral in base_peripheral_domain.get_peripherals():
-  localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"};
-  localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"};
+  localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${hex(peripheral.get_address())[2:]};
+  localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${hex(peripheral.get_length())[2:]};
   localparam logic [31:0] ${peripheral.get_name().upper()}_END_ADDRESS = ${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE;
   localparam logic [31:0] ${peripheral.get_name().upper()}_IDX = 32'd${loop.index};
   
@@ -176,8 +176,8 @@ package core_v_mini_mcu_pkg;
 
   // Relative DMA channels addresses
 % for i in range(dma.get_num_channels()):
-  localparam logic [7:0] DMA_CH${i}_START_ADDRESS = 8'h${hex(int(hex(dma.get_ch_length())[2:], 16)*(i) >> 8)[2:]};
-  localparam logic [7:0] DMA_CH${i}_SIZE = 8'h${hex(int(hex(dma.get_ch_length())[2:], 16) >> 8)[2:]};
+  localparam logic [7:0] DMA_CH${i}_START_ADDRESS = 8'h${hex((dma.get_ch_length() * i) >> 8)[2:]};
+  localparam logic [7:0] DMA_CH${i}_SIZE = 8'h${hex((dma.get_ch_length()) >> 8)[2:]};
   localparam logic [7:0] DMA_CH${i}_END_ADDRESS = DMA_CH${i}_START_ADDRESS + DMA_CH${i}_SIZE;
   localparam logic [7:0] DMA_CH${i}_IDX = 8'd${i};
 
@@ -199,8 +199,8 @@ package core_v_mini_mcu_pkg;
   localparam PERIPHERALS = ${len(user_peripheral_domain.get_peripherals())};
 
 % for peripheral in user_peripheral_domain.get_peripherals():
-  localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"};
-  localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"};
+  localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${hex(peripheral.get_address())[2:]};
+  localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${hex(peripheral.get_length())[2:]};
   localparam logic [31:0] ${peripheral.get_name().upper()}_END_ADDRESS = ${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE;
   localparam logic [31:0] ${peripheral.get_name().upper()}_IDX = 32'd${loop.index};
   
