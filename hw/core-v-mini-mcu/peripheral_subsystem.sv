@@ -327,8 +327,6 @@ module peripheral_subsystem
       .intr_spi_event_o(spi_intr_event_o)
   );
 
-
-
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
