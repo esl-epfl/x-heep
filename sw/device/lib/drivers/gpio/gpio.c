@@ -148,7 +148,7 @@ __attribute__((always_inline)) void select_gpio_domain(gpio_pin_number_t pin)
 /****************************************************************************/
 
 gpio_result_t gpio_assign_irq_handler( uint32_t intr_id,
-                                       void *handler() )
+                                       void (*handler)() )
 {
   if( intr_id >= GPIO_INTR_START && intr_id <= GPIO_INTR_END )
   {
