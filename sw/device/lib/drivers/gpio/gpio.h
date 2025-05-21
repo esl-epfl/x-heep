@@ -138,7 +138,7 @@ typedef struct gpio_cfg
  * @return The result of the operation
  */
 gpio_result_t gpio_assign_irq_handler( uint32_t intr_id,
-                                       void *handler() );
+                                       void (*handler)() );
 
 /**
  * @brief Resets all handlers to the dummy handler.
