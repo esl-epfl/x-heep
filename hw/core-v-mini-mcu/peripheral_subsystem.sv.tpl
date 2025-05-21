@@ -276,6 +276,7 @@ module peripheral_subsystem
       .out_rsp_i(peripheral_slv_rsp)
   );
 
+% if user_peripheral_domain.contains_peripheral('rv_plic'):
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -293,7 +294,6 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_PLIC_IDX])
   );
 
-% if user_peripheral_domain.contains_peripheral('rv_plic'):
   rv_plic rv_plic_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -352,8 +352,6 @@ module peripheral_subsystem
   assign spi_tx_ready_o = '0;
 % endif
 
-
-
 % if user_peripheral_domain.contains_peripheral('gpio'):
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
@@ -376,6 +374,7 @@ module peripheral_subsystem
   assign gpio_intr = '0;
 % endif
 
+% if user_peripheral_domain.contains_peripheral('i2c'):
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -393,7 +392,6 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
   );
 
-% if user_peripheral_domain.contains_peripheral('i2c'):
   i2c i2c_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -446,6 +444,7 @@ module peripheral_subsystem
   assign i2c_intr_host_timeout = '0;
 % endif
 
+% if user_peripheral_domain.contains_peripheral('rv_timer'):
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -463,7 +462,6 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
   );
 
-% if user_peripheral_domain.contains_peripheral('rv_timer'):
   rv_timer rv_timer_2_3_i (
       .clk_i(clk_cg),
       .rst_ni,
