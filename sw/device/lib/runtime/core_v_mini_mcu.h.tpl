@@ -66,6 +66,34 @@ extern "C" {
 #define ${peripheral.get_name().upper()}_IS_INCLUDED
 %endfor
 
+// This section is here to have default values for the peripherals that are not included in the user peripheral domain. Their are used in their respective structs.h files.
+// Some other files, like applications main c file, use also some peripheral attributes but the file is not generated if the peripheral is not included in the user peripheral domain.
+% if not user_peripheral_domain.contains_peripheral('rv_plic'):
+#define RV_PLIC_START_ADDRESS 0
+% endif
+% if not user_peripheral_domain.contains_peripheral('spi_host'):
+#define SPI_HOST_START_ADDRESS 0
+% endif
+% if not user_peripheral_domain.contains_peripheral('gpio'):
+#define GPIO_START_ADDRESS 0
+% endif
+% if not user_peripheral_domain.contains_peripheral('i2c'):
+#define I2C_START_ADDRESS 0
+% endif
+% if not user_peripheral_domain.contains_peripheral('rv_timer'):
+#define RV_TIMER_START_ADDRESS 0
+% endif
+% if not user_peripheral_domain.contains_peripheral('spi2'):
+#define SPI2_START_ADDRESS 0
+% endif
+% if not user_peripheral_domain.contains_peripheral('pdm2pcm'):
+#define PDM2PCM_START_ADDRESS 0
+% endif
+% if not user_peripheral_domain.contains_peripheral('i2s'):
+#define I2S_START_ADDRESS 0
+% endif
+// End of the section
+
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
 #define EXT_SLAVE_END_ADDRESS (EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE)
