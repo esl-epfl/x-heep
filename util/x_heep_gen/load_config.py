@@ -266,6 +266,18 @@ def load_peripherals_config(system: XHeep, config_path: str):
                     elif peripheral_name == "spi_memio":
                         peripheral = SPI_memio(offset, length)
                     elif peripheral_name == "dma":
+                        addr_mode_en = peripheral_config["addr_mode_en"]
+                        subaddr_mode_en = peripheral_config["subaddr_mode_en"]
+                        hw_fifo_mode_en = peripheral_config["hw_fifo_mode_en"]
+                        zero_padding_en = peripheral_config["zero_padding_en"]
+                        if addr_mode_en != "no" and addr_mode_en != "yes":
+                            raise ValueError("addr_mode_en should be no or yes")
+                        if subaddr_mode_en != "no" and subaddr_mode_en != "yes":
+                            raise ValueError("subaddr_mode_en should be no or yes")
+                        if hw_fifo_mode_en != "no" and hw_fifo_mode_en != "yes":
+                            raise ValueError("hw_fifo_mode_en should be no or yes")
+                        if zero_padding_en != "no" and zero_padding_en != "yes":
+                            raise ValueError("zero_padding_en should be no or yes")
                         peripheral = DMA(
                             address=offset,
                             length=length,
@@ -278,18 +290,10 @@ def load_peripherals_config(system: XHeep, config_path: str):
                                 peripheral_config["num_channels_per_master_port"], 16
                             ),
                             fifo_depth=int(peripheral_config["fifo_depth"], 16),
-                            addr_mode=(
-                                0 if peripheral_config["addr_mode_en"] == "no" else 1
-                            ),
-                            subaddr_mode=(
-                                0 if peripheral_config["subaddr_mode_en"] == "no" else 1
-                            ),
-                            hw_fifo_mode=(
-                                0 if peripheral_config["hw_fifo_mode_en"] == "no" else 1
-                            ),
-                            zero_padding=(
-                                0 if peripheral_config["zero_padding_en"] == "no" else 1
-                            ),
+                            addr_mode=(0 if addr_mode_en == "no" else 1),
+                            subaddr_mode=(0 if subaddr_mode_en == "no" else 1),
+                            hw_fifo_mode=(0 if hw_fifo_mode_en == "no" else 1),
+                            zero_padding=(0 if zero_padding_en == "no" else 1),
                         )
                         peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "power_manager":
