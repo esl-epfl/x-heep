@@ -419,8 +419,13 @@ class PeripheralDomain(ABC):
         :rtype: bool
         """
 
+        # return (
+        #     self.__check_paths()
+        #     and self.__check_peripheral_non_overlap()
+        #     and self.__check_peripheral_domain_bounds()
+        # )
+
         return (
-            self.__check_paths()
-            and self.__check_peripheral_non_overlap()
+            self.__check_peripheral_non_overlap()
             and self.__check_peripheral_domain_bounds()
         )
