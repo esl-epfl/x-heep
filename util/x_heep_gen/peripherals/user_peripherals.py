@@ -71,11 +71,32 @@ class PDM2PCM(UserPeripheral, DataConfiguration):
     """
     Pulse-density modulation to pulse-code modulation converter.
 
+    :param bool cic_only: True to enable CIC only mode, False to enable other modes. By default, CIC only mode is enabled.
+
     Default configuration file: ./hw/ip/pdm2pcm/data/pdm2pcm.hjson
     """
 
     _name = "pdm2pcm"
     _config_path = "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
+
+    def __init__(self, address: int = None, length: int = None, cic_only: bool = True):
+        """
+        Initialize the PDM2PCM peripheral.
+
+        :param int address: The virtual (in peripheral domain) memory address of the pdm2pcm.
+        :param int length: The length of the pdm2pcm.
+        :param bool cic_only: True to enable CIC only mode, False to enable other modes. By default, CIC only mode is enabled.
+        """
+        super().__init__(address, length)
+        self._cic_only = cic_only
+
+    def get_cic_mode(self):
+        """
+        Get the CIC mode of the PDM2PCM peripheral.
+
+        :return: True if CIC only mode is enabled, False otherwise.
+        """
+        return self._cic_only
 
 
 class I2S(UserPeripheral, DataConfiguration):
@@ -96,23 +117,34 @@ class UserPeripheralDomain(PeripheralDomain):
     """
     Domain for user peripherals. All user peripherals must be added.
 
-    Base address : 0x30000000
-    Length :       0x00100000
+    Start address : 0x30000000
+    Length :        0x00100000
     """
 
-    def __init__(self):
+    def __init__(self, start_address: int = 0x30000000, length: int = 0x00100000):
         """
         Initialize the user peripheral domain.
-        Base address : 0x30000000
+        Start address : 0x30000000
         Length :       0x00100000
 
         At the beginning, there is no base peripheral. All non-added peripherals will be added during build().
         """
         super().__init__(
             name="User",
-            base_address=0x30000000,
-            length=0x00100000,
+            start_address=start_address,
+            length=length,
         )
+
+    def get_pdm2pcm(self):
+        """
+        Get the PDM2PCM peripheral. Assumes only one PDM2PCM peripheral is added. If multiple PDM2PCM peripherals are added, only the first added one will be returned.
+
+        :return: The PDM2PCM peripheral.
+        """
+        for peripheral in self._peripherals:
+            if isinstance(peripheral, PDM2PCM):
+                return peripheral
+        return None
 
     def add_peripheral(self, peripheral: UserPeripheral):
         """
