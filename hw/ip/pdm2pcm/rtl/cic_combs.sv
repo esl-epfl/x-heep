@@ -25,9 +25,9 @@ module cic_combs #(
     input logic [y:0] cic_activated_stages,
 
     // Data input
-    input  logic [WIDTH-1:0] data_i,
+    input  logic [WIDTH-1:0]  data_i,
     // Data output
-    output logic [WIDTH-1:0] data_o
+    output logic [WIDTH-1:0]  data_o
 );
 
   // Auxiliary array to pass data from one instance to the next one
@@ -59,7 +59,7 @@ module cic_combs #(
   always_comb begin
     msb_index = '0;
     for (int i = SesStageNumber - 1; i >= 0; i--) begin
-      if (activates_stages[i]) begin
+      if (cic_activated_stages[i]) begin
         msb_index = i[$clog2(STAGES)-1:0] + 1;
         break;
       end
