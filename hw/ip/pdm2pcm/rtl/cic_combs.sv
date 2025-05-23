@@ -25,9 +25,9 @@ module cic_combs #(
     input logic [y:0] cic_activated_stages,
 
     // Data input
-    input  logic [WIDTH-1:0]  data_i,
+    input  logic [WIDTH-1:0] data_i,
     // Data output
-    output logic [WIDTH-1:0]  data_o
+    output logic [WIDTH-1:0] data_o
 );
 
   // Auxiliary array to pass data from one instance to the next one
