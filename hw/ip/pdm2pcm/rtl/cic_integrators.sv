@@ -21,6 +21,9 @@ module cic_integrators #(
     // Clear input
     input logic clr_i,
 
+    // Which/How many CIC stage are activated (Thermometric, right-aligned)
+    input logic [STAGES-1:0] par_cic_activated_stages,
+
     // Data input
     input  logic [WIDTH-1:0] data_i,
     // Data output
@@ -31,8 +34,6 @@ module cic_integrators #(
   logic [WIDTH-1:0] integrator_data[0:STAGES];
   // First element is the input
   assign integrator_data[0] = data_i;
-  // Last element is the output
-  assign data_o = integrator_data[STAGES];
 
   // Stages instantiation
   genvar i;
@@ -50,6 +51,22 @@ module cic_integrators #(
 
     end
   endgenerate
+
+  // MUX for the stages output
+  logic [$clog2(STAGES)-1:0] msb_index;
+
+  always_comb begin
+    msb_index = '0;
+    for (int k = STAGES - 1; k >= 0; k--) begin
+      if (par_cic_activated_stages[k]) begin
+        msb_index = k[$clog2(STAGES)-1:0] + 1;
+        break;
+      end
+    end
+  end
+
+  // Last element is the output
+  assign data_o = integrator_data[msb_index];
 
 endmodule
 

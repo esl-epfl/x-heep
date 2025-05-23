@@ -55,6 +55,8 @@ int main(int argc, char *argv[])
 
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMCIC_REG_OFFSET, 15);
 
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CIC_ACTIVATED_STAGES_REG_OFFSET, 0b1111);
+
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CONTROL_REG_OFFSET  , 1);
 
     int const COUNT = 5;
