@@ -2,8 +2,9 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-// Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
-// Date: 19.02.2022
+// Authors: Pierre Guillod <pierre.guillod@epfl.ch> ,EPFL, STI-SEL
+//          Jérémie Moullet<jeremie.moullet@epfl.ch>,EPFL, STI-SEL
+// Date: 05.2025
 // Description: Top wrapper for the PDM2PCM acquisition peripheral
 
 module pdm2pcm #(
@@ -27,14 +28,21 @@ module pdm2pcm #(
 
   import pdm2pcm_reg_pkg::*;
 
-  logic              [               15:0]     par_clkdiv_idx;
-  logic              [                3:0]     par_decim_idx_combs;
+  //Compile time operation
+  localparam integer SesStageNumber = $bits(reg2hw.cic_activated_stages.q);
+  localparam integer DecimCicWidth  = $bits(reg2hw.DECIMCIC.q);
+  localparam integer ClkDivIdxWidth = $bits(reg2hw.CLKDIVIDX.q);
+
+
+  logic              [ ClkDivIdxWidth-1:0]     par_clkdiv_idx;
+  logic              [  DecimCicWidth-1:0]     par_decim_idx_combs;
+  logic              [ SesStageNumber-1:0]     par_cic_activated_stages;
 % if peripherals['pdm2pcm']['cic_only'] == '0':
   logic              [                4:0]     par_decim_idx_hfbd2;
   logic              [                5:0]     par_decim_idx_fir;
-  logic              [               17:0]     coeffs_hb1          [ 0:3];
-  logic              [               17:0]     coeffs_hb2          [ 0:6];
-  logic              [               17:0]     coeffs_fir          [0:13];
+  logic              [     FIFO_WIDTH-1:0]     coeffs_hb1          [ 0:3];
+  logic              [     FIFO_WIDTH-1:0]     coeffs_hb2          [ 0:6];
+  logic              [     FIFO_WIDTH-1:0]     coeffs_fir          [0:13];
 % endif
 
   logic              [FIFO_ADDR_WIDTH-1:0]     fifo_usage;
@@ -43,7 +51,7 @@ module pdm2pcm #(
 
   logic                                        rx_ready;
 
-  logic              [               17:0]     pcm;
+  logic              [     FIFO_WIDTH-1:0]     pcm;
 
   // FIFO/window related signals
   logic              [               31:0]     rx_data;
@@ -53,8 +61,8 @@ module pdm2pcm #(
   pdm2pcm_reg2hw_t                             reg2hw;
   pdm2pcm_hw2reg_t                             hw2reg;
 
-  reg_req_t        [                      0:0] fifo_win_h2d;
-  reg_rsp_t        [                      0:0] fifo_win_d2h;
+  reg_req_t         [                  0:0]   fifo_win_h2d;
+  reg_rsp_t         [                  0:0]   fifo_win_d2h;
 
   logic push, pop;
   logic empty, full;
@@ -67,6 +75,8 @@ module pdm2pcm #(
   assign hw2reg.status.empty.de = 1;
   assign par_clkdiv_idx = reg2hw.clkdividx.q;
   assign par_decim_idx_combs = reg2hw.decimcic.q;
+  assign par_cic_activated_stages = reg2hw.cic_activated_stages.q;
+
 % if peripherals['pdm2pcm']['cic_only'] == '0':
   assign par_decim_idx_hfbd2 = reg2hw.decimhb1.q;
   assign par_decim_idx_fir = reg2hw.decimhb2.q;
@@ -106,10 +116,16 @@ module pdm2pcm #(
       };
 % endif
 
-  pdm_core #() pdm_core_i (
+  pdm_core #(
+      .STAGES_CIC(SesStageNumber),
+      .WIDTH(FIFO_WIDTH),
+      .DECIM_COMBS_CNT_W(DecimCicWidth),
+      .CLKDIVWIDTH(ClkDivIdxWidth)
+  ) pdm_core_i (
       .clk_i,
       .rstn_i(rst_ni),
       .en_i(reg2hw.control.enabl.q),
+      .par_cic_activated_stages,
       .par_decim_idx_combs,
 % if peripherals['pdm2pcm']['cic_only'] == '0':
       .par_decim_idx_hfbd2,

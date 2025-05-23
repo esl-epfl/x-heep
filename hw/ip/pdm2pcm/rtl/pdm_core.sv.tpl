@@ -2,17 +2,18 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-// Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
-// Date: 14.12.2022
+// Authors: Pierre Guillod <pierre.guillod@epfl.ch> ,EPFL, STI-SEL
+//          Jérémie Moullet<jeremie.moullet@epfl.ch>,EPFL, STI-SEL
+// Date: 05.2025
 // Description: PDM to PCM converter core
 
 module pdm_core #(
     // Number of stages of the CIC filter
-    localparam STAGES_CIC = 4,
+    parameter integer STAGES_CIC = 4,
     // Width of the datapath
-    localparam WIDTH = 18,
+    parameter integer WIDTH = 18,
     // First decimator internal counter width
-    localparam DECIM_COMBS_CNT_W = 4,
+    parameter integer DECIM_COMBS_CNT_W = 4,
 % if peripherals['pdm2pcm']['cic_only'] == '0':
     // Second decimator internal counter width
     localparam DECIM_HFBD1_CNT_W = 5,
@@ -31,7 +32,7 @@ module pdm_core #(
     localparam COEFFSWIDTH = 18,
 % endif
     // Width of the clock divider count
-    localparam CLKDIVWIDTH = 16
+    parameter integer CLKDIVWIDTH = 16
 
 ) (
     // Clock input
@@ -44,7 +45,8 @@ module pdm_core #(
     input logic en_i,
     // Clock output to the microphone
     output logic pdm_clk_o,
-
+    // Which/How many CIC stage are activated (Thermometric, right-aligned)
+    input logic [STAGES_CIC-1:0] par_cic_activated_stages,
     // First decimator decimation index
     input logic [DECIM_COMBS_CNT_W-1:0] par_decim_idx_combs,
 % if peripherals['pdm2pcm']['cic_only'] == '0':
@@ -180,6 +182,7 @@ module pdm_core #(
       .rstn_i(rstn_i),
       .clr_i (s_clr),
       .en_i  (r_send),
+      .cic_activated_stages,
       .data_i(data),
       .data_o(integr_to_comb)
   );
@@ -198,6 +201,7 @@ module pdm_core #(
       .rstn_i(rstn_i),
       .clr_i (s_clr),
       .en_i  (combs_en),
+      .cic_activated_stages,
       .data_i(integr_to_comb),
       .data_o(combs_to_hb1)
   );
