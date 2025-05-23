@@ -182,7 +182,7 @@ module pdm_core #(
       .rstn_i(rstn_i),
       .clr_i (s_clr),
       .en_i  (r_send),
-      .cic_activated_stages,
+      .par_cic_activated_stages,
       .data_i(data),
       .data_o(integr_to_comb)
   );
@@ -201,7 +201,7 @@ module pdm_core #(
       .rstn_i(rstn_i),
       .clr_i (s_clr),
       .en_i  (combs_en),
-      .cic_activated_stages,
+      .par_cic_activated_stages,
       .data_i(integr_to_comb),
       .data_o(combs_to_hb1)
   );

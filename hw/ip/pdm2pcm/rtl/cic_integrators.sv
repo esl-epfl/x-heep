@@ -22,7 +22,7 @@ module cic_integrators #(
     input logic clr_i,
 
     // Which/How many CIC stage are activated (Thermometric, right-aligned)
-    input logic [y:0] cic_activated_stages,
+    input logic [STAGES-1:0] par_cic_activated_stages,
 
     // Data input
     input  logic [WIDTH-1:0] data_i,
@@ -57,9 +57,9 @@ module cic_integrators #(
 
   always_comb begin
     msb_index = '0;
-    for (int i = SesStageNumber - 1; i >= 0; i--) begin
-      if (cic_activated_stages[i]) begin
-        msb_index = i[$clog2(STAGES)-1:0] + 1;
+    for (int k = STAGES - 1; k >= 0; k--) begin
+      if (par_cic_activated_stages[k]) begin
+        msb_index = k[$clog2(STAGES)-1:0] + 1;
         break;
       end
     end

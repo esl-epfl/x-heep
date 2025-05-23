@@ -30,8 +30,8 @@ module pdm2pcm #(
 
   //Compile time operation
   localparam integer SesStageNumber = $bits(reg2hw.cic_activated_stages.q);
-  localparam integer DecimCicWidth  = $bits(reg2hw.DECIMCIC.q);
-  localparam integer ClkDivIdxWidth = $bits(reg2hw.CLKDIVIDX.q);
+  localparam integer DecimCicWidth  = $bits(reg2hw.decimcic.q);
+  localparam integer ClkDivIdxWidth = $bits(reg2hw.clkdividx.q);
 
 
   logic              [ ClkDivIdxWidth-1:0]     par_clkdiv_idx;
