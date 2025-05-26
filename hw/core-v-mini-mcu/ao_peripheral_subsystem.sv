@@ -85,8 +85,8 @@ module ao_peripheral_subsystem
     input  reg_rsp_t pad_resp_i,
 
     // FAST INTR CTRL
-    input  logic [14:0] fast_intr_i,
-    output logic [14:0] fast_intr_o,
+    input  logic [15:0] fast_intr_i,
+    output logic [15:0] fast_intr_o,
 
     // GPIO
     input  logic [7:0] cio_gpio_i,

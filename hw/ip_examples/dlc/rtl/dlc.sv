@@ -21,7 +21,11 @@ module dlc #(
     input fifo_pkg::fifo_req_t hw_fifo_req_i,
     output fifo_pkg::fifo_resp_t hw_fifo_resp_o,
     // done signal
-    output logic dlc_done_o
+    output logic dlc_done_o,
+    // LC signals
+    output logic dlc_xing_o,
+    output logic dlc_dir_o
+
 );
 
   // Signals Declaration
@@ -47,7 +51,7 @@ module dlc #(
   logic hw_r_fifo_full;
   logic [1:0] hw_r_fifo_usage;
   logic hw_r_fifo_pop;
-  logic signed [15:0] hw_r_fifo_data_out;
+  logic signed [31:0] hw_r_fifo_data_out;
   logic [15:0] hw_w_fifo_data_in;
   logic hw_w_fifo_full;
   logic hw_w_fifo_push;
@@ -56,7 +60,7 @@ module dlc #(
 
   dlc_reg_pkg::dlc_reg2hw_t reg2hw;
   dlc_reg_pkg::dlc_hw2reg_t hw2reg;
-  logic [3:0] reg_log_wl;  // log2 of the level width
+  logic [4:0] reg_log_wl;  // log2 of the level width
   logic [3:0] reg_dlvl_bits;  // number of bits for the delta levels in the output data
   logic [15:0] reg_dlvl_mask;  // mask for delta levels, it has as many 1s as the number of bits for the delta levels
   logic [15:0] reg_dt_mask;  // mask for delta time, it has as many 1s as the number of bits for the delta time
@@ -65,8 +69,6 @@ module dlc #(
 
   // ------------------------- Level Crossing Logic
 
-  logic [15:0] curr_lvl;  // current level
-  logic xing;  // crossing signal asserted when a crossing occurs
   logic signed [15:0] din_lvl;  // input data level
   logic [15:0] trans_counter;  // transaction counter
 
@@ -95,6 +97,7 @@ module dlc #(
   logic [15:0] ovf_dwn_cnt;  // overflow down counter
   logic check_end_ovf;  // '1' if overflow data must not be sent anymore
   logic dir;  // direction of the delta levels
+  logic dir_d1;  // The last direction of delta levels (from the last crossing)
   logic dir_reg;  // direction register
   logic [16:0] dt_dir_out;  // delta-time and direction packet extended on 17 bits
   logic dir_out;  // dir actual output
@@ -174,7 +177,7 @@ module dlc #(
   fifo_v3 #(
       .DEPTH(RW_FIFO_DEPTH_W),
       .FALL_THROUGH(1'b0),
-      .DATA_WIDTH(16)
+      .DATA_WIDTH(32)
   ) hw_r_fifo_i (
       .clk_i(clk_i),
       .rst_ni,
@@ -183,7 +186,7 @@ module dlc #(
       .full_o(hw_r_fifo_full),
       .empty_o(hw_r_fifo_empty),
       .usage_o(hw_r_fifo_usage),
-      .data_i(hw_fifo_req_i.data[15:0]),
+      .data_i(hw_fifo_req_i.data),
       .push_i(hw_fifo_req_i.push),
       .data_o(hw_r_fifo_data_out),
       .pop_i(hw_r_fifo_pop)
@@ -279,7 +282,7 @@ module dlc #(
     */
 
     hw_w_fifo_push = 1'b0;
-    if (hw_w_fifo_full == 1'b0 && ((xing && dlc_state == DLC_RUN && !dlvl_ovf) ||  // crossing detected
+    if (hw_w_fifo_full == 1'b0 && ((dlc_xing_o && dlc_state == DLC_RUN && !dlvl_ovf) ||  // crossing detected
         (dlc_state == DLC_DLVL_OVF) ||  // delta levels overflows
         (dlc_state == DLC_DT_OVF))) begin  // delta time overflows
       hw_w_fifo_push = 1'b1;
@@ -294,7 +297,7 @@ module dlc #(
   always_comb begin
     if (hw_r_fifo_pop && dlc_state == DLC_RUN) begin
       add_op1 = din_lvl;
-      add_op2 = curr_lvl;
+      add_op2 = reg2hw.curr_lvl;
     end else if (dlc_state == DLC_DLVL_OVF) begin
       add_op1 = ovf_dwn_cnt;
       add_op2 = reg_dlvl_mask;
@@ -340,25 +343,54 @@ module dlc #(
       This either means that the input data belongs to a level above or below the current level.
   */
   always_comb begin
-    din_lvl = hw_r_fifo_data_out >>> reg_log_wl;
-    dlvl = add_res;
-    xing = hw_r_fifo_pop == 1'b1 && dlc_state == DLC_RUN && dlvl != 0;
+    if (~rst_ni) begin
+      din_lvl = '0;
+      dlvl = '0;
+      dir = '0;
+    end else begin
+      if (hw_r_fifo_pop == 1'b1) begin
+        din_lvl = hw_r_fifo_data_out >>> reg_log_wl;
+        dlvl = add_res;
+        if (dlc_state == DLC_RUN && dlvl != 0) begin
+
+          /*
+          Compute the direction of the crossing
+          */
+          dir = dlvl[15];
+
+          /*
+            A crossing is detected once the hw read fifo is poped, if the dLC is in run state and:
+            a) "the level difference is non zero", and
+            b) only if hysteresis is enabled: "the direction of the dlc_xing_o is the same as the previous direction"
+          */
+          dlc_xing_o = (reg2hw.hysteresis_en ? (dir_d1 == dir) : 1'b1);
+
+          /* 
+          Threshold updating:
+            the current level is updated only when a crossing is detected and the dLC is in DLC_RUN state.
+            the current level is updated with the input data level.
+          */
+          hw2reg.curr_lvl.de = 1;
+          hw2reg.curr_lvl.d = din_lvl;
+
+          /*
+          Update the direction output when there are crossings
+          */
+          dlc_dir_o = dlc_xing_o ? dir : dlc_dir_o;
+        end
+      end else begin
+        dlc_xing_o = '0;
+        hw2reg.curr_lvl.de = 0;
+      end
+    end
   end
 
-  /* 
-    Threshold updating:
-      the current level is updated only when a crossing is detected and the dLC is in DLC_RUN state.
-      the current level is updated with the input data level.
-  */
-  always_ff @(posedge clk_i, negedge rst_ni) begin
+  always_ff @(posedge clk_i or negedge rst_ni) begin
     if (~rst_ni) begin
-      curr_lvl <= '0;
+      dir_d1 <= '0;
     end else begin
-      if (xing) begin
-        curr_lvl <= din_lvl;
-      end else begin
-        curr_lvl <= curr_lvl;
-      end
+      /*On every level crossed the direction is updated. Even if we do not issue a dlc_xing_o, the last dir is updated.*/
+      dir_d1 <= dir;
     end
   end
 
@@ -370,13 +402,13 @@ module dlc #(
         the sample difference counter is enabled when no crossing happened and the hw read fifo is being popped.
         This means that the sample difference counter is incremented only when a crossing is not detected on a valid input data.
     */
-    sdiff_cnt_en = !xing && hw_r_fifo_pop;
+    sdiff_cnt_en = !dlc_xing_o && hw_r_fifo_pop;
 
     /*
       sample difference counter reset:
         the sample difference counter is reset when a crossing is detected or the sample difference counter has overflowed.
     */
-    sdiff_cnt_rst = (xing && !dlvl_ovf) || (dlc_state == DLC_DT_OVF && !hw_w_fifo_full) || (dlc_state == DLC_DLVL_OVF);
+    sdiff_cnt_rst = (dlc_xing_o && !dlvl_ovf) || (dlc_state == DLC_DT_OVF && !hw_w_fifo_full) || (dlc_state == DLC_DLVL_OVF);
   end
 
   // Sample difference 16-bit Counter
@@ -421,9 +453,6 @@ module dlc #(
 
   // ------------------------- Delta Levels Management
   always_comb begin
-    // delta levels direction is the sign of the delta levels
-    dir = dlvl[15];
-
     // absolute value of the delta levels
     dlvl_abs = add_one_res;
 
@@ -432,7 +461,7 @@ module dlc #(
         This is detected by ANDing dlvl with the inverted delta levels mask and then checking if any of the bits is set to 1.
         If this is the case, it means that dlvl cannot be represented with the current number of bits dedicated to it.
     */
-    dlvl_ovf = (reg_bypass == 1'b0) ? (xing && (|(dlvl_abs & ~reg_dlvl_mask))) : 1'b0;
+    dlvl_ovf = (reg_bypass == 1'b0) ? (dlc_xing_o && (|(dlvl_abs & ~reg_dlvl_mask))) : 1'b0;
 
     /*
       delta-level overflow stops when add_res is equal to 0 or or negative
@@ -516,14 +545,14 @@ module dlc #(
     dlc_output = (dt_dir_out << reg_dlvl_bits) | {1'b0, dlvl_out};
   end
 
-  assign hw_w_fifo_data_in = reg_bypass ? hw_r_fifo_data_out : dlc_output[15:0];
+  assign hw_w_fifo_data_in = reg_bypass ? hw_r_fifo_data_out[15:0] : dlc_output[15:0];
 
   // ------------------------- Interrupt Generation
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
       dlc_xing_intr <= '0;
     end else if (reg2hw.interrupt_en.q == 1'b1) begin
-      if (xing == 1'b1) begin
+      if (dlc_xing_o == 1'b1) begin
         dlc_xing_intr <= 1'b1;
       end else if (reg2hw.xing_intr.re == 1'b1) begin
         dlc_xing_intr <= 1'b0;
@@ -533,4 +562,5 @@ module dlc #(
 
   assign hw2reg.xing_intr.d = dlc_xing_intr;
   assign dlc_xing_intr_o = dlc_xing_intr;
+
 endmodule

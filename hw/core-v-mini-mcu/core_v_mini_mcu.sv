@@ -23,57 +23,43 @@ module core_v_mini_mcu
 ) (
 
     input logic rst_ni,
-
     input logic clk_i,
 
+    output logic spi2_sck_o,
+    input  logic spi2_sck_i,
+    output logic spi2_sck_oe_o,
 
-    input logic boot_select_i,
+    output logic spi2_sd_0_o,
+    input  logic spi2_sd_0_i,
+    output logic spi2_sd_0_oe_o,
 
-    input logic execute_from_flash_i,
+    output logic spi2_sd_1_o,
+    input  logic spi2_sd_1_i,
+    output logic spi2_sd_1_oe_o,
 
-    input logic jtag_tck_i,
+    output logic spi2_cs_0_o,
+    input  logic spi2_cs_0_i,
+    output logic spi2_cs_0_oe_o,
 
-    input logic jtag_tms_i,
+    output logic spi2_cs_1_o,
+    input  logic spi2_cs_1_i,
+    output logic spi2_cs_1_oe_o,
 
-    input logic jtag_trst_ni,
+    output logic spi2_sd_2_o,
+    input  logic spi2_sd_2_i,
+    output logic spi2_sd_2_oe_o,
 
-    input logic jtag_tdi_i,
+    output logic spi2_sd_3_o,
+    input  logic spi2_sd_3_i,
+    output logic spi2_sd_3_oe_o,
 
-    output logic jtag_tdo_o,
+    output logic pdm2pcm_pdm_o,
+    input  logic pdm2pcm_pdm_i,
+    output logic pdm2pcm_pdm_oe_o,
 
-    input logic uart_rx_i,
-
-    output logic uart_tx_o,
-
-    output logic exit_valid_o,
-
-    output logic gpio_0_o,
-    input  logic gpio_0_i,
-    output logic gpio_0_oe_o,
-
-    output logic gpio_1_o,
-    input  logic gpio_1_i,
-    output logic gpio_1_oe_o,
-
-    output logic gpio_2_o,
-    input  logic gpio_2_i,
-    output logic gpio_2_oe_o,
-
-    output logic gpio_3_o,
-    input  logic gpio_3_i,
-    output logic gpio_3_oe_o,
-
-    output logic gpio_4_o,
-    input  logic gpio_4_i,
-    output logic gpio_4_oe_o,
-
-    output logic gpio_5_o,
-    input  logic gpio_5_i,
-    output logic gpio_5_oe_o,
-
-    output logic gpio_6_o,
-    input  logic gpio_6_i,
-    output logic gpio_6_oe_o,
+    output logic pdm2pcm_clk_o,
+    input  logic pdm2pcm_clk_i,
+    output logic pdm2pcm_clk_oe_o,
 
     output logic gpio_7_o,
     input  logic gpio_7_i,
@@ -103,25 +89,77 @@ module core_v_mini_mcu
     input  logic gpio_13_i,
     output logic gpio_13_oe_o,
 
-    output logic spi_flash_sck_o,
-    input  logic spi_flash_sck_i,
-    output logic spi_flash_sck_oe_o,
+    output logic gpio_14_o,
+    input  logic gpio_14_i,
+    output logic gpio_14_oe_o,
 
-    output logic spi_flash_cs_0_o,
-    input  logic spi_flash_cs_0_i,
-    output logic spi_flash_cs_0_oe_o,
+    output logic gpio_15_o,
+    input  logic gpio_15_i,
+    output logic gpio_15_oe_o,
 
-    output logic spi_flash_cs_1_o,
-    input  logic spi_flash_cs_1_i,
-    output logic spi_flash_cs_1_oe_o,
+    output logic gpio_16_o,
+    input  logic gpio_16_i,
+    output logic gpio_16_oe_o,
 
-    output logic spi_flash_sd_0_o,
-    input  logic spi_flash_sd_0_i,
-    output logic spi_flash_sd_0_oe_o,
+    output logic gpio_17_o,
+    input  logic gpio_17_i,
+    output logic gpio_17_oe_o,
 
-    output logic spi_flash_sd_1_o,
-    input  logic spi_flash_sd_1_i,
-    output logic spi_flash_sd_1_oe_o,
+    output logic gpio_18_o,
+    input  logic gpio_18_i,
+    output logic gpio_18_oe_o,
+
+    output logic gpio_19_o,
+    input  logic gpio_19_i,
+    output logic gpio_19_oe_o,
+
+    output logic gpio_20_o,
+    input  logic gpio_20_i,
+    output logic gpio_20_oe_o,
+
+    output logic gpio_21_o,
+    input  logic gpio_21_i,
+    output logic gpio_21_oe_o,
+
+    output logic gpio_22_o,
+    input  logic gpio_22_i,
+    output logic gpio_22_oe_o,
+
+    output logic gpio_23_o,
+    input  logic gpio_23_i,
+    output logic gpio_23_oe_o,
+
+    output logic gpio_24_o,
+    input  logic gpio_24_i,
+    output logic gpio_24_oe_o,
+
+    output logic gpio_25_o,
+    input  logic gpio_25_i,
+    output logic gpio_25_oe_o,
+
+    output logic gpio_26_o,
+    input  logic gpio_26_i,
+    output logic gpio_26_oe_o,
+
+    output logic gpio_27_o,
+    input  logic gpio_27_i,
+    output logic gpio_27_oe_o,
+
+    output logic gpio_28_o,
+    input  logic gpio_28_i,
+    output logic gpio_28_oe_o,
+
+    output logic gpio_29_o,
+    input  logic gpio_29_i,
+    output logic gpio_29_oe_o,
+
+    output logic gpio_30_o,
+    input  logic gpio_30_i,
+    output logic gpio_30_oe_o,
+
+    output logic gpio_31_o,
+    input  logic gpio_31_i,
+    output logic gpio_31_oe_o,
 
     output logic spi_flash_sd_2_o,
     input  logic spi_flash_sd_2_i,
@@ -130,10 +168,6 @@ module core_v_mini_mcu
     output logic spi_flash_sd_3_o,
     input  logic spi_flash_sd_3_i,
     output logic spi_flash_sd_3_oe_o,
-
-    output logic spi_sck_o,
-    input  logic spi_sck_i,
-    output logic spi_sck_oe_o,
 
     output logic spi_cs_0_o,
     input  logic spi_cs_0_i,
@@ -159,125 +193,125 @@ module core_v_mini_mcu
     input  logic spi_sd_3_i,
     output logic spi_sd_3_oe_o,
 
-    input  logic spi_slave_sck_i,
-    output logic gpio_14_o,
-    input  logic gpio_14_i,
-    output logic gpio_14_oe_o,
+    output logic spi_sck_o,
+    input  logic spi_sck_i,
+    output logic spi_sck_oe_o,
 
-    input  logic spi_slave_cs_i,
-    output logic gpio_15_o,
-    input  logic gpio_15_i,
-    output logic gpio_15_oe_o,
+    input logic uart_rx_i,
+
+    output logic uart_tx_o,
+
+
+
+    output logic jtag_tdo_o,
+
+    input logic jtag_tck_i,
+
+    input logic jtag_tdi_i,
+
+    input logic jtag_tms_i,
+
+    input logic jtag_trst_ni,
+
+    input logic spi_slave_mosi_i,
 
     output logic spi_slave_miso_o,
     input  logic spi_slave_miso_i,
     output logic spi_slave_miso_oe_o,
-    output logic gpio_16_o,
-    input  logic gpio_16_i,
-    output logic gpio_16_oe_o,
 
-    input  logic spi_slave_mosi_i,
-    output logic gpio_17_o,
-    input  logic gpio_17_i,
-    output logic gpio_17_oe_o,
+    input logic spi_slave_sck_i,
 
-    output logic pdm2pcm_pdm_o,
-    input  logic pdm2pcm_pdm_i,
-    output logic pdm2pcm_pdm_oe_o,
-    output logic gpio_18_o,
-    input  logic gpio_18_i,
-    output logic gpio_18_oe_o,
+    input logic spi_slave_cs_i,
 
-    output logic pdm2pcm_clk_o,
-    input  logic pdm2pcm_clk_i,
-    output logic pdm2pcm_clk_oe_o,
-    output logic gpio_19_o,
-    input  logic gpio_19_i,
-    output logic gpio_19_oe_o,
 
-    output logic i2s_sck_o,
-    input  logic i2s_sck_i,
-    output logic i2s_sck_oe_o,
-    output logic gpio_20_o,
-    input  logic gpio_20_i,
-    output logic gpio_20_oe_o,
 
-    output logic i2s_ws_o,
-    input  logic i2s_ws_i,
-    output logic i2s_ws_oe_o,
-    output logic gpio_21_o,
-    input  logic gpio_21_i,
-    output logic gpio_21_oe_o,
+    output logic gpio_0_o,
+    input  logic gpio_0_i,
+    output logic gpio_0_oe_o,
 
-    output logic i2s_sd_o,
-    input  logic i2s_sd_i,
-    output logic i2s_sd_oe_o,
-    output logic gpio_22_o,
-    input  logic gpio_22_i,
-    output logic gpio_22_oe_o,
 
-    output logic spi2_cs_0_o,
-    input  logic spi2_cs_0_i,
-    output logic spi2_cs_0_oe_o,
-    output logic gpio_23_o,
-    input  logic gpio_23_i,
-    output logic gpio_23_oe_o,
 
-    output logic spi2_cs_1_o,
-    input  logic spi2_cs_1_i,
-    output logic spi2_cs_1_oe_o,
-    output logic gpio_24_o,
-    input  logic gpio_24_i,
-    output logic gpio_24_oe_o,
 
-    output logic spi2_sck_o,
-    input  logic spi2_sck_i,
-    output logic spi2_sck_oe_o,
-    output logic gpio_25_o,
-    input  logic gpio_25_i,
-    output logic gpio_25_oe_o,
 
-    output logic spi2_sd_0_o,
-    input  logic spi2_sd_0_i,
-    output logic spi2_sd_0_oe_o,
-    output logic gpio_26_o,
-    input  logic gpio_26_i,
-    output logic gpio_26_oe_o,
 
-    output logic spi2_sd_1_o,
-    input  logic spi2_sd_1_i,
-    output logic spi2_sd_1_oe_o,
-    output logic gpio_27_o,
-    input  logic gpio_27_i,
-    output logic gpio_27_oe_o,
 
-    output logic spi2_sd_2_o,
-    input  logic spi2_sd_2_i,
-    output logic spi2_sd_2_oe_o,
-    output logic gpio_28_o,
-    input  logic gpio_28_i,
-    output logic gpio_28_oe_o,
 
-    output logic spi2_sd_3_o,
-    input  logic spi2_sd_3_i,
-    output logic spi2_sd_3_oe_o,
-    output logic gpio_29_o,
-    input  logic gpio_29_i,
-    output logic gpio_29_oe_o,
 
-    output logic i2c_scl_o,
-    input  logic i2c_scl_i,
-    output logic i2c_scl_oe_o,
-    output logic gpio_31_o,
-    input  logic gpio_31_i,
-    output logic gpio_31_oe_o,
 
-    output logic i2c_sda_o,
-    input  logic i2c_sda_i,
-    output logic i2c_sda_oe_o,
-    output logic gpio_30_o,
-    input  logic gpio_30_i,
-    output logic gpio_30_oe_o,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    output logic spi_flash_cs_0_o,
+
+    output logic spi_flash_sck_o,
+
+    output logic spi_flash_sd_0_o,
+    input  logic spi_flash_sd_0_i,
+    output logic spi_flash_sd_0_oe_o,
+
+    output logic spi_flash_sd_1_o,
+    input  logic spi_flash_sd_1_i,
+    output logic spi_flash_sd_1_oe_o,
+
+    output logic spi_flash_cs_1_o,
+    output logic gpio_6_o,
+    input  logic gpio_6_i,
+    output logic gpio_6_oe_o,
+
+    output logic dsm_in_o,
+    output logic gpio_5_o,
+    input  logic gpio_5_i,
+    output logic gpio_5_oe_o,
+
+    output logic dsm_clk_o,
+    input  logic dsm_clk_i,
+    output logic dsm_clk_oe_o,
+    output logic gpio_4_o,
+    input  logic gpio_4_i,
+    output logic gpio_4_oe_o,
+
+
+
+    output logic gpio_2_o,
+    input  logic gpio_2_i,
+    output logic gpio_2_oe_o,
+
+    output logic gpio_3_o,
+    input  logic gpio_3_i,
+    output logic gpio_3_oe_o,
+
+    output logic gpio_1_o,
+    input  logic gpio_1_i,
+    output logic gpio_1_oe_o,
+
+    input logic boot_select_i,
+
+
+    output logic exit_valid_o,
+
+    input logic execute_from_flash_i,
+
+
+
+
 
 
     // eXtension interface
@@ -323,7 +357,10 @@ module core_v_mini_mcu
     output logic [EXT_HARTS_RND-1:0] ext_debug_req_o,
     output logic ext_debug_reset_no,
 
+    // PLIC external interrupts
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
+    // FIC external interrupt
+    input logic intr_ext_peripheral_i,
 
     //power manager exposed to top level
     //signals are unrolled to easy EDA tools
@@ -406,7 +443,7 @@ module core_v_mini_mcu
   logic [4:0] irq_id_out;
   logic irq_software;
   logic irq_external;
-  logic [14:0] irq_fast;
+  logic [15:0] irq_fast;
 
   // Memory Map SPI Region
   obi_req_t flash_mem_slave_req;
@@ -417,7 +454,7 @@ module core_v_mini_mcu
 
   // interrupt array
   logic [31:0] intr;
-  logic [14:0] fast_intr;
+  logic [15:0] fast_intr;
 
   //Power manager signals
   power_manager_out_t cpu_subsystem_pwr_ctrl_out;
@@ -512,10 +549,11 @@ module core_v_mini_mcu
   logic i2s_rx_valid;
 
   assign intr = {
-    1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
+    1'b0, irq_fast, 3'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
 
   assign fast_intr = {
+    intr_ext_peripheral_i,
     dma_window_intr,
     gpio_ao_intr,
     spi_flash_intr,

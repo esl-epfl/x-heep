@@ -17,12 +17,28 @@
         { bits: "15:0", name: "SIZE", desc: "size" },
       ]
     }
+    { name:     "CURR_LVL"
+      desc:     "Current level of the dLC (can be used as initial condition)"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "15:0", name: "LVL", desc: "current level" },
+      ]
+    }
+    { name:     "HYSTERESIS_EN"
+      desc:     "Whether or not to have 1-level of hysteresis"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "HYSTERESIS", desc: "Enable hysteresis" },
+      ]
+    }
     { name:     "DLVL_LOG_LEVEL_WIDTH"
       desc:     "Log2 of the level width"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "3:0", name: "LOG_WL", desc: "log2 of the level width" },
+        { bits: "4:0", name: "LOG_WL", desc: "log2 of the level width" },
       ]
     }
     { name:     "DLVL_N_BITS"

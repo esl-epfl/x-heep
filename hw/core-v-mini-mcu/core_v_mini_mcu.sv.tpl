@@ -23,6 +23,7 @@ module core_v_mini_mcu
 ) (
 
     input logic rst_ni,
+    input logic clk_i,
 
 % for pad in pad_list:
 ${pad.core_v_mini_mcu_interface}
@@ -71,7 +72,10 @@ ${pad.core_v_mini_mcu_interface}
     output logic  [EXT_HARTS_RND-1:0] ext_debug_req_o,
     output logic  ext_debug_reset_no,
 
+    // PLIC external interrupts
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
+    // FIC external interrupt
+    input logic intr_ext_peripheral_i,
 
     //power manager exposed to top level
     //signals are unrolled to easy EDA tools
@@ -154,7 +158,7 @@ ${pad.core_v_mini_mcu_interface}
   logic [4:0] irq_id_out;
   logic irq_software;
   logic irq_external;
-  logic [14:0] irq_fast;
+  logic [15:0] irq_fast;
 
   // Memory Map SPI Region
   obi_req_t flash_mem_slave_req;
@@ -165,7 +169,7 @@ ${pad.core_v_mini_mcu_interface}
 
   // interrupt array
   logic [31:0] intr;
-  logic [14:0] fast_intr;
+  logic [15:0] fast_intr;
 
   //Power manager signals
   power_manager_out_t cpu_subsystem_pwr_ctrl_out;
@@ -256,10 +260,11 @@ ${pad.core_v_mini_mcu_interface}
   logic i2s_rx_valid;
 
   assign intr = {
-    1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
+    1'b0, irq_fast, 3'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
 
   assign fast_intr = {
+    intr_ext_peripheral_i,
     dma_window_intr,
     gpio_ao_intr,
     spi_flash_intr,
