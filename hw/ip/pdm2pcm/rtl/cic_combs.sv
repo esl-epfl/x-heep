@@ -8,9 +8,9 @@
 
 module cic_combs #(
     // Number of integrators
-    parameter STAGES = 4,
+    parameter integer STAGES = 4,
     // Width of the datapath
-    parameter WIDTH  = 18
+    parameter integer WIDTH  = 18
 ) (
     // Clock input
     input logic clk_i,

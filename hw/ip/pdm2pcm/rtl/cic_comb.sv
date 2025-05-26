@@ -8,7 +8,7 @@
 
 module cic_comb #(
     // Width of the datapath
-    parameter WIDTH = 4
+    parameter integer WIDTH = 18
 ) (
     // Clock input
     input logic clk_i,
