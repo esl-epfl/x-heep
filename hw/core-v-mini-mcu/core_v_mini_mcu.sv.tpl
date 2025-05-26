@@ -23,7 +23,6 @@ module core_v_mini_mcu
 ) (
 
     input logic rst_ni,
-    input logic clk_i,
 
 % for pad in pad_list:
 ${pad.core_v_mini_mcu_interface}

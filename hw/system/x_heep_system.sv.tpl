@@ -21,6 +21,7 @@ module x_heep_system
 
 ) (
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
+    input logic intr_ext_peripheral_i,
 
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
@@ -134,6 +135,7 @@ ${pad.internal_signals}
 ${pad.core_v_mini_mcu_bonding}
 % endfor
     .intr_vector_ext_i,
+    .intr_ext_peripheral_i,
     .xif_compressed_if,
     .xif_issue_if,
     .xif_commit_if,

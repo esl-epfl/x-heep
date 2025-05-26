@@ -12,8 +12,6 @@ module dlc #(
 ) (
     input logic clk_i,
     input logic rst_ni,
-    // interrupt
-    output logic dlc_xing_intr_o,
     // Register interface (connected to the external peripheral bus)
     input reg_pkg::reg_req_t reg_req_i,
     output reg_pkg::reg_rsp_t reg_rsp_o,
@@ -40,10 +38,6 @@ module dlc #(
 
   dlc_state_t dlc_state_n;
   dlc_state_t dlc_state;
-
-  // ------------------------- Interrupt
-
-  logic dlc_xing_intr;
 
   // ------------------------- Write and Read Fifos
 
@@ -342,46 +336,55 @@ module dlc #(
       is not equal to 0 and the dLC is in DLC_RUN state and a data has been popped from hw read fifo.
       This either means that the input data belongs to a level above or below the current level.
   */
+
+  logic [31:0] tmp;
+  logic next_dir;
+
   always_comb begin
-    if (~rst_ni) begin
-      din_lvl = '0;
-      dlvl = '0;
-      dir = '0;
-    end else begin
-      if (hw_r_fifo_pop == 1'b1) begin
-        din_lvl = hw_r_fifo_data_out >>> reg_log_wl;
-        dlvl = add_res;
-        if (dlc_state == DLC_RUN && dlvl != 0) begin
+    if (hw_r_fifo_pop == 1'b1) begin
+      tmp = (hw_r_fifo_data_out >>> reg_log_wl);
+      din_lvl = tmp[15:0];
+      dlvl = add_res;
+      if (dlc_state == DLC_RUN && dlvl != 0) begin
 
-          /*
-          Compute the direction of the crossing
-          */
-          dir = dlvl[15];
+        /*
+        Compute the direction of the crossing
+        */
+        dir = dlvl[15];
 
-          /*
-            A crossing is detected once the hw read fifo is poped, if the dLC is in run state and:
-            a) "the level difference is non zero", and
-            b) only if hysteresis is enabled: "the direction of the dlc_xing_o is the same as the previous direction"
-          */
-          dlc_xing_o = (reg2hw.hysteresis_en ? (dir_d1 == dir) : 1'b1);
+        /*
+          A crossing is detected once the hw read fifo is poped, if the dLC is in run state and:
+          a) "the level difference is non zero", and
+          b) only if hysteresis is enabled: "the direction of the dlc_xing_o is the same as the previous direction"
+        */
+        dlc_xing_o = (reg2hw.hysteresis_en ? (dir_d1 == dir) : 1'b1);
 
-          /* 
-          Threshold updating:
-            the current level is updated only when a crossing is detected and the dLC is in DLC_RUN state.
-            the current level is updated with the input data level.
-          */
-          hw2reg.curr_lvl.de = 1;
-          hw2reg.curr_lvl.d = din_lvl;
+        /* 
+        Threshold updating:
+          the current level is updated only when a crossing is detected and the dLC is in DLC_RUN state.
+          the current level is updated with the input data level.
+        */
+        hw2reg.curr_lvl.de = 1;
+        hw2reg.curr_lvl.d = din_lvl;
 
-          /*
-          Update the direction output when there are crossings
-          */
-          dlc_dir_o = dlc_xing_o ? dir : dlc_dir_o;
-        end
+        /*
+        Update the direction output when there are crossings
+        */
+        dlc_dir_o <= dlc_xing_o ? dir : dlc_dir_o;
       end else begin
+        dir = dir;
+        dlc_dir_o = dlc_dir_o;
         dlc_xing_o = '0;
-        hw2reg.curr_lvl.de = 0;
-      end
+        hw2reg.curr_lvl.de = '0;
+      end 
+    end else begin
+      tmp = '0;
+      din_lvl = din_lvl;
+      dlvl = dlvl;
+      dir = dir;
+      dlc_dir_o = dlc_dir_o;
+      dlc_xing_o = '0;
+      hw2reg.curr_lvl.de = '0;
     end
   end
 
@@ -547,20 +550,5 @@ module dlc #(
 
   assign hw_w_fifo_data_in = reg_bypass ? hw_r_fifo_data_out[15:0] : dlc_output[15:0];
 
-  // ------------------------- Interrupt Generation
-  always_ff @(posedge clk_i, negedge rst_ni) begin
-    if (~rst_ni) begin
-      dlc_xing_intr <= '0;
-    end else if (reg2hw.interrupt_en.q == 1'b1) begin
-      if (dlc_xing_o == 1'b1) begin
-        dlc_xing_intr <= 1'b1;
-      end else if (reg2hw.xing_intr.re == 1'b1) begin
-        dlc_xing_intr <= 1'b0;
-      end
-    end
-  end
-
-  assign hw2reg.xing_intr.d = dlc_xing_intr;
-  assign dlc_xing_intr_o = dlc_xing_intr;
 
 endmodule
