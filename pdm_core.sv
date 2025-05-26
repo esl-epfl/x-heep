@@ -6,16 +6,7 @@
 // Date: 14.12.2022
 // Description: PDM to PCM converter core
 
-<%
-    pdm2pcm = xheep.get_user_peripheral_domain().get_pdm2pcm()
-    if pdm2pcm is None :
-        cic_mode = -1
-    else :
-        if pdm2pcm.get_cic_mode() :
-            cic_mode = 1
-        else :
-            cic_mode = 0
-%>
+
 
 module pdm_core #(
     // Number of stages of the CIC filter
@@ -24,23 +15,6 @@ module pdm_core #(
     localparam WIDTH = 18,
     // First decimator internal counter width
     localparam DECIM_COMBS_CNT_W = 4,
-% if cic_mode == 0 :
-    // Second decimator internal counter width
-    localparam DECIM_HFBD1_CNT_W = 5,
-    // Third decimator internal counter width
-    localparam DECIM_HFBD2_CNT_W = 6,
-    // Number of stages of the first halfband filter
-    localparam STAGES_HB1 = 10,
-    localparam COEFFS_HB1 = 4,
-    // Number of stages of the second halfband filter
-    localparam STAGES_HB2 = 22,
-    localparam COEFFS_HB2 = 7,
-    // Number of stages of the FIR filter
-    localparam STAGES_FIR = 26,
-    localparam COEFFS_FIR = 14,
-    // Width of the filter coefficients (Halfbands and FIR)
-    localparam COEFFSWIDTH = 18,
-% endif
     // Width of the clock divider count
     localparam CLKDIVWIDTH = 16
 
@@ -58,18 +32,6 @@ module pdm_core #(
 
     // First decimator decimation index
     input logic [DECIM_COMBS_CNT_W-1:0] par_decim_idx_combs,
-% if cic_mode == 0:
-    // Second decimator decimation index
-    input logic [DECIM_HFBD1_CNT_W-1:0] par_decim_idx_hfbd2,
-    // Third decimator decimation index
-    input logic [DECIM_HFBD2_CNT_W-1:0] par_decim_idx_fir,
-    // First halfband filter coefficients array
-    input logic [COEFFSWIDTH-1:0] coeffs_hb1[0:COEFFS_HB1-1],
-    // Second halfband filter coefficients array
-    input logic [COEFFSWIDTH-1:0] coeffs_hb2[0:COEFFS_HB2-1],
-    // FIR filter coefficients array
-    input logic [COEFFSWIDTH-1:0] coeffs_fir[0:COEFFS_FIR-1],
-% endif
 
     // Input signal (PDM)
     input logic pdm_i,
@@ -91,20 +53,12 @@ module pdm_core #(
   logic [WIDTH-1:0] data;
   logic [WIDTH-1:0] integr_to_comb;
   logic [WIDTH-1:0] combs_to_hb1;
-% if cic_mode == 0:
-  logic [WIDTH-1:0] hb1_to_hb2;
-  logic [WIDTH-1:0] hb2_to_fir;
-%endif
 
   logic             r_en;
   logic             s_clr;
 
   // Decimators output signals
   logic             combs_en;
-% if cic_mode == 0:
-  logic             hb2_en;
-  logic             fir_en;
-% endif
 
   clk_int_div #(
       .DIV_VALUE_WIDTH(CLKDIVWIDTH)
@@ -131,11 +85,7 @@ module pdm_core #(
   assign div_clk_e = div_clk & ~div_clk_p;
 
   // Output synchronized with the last decimator
-% if cic_mode == 0:
-  assign pcm_data_valid_o = fir_en & div_clk & div_clk_e;
-% else:
   assign pcm_data_valid_o = combs_en & div_clk & div_clk_e;
-% endif
 
   ///////////////////////////////////////////////////////////////////////////
   //////////// PIECE OF CODE I NEED TO MAKE EASIER TO UNDERSTAND ////////////
@@ -178,12 +128,12 @@ module pdm_core #(
   assign data = r_data ? 'h1 : {WIDTH{1'b1}};
 
   // Instantiation sequence
-  //┌───────────────────────┐                                       
-  //│       CIC Filter      │                                       
+  //┌───────────────────────┐
+  //│       CIC Filter      │
   //│┌─────┐ ┌─────┐ ┌─────┐│┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐
   //││Intgs├─►Decim├─►Combs├│►Hlfbd├─►Decim├─►Hlfbd├─►Decim├─► FIR │
   //│└─────┘ └─────┘ └─────┘│└─────┘ └─────┘ └─────┘ └─────┘ └─────┘
-  //└───────────────────────┘                                       
+  //└───────────────────────┘
   // (made with asciiflow.com)
 
   cic_integrators #(STAGES_CIC, WIDTH) cic_integrators_inst (
@@ -213,57 +163,7 @@ module pdm_core #(
       .data_o(combs_to_hb1)
   );
 
-% if cic_mode == 0:
-    halfband #(WIDTH, COEFFSWIDTH, STAGES_HB1) halfband_inst1 (
-        .clk_i(div_clk),
-        .rstn_i(rstn_i),
-        .clr_i(s_clr),
-        .en_i(combs_en),
-        .data_i(combs_to_hb1),
-        .data_o(hb1_to_hb2),
-        .freecoeffs(coeffs_hb1)
-    );
-
-    decimator #(DECIM_HFBD1_CNT_W) decimator_before_hb2 (
-        .clk_i(div_clk),
-        .rst_i(rstn_i),
-        .clr_i(s_clr),
-        .par_decimation_index(par_decim_idx_hfbd2),
-        .en_i(r_send),
-        .en_o(hb2_en)
-    );
-
-    halfband #(WIDTH, COEFFSWIDTH, STAGES_HB2) halfband_inst2 (
-        .clk_i(div_clk),
-        .rstn_i(rstn_i),
-        .clr_i(s_clr),
-        .en_i(hb2_en),
-        .data_i(hb1_to_hb2),
-        .data_o(hb2_to_fir),
-        .freecoeffs(coeffs_hb2)
-    );
-
-    decimator #(DECIM_HFBD2_CNT_W) decimator_before_fir (
-        .clk_i(div_clk),
-        .rst_i(rstn_i),
-        .clr_i(s_clr),
-        .par_decimation_index(par_decim_idx_fir),
-        .en_i(r_send),
-        .en_o(fir_en)
-    );
-
-    fir #(WIDTH, COEFFSWIDTH, STAGES_FIR) fir_inst (
-        .clk_i(div_clk),
-        .rstn_i(rstn_i),
-        .clr_i(s_clr),
-        .en_i(fir_en),
-        .data_i(hb2_to_fir),
-        .data_o(pcm_o),
-        .freecoeffs(coeffs_fir)
-    );
-% else:
       assign pcm_o = combs_to_hb1;
-% endif
 
   //
   // Some of the finest debugging goodness

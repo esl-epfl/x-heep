@@ -12,6 +12,7 @@ import pathlib
 import sys
 import re
 import logging
+import pickle
 from subprocess import run
 import csv
 from jsonref import JsonRef
@@ -19,11 +20,13 @@ from mako.template import Template
 import collections
 from math import log2
 import x_heep_gen.load_config
+from x_heep_gen.load_config import load_peripherals_config
 from x_heep_gen.system import BusType
 import x_heep_gen.peripherals.base_peripherals
 import x_heep_gen.peripherals.user_peripherals
 import x_heep_gen.peripherals.abstractions
 import math
+import os
 
 
 class Pad:
@@ -500,21 +503,23 @@ def string2int(hex_json_string):
     return (hex_json_string.split("x")[1]).split(",")[0]
 
 
-def write_template(tpl_path, outdir, outfile, **kwargs):
+def write_template(tpl_path, outfile, **kwargs):
     if tpl_path:
         tpl_path = pathlib.Path(tpl_path).absolute()
         if tpl_path.exists():
             tpl = Template(filename=str(tpl_path))
-            if outfile == None:
-                filename = outdir / tpl_path.with_suffix("").name
-            else:
+            if outfile:
                 filename = outfile
+            else:
+                filename = tpl_path.stem
             with open(filename, "w") as file:
                 code = tpl.render_unicode(**kwargs)
                 code = re_trailws.sub("", code)
                 file.write(code)
         else:
-            raise FileNotFoundError
+            raise FileNotFoundError("Template file not found: {0}".format(tpl_path))
+    else:
+        raise FileNotFoundError("Template file not provided")
 
 
 def prepare_pads_for_layout(total_pad_list, physical_attributes):
@@ -693,124 +698,14 @@ def set_pad_positions(pad_list, physical_attributes):
     return pad_list, bp_offset
 
 
-def main():
-    parser = argparse.ArgumentParser(prog="mcugen")
-    parser.add_argument(
-        "--cfg_peripherals",
-        "-c",
-        metavar="file",
-        type=argparse.FileType("r"),
-        required=True,
-        help="A configuration file",
-    )
+"""
+    Ideally, generate the xheep object with the configuration passed in args. After generating the xheep object, serialize it to a file and save it.
 
-    parser.add_argument(
-        "--config",
-        metavar="file",
-        type=str,
-        required=True,
-        help="X-Heep general configuration",
-    )
+    Currently, generates xheep object with other parameters (and serialize everything)
+"""
 
-    parser.add_argument(
-        "--pads_cfg",
-        "-pc",
-        metavar="file",
-        type=argparse.FileType("r"),
-        required=True,
-        help="A pad configuration file",
-    )
 
-    parser.add_argument(
-        "--outdir", "-of", type=pathlib.Path, required=True, help="Target directory."
-    )
-
-    parser.add_argument(
-        "--outfile",
-        "-o",
-        type=pathlib.Path,
-        required=False,
-        help="Target filename, if omitted the template basename is taken.",
-    )
-
-    # Parse arguments.
-
-    parser.add_argument(
-        "--cpu",
-        metavar="cv32e20,cv32e40p,cv32e40x,cv32e40px",
-        nargs="?",
-        default="",
-        help="CPU type (default value from cfg file)",
-    )
-
-    parser.add_argument(
-        "--bus",
-        metavar="onetoM,NtoM",
-        nargs="?",
-        default="",
-        help="Bus type (default value from cfg file)",
-    )
-
-    parser.add_argument(
-        "--memorybanks",
-        metavar="from 2 to 16",
-        nargs="?",
-        default="",
-        help="Number of 32KB Banks (default value from cfg file)",
-    )
-
-    parser.add_argument(
-        "--memorybanks_il",
-        metavar="0, 2, 4 or 8",
-        nargs="?",
-        default="",
-        help="Number of interleaved memory banks (default value from cfg file)",
-    )
-
-    parser.add_argument(
-        "--external_domains",
-        metavar="from 0 to 32",
-        nargs="?",
-        default="1",
-        help="Number of external domains",
-    )
-
-    parser.add_argument(
-        "--pkg-sv", metavar="PKG_SV", help="Name of top-level package file (output)"
-    )
-
-    parser.add_argument(
-        "--tpl-sv",
-        metavar="TPL_SV",
-        help="Name of SystemVerilog template for your module (output)",
-    )
-
-    parser.add_argument(
-        "--header-c", metavar="HEADER_C", help="Name of header file (output)"
-    )
-
-    parser.add_argument(
-        "--linker_script",
-        metavar="LINKER_SCRIPT",
-        help="Name of the linker script (output)",
-    )
-
-    parser.add_argument(
-        "--external_pads",
-        metavar="file",
-        type=argparse.FileType("r"),
-        required=False,
-        nargs="?",
-        default=None,
-        const=None,
-        help="Name of the hjson file contaiting extra pads",
-    )
-
-    parser.add_argument(
-        "-v", "--verbose", help="increase output verbosity", action="store_true"
-    )
-
-    args = parser.parse_args()
+def generate_xheep(args):
 
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
@@ -831,14 +726,6 @@ def main():
             obj_pad = JsonRef.replace_refs(obj_pad)
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
-
-    if not args.outdir.is_dir():
-        exit("Out directory is not a valid path.")
-
-    outdir = args.outdir
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    outfile = args.outfile
 
     config_override = x_heep_gen.system.Override(None, None, None)
 
@@ -875,9 +762,9 @@ def main():
         exit(
             "external_domains must be less than 32 instead of " + str(external_domains)
         )
- 
+
     try:
-        has_spi_slave = 1 if obj['debug']['has_spi_slave'] == "yes" else 0
+        has_spi_slave = 1 if obj["debug"]["has_spi_slave"] == "yes" else 0
     except KeyError:
         has_spi_slave = 0
 
@@ -885,210 +772,13 @@ def main():
         pathlib.PurePath(str(args.config)), config_override
     )
 
+    load_peripherals_config(xheep, args.cfg_peripherals.name)
+
     debug_start_address = string2int(obj["debug"]["address"])
     if int(debug_start_address, 16) < int("10000", 16):
         exit("debug start address must be greater than 0x10000")
 
     debug_size_address = string2int(obj["debug"]["length"])
-
-    if xheep.are_base_peripherals_configured():
-        base_peripheral_start_address = xheep.get_base_peripherals_base_address()
-        base_peripheral_size_address = xheep.get_base_peripherals_length()
-    else:
-        base_peripheral_start_address = int(
-            string2int(obj["ao_peripherals"]["address"]), 16
-        )
-        base_peripheral_size_address = int(
-            string2int(obj["ao_peripherals"]["length"]), 16
-        )
-
-    if base_peripheral_start_address < int("10000", 16):
-        exit("always on peripheral start address must be greater than 0x10000")
-
-    def extract_peripherals(
-        peripherals,
-    ):  # TODO : Remove when peripherals configured only through python config() (are_peripherals_configured removed)
-        result = {}
-        for name, info in peripherals.items():
-            if isinstance(info, dict):
-                new_info = {}
-                for k, v in info.items():
-                    if "0x" in v:
-                        new_info[k] = string2int(v)
-                    else:
-                        new_info[k] = v
-                result[name] = new_info
-
-        return result
-
-    def discard_path(
-        peripherals,
-    ):  # TODO : Remove when peripherals configured only through python config() (are_peripherals_configured removed)
-        new = {}
-        for k, v in peripherals.items():
-            if isinstance(v, dict):
-                new[k] = {key: val for key, val in v.items() if key not in ("path")}
-            else:
-                new[k] = v
-        return new
-
-    def len_extracted_peripherals(
-        peripherals,
-    ):  # TODO : Remove when peripherals configured only through python config() (are_peripherals_configured removed)
-        len_ep = 0
-        for name, info in peripherals.items():
-            if isinstance(info, dict):
-                if info["is_included"] == "yes":
-                    len_ep += 1
-        return len_ep
-
-    if xheep.are_base_peripherals_configured():
-        base_peripherals = xheep.get_base_peripherals()  # Paths still in peripherals
-        base_peripherals_count = len(base_peripherals)
-        dma = xheep.get_dma()[
-            0
-        ]  # TODO : Currently considering that there is only one DMA peripheral
-        dma_ch_count = dma.get_num_channels()
-        dma_ch_size = dma.get_ch_length()
-        # Number of master ports for the dma subsystem
-        num_dma_master_ports = dma.get_num_master_ports()
-        # Number of masters for each slave of the DMA NtoM xbar
-        num_dma_xbar_channels_per_master_port = dma.get_num_channels_per_master_port()
-        # Generating DMA subsystem configuration
-        dma_fifo_depth = dma.get_fifo_depth()
-        dma_addr_mode = dma.get_addr_mode()
-        dma_subaddr_mode = dma.get_subaddr_mode()
-        dma_hw_fifo_mode = dma.get_hw_fifo_mode()
-        dma_zero_padding = dma.get_zero_padding()
-    else:
-        base_peripherals = extract_peripherals(discard_path(obj["ao_peripherals"]))
-        base_peripherals_count = len(base_peripherals)
-        dma_ch_count = int(base_peripherals["dma"]["num_channels"])
-        dma_ch_size = int(base_peripherals["dma"]["ch_length"])
-        # Number of master ports for the dma subsystem
-        num_dma_master_ports = int(base_peripherals["dma"]["num_master_ports"])
-        # Number of masters for each slave of the DMA NtoM xbar
-        num_dma_xbar_channels_per_master_port = int(
-            base_peripherals["dma"]["num_channels_per_master_port"]
-        )
-        # Generating DMA subsystem configuration
-        dma_fifo_depth = int(base_peripherals["dma"]["fifo_depth"], 16)
-        dma_addr_mode = 0 if base_peripherals["dma"]["addr_mode_en"] == "no" else 1
-        dma_subaddr_mode = 0 if base_peripherals["dma"]["subaddr_mode_en"] == "no" else 1
-        dma_hw_fifo_mode = 0 if base_peripherals["dma"]["hw_fifo_mode_en"] == "no" else 1
-        dma_zero_padding = 0 if base_peripherals["dma"]["zero_padding_en"] == "no" else 1
-
-    if dma_ch_count > 256 or dma_ch_count == 0:
-        exit("Number of DMA channels has to be between 0 and 256, excluded")
-
-    if num_dma_master_ports > dma_ch_count or num_dma_master_ports == 0:
-        exit(
-            "Number of DMA master ports has to be between 0 and "
-            + str(dma_ch_count)
-            + ", 0 excluded"
-        )
-
-    if (
-        num_dma_xbar_channels_per_master_port > dma_ch_count and dma_ch_count != 1
-    ) or num_dma_xbar_channels_per_master_port == 0:
-        exit(
-            "Number of DMA channels per system bus master ports has to be between 0 and "
-            + str(dma_ch_count)
-            + ", excluded"
-        )
-
-    if num_dma_master_ports > 1:
-        # Computation of full_masters_xbars
-        temp_full_masters_xbars = math.floor(
-            dma_ch_count / num_dma_xbar_channels_per_master_port
-        )
-        if (
-            temp_full_masters_xbars < num_dma_master_ports
-            and temp_full_masters_xbars * num_dma_xbar_channels_per_master_port
-            == dma_ch_count
-        ):
-            full_masters_xbars = temp_full_masters_xbars - 1
-        else:
-            full_masters_xbars = temp_full_masters_xbars
-        last = num_dma_xbar_channels_per_master_port * full_masters_xbars
-
-        # Array initialization
-        array_xbar_gen = [0] * num_dma_master_ports
-
-        # Computation of the number of xbar channels for each master port
-        for i in range(num_dma_master_ports):
-            if i < full_masters_xbars:
-                array_xbar_gen[i] = num_dma_xbar_channels_per_master_port
-            else:
-                array_xbar_gen[i] = min(
-                    dma_ch_count - last,
-                    dma_ch_count - last - (num_dma_master_ports - i - 1),
-                )
-                last = last + array_xbar_gen[i]
-
-        if sum(array_xbar_gen) != dma_ch_count or 0 in array_xbar_gen:
-            exit("Error in the DMA xbar generation: wrong parameters")
-
-        dma_xbar_array = ", ".join(map(str, array_xbar_gen))
-    else:
-        if num_dma_xbar_channels_per_master_port != dma_ch_count:
-            exit(
-                "With 1 master port, the number of DMA channels per master port has to be equal to the number of DMA channels"
-            )
-        dma_xbar_array = "default: 1"
-    
-    if xheep.are_user_peripherals_configured():
-        user_peripheral_start_address = xheep.get_user_peripherals_base_address()
-        user_peripheral_size_address = xheep.get_user_peripherals_length()
-        user_peripherals = xheep.get_user_peripherals()  # Paths still in peripherals
-        user_peripherals_count = len(user_peripherals)
-    else:
-        user_peripheral_start_address = int(
-            string2int(obj["peripherals"]["address"]), 16
-        )
-        user_peripheral_size_address = int(string2int(obj["peripherals"]["length"]), 16)
-        user_peripherals = extract_peripherals(discard_path(obj["peripherals"]))
-        user_peripherals_count = len(user_peripherals)
-
-    if user_peripheral_start_address < int("10000", 16):
-        exit("user peripheral start address must be greater than 0x10000")
-
-    # For simplicity between python config and hjson config, formating peripherals to list of dictionaries instead of list of Peripherals
-    def __format_peripherals_to_dicts(peripherals):
-        format = {}
-
-        for p in peripherals:
-            description = {
-                "offset": f"{p.get_address() & 0xFFFFFFFF:08X}",  # Converts int to its hexadecimal representation on 8 digits
-                "length": f"{p.get_length() & 0xFFFFFFFF:08X}",
-                # Doesn't add path since it's filtered out with hjson config version
-            }
-
-            # Adding DMA specific information
-            if isinstance(p, x_heep_gen.peripherals.base_peripherals.DMA):
-                description["ch_length"] = hex(p.get_ch_length()).split("x")[
-                    1
-                ]  # Converts int to its hexadecimal representation (minimal number of digits)
-                description["num_channels"] = hex(p.get_num_channels()).split("x")[1]
-                description["num_master_ports"] = hex(p.get_num_master_ports()).split(
-                    "x"
-                )[1]
-                description["num_channels_per_master_port"] = hex(
-                    p.get_num_channels_per_master_port()
-                ).split("x")[1]
-
-            # Adding is_included to the description if the peripheral is a UserPeripheral
-            if isinstance(p, x_heep_gen.peripherals.abstractions.UserPeripheral):
-                description["is_included"] = "yes"
-
-            format[p.get_name()] = description
-
-        return format
-
-    if xheep.are_base_peripherals_configured():
-        base_peripherals = __format_peripherals_to_dicts(base_peripherals)
-    if xheep.are_user_peripherals_configured():
-        user_peripherals = __format_peripherals_to_dicts(user_peripherals)
 
     ext_slave_start_address = string2int(obj["ext_slaves"]["address"])
     ext_slave_size_address = string2int(obj["ext_slaves"]["length"])
@@ -1587,21 +1277,6 @@ def main():
         right_pad_list = None
         bondpad_offsets = None
 
-    if xheep.are_base_peripherals_configured():
-        # Writes dma parameters into hexadecimal format (removing leading 0x)
-        dma_ch_count = hex(dma_ch_count)[2:]
-        dma_ch_size = hex(dma_ch_size)[2:]
-        num_dma_master_ports = hex(num_dma_master_ports)[2:]
-        num_dma_xbar_channels_per_master_port = hex(
-            num_dma_xbar_channels_per_master_port
-        )[2:]
-
-    # Writes peripheral domains parameters into hexadecimal format (removing leading 0x and padding to have 8 bits)
-    base_peripheral_start_address = f"{base_peripheral_start_address & 0xFFFFFFFF:08X}"
-    base_peripheral_size_address = f"{base_peripheral_size_address & 0xFFFFFFFF:08X}"
-    user_peripheral_start_address = f"{user_peripheral_start_address & 0xFFFFFFFF:08X}"
-    user_peripheral_size_address = f"{user_peripheral_size_address & 0xFFFFFFFF:08X}"
-
     kwargs = {
         "xheep": xheep,
         "cpu_type": cpu_type,
@@ -1610,25 +1285,7 @@ def main():
         "external_domains": external_domains,
         "debug_start_address": debug_start_address,
         "debug_size_address": debug_size_address,
-        "ao_peripheral_start_address": base_peripheral_start_address,
-        "ao_peripheral_size_address": base_peripheral_size_address,
-        "ao_peripherals": base_peripherals,
-        "ao_peripherals_count": base_peripherals_count,
-        "dma_ch_count": dma_ch_count,
-        "dma_ch_size": dma_ch_size,
-        "dma_fifo_depth": dma_fifo_depth,
-        "dma_addr_mode": dma_addr_mode,
-        "dma_subaddr_mode": dma_subaddr_mode,
-        "dma_hw_fifo_mode": dma_hw_fifo_mode,
-        "dma_zero_padding": dma_zero_padding,
-        "num_dma_master_ports": num_dma_master_ports,
-        "num_dma_xbar_channels_per_master_port": num_dma_xbar_channels_per_master_port,
-        "dma_xbar_masters_array": dma_xbar_array,
         "has_spi_slave": has_spi_slave,
-        "peripheral_start_address": user_peripheral_start_address,
-        "peripheral_size_address": user_peripheral_size_address,
-        "peripherals": user_peripherals,
-        "peripherals_count": user_peripherals_count,
         "ext_slave_start_address": ext_slave_start_address,
         "ext_slave_size_address": ext_slave_size_address,
         "flash_mem_start_address": flash_mem_start_address,
@@ -1656,21 +1313,148 @@ def main():
         "pads_attributes": pads_attributes,
     }
 
-    ###########
-    # Package #
-    ###########
+    return kwargs
 
-    if args.pkg_sv != None:
-        write_template(args.pkg_sv, outdir, outfile, **kwargs)
 
-    if args.header_c != None:
-        write_template(args.header_c, outdir, outfile, **kwargs)
+def main():
+    parser = argparse.ArgumentParser(prog="mcugen")
 
-    if args.tpl_sv != None:
-        write_template(args.tpl_sv, outdir, outfile, **kwargs)
+    parser.add_argument(
+        "--cached_path", "-cp", help="Path to the cached xheep file", required=True
+    )
 
-    if args.linker_script != None:
-        write_template(args.linker_script, outdir, outfile, **kwargs)
+    parser.add_argument(
+        "--cached",
+        "-ca",
+        help="If set, the script will not generate the xheep object, but will use the cached version instead",
+        required=False,
+        action="store_true",
+    )
+
+    args, _ = parser.parse_known_args()
+
+    if args.cached:
+        # Validate cached file exists
+        if not os.path.exists(args.cached_path):
+            parser.error(
+                f"Cached file {args.cached_path} does not exist. Cannot use --cached flag."
+            )
+
+        # X-Heep object has been generated
+        with open(args.cached_path, "rb") as f:
+            kwargs = pickle.load(f)
+
+        parser.add_argument(
+            "--outfile",
+            "-o",
+            type=pathlib.Path,
+            required=False,
+            help="Target filename. If not provided, the template filename will be used as the output filename.",
+        )
+
+        parser.add_argument(
+            "--outtpl",
+            "-ot",
+            type=pathlib.Path,
+            required=True,
+            help="Target template filename",
+        )
+
+        args = parser.parse_args()
+
+        write_template(args.outtpl, args.outfile, **kwargs)
+
+    else:
+        # X-Heep object must be generated
+        cached_path = args.cached_path
+
+        parser.add_argument(
+            "--cfg_peripherals",
+            "-c",
+            metavar="file",
+            type=argparse.FileType("r"),
+            required=True,
+            help="A configuration file",
+        )
+
+        parser.add_argument(
+            "--config",
+            metavar="file",
+            type=str,
+            required=True,
+            help="X-Heep general configuration",
+        )
+
+        parser.add_argument(
+            "--pads_cfg",
+            "-pc",
+            metavar="file",
+            type=argparse.FileType("r"),
+            required=True,
+            help="A pad configuration file",
+        )
+
+        parser.add_argument(
+            "--cpu",
+            metavar="cv32e20,cv32e40p,cv32e40x,cv32e40px",
+            nargs="?",
+            default="",
+            help="CPU type (default value from cfg file)",
+        )
+
+        parser.add_argument(
+            "--bus",
+            metavar="onetoM,NtoM",
+            nargs="?",
+            default="",
+            help="Bus type (default value from cfg file)",
+        )
+
+        parser.add_argument(
+            "--memorybanks",
+            metavar="from 2 to 16",
+            nargs="?",
+            default="",
+            help="Number of 32KB Banks (default value from cfg file)",
+        )
+
+        parser.add_argument(
+            "--memorybanks_il",
+            metavar="0, 2, 4 or 8",
+            nargs="?",
+            default="",
+            help="Number of interleaved memory banks (default value from cfg file)",
+        )
+
+        parser.add_argument(
+            "--external_domains",
+            metavar="from 0 to 32",
+            nargs="?",
+            default="1",
+            help="Number of external domains",
+        )
+
+        parser.add_argument(
+            "--external_pads",
+            metavar="file",
+            type=argparse.FileType("r"),
+            required=False,
+            nargs="?",
+            default=None,
+            const=None,
+            help="Name of the hjson file contaiting extra pads",
+        )
+
+        parser.add_argument(
+            "-v", "--verbose", help="increase output verbosity", action="store_true"
+        )
+
+        args = parser.parse_args()
+
+        kwargs = generate_xheep(args)
+
+        with open(cached_path, "wb") as f:
+            pickle.dump(kwargs, f)
 
 
 if __name__ == "__main__":

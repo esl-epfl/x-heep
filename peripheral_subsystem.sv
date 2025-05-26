@@ -2,9 +2,7 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-<%
-  user_peripheral_domain = xheep.get_user_peripheral_domain()
-%>
+
 
 module peripheral_subsystem
   import obi_pkg::*;
@@ -146,34 +144,34 @@ module peripheral_subsystem
   assign unused_irq_id = irq_id;
 
   // Assign internal interrupts
-  assign intr_vector[${interrupts["null_intr"]}] = 1'b0;  // ID [0] is a special case and must be tied to zero.
-  assign intr_vector[${interrupts["uart_intr_tx_watermark"]}] = uart_intr_tx_watermark_i;
-  assign intr_vector[${interrupts["uart_intr_rx_watermark"]}] = uart_intr_rx_watermark_i;
-  assign intr_vector[${interrupts["uart_intr_tx_empty"]}] = uart_intr_tx_empty_i;
-  assign intr_vector[${interrupts["uart_intr_rx_overflow"]}] = uart_intr_rx_overflow_i;
-  assign intr_vector[${interrupts["uart_intr_rx_frame_err"]}] = uart_intr_rx_frame_err_i;
-  assign intr_vector[${interrupts["uart_intr_rx_break_err"]}] = uart_intr_rx_break_err_i;
-  assign intr_vector[${interrupts["uart_intr_rx_timeout"]}] = uart_intr_rx_timeout_i;
-  assign intr_vector[${interrupts["uart_intr_rx_parity_err"]}] = uart_intr_rx_parity_err_i;
-  assign intr_vector[${interrupts["gpio_intr_31"]}:${interrupts["gpio_intr_8"]}] = gpio_intr;
-  assign intr_vector[${interrupts["intr_fmt_watermark"]}] = i2c_intr_fmt_watermark;
-  assign intr_vector[${interrupts["intr_rx_watermark"]}] = i2c_intr_rx_watermark;
-  assign intr_vector[${interrupts["intr_fmt_overflow"]}] = i2c_intr_fmt_overflow;
-  assign intr_vector[${interrupts["intr_rx_overflow"]}] = i2c_intr_rx_overflow;
-  assign intr_vector[${interrupts["intr_nak"]}] = i2c_intr_nak;
-  assign intr_vector[${interrupts["intr_scl_interference"]}] = i2c_intr_scl_interference;
-  assign intr_vector[${interrupts["intr_sda_interference"]}] = i2c_intr_sda_interference;
-  assign intr_vector[${interrupts["intr_stretch_timeout"]}] = i2c_intr_stretch_timeout;
-  assign intr_vector[${interrupts["intr_sda_unstable"]}] = i2c_intr_sda_unstable;
-  assign intr_vector[${interrupts["intr_trans_complete"]}] = i2c_intr_trans_complete;
-  assign intr_vector[${interrupts["intr_tx_empty"]}] = i2c_intr_tx_empty;
-  assign intr_vector[${interrupts["intr_tx_nonempty"]}] = i2c_intr_tx_nonempty;
-  assign intr_vector[${interrupts["intr_tx_overflow"]}] = i2c_intr_tx_overflow;
-  assign intr_vector[${interrupts["intr_acq_overflow"]}] = i2c_intr_acq_overflow;
-  assign intr_vector[${interrupts["intr_ack_stop"]}] = i2c_intr_ack_stop;
-  assign intr_vector[${interrupts["intr_host_timeout"]}] = i2c_intr_host_timeout;
-  assign intr_vector[${interrupts["spi2_intr_event"]}] = spi2_intr_event;
-  assign intr_vector[${interrupts["i2s_intr_event"]}] = i2s_intr_event;
+  assign intr_vector[0] = 1'b0;  // ID [0] is a special case and must be tied to zero.
+  assign intr_vector[1] = uart_intr_tx_watermark_i;
+  assign intr_vector[2] = uart_intr_rx_watermark_i;
+  assign intr_vector[3] = uart_intr_tx_empty_i;
+  assign intr_vector[4] = uart_intr_rx_overflow_i;
+  assign intr_vector[5] = uart_intr_rx_frame_err_i;
+  assign intr_vector[6] = uart_intr_rx_break_err_i;
+  assign intr_vector[7] = uart_intr_rx_timeout_i;
+  assign intr_vector[8] = uart_intr_rx_parity_err_i;
+  assign intr_vector[32:9] = gpio_intr;
+  assign intr_vector[33] = i2c_intr_fmt_watermark;
+  assign intr_vector[34] = i2c_intr_rx_watermark;
+  assign intr_vector[35] = i2c_intr_fmt_overflow;
+  assign intr_vector[36] = i2c_intr_rx_overflow;
+  assign intr_vector[37] = i2c_intr_nak;
+  assign intr_vector[38] = i2c_intr_scl_interference;
+  assign intr_vector[39] = i2c_intr_sda_interference;
+  assign intr_vector[40] = i2c_intr_stretch_timeout;
+  assign intr_vector[41] = i2c_intr_sda_unstable;
+  assign intr_vector[42] = i2c_intr_trans_complete;
+  assign intr_vector[43] = i2c_intr_tx_empty;
+  assign intr_vector[44] = i2c_intr_tx_nonempty;
+  assign intr_vector[45] = i2c_intr_tx_overflow;
+  assign intr_vector[46] = i2c_intr_acq_overflow;
+  assign intr_vector[47] = i2c_intr_ack_stop;
+  assign intr_vector[48] = i2c_intr_host_timeout;
+  assign intr_vector[49] = spi2_intr_event;
+  assign intr_vector[50] = i2s_intr_event;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
@@ -276,7 +274,6 @@ module peripheral_subsystem
       .out_rsp_i(peripheral_slv_rsp)
   );
 
-% if user_peripheral_domain.contains_peripheral('rv_plic'):
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -304,18 +301,7 @@ module peripheral_subsystem
       .irq_id_o(irq_id),
       .msip_o(msip_o)
   );
-% else:
-  assign msip_o = '0;
 
-  for(genvar i=0; i<rv_plic_reg_pkg::NumTarget; i=i+1) begin
-    assign irq_id[i] = '0;
-  end
-
-  assign irq_plic_o = '0;
-  assign plic_tl_d2h = '0;
-% endif
-
-% if user_peripheral_domain.contains_peripheral('spi_host'):
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -340,19 +326,7 @@ module peripheral_subsystem
       .intr_error_o(),
       .intr_spi_event_o(spi_intr_event_o)
   );
-% else:
-  assign spi_sck_o = '0;
-  assign spi_sck_en_o = '0;
-  assign spi_csb_o = '0;
-  assign spi_csb_en_o = '0;
-  assign spi_sd_o = '0;
-  assign spi_sd_en_o = '0;
-  assign spi_intr_event_o = '0;
-  assign spi_rx_valid_o = '0;
-  assign spi_tx_ready_o = '0;
-% endif
 
-% if user_peripheral_domain.contains_peripheral('gpio'):
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -368,13 +342,7 @@ module peripheral_subsystem
       .pin_level_interrupts_o({gpio_intr, gpio_int_unused}),
       .global_interrupt_o()
   );
-% else:
-  assign cio_gpio_o = '0;
-  assign cio_gpio_en_o = '0;
-  assign gpio_intr = '0;
-% endif
 
-% if user_peripheral_domain.contains_peripheral('i2c'):
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -420,31 +388,7 @@ module peripheral_subsystem
       .intr_ack_stop_o(i2c_intr_ack_stop),
       .intr_host_timeout_o(i2c_intr_host_timeout)
   );
-% else:
-  assign i2c_tl_d2h = '0;
-  assign cio_scl_o = '0;
-  assign cio_scl_en_o = '0;
-  assign cio_sda_o = '0;
-  assign cio_sda_en_o = '0;
-  assign i2c_intr_fmt_watermark = '0;
-  assign i2c_intr_rx_watermark = '0;
-  assign i2c_intr_fmt_overflow = '0;
-  assign i2c_intr_rx_overflow = '0;
-  assign i2c_intr_nak = '0;
-  assign i2c_intr_scl_interference = '0;
-  assign i2c_intr_sda_interference = '0;
-  assign i2c_intr_stretch_timeout = '0;
-  assign i2c_intr_sda_unstable = '0;
-  assign i2c_intr_trans_complete = '0;
-  assign i2c_intr_tx_empty = '0;
-  assign i2c_intr_tx_nonempty = '0;
-  assign i2c_intr_tx_overflow = '0;
-  assign i2c_intr_acq_overflow = '0;
-  assign i2c_intr_ack_stop = '0;
-  assign i2c_intr_host_timeout = '0;
-% endif
 
-% if user_peripheral_domain.contains_peripheral('rv_timer'):
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -470,13 +414,7 @@ module peripheral_subsystem
       .intr_timer_expired_0_0_o(rv_timer_2_intr_o),
       .intr_timer_expired_1_0_o(rv_timer_3_intr_o)
   );
-% else:
-  assign rv_timer_tl_d2h = '0;
-  assign rv_timer_2_intr_o = '0;
-  assign rv_timer_3_intr_o = '0;
-% endif
 
-% if user_peripheral_domain.contains_peripheral('spi2'):
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -501,35 +439,11 @@ module peripheral_subsystem
       .intr_error_o(),
       .intr_spi_event_o(spi2_intr_event)
   );
-% else:
-  assign spi2_sck_o = '0;
-  assign spi2_sck_en_o = '0;
-  assign spi2_csb_o = '0;
-  assign spi2_csb_en_o = '0;
-  assign spi2_sd_o = '0;
-  assign spi2_sd_en_o = '0;
-  assign spi2_intr_event = '0;
-% endif
 
-% if user_peripheral_domain.contains_peripheral('pdm2pcm'):
-  pdm2pcm #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) pdm2pcm_i (
-      .clk_i(clk_cg),
-      .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PDM2PCM_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX]),
-      .pdm_i(pdm2pcm_pdm_i),
-      .pdm_clk_o(pdm2pcm_clk_o)
-  );
-% else:
   assign pdm2pcm_clk_o = '0;
-% endif
 
   assign pdm2pcm_clk_en_o = 1;
 
-% if user_peripheral_domain.contains_peripheral('i2s'):
   i2s #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -551,18 +465,7 @@ module peripheral_subsystem
       .intr_i2s_event_o(i2s_intr_event),
       .i2s_rx_valid_o(i2s_rx_valid_o)
   );
-% else:
-
-  assign i2s_sck_oe_o     = 1'b0;
-  assign i2s_sck_o        = 1'b0;
-  assign i2s_ws_oe_o      = 1'b0;
-  assign i2s_ws_o         = 1'b0;
-  assign i2s_sd_oe_o      = 1'b0;
-  assign i2s_sd_o         = 1'b0;
-  assign i2s_intr_event   = 1'b0;
-  assign i2s_rx_valid_o   = 1'b0;
-% endif
 
 
-  
+
 endmodule : peripheral_subsystem

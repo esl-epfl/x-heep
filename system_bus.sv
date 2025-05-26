@@ -15,9 +15,7 @@
 //              Simone Machetti <simone.machetti@epfl.ch>
 //              Michele Caon <michele.caon@epfl.ch>
 
-<%
-  dma = xheep.get_base_peripheral_domain().get_dma()
-%>
+
 
 module system_bus
   import obi_pkg::*;
@@ -105,7 +103,7 @@ module system_bus
   obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] int_slave_req;
   obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] int_slave_resp;
 
-  // Error slave ports  
+  // Error slave ports
   obi_req_t error_slave_req;
   obi_resp_t error_slave_resp;
 
@@ -125,11 +123,12 @@ module system_bus
   assign int_master_req[core_v_mini_mcu_pkg::CORE_DATA_IDX] = core_data_req_i;
   assign int_master_req[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX] = debug_master_req_i;
 
-  % for i in range(dma.get_num_master_ports()):
-  assign int_master_req[${3+i*3}]  = dma_read_req_i[${i}];
-  assign int_master_req[${4+i*3}] = dma_write_req_i[${i}];
-  assign int_master_req[${5+i*3}]  = dma_addr_req_i[${i}];
-  % endfor
+  assign int_master_req[3]  = dma_read_req_i[0];
+  assign int_master_req[4] = dma_write_req_i[0];
+  assign int_master_req[5]  = dma_addr_req_i[0];
+  assign int_master_req[6]  = dma_read_req_i[1];
+  assign int_master_req[7] = dma_write_req_i[1];
+  assign int_master_req[8]  = dma_addr_req_i[1];
 
   // Internal + external master requests
   generate
@@ -151,12 +150,13 @@ module system_bus
   assign core_data_resp_o = int_master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX];
   assign debug_master_resp_o = int_master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
 
-  % for i in range(dma.get_num_master_ports()):
-  assign dma_read_resp_o[${i}] = int_master_resp[${3+i*3}];
-  assign dma_write_resp_o[${i}] = int_master_resp[${4+i*3}];
-  assign dma_addr_resp_o[${i}] = int_master_resp[${5+i*3}];
-  % endfor
-  
+  assign dma_read_resp_o[0] = int_master_resp[3];
+  assign dma_write_resp_o[0] = int_master_resp[4];
+  assign dma_addr_resp_o[0] = int_master_resp[5];
+  assign dma_read_resp_o[1] = int_master_resp[6];
+  assign dma_write_resp_o[1] = int_master_resp[7];
+  assign dma_addr_resp_o[1] = int_master_resp[8];
+
   // External master responses
   if (EXT_XBAR_NMASTER == 0) begin
     assign ext_xbar_master_resp_o = '0;
@@ -168,9 +168,12 @@ module system_bus
 
   // Internal slave requests
   assign error_slave_req = int_slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
-% for bank in xheep.iter_ram_banks():
-  assign ram_req_o[${bank.name()}] = int_slave_req[core_v_mini_mcu_pkg::RAM${bank.name()}_IDX];
-% endfor
+  assign ram_req_o[0] = int_slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
+  assign ram_req_o[1] = int_slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
+  assign ram_req_o[2] = int_slave_req[core_v_mini_mcu_pkg::RAM2_IDX];
+  assign ram_req_o[3] = int_slave_req[core_v_mini_mcu_pkg::RAM3_IDX];
+  assign ram_req_o[4] = int_slave_req[core_v_mini_mcu_pkg::RAM4_IDX];
+  assign ram_req_o[5] = int_slave_req[core_v_mini_mcu_pkg::RAM5_IDX];
   assign debug_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
   assign ao_peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX];
   assign peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
@@ -188,13 +191,16 @@ module system_bus
       assign ext_dma_addr_req_o[i] = demux_xbar_req[core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX+3*i][DEMUX_XBAR_EXT_SLAVE_IDX];
     end
   endgenerate
-  
+
 
   // Internal slave responses
   assign int_slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
-% for bank in xheep.iter_ram_banks():
-  assign int_slave_resp[core_v_mini_mcu_pkg::RAM${bank.name()}_IDX] = ram_resp_i[${bank.name()}];
-% endfor
+  assign int_slave_resp[core_v_mini_mcu_pkg::RAM0_IDX] = ram_resp_i[0];
+  assign int_slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram_resp_i[1];
+  assign int_slave_resp[core_v_mini_mcu_pkg::RAM2_IDX] = ram_resp_i[2];
+  assign int_slave_resp[core_v_mini_mcu_pkg::RAM3_IDX] = ram_resp_i[3];
+  assign int_slave_resp[core_v_mini_mcu_pkg::RAM4_IDX] = ram_resp_i[4];
+  assign int_slave_resp[core_v_mini_mcu_pkg::RAM5_IDX] = ram_resp_i[5];
   assign int_slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX] = ao_peripheral_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
@@ -212,7 +218,7 @@ module system_bus
       assign demux_xbar_resp[core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX+3*i][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_addr_resp_i[i];
     end
   endgenerate
-  
+
 `ifndef SYNTHESIS
   always_ff @(posedge clk_i, negedge rst_ni) begin : check_out_of_bound
     if (rst_ni) begin

@@ -34,6 +34,7 @@ class PeripheralsDescription:
     """
 
     def __init__(self, example, extension):
+        print(output_filename(example, extension))
         with open(output_filename(example, extension), "r") as file:
             content = hjson.load(file)
 
@@ -57,6 +58,11 @@ class PeripheralsDescription:
         self.dma_xbar_masters_array = content["dma_xbar_masters_array"]
         self.peripheral_start_address = content["peripheral_start_address"]
         self.peripheral_size_address = content["peripheral_size_address"]
+
+        try:
+            self.pdm2pcm_cic_only = content["pdm2pcm_cic_only"]
+        except:
+            self.pdm2pcm_cic_only = None
 
         # Standardize the peripherals
         added = 0
@@ -166,6 +172,11 @@ class PeripheralsDescription:
             print(
                 f"peripherals_count: {self.peripherals_count} ({self.extension[1:]}) != {other.peripherals_count} ({other.extension[1:]})"
             )
+        if self.pdm2pcm_cic_only != other.pdm2pcm_cic_only:
+            eq = False
+            print(
+                f"pdm2pcm_cic_only: {self.pdm2pcm_cic_only} ({self.extension[1:]}) != {other.pdm2pcm_cic_only} ({other.extension[1:]})"
+            )
 
         return eq
 
@@ -197,22 +208,35 @@ def __generate_argv(
     config_dir: str,
     pads_cfg: str,
     output_dir: str,
-    template: str,
     extension: str,
 ):
     return [
         "mcu_gen.py",
+        "--cached_path",
+        f"{output_dir}/example{example_number}-{extension}.pickle",
         "--config",
         f"{config_dir}/example{example_number}.{extension}",
         "--pads_cfg",
         pads_cfg,
         "--cfg_peripherals",
         f"{config_dir}/mcu_cfg{example_number}.hjson",
-        "--outdir",
-        output_dir,
+    ]
+
+
+def __generate_cached_argv(
+    example_number: int,
+    output_dir: str,
+    template: str,
+    extension: str,
+):
+    return [
+        "mcu_gen.py",
+        "--cached_path",
+        f"{output_dir}/example{example_number}-{extension}.pickle",
+        "-ca",
         "--outfile",
         f"{output_dir}/example{example_number}-{extension}.hjson",
-        "--tpl-sv",
+        "--outtpl",
         template,
     ]
 
@@ -255,6 +279,12 @@ def generate_examples(
                 config_dir=config_dir,
                 pads_cfg=pads_cfg,
                 output_dir=output_dir,
+                extension="py",
+            )
+            mcu_gen.main()
+            sys.argv = __generate_cached_argv(
+                example_number=i,
+                output_dir=output_dir,
                 template=template,
                 extension="py",
             )
@@ -267,11 +297,16 @@ def generate_examples(
                 config_dir=config_dir,
                 pads_cfg=pads_cfg,
                 output_dir=output_dir,
+                extension="hjson",
+            )
+            mcu_gen.main()
+            sys.argv = __generate_cached_argv(
+                example_number=i,
+                output_dir=output_dir,
                 template=template,
                 extension="hjson",
             )
             mcu_gen.main()
-
             print(f"Example {i} processed")
 
     finally:

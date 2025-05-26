@@ -107,11 +107,6 @@ module power_manager import power_manager_pkg::*; #(
   logic peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_n;
-% if external_domains != 0:
-  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_n;
-  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_n;
-  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_n;
-% endif
 
   assign cpu_subsystem_pwr_ctrl_o.pwrgate_en_n = cpu_subsystem_powergate_switch_n;
   assign cpu_subsystem_pwr_ctrl_o.isogate_en_n = cpu_subsystem_powergate_iso_n;
@@ -125,30 +120,40 @@ module power_manager import power_manager_pkg::*; #(
   assign peripheral_subsystem_pwr_ctrl_o.retentive_en_n = 1'b1; //unused
   assign peripheral_subsystem_pwr_ctrl_o.clkgate_en_n = ~reg2hw.periph_clk_gate.q;
 
-% for bank in xheep.iter_ram_banks():
-  assign memory_subsystem_pwr_ctrl_o[${bank.name()}].pwrgate_en_n = memory_subsystem_banks_powergate_switch_n[${bank.name()}];
-  assign memory_subsystem_pwr_ctrl_o[${bank.name()}].isogate_en_n = memory_subsystem_banks_powergate_iso_n[${bank.name()}];
-  assign memory_subsystem_pwr_ctrl_o[${bank.name()}].rst_n = 1'b1;
-  assign memory_subsystem_pwr_ctrl_o[${bank.name()}].clkgate_en_n = ~reg2hw.ram_${bank.name()}_clk_gate.q;
-% endfor
+  assign memory_subsystem_pwr_ctrl_o[0].pwrgate_en_n = memory_subsystem_banks_powergate_switch_n[0];
+  assign memory_subsystem_pwr_ctrl_o[0].isogate_en_n = memory_subsystem_banks_powergate_iso_n[0];
+  assign memory_subsystem_pwr_ctrl_o[0].rst_n = 1'b1;
+  assign memory_subsystem_pwr_ctrl_o[0].clkgate_en_n = ~reg2hw.ram_0_clk_gate.q;
+  assign memory_subsystem_pwr_ctrl_o[1].pwrgate_en_n = memory_subsystem_banks_powergate_switch_n[1];
+  assign memory_subsystem_pwr_ctrl_o[1].isogate_en_n = memory_subsystem_banks_powergate_iso_n[1];
+  assign memory_subsystem_pwr_ctrl_o[1].rst_n = 1'b1;
+  assign memory_subsystem_pwr_ctrl_o[1].clkgate_en_n = ~reg2hw.ram_1_clk_gate.q;
+  assign memory_subsystem_pwr_ctrl_o[2].pwrgate_en_n = memory_subsystem_banks_powergate_switch_n[2];
+  assign memory_subsystem_pwr_ctrl_o[2].isogate_en_n = memory_subsystem_banks_powergate_iso_n[2];
+  assign memory_subsystem_pwr_ctrl_o[2].rst_n = 1'b1;
+  assign memory_subsystem_pwr_ctrl_o[2].clkgate_en_n = ~reg2hw.ram_2_clk_gate.q;
+  assign memory_subsystem_pwr_ctrl_o[3].pwrgate_en_n = memory_subsystem_banks_powergate_switch_n[3];
+  assign memory_subsystem_pwr_ctrl_o[3].isogate_en_n = memory_subsystem_banks_powergate_iso_n[3];
+  assign memory_subsystem_pwr_ctrl_o[3].rst_n = 1'b1;
+  assign memory_subsystem_pwr_ctrl_o[3].clkgate_en_n = ~reg2hw.ram_3_clk_gate.q;
+  assign memory_subsystem_pwr_ctrl_o[4].pwrgate_en_n = memory_subsystem_banks_powergate_switch_n[4];
+  assign memory_subsystem_pwr_ctrl_o[4].isogate_en_n = memory_subsystem_banks_powergate_iso_n[4];
+  assign memory_subsystem_pwr_ctrl_o[4].rst_n = 1'b1;
+  assign memory_subsystem_pwr_ctrl_o[4].clkgate_en_n = ~reg2hw.ram_4_clk_gate.q;
+  assign memory_subsystem_pwr_ctrl_o[5].pwrgate_en_n = memory_subsystem_banks_powergate_switch_n[5];
+  assign memory_subsystem_pwr_ctrl_o[5].isogate_en_n = memory_subsystem_banks_powergate_iso_n[5];
+  assign memory_subsystem_pwr_ctrl_o[5].rst_n = 1'b1;
+  assign memory_subsystem_pwr_ctrl_o[5].clkgate_en_n = ~reg2hw.ram_5_clk_gate.q;
 
-% for channel in range(xheep.get_base_peripheral_domain().get_dma().get_num_channels()):
-  assign dma_subsystem_pwr_ctrl_o[${channel}].clkgate_en_n = ~reg2hw.dma_ch${channel}_clk_gate.q;
-% endfor
+  assign dma_subsystem_pwr_ctrl_o[0].clkgate_en_n = ~reg2hw.dma_ch0_clk_gate.q;
+  assign dma_subsystem_pwr_ctrl_o[1].clkgate_en_n = ~reg2hw.dma_ch1_clk_gate.q;
+  assign dma_subsystem_pwr_ctrl_o[2].clkgate_en_n = ~reg2hw.dma_ch2_clk_gate.q;
+  assign dma_subsystem_pwr_ctrl_o[3].clkgate_en_n = ~reg2hw.dma_ch3_clk_gate.q;
 
-% if external_domains != 0:
-% for ext in range(external_domains):
-    assign external_subsystem_pwr_ctrl_o[${ext}].pwrgate_en_n = external_subsystem_powergate_switch_n[${ext}];
-    assign external_subsystem_pwr_ctrl_o[${ext}].isogate_en_n = external_subsystem_powergate_iso_n[${ext}];
-    assign external_subsystem_pwr_ctrl_o[${ext}].rst_n = external_subsystem_rst_n[${ext}];
-    assign external_subsystem_pwr_ctrl_o[${ext}].clkgate_en_n = ~reg2hw.external_${ext}_clk_gate.q;
-% endfor
-% else:
     assign external_subsystem_pwr_ctrl_o[0].pwrgate_en_n = 1'b1;
     assign external_subsystem_pwr_ctrl_o[0].isogate_en_n = 1'b1;
     assign external_subsystem_pwr_ctrl_o[0].rst_n = 1'b1;
     assign external_subsystem_pwr_ctrl_o[0].clkgate_en_n = 1'b1;
-% endif
 
   // --------------------------------------------------------------------------------------
   // CPU_SUBSYSTEM DOMAIN
@@ -412,166 +417,426 @@ module power_manager import power_manager_pkg::*; #(
       .switch_onoff_signal_o(peripheral_subsystem_powergate_iso_n)
   );
 
-% for bank in xheep.iter_ram_banks():
   // --------------------------------------------------------------------------------------
-  // RAM_${bank.name()} DOMAIN
+  // RAM_0 DOMAIN
   // --------------------------------------------------------------------------------------
 
-  logic ram_${bank.name()}_subsystem_powergate_switch_ack_sync;
+  logic ram_0_subsystem_powergate_switch_ack_sync;
 
   sync #(
       .ResetValue(1'b0)
-  ) sync_ram_${bank.name()}_ack_i (
+  ) sync_ram_0_ack_i (
       .clk_i,
       .rst_ni,
-      .serial_i(memory_subsystem_pwr_ctrl_i[${bank.name()}].pwrgate_ack_n),
-      .serial_o(ram_${bank.name()}_subsystem_powergate_switch_ack_sync)
+      .serial_i(memory_subsystem_pwr_ctrl_i[0].pwrgate_ack_n),
+      .serial_o(ram_0_subsystem_powergate_switch_ack_sync)
   );
 
-  assign hw2reg.power_gate_ram_block_${bank.name()}_ack.de = 1'b1;
-  assign hw2reg.power_gate_ram_block_${bank.name()}_ack.d = ram_${bank.name()}_subsystem_powergate_switch_ack_sync;
+  assign hw2reg.power_gate_ram_block_0_ack.de = 1'b1;
+  assign hw2reg.power_gate_ram_block_0_ack.d = ram_0_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
-  logic ram_${bank.name()}_switch_wait_ack;
-  assign ram_${bank.name()}_switch_wait_ack = reg2hw.ram_${bank.name()}_wait_ack_switch_on.q ? reg2hw.power_gate_ram_block_${bank.name()}_ack.q == SWITCH_IDLE_VALUE : 1'b1;
+  logic ram_0_switch_wait_ack;
+  assign ram_0_switch_wait_ack = reg2hw.ram_0_wait_ack_switch_on.q ? reg2hw.power_gate_ram_block_0_ack.q == SWITCH_IDLE_VALUE : 1'b1;
 
   power_manager_sequence #(
       .IDLE_VALUE(SWITCH_IDLE_VALUE),
       .ONOFF_AT_RESET(SWITCH_VALUE_AT_RESET)
-  ) power_manager_sequence_ram_${bank.name()}_switch_i (
+  ) power_manager_sequence_ram_0_switch_i (
       .clk_i,
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.ram_${bank.name()}_switch.q),
-      .start_on_sequence_i (~reg2hw.ram_${bank.name()}_switch.q),
+      .start_off_sequence_i(reg2hw.ram_0_switch.q),
+      .start_on_sequence_i (~reg2hw.ram_0_switch.q),
       .switch_ack_i (1'b1),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(memory_subsystem_banks_powergate_switch_n[${bank.name()}])
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_switch_n[0])
   );
 
   power_manager_sequence #(
     .IDLE_VALUE(ISO_IDLE_VALUE),
     .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
-  ) power_manager_sequence_ram_${bank.name()}_iso_i (
+  ) power_manager_sequence_ram_0_iso_i (
       .clk_i,
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.ram_${bank.name()}_iso.q),
-      .start_on_sequence_i (~reg2hw.ram_${bank.name()}_iso.q),
-      .switch_ack_i (ram_${bank.name()}_switch_wait_ack),
+      .start_off_sequence_i(reg2hw.ram_0_iso.q),
+      .start_on_sequence_i (~reg2hw.ram_0_iso.q),
+      .switch_ack_i (ram_0_switch_wait_ack),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(memory_subsystem_banks_powergate_iso_n[${bank.name()}])
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_iso_n[0])
   );
 
   power_manager_sequence #(
     .IDLE_VALUE(ISO_IDLE_VALUE),
     .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
-  ) power_manager_sequence_ram_${bank.name()}_retentive_i (
+  ) power_manager_sequence_ram_0_retentive_i (
       .clk_i,
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.ram_${bank.name()}_retentive.q),
-      .start_on_sequence_i (~reg2hw.ram_${bank.name()}_retentive.q),
+      .start_off_sequence_i(reg2hw.ram_0_retentive.q),
+      .start_on_sequence_i (~reg2hw.ram_0_retentive.q),
       .switch_ack_i (1'b1),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(memory_subsystem_pwr_ctrl_o[${bank.name()}].retentive_en_n)
+      .switch_onoff_signal_o(memory_subsystem_pwr_ctrl_o[0].retentive_en_n)
   );
 
-% endfor
-% for ext in range(external_domains):
   // --------------------------------------------------------------------------------------
-  // EXTERNAL_SUBSYSTEM_${ext} DOMAIN
+  // RAM_1 DOMAIN
   // --------------------------------------------------------------------------------------
 
-  logic external_${ext}_subsystem_powergate_switch_ack_sync;
+  logic ram_1_subsystem_powergate_switch_ack_sync;
 
   sync #(
       .ResetValue(1'b0)
-  ) sync_external_${ext}_ack_i (
+  ) sync_ram_1_ack_i (
       .clk_i,
       .rst_ni,
-      .serial_i(external_subsystem_pwr_ctrl_i[${ext}].pwrgate_ack_n),
-      .serial_o(external_${ext}_subsystem_powergate_switch_ack_sync)
+      .serial_i(memory_subsystem_pwr_ctrl_i[1].pwrgate_ack_n),
+      .serial_o(ram_1_subsystem_powergate_switch_ack_sync)
   );
 
-  assign hw2reg.power_gate_external_${ext}_ack.de = 1'b1;
-  assign hw2reg.power_gate_external_${ext}_ack.d = external_${ext}_subsystem_powergate_switch_ack_sync;
+  assign hw2reg.power_gate_ram_block_1_ack.de = 1'b1;
+  assign hw2reg.power_gate_ram_block_1_ack.d = ram_1_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
-  logic external_${ext}_switch_wait_ack;
-  assign external_${ext}_switch_wait_ack = reg2hw.external_${ext}_wait_ack_switch_on.q ? reg2hw.power_gate_external_${ext}_ack.q == SWITCH_IDLE_VALUE : 1'b1;
-
-  power_manager_sequence #(
-      .IDLE_VALUE(RESET_IDLE_VALUE),
-      .ONOFF_AT_RESET(RESET_VALUE_AT_RESET)
-  ) power_manager_sequence_external_${ext}_reset_i (
-      .clk_i,
-      .rst_ni,
-
-      // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.external_${ext}_reset.q),
-      .start_on_sequence_i (~reg2hw.external_${ext}_reset.q),
-      .switch_ack_i (external_${ext}_switch_wait_ack),
-
-      // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_subsystem_rst_n[${ext}])
-  );
+  logic ram_1_switch_wait_ack;
+  assign ram_1_switch_wait_ack = reg2hw.ram_1_wait_ack_switch_on.q ? reg2hw.power_gate_ram_block_1_ack.q == SWITCH_IDLE_VALUE : 1'b1;
 
   power_manager_sequence #(
       .IDLE_VALUE(SWITCH_IDLE_VALUE),
       .ONOFF_AT_RESET(SWITCH_VALUE_AT_RESET)
-  ) power_manager_sequence_external_${ext}_switch_i (
+  ) power_manager_sequence_ram_1_switch_i (
       .clk_i,
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.external_${ext}_switch.q),
-      .start_on_sequence_i (~reg2hw.external_${ext}_switch.q),
+      .start_off_sequence_i(reg2hw.ram_1_switch.q),
+      .start_on_sequence_i (~reg2hw.ram_1_switch.q),
       .switch_ack_i (1'b1),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_subsystem_powergate_switch_n[${ext}])
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_switch_n[1])
   );
 
   power_manager_sequence #(
     .IDLE_VALUE(ISO_IDLE_VALUE),
     .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
-  ) power_manager_sequence_external_${ext}_iso_i (
+  ) power_manager_sequence_ram_1_iso_i (
       .clk_i,
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.external_${ext}_iso.q),
-      .start_on_sequence_i (~reg2hw.external_${ext}_iso.q),
-      .switch_ack_i (external_${ext}_switch_wait_ack),
+      .start_off_sequence_i(reg2hw.ram_1_iso.q),
+      .start_on_sequence_i (~reg2hw.ram_1_iso.q),
+      .switch_ack_i (ram_1_switch_wait_ack),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_subsystem_powergate_iso_n[${ext}])
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_iso_n[1])
   );
 
   power_manager_sequence #(
     .IDLE_VALUE(ISO_IDLE_VALUE),
     .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
-  ) power_manager_sequence_external_ram_${ext}_retentive_i (
+  ) power_manager_sequence_ram_1_retentive_i (
       .clk_i,
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.external_ram_${ext}_retentive.q),
-      .start_on_sequence_i (~reg2hw.external_ram_${ext}_retentive.q),
+      .start_off_sequence_i(reg2hw.ram_1_retentive.q),
+      .start_on_sequence_i (~reg2hw.ram_1_retentive.q),
       .switch_ack_i (1'b1),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_subsystem_pwr_ctrl_o[${ext}].retentive_en_n)
+      .switch_onoff_signal_o(memory_subsystem_pwr_ctrl_o[1].retentive_en_n)
   );
 
-% endfor
+  // --------------------------------------------------------------------------------------
+  // RAM_2 DOMAIN
+  // --------------------------------------------------------------------------------------
+
+  logic ram_2_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_ram_2_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(memory_subsystem_pwr_ctrl_i[2].pwrgate_ack_n),
+      .serial_o(ram_2_subsystem_powergate_switch_ack_sync)
+  );
+
+  assign hw2reg.power_gate_ram_block_2_ack.de = 1'b1;
+  assign hw2reg.power_gate_ram_block_2_ack.d = ram_2_subsystem_powergate_switch_ack_sync;
+
+  //if you want to wait for ACK, or just bypass it
+  logic ram_2_switch_wait_ack;
+  assign ram_2_switch_wait_ack = reg2hw.ram_2_wait_ack_switch_on.q ? reg2hw.power_gate_ram_block_2_ack.q == SWITCH_IDLE_VALUE : 1'b1;
+
+  power_manager_sequence #(
+      .IDLE_VALUE(SWITCH_IDLE_VALUE),
+      .ONOFF_AT_RESET(SWITCH_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_2_switch_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_2_switch.q),
+      .start_on_sequence_i (~reg2hw.ram_2_switch.q),
+      .switch_ack_i (1'b1),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_switch_n[2])
+  );
+
+  power_manager_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_2_iso_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_2_iso.q),
+      .start_on_sequence_i (~reg2hw.ram_2_iso.q),
+      .switch_ack_i (ram_2_switch_wait_ack),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_iso_n[2])
+  );
+
+  power_manager_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_2_retentive_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_2_retentive.q),
+      .start_on_sequence_i (~reg2hw.ram_2_retentive.q),
+      .switch_ack_i (1'b1),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_pwr_ctrl_o[2].retentive_en_n)
+  );
+
+  // --------------------------------------------------------------------------------------
+  // RAM_3 DOMAIN
+  // --------------------------------------------------------------------------------------
+
+  logic ram_3_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_ram_3_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(memory_subsystem_pwr_ctrl_i[3].pwrgate_ack_n),
+      .serial_o(ram_3_subsystem_powergate_switch_ack_sync)
+  );
+
+  assign hw2reg.power_gate_ram_block_3_ack.de = 1'b1;
+  assign hw2reg.power_gate_ram_block_3_ack.d = ram_3_subsystem_powergate_switch_ack_sync;
+
+  //if you want to wait for ACK, or just bypass it
+  logic ram_3_switch_wait_ack;
+  assign ram_3_switch_wait_ack = reg2hw.ram_3_wait_ack_switch_on.q ? reg2hw.power_gate_ram_block_3_ack.q == SWITCH_IDLE_VALUE : 1'b1;
+
+  power_manager_sequence #(
+      .IDLE_VALUE(SWITCH_IDLE_VALUE),
+      .ONOFF_AT_RESET(SWITCH_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_3_switch_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_3_switch.q),
+      .start_on_sequence_i (~reg2hw.ram_3_switch.q),
+      .switch_ack_i (1'b1),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_switch_n[3])
+  );
+
+  power_manager_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_3_iso_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_3_iso.q),
+      .start_on_sequence_i (~reg2hw.ram_3_iso.q),
+      .switch_ack_i (ram_3_switch_wait_ack),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_iso_n[3])
+  );
+
+  power_manager_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_3_retentive_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_3_retentive.q),
+      .start_on_sequence_i (~reg2hw.ram_3_retentive.q),
+      .switch_ack_i (1'b1),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_pwr_ctrl_o[3].retentive_en_n)
+  );
+
+  // --------------------------------------------------------------------------------------
+  // RAM_4 DOMAIN
+  // --------------------------------------------------------------------------------------
+
+  logic ram_4_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_ram_4_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(memory_subsystem_pwr_ctrl_i[4].pwrgate_ack_n),
+      .serial_o(ram_4_subsystem_powergate_switch_ack_sync)
+  );
+
+  assign hw2reg.power_gate_ram_block_4_ack.de = 1'b1;
+  assign hw2reg.power_gate_ram_block_4_ack.d = ram_4_subsystem_powergate_switch_ack_sync;
+
+  //if you want to wait for ACK, or just bypass it
+  logic ram_4_switch_wait_ack;
+  assign ram_4_switch_wait_ack = reg2hw.ram_4_wait_ack_switch_on.q ? reg2hw.power_gate_ram_block_4_ack.q == SWITCH_IDLE_VALUE : 1'b1;
+
+  power_manager_sequence #(
+      .IDLE_VALUE(SWITCH_IDLE_VALUE),
+      .ONOFF_AT_RESET(SWITCH_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_4_switch_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_4_switch.q),
+      .start_on_sequence_i (~reg2hw.ram_4_switch.q),
+      .switch_ack_i (1'b1),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_switch_n[4])
+  );
+
+  power_manager_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_4_iso_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_4_iso.q),
+      .start_on_sequence_i (~reg2hw.ram_4_iso.q),
+      .switch_ack_i (ram_4_switch_wait_ack),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_iso_n[4])
+  );
+
+  power_manager_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_4_retentive_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_4_retentive.q),
+      .start_on_sequence_i (~reg2hw.ram_4_retentive.q),
+      .switch_ack_i (1'b1),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_pwr_ctrl_o[4].retentive_en_n)
+  );
+
+  // --------------------------------------------------------------------------------------
+  // RAM_5 DOMAIN
+  // --------------------------------------------------------------------------------------
+
+  logic ram_5_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_ram_5_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(memory_subsystem_pwr_ctrl_i[5].pwrgate_ack_n),
+      .serial_o(ram_5_subsystem_powergate_switch_ack_sync)
+  );
+
+  assign hw2reg.power_gate_ram_block_5_ack.de = 1'b1;
+  assign hw2reg.power_gate_ram_block_5_ack.d = ram_5_subsystem_powergate_switch_ack_sync;
+
+  //if you want to wait for ACK, or just bypass it
+  logic ram_5_switch_wait_ack;
+  assign ram_5_switch_wait_ack = reg2hw.ram_5_wait_ack_switch_on.q ? reg2hw.power_gate_ram_block_5_ack.q == SWITCH_IDLE_VALUE : 1'b1;
+
+  power_manager_sequence #(
+      .IDLE_VALUE(SWITCH_IDLE_VALUE),
+      .ONOFF_AT_RESET(SWITCH_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_5_switch_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_5_switch.q),
+      .start_on_sequence_i (~reg2hw.ram_5_switch.q),
+      .switch_ack_i (1'b1),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_switch_n[5])
+  );
+
+  power_manager_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_5_iso_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_5_iso.q),
+      .start_on_sequence_i (~reg2hw.ram_5_iso.q),
+      .switch_ack_i (ram_5_switch_wait_ack),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_iso_n[5])
+  );
+
+  power_manager_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_5_retentive_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_5_retentive.q),
+      .start_on_sequence_i (~reg2hw.ram_5_retentive.q),
+      .switch_ack_i (1'b1),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_pwr_ctrl_o[5].retentive_en_n)
+  );
+
   // --------------------------------------------------------------------------------------
   // MONITOR
   // --------------------------------------------------------------------------------------
@@ -582,16 +847,24 @@ module power_manager import power_manager_pkg::*; #(
   assign hw2reg.monitor_power_gate_periph.de = 1'b1;
   assign hw2reg.monitor_power_gate_periph.d = {peripheral_subsystem_rst_n, peripheral_subsystem_powergate_iso_n, peripheral_subsystem_powergate_switch_n};
 
-% for bank in xheep.iter_ram_banks():
-  assign hw2reg.monitor_power_gate_ram_block_${bank.name()}.de = 1'b1;
-  assign hw2reg.monitor_power_gate_ram_block_${bank.name()}.d = {memory_subsystem_banks_powergate_iso_n[${bank.name()}], memory_subsystem_banks_powergate_switch_n[${bank.name()}]};
+  assign hw2reg.monitor_power_gate_ram_block_0.de = 1'b1;
+  assign hw2reg.monitor_power_gate_ram_block_0.d = {memory_subsystem_banks_powergate_iso_n[0], memory_subsystem_banks_powergate_switch_n[0]};
 
-% endfor
+  assign hw2reg.monitor_power_gate_ram_block_1.de = 1'b1;
+  assign hw2reg.monitor_power_gate_ram_block_1.d = {memory_subsystem_banks_powergate_iso_n[1], memory_subsystem_banks_powergate_switch_n[1]};
 
-% for ext in range(external_domains):
-  assign hw2reg.monitor_power_gate_external_${ext}.de = 1'b1;
-  assign hw2reg.monitor_power_gate_external_${ext}.d = {external_subsystem_rst_n[${ext}], external_subsystem_powergate_iso_n[${ext}], external_subsystem_powergate_switch_n[${ext}]};
+  assign hw2reg.monitor_power_gate_ram_block_2.de = 1'b1;
+  assign hw2reg.monitor_power_gate_ram_block_2.d = {memory_subsystem_banks_powergate_iso_n[2], memory_subsystem_banks_powergate_switch_n[2]};
 
-% endfor
+  assign hw2reg.monitor_power_gate_ram_block_3.de = 1'b1;
+  assign hw2reg.monitor_power_gate_ram_block_3.d = {memory_subsystem_banks_powergate_iso_n[3], memory_subsystem_banks_powergate_switch_n[3]};
+
+  assign hw2reg.monitor_power_gate_ram_block_4.de = 1'b1;
+  assign hw2reg.monitor_power_gate_ram_block_4.d = {memory_subsystem_banks_powergate_iso_n[4], memory_subsystem_banks_powergate_switch_n[4]};
+
+  assign hw2reg.monitor_power_gate_ram_block_5.de = 1'b1;
+  assign hw2reg.monitor_power_gate_ram_block_5.d = {memory_subsystem_banks_powergate_iso_n[5], memory_subsystem_banks_powergate_switch_n[5]};
+
+
 
 endmodule : power_manager

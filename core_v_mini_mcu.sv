@@ -2,9 +2,7 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-<%
-  dma = xheep.get_base_peripheral_domain().get_dma()
-%>
+
 
 module core_v_mini_mcu
   import obi_pkg::*;
@@ -28,9 +26,261 @@ module core_v_mini_mcu
 
     input logic rst_ni,
 
-% for pad in pad_list:
-${pad.core_v_mini_mcu_interface}
-% endfor
+    input logic clk_i,
+
+
+    input logic boot_select_i,
+
+    input logic execute_from_flash_i,
+
+    input logic jtag_tck_i,
+
+    input logic jtag_tms_i,
+
+    input logic jtag_trst_ni,
+
+    input logic jtag_tdi_i,
+
+    output logic jtag_tdo_o,
+
+    input logic uart_rx_i,
+
+    output logic uart_tx_o,
+
+    output logic exit_valid_o,
+
+    output logic gpio_0_o,
+    input logic gpio_0_i,
+    output logic gpio_0_oe_o,
+
+    output logic gpio_1_o,
+    input logic gpio_1_i,
+    output logic gpio_1_oe_o,
+
+    output logic gpio_2_o,
+    input logic gpio_2_i,
+    output logic gpio_2_oe_o,
+
+    output logic gpio_3_o,
+    input logic gpio_3_i,
+    output logic gpio_3_oe_o,
+
+    output logic gpio_4_o,
+    input logic gpio_4_i,
+    output logic gpio_4_oe_o,
+
+    output logic gpio_5_o,
+    input logic gpio_5_i,
+    output logic gpio_5_oe_o,
+
+    output logic gpio_6_o,
+    input logic gpio_6_i,
+    output logic gpio_6_oe_o,
+
+    output logic gpio_7_o,
+    input logic gpio_7_i,
+    output logic gpio_7_oe_o,
+
+    output logic gpio_8_o,
+    input logic gpio_8_i,
+    output logic gpio_8_oe_o,
+
+    output logic gpio_9_o,
+    input logic gpio_9_i,
+    output logic gpio_9_oe_o,
+
+    output logic gpio_10_o,
+    input logic gpio_10_i,
+    output logic gpio_10_oe_o,
+
+    output logic gpio_11_o,
+    input logic gpio_11_i,
+    output logic gpio_11_oe_o,
+
+    output logic gpio_12_o,
+    input logic gpio_12_i,
+    output logic gpio_12_oe_o,
+
+    output logic gpio_13_o,
+    input logic gpio_13_i,
+    output logic gpio_13_oe_o,
+
+    output logic spi_flash_sck_o,
+    input logic spi_flash_sck_i,
+    output logic spi_flash_sck_oe_o,
+
+    output logic spi_flash_cs_0_o,
+    input logic spi_flash_cs_0_i,
+    output logic spi_flash_cs_0_oe_o,
+
+    output logic spi_flash_cs_1_o,
+    input logic spi_flash_cs_1_i,
+    output logic spi_flash_cs_1_oe_o,
+
+    output logic spi_flash_sd_0_o,
+    input logic spi_flash_sd_0_i,
+    output logic spi_flash_sd_0_oe_o,
+
+    output logic spi_flash_sd_1_o,
+    input logic spi_flash_sd_1_i,
+    output logic spi_flash_sd_1_oe_o,
+
+    output logic spi_flash_sd_2_o,
+    input logic spi_flash_sd_2_i,
+    output logic spi_flash_sd_2_oe_o,
+
+    output logic spi_flash_sd_3_o,
+    input logic spi_flash_sd_3_i,
+    output logic spi_flash_sd_3_oe_o,
+
+    output logic spi_sck_o,
+    input logic spi_sck_i,
+    output logic spi_sck_oe_o,
+
+    output logic spi_cs_0_o,
+    input logic spi_cs_0_i,
+    output logic spi_cs_0_oe_o,
+
+    output logic spi_cs_1_o,
+    input logic spi_cs_1_i,
+    output logic spi_cs_1_oe_o,
+
+    output logic spi_sd_0_o,
+    input logic spi_sd_0_i,
+    output logic spi_sd_0_oe_o,
+
+    output logic spi_sd_1_o,
+    input logic spi_sd_1_i,
+    output logic spi_sd_1_oe_o,
+
+    output logic spi_sd_2_o,
+    input logic spi_sd_2_i,
+    output logic spi_sd_2_oe_o,
+
+    output logic spi_sd_3_o,
+    input logic spi_sd_3_i,
+    output logic spi_sd_3_oe_o,
+
+    input logic spi_slave_sck_i,
+    output logic gpio_14_o,
+    input logic gpio_14_i,
+    output logic gpio_14_oe_o,
+
+    input logic spi_slave_cs_i,
+    output logic gpio_15_o,
+    input logic gpio_15_i,
+    output logic gpio_15_oe_o,
+
+    output logic spi_slave_miso_o,
+    input logic spi_slave_miso_i,
+    output logic spi_slave_miso_oe_o,
+    output logic gpio_16_o,
+    input logic gpio_16_i,
+    output logic gpio_16_oe_o,
+
+    input logic spi_slave_mosi_i,
+    output logic gpio_17_o,
+    input logic gpio_17_i,
+    output logic gpio_17_oe_o,
+
+    output logic pdm2pcm_pdm_o,
+    input logic pdm2pcm_pdm_i,
+    output logic pdm2pcm_pdm_oe_o,
+    output logic gpio_18_o,
+    input logic gpio_18_i,
+    output logic gpio_18_oe_o,
+
+    output logic pdm2pcm_clk_o,
+    input logic pdm2pcm_clk_i,
+    output logic pdm2pcm_clk_oe_o,
+    output logic gpio_19_o,
+    input logic gpio_19_i,
+    output logic gpio_19_oe_o,
+
+    output logic i2s_sck_o,
+    input logic i2s_sck_i,
+    output logic i2s_sck_oe_o,
+    output logic gpio_20_o,
+    input logic gpio_20_i,
+    output logic gpio_20_oe_o,
+
+    output logic i2s_ws_o,
+    input logic i2s_ws_i,
+    output logic i2s_ws_oe_o,
+    output logic gpio_21_o,
+    input logic gpio_21_i,
+    output logic gpio_21_oe_o,
+
+    output logic i2s_sd_o,
+    input logic i2s_sd_i,
+    output logic i2s_sd_oe_o,
+    output logic gpio_22_o,
+    input logic gpio_22_i,
+    output logic gpio_22_oe_o,
+
+    output logic spi2_cs_0_o,
+    input logic spi2_cs_0_i,
+    output logic spi2_cs_0_oe_o,
+    output logic gpio_23_o,
+    input logic gpio_23_i,
+    output logic gpio_23_oe_o,
+
+    output logic spi2_cs_1_o,
+    input logic spi2_cs_1_i,
+    output logic spi2_cs_1_oe_o,
+    output logic gpio_24_o,
+    input logic gpio_24_i,
+    output logic gpio_24_oe_o,
+
+    output logic spi2_sck_o,
+    input logic spi2_sck_i,
+    output logic spi2_sck_oe_o,
+    output logic gpio_25_o,
+    input logic gpio_25_i,
+    output logic gpio_25_oe_o,
+
+    output logic spi2_sd_0_o,
+    input logic spi2_sd_0_i,
+    output logic spi2_sd_0_oe_o,
+    output logic gpio_26_o,
+    input logic gpio_26_i,
+    output logic gpio_26_oe_o,
+
+    output logic spi2_sd_1_o,
+    input logic spi2_sd_1_i,
+    output logic spi2_sd_1_oe_o,
+    output logic gpio_27_o,
+    input logic gpio_27_i,
+    output logic gpio_27_oe_o,
+
+    output logic spi2_sd_2_o,
+    input logic spi2_sd_2_i,
+    output logic spi2_sd_2_oe_o,
+    output logic gpio_28_o,
+    input logic gpio_28_i,
+    output logic gpio_28_oe_o,
+
+    output logic spi2_sd_3_o,
+    input logic spi2_sd_3_i,
+    output logic spi2_sd_3_oe_o,
+    output logic gpio_29_o,
+    input logic gpio_29_i,
+    output logic gpio_29_oe_o,
+
+    output logic i2c_scl_o,
+    input logic i2c_scl_i,
+    output logic i2c_scl_oe_o,
+    output logic gpio_31_o,
+    input logic gpio_31_i,
+    output logic gpio_31_oe_o,
+
+    output logic i2c_sda_o,
+    input logic i2c_sda_i,
+    output logic i2c_sda_oe_o,
+    output logic gpio_30_o,
+    input logic gpio_30_i,
+    output logic gpio_30_oe_o,
+
 
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
@@ -118,9 +368,7 @@ ${pad.core_v_mini_mcu_interface}
   end
 `endif
 
-<%
-  obi_msb = dma.get_num_master_ports() - 1
-%>
+
 
   // masters signals
   obi_req_t core_instr_req;
@@ -129,12 +377,12 @@ ${pad.core_v_mini_mcu_interface}
   obi_resp_t core_data_resp;
   obi_req_t debug_master_req;
   obi_resp_t debug_master_resp;
-  obi_req_t [${obi_msb}:0]dma_read_req;
-  obi_resp_t [${obi_msb}:0]dma_read_resp;
-  obi_req_t [${obi_msb}:0]dma_write_req;
-  obi_resp_t [${obi_msb}:0]dma_write_resp;
-  obi_req_t [${obi_msb}:0]dma_addr_req;
-  obi_resp_t [${obi_msb}:0]dma_addr_resp;
+  obi_req_t [1:0]dma_read_req;
+  obi_resp_t [1:0]dma_read_resp;
+  obi_req_t [1:0]dma_write_req;
+  obi_resp_t [1:0]dma_write_resp;
+  obi_req_t [1:0]dma_addr_req;
+  obi_resp_t [1:0]dma_addr_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -214,14 +462,42 @@ ${pad.core_v_mini_mcu_interface}
   assign peripheral_subsystem_rst_n           = peripheral_subsystem_pwr_ctrl_out.rst_n;
   assign peripheral_subsystem_clkgate_en_n    = peripheral_subsystem_pwr_ctrl_out.clkgate_en_n;
 
-% for bank in xheep.iter_ram_banks():
-  assign memory_subsystem_banks_powergate_switch_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[${bank.name()}].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[${bank.name()}];
+  assign memory_subsystem_banks_powergate_switch_n[0] = memory_subsystem_pwr_ctrl_out[0].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[0].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[0];
   //isogate exposed outside for UPF sim flow and switch cells
-  assign memory_subsystem_banks_powergate_iso_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].isogate_en_n;
-  assign memory_subsystem_banks_set_retentive_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].retentive_en_n;
-  assign memory_subsystem_clkgate_en_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].clkgate_en_n;
-% endfor
+  assign memory_subsystem_banks_powergate_iso_n[0] = memory_subsystem_pwr_ctrl_out[0].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[0] = memory_subsystem_pwr_ctrl_out[0].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[0] = memory_subsystem_pwr_ctrl_out[0].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[1] = memory_subsystem_pwr_ctrl_out[1].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[1].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[1];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[1] = memory_subsystem_pwr_ctrl_out[1].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[1] = memory_subsystem_pwr_ctrl_out[1].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[1] = memory_subsystem_pwr_ctrl_out[1].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[2] = memory_subsystem_pwr_ctrl_out[2].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[2].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[2];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[2] = memory_subsystem_pwr_ctrl_out[2].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[2] = memory_subsystem_pwr_ctrl_out[2].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[2] = memory_subsystem_pwr_ctrl_out[2].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[3] = memory_subsystem_pwr_ctrl_out[3].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[3].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[3];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[3] = memory_subsystem_pwr_ctrl_out[3].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[3] = memory_subsystem_pwr_ctrl_out[3].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[3] = memory_subsystem_pwr_ctrl_out[3].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[4] = memory_subsystem_pwr_ctrl_out[4].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[4].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[4];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[4] = memory_subsystem_pwr_ctrl_out[4].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[4] = memory_subsystem_pwr_ctrl_out[4].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[4] = memory_subsystem_pwr_ctrl_out[4].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[5] = memory_subsystem_pwr_ctrl_out[5].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[5].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[5];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[5] = memory_subsystem_pwr_ctrl_out[5].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[5] = memory_subsystem_pwr_ctrl_out[5].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[5] = memory_subsystem_pwr_ctrl_out[5].clkgate_en_n;
 
   for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin
     assign external_subsystem_powergate_switch_no[i]        = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
@@ -310,7 +586,7 @@ ${pad.core_v_mini_mcu_interface}
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
       .JTAG_IDCODE(JTAG_IDCODE),
-      .SPI_SLAVE(${has_spi_slave})
+      .SPI_SLAVE(1)
   ) debug_subsystem_i (
       .clk_i,
       .rst_ni,

@@ -6,16 +6,7 @@
 // Date: 19.02.2022
 // Description: Top wrapper for the PDM2PCM acquisition peripheral
 
-<%
-    pdm2pcm = xheep.get_user_peripheral_domain().get_pdm2pcm()
-    if pdm2pcm is None :
-        cic_mode = -1
-    else :
-        if pdm2pcm.get_cic_mode() :
-            cic_mode = 1
-        else :
-            cic_mode = 0
-%>
+
 
 module pdm2pcm #(
     parameter type reg_req_t = logic,
@@ -40,13 +31,6 @@ module pdm2pcm #(
 
   logic              [               15:0]     par_clkdiv_idx;
   logic              [                3:0]     par_decim_idx_combs;
-% if cic_mode == 0:
-  logic              [                4:0]     par_decim_idx_hfbd2;
-  logic              [                5:0]     par_decim_idx_fir;
-  logic              [               17:0]     coeffs_hb1          [ 0:3];
-  logic              [               17:0]     coeffs_hb2          [ 0:6];
-  logic              [               17:0]     coeffs_fir          [0:13];
-% endif
 
   logic              [FIFO_ADDR_WIDTH-1:0]     fifo_usage;
 
@@ -78,60 +62,13 @@ module pdm2pcm #(
   assign hw2reg.status.empty.de = 1;
   assign par_clkdiv_idx = reg2hw.clkdividx.q;
   assign par_decim_idx_combs = reg2hw.decimcic.q;
-% if cic_mode == 0:
-  assign par_decim_idx_hfbd2 = reg2hw.decimhb1.q;
-  assign par_decim_idx_fir = reg2hw.decimhb2.q;
-
-  assign coeffs_hb1 = '{
-          reg2hw.hb1coef00.q,
-          reg2hw.hb1coef01.q,
-          reg2hw.hb1coef02.q,
-          reg2hw.hb1coef03.q
-      };
-
-  assign coeffs_hb2 = '{
-          reg2hw.hb2coef00.q,
-          reg2hw.hb2coef01.q,
-          reg2hw.hb2coef02.q,
-          reg2hw.hb2coef03.q,
-          reg2hw.hb2coef04.q,
-          reg2hw.hb2coef05.q,
-          reg2hw.hb2coef06.q
-      };
-
-  assign coeffs_fir = '{
-          reg2hw.fircoef00.q,
-          reg2hw.fircoef01.q,
-          reg2hw.fircoef02.q,
-          reg2hw.fircoef03.q,
-          reg2hw.fircoef04.q,
-          reg2hw.fircoef05.q,
-          reg2hw.fircoef06.q,
-          reg2hw.fircoef07.q,
-          reg2hw.fircoef08.q,
-          reg2hw.fircoef09.q,
-          reg2hw.fircoef10.q,
-          reg2hw.fircoef11.q,
-          reg2hw.fircoef12.q,
-          reg2hw.fircoef13.q
-      };
-% endif
 
   pdm_core #() pdm_core_i (
       .clk_i,
       .rstn_i(rst_ni),
       .en_i(reg2hw.control.enabl.q),
       .par_decim_idx_combs,
-% if cic_mode == 0:
-      .par_decim_idx_hfbd2,
-      .par_decim_idx_fir,
-% endif
       .par_clkdiv_idx,
-% if cic_mode == 0:
-      .coeffs_hb1,
-      .coeffs_hb2,
-      .coeffs_fir,
-% endif
       .pdm_clk_o,
       .pdm_i,
       .pcm_o(pcm),
