@@ -1,0 +1,195 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{ name: "pad_control",
+  clock_primary: "clk_i",
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ],
+  regwidth: "32",
+  registers: [
+
+    { name:     "PAD_MUX_SPI_SLAVE_SCK",
+      desc:     "Used to mux pad SPI_SLAVE_SCK",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_SPI_SLAVE_SCK", desc: "Pad Mux SPI_SLAVE_SCK Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_SPI_SLAVE_CS",
+      desc:     "Used to mux pad SPI_SLAVE_CS",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_SPI_SLAVE_CS", desc: "Pad Mux SPI_SLAVE_CS Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_SPI_SLAVE_MISO",
+      desc:     "Used to mux pad SPI_SLAVE_MISO",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_SPI_SLAVE_MISO", desc: "Pad Mux SPI_SLAVE_MISO Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_SPI_SLAVE_MOSI",
+      desc:     "Used to mux pad SPI_SLAVE_MOSI",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_SPI_SLAVE_MOSI", desc: "Pad Mux SPI_SLAVE_MOSI Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_PDM2PCM_PDM",
+      desc:     "Used to mux pad PDM2PCM_PDM",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_PDM2PCM_PDM", desc: "Pad Mux PDM2PCM_PDM Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_PDM2PCM_CLK",
+      desc:     "Used to mux pad PDM2PCM_CLK",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_PDM2PCM_CLK", desc: "Pad Mux PDM2PCM_CLK Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_I2S_SCK",
+      desc:     "Used to mux pad I2S_SCK",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_I2S_SCK", desc: "Pad Mux I2S_SCK Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_I2S_WS",
+      desc:     "Used to mux pad I2S_WS",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_I2S_WS", desc: "Pad Mux I2S_WS Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_I2S_SD",
+      desc:     "Used to mux pad I2S_SD",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_I2S_SD", desc: "Pad Mux I2S_SD Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_SPI2_CS_0",
+      desc:     "Used to mux pad SPI2_CS_0",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_SPI2_CS_0", desc: "Pad Mux SPI2_CS_0 Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_SPI2_CS_1",
+      desc:     "Used to mux pad SPI2_CS_1",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_SPI2_CS_1", desc: "Pad Mux SPI2_CS_1 Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_SPI2_SCK",
+      desc:     "Used to mux pad SPI2_SCK",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_SPI2_SCK", desc: "Pad Mux SPI2_SCK Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_SPI2_SD_0",
+      desc:     "Used to mux pad SPI2_SD_0",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_SPI2_SD_0", desc: "Pad Mux SPI2_SD_0 Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_SPI2_SD_1",
+      desc:     "Used to mux pad SPI2_SD_1",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_SPI2_SD_1", desc: "Pad Mux SPI2_SD_1 Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_SPI2_SD_2",
+      desc:     "Used to mux pad SPI2_SD_2",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_SPI2_SD_2", desc: "Pad Mux SPI2_SD_2 Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_SPI2_SD_3",
+      desc:     "Used to mux pad SPI2_SD_3",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_SPI2_SD_3", desc: "Pad Mux SPI2_SD_3 Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_I2C_SCL",
+      desc:     "Used to mux pad I2C_SCL",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_I2C_SCL", desc: "Pad Mux I2C_SCL Reg" }
+      ]
+    }
+
+    { name:     "PAD_MUX_I2C_SDA",
+      desc:     "Used to mux pad I2C_SDA",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0:0", name: "PAD_MUX_I2C_SDA", desc: "Pad Mux I2C_SDA Reg" }
+      ]
+    }
+
+
+
+   ]
+}

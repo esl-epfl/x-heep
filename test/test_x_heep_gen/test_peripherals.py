@@ -208,22 +208,35 @@ def __generate_argv(
     config_dir: str,
     pads_cfg: str,
     output_dir: str,
-    template: str,
     extension: str,
 ):
     return [
         "mcu_gen.py",
+        "--cached_path",
+        f"{output_dir}/example{example_number}-{extension}.pickle",
         "--config",
         f"{config_dir}/example{example_number}.{extension}",
         "--pads_cfg",
         pads_cfg,
         "--cfg_peripherals",
         f"{config_dir}/mcu_cfg{example_number}.hjson",
-        "--outdir",
-        output_dir,
+    ]
+
+
+def __generate_cached_argv(
+    example_number: int,
+    output_dir: str,
+    template: str,
+    extension: str,
+):
+    return [
+        "mcu_gen.py",
+        "--cached_path",
+        f"{output_dir}/example{example_number}-{extension}.pickle",
+        "-ca",
         "--outfile",
         f"{output_dir}/example{example_number}-{extension}.hjson",
-        "--tpl-sv",
+        "--outtpl",
         template,
     ]
 
@@ -266,6 +279,12 @@ def generate_examples(
                 config_dir=config_dir,
                 pads_cfg=pads_cfg,
                 output_dir=output_dir,
+                extension="py",
+            )
+            mcu_gen.main()
+            sys.argv = __generate_cached_argv(
+                example_number=i,
+                output_dir=output_dir,
                 template=template,
                 extension="py",
             )
@@ -278,11 +297,16 @@ def generate_examples(
                 config_dir=config_dir,
                 pads_cfg=pads_cfg,
                 output_dir=output_dir,
+                extension="hjson",
+            )
+            mcu_gen.main()
+            sys.argv = __generate_cached_argv(
+                example_number=i,
+                output_dir=output_dir,
                 template=template,
                 extension="hjson",
             )
             mcu_gen.main()
-
             print(f"Example {i} processed")
 
     finally:
