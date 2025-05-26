@@ -29,14 +29,14 @@ module pdm2pcm #(
   import pdm2pcm_reg_pkg::*;
 
   //Compile time operation
-  localparam integer SesStageNumber = $bits(reg2hw.cic_activated_stages.q);
+  localparam integer CicStageNumber = $bits(reg2hw.cic_activated_stages.q);
   localparam integer DecimCicWidth  = $bits(reg2hw.decimcic.q);
   localparam integer ClkDivIdxWidth = $bits(reg2hw.clkdividx.q);
 
 
   logic              [ ClkDivIdxWidth-1:0]     par_clkdiv_idx;
   logic              [  DecimCicWidth-1:0]     par_decim_idx_combs;
-  logic              [ SesStageNumber-1:0]     par_cic_activated_stages;
+  logic              [ CicStageNumber-1:0]     par_cic_activated_stages;
 % if peripherals['pdm2pcm']['cic_only'] == '0':
   logic              [                4:0]     par_decim_idx_hfbd2;
   logic              [                5:0]     par_decim_idx_fir;
@@ -117,7 +117,7 @@ module pdm2pcm #(
 % endif
 
   pdm_core #(
-      .STAGES_CIC(SesStageNumber),
+      .STAGES_CIC(CicStageNumber),
       .WIDTH(FIFO_WIDTH),
       .DECIM_COMBS_CNT_W(DecimCicWidth),
       .CLKDIVWIDTH(ClkDivIdxWidth)
