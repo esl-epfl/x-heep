@@ -290,10 +290,10 @@ def load_peripherals_config(system: XHeep, config_path: str):
                                 peripheral_config["num_channels_per_master_port"], 16
                             ),
                             fifo_depth=int(peripheral_config["fifo_depth"], 16),
-                            addr_mode=(0 if addr_mode_en == "no" else 1),
-                            subaddr_mode=(0 if subaddr_mode_en == "no" else 1),
-                            hw_fifo_mode=(0 if hw_fifo_mode_en == "no" else 1),
-                            zero_padding=(0 if zero_padding_en == "no" else 1),
+                            addr_mode=addr_mode_en,
+                            subaddr_mode=subaddr_mode_en,
+                            hw_fifo_mode=hw_fifo_mode_en,
+                            zero_padding=zero_padding_en,
                         )
                         peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "power_manager":
