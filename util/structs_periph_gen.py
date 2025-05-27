@@ -114,8 +114,8 @@ if __name__ == "__main__":
     if mcu_cfg_file.endswith(".py"):
         x_heep = x_heep_gen.load_config.load_cfg_script_file(mcu_cfg_file)
 
-        base_peripherals = x_heep.get_base_peripherals()
-        user_peripherals = x_heep.get_user_peripherals()
+        base_peripherals = x_heep.get_base_peripheral_domain().get_peripherals()
+        user_peripherals = x_heep.get_user_peripheral_domain().get_peripherals()
 
         scan_peripherals_python(base_peripherals)
         scan_peripherals_python(user_peripherals)

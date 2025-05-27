@@ -2,6 +2,8 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+
+
 module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
@@ -365,6 +367,8 @@ module core_v_mini_mcu
     $display("[X-HEEP]: NUM_BYTES = %dKB", NUM_BYTES / 1024);
   end
 `endif
+
+
 
   // masters signals
   obi_req_t core_instr_req;

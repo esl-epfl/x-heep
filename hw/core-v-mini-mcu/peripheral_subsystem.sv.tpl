@@ -2,6 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
+%>
+
 module peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
@@ -272,6 +276,7 @@ module peripheral_subsystem
       .out_rsp_i(peripheral_slv_rsp)
   );
 
+% if user_peripheral_domain.contains_peripheral('rv_plic'):
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -289,7 +294,6 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_PLIC_IDX])
   );
 
-% if 'rv_plic' in peripherals and peripherals['rv_plic']['is_included'] == 'yes':
   rv_plic rv_plic_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -311,7 +315,7 @@ module peripheral_subsystem
   assign plic_tl_d2h = '0;
 % endif
 
-% if 'spi_host' in peripherals and peripherals['spi_host']['is_included'] == 'yes':
+% if user_peripheral_domain.contains_peripheral('spi_host'):
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -337,7 +341,6 @@ module peripheral_subsystem
       .intr_spi_event_o(spi_intr_event_o)
   );
 % else:
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX] = '0;
   assign spi_sck_o = '0;
   assign spi_sck_en_o = '0;
   assign spi_csb_o = '0;
@@ -349,9 +352,7 @@ module peripheral_subsystem
   assign spi_tx_ready_o = '0;
 % endif
 
-
-
-% if 'gpio' in peripherals and peripherals['gpio']['is_included'] == 'yes':
+% if user_peripheral_domain.contains_peripheral('gpio'):
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -371,9 +372,9 @@ module peripheral_subsystem
   assign cio_gpio_o = '0;
   assign cio_gpio_en_o = '0;
   assign gpio_intr = '0;
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_IDX] = '0;
 % endif
 
+% if user_peripheral_domain.contains_peripheral('i2c'):
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -391,7 +392,6 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
   );
 
-% if 'i2c' in peripherals and peripherals['i2c']['is_included'] == 'yes':
   i2c i2c_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -444,6 +444,7 @@ module peripheral_subsystem
   assign i2c_intr_host_timeout = '0;
 % endif
 
+% if user_peripheral_domain.contains_peripheral('rv_timer'):
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -461,7 +462,6 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
   );
 
-% if 'rv_timer' in peripherals and peripherals['rv_timer']['is_included'] == 'yes':
   rv_timer rv_timer_2_3_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -476,7 +476,7 @@ module peripheral_subsystem
   assign rv_timer_3_intr_o = '0;
 % endif
 
-% if 'spi2' in peripherals and peripherals['spi2']['is_included'] == 'yes':
+% if user_peripheral_domain.contains_peripheral('spi2'):
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -502,7 +502,6 @@ module peripheral_subsystem
       .intr_spi_event_o(spi2_intr_event)
   );
 % else:
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI2_IDX] = '0;
   assign spi2_sck_o = '0;
   assign spi2_sck_en_o = '0;
   assign spi2_csb_o = '0;
@@ -512,7 +511,7 @@ module peripheral_subsystem
   assign spi2_intr_event = '0;
 % endif
 
-% if 'pdm2pcm' in peripherals and peripherals['pdm2pcm']['is_included'] == 'yes':
+% if user_peripheral_domain.contains_peripheral('pdm2pcm'):
   pdm2pcm #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -525,13 +524,12 @@ module peripheral_subsystem
       .pdm_clk_o(pdm2pcm_clk_o)
   );
 % else:
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX] = '0;
   assign pdm2pcm_clk_o = '0;
 % endif
 
   assign pdm2pcm_clk_en_o = 1;
 
-% if 'i2s' in peripherals and peripherals['i2s']['is_included'] == 'yes':
+% if user_peripheral_domain.contains_peripheral('i2s'):
   i2s #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -554,7 +552,6 @@ module peripheral_subsystem
       .i2s_rx_valid_o(i2s_rx_valid_o)
   );
 % else:
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::I2S_IDX] = '0;
 
   assign i2s_sck_oe_o     = 1'b0;
   assign i2s_sck_o        = 1'b0;

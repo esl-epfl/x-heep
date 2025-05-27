@@ -6,6 +6,17 @@
 // Date: 19.02.2022
 // Description: Top wrapper for the PDM2PCM acquisition peripheral
 
+<%
+    pdm2pcm = xheep.get_user_peripheral_domain().get_pdm2pcm()
+    if pdm2pcm is None :
+        cic_mode = -1
+    else :
+        if pdm2pcm.get_cic_mode() :
+            cic_mode = 1
+        else :
+            cic_mode = 0
+%>
+
 module pdm2pcm #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
@@ -29,7 +40,7 @@ module pdm2pcm #(
 
   logic              [               15:0]     par_clkdiv_idx;
   logic              [                3:0]     par_decim_idx_combs;
-% if peripherals['pdm2pcm']['cic_only'] == '0':
+% if cic_mode == 0:
   logic              [                4:0]     par_decim_idx_hfbd2;
   logic              [                5:0]     par_decim_idx_fir;
   logic              [               17:0]     coeffs_hb1          [ 0:3];
@@ -67,7 +78,7 @@ module pdm2pcm #(
   assign hw2reg.status.empty.de = 1;
   assign par_clkdiv_idx = reg2hw.clkdividx.q;
   assign par_decim_idx_combs = reg2hw.decimcic.q;
-% if peripherals['pdm2pcm']['cic_only'] == '0':
+% if cic_mode == 0:
   assign par_decim_idx_hfbd2 = reg2hw.decimhb1.q;
   assign par_decim_idx_fir = reg2hw.decimhb2.q;
 
@@ -111,12 +122,12 @@ module pdm2pcm #(
       .rstn_i(rst_ni),
       .en_i(reg2hw.control.enabl.q),
       .par_decim_idx_combs,
-% if peripherals['pdm2pcm']['cic_only'] == '0':
+% if cic_mode == 0:
       .par_decim_idx_hfbd2,
       .par_decim_idx_fir,
 % endif
       .par_clkdiv_idx,
-% if peripherals['pdm2pcm']['cic_only'] == '0':
+% if cic_mode == 0:
       .coeffs_hb1,
       .coeffs_hb2,
       .coeffs_fir,
