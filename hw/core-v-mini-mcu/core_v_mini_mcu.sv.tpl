@@ -259,7 +259,7 @@ ${pad.core_v_mini_mcu_interface}
   logic i2s_rx_valid;
 
   assign intr = {
-    1'b0, irq_fast, 3'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
+    irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
 
   assign fast_intr = {

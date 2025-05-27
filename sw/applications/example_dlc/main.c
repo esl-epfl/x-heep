@@ -87,7 +87,7 @@ void dma_intr_handler_trans_done(uint8_t channel)
 int main() {
  
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    CSR_SET_BITS(CSR_REG_MIE, (1 << 18) | (1 << 29));
+    CSR_SET_BITS(CSR_REG_MIE, (1 << 19) | (1 << 30) | (1 << 31));
 
     #ifdef TEST_ID_0
 
