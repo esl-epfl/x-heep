@@ -54,7 +54,8 @@ module dlc #(
 
   dlc_reg_pkg::dlc_reg2hw_t reg2hw;
   dlc_reg_pkg::dlc_hw2reg_t hw2reg;
-  logic [4:0] reg_log_wl;  // log2 of the level width
+  logic [3:0] reg_log_wl;  // log2 of the level width
+  logic [3:0] reg_discard;  // log2 of the level width
   logic [3:0] reg_dlvl_bits;  // number of bits for the delta levels in the output data
   logic [15:0] reg_dlvl_mask;  // mask for delta levels, it has as many 1s as the number of bits for the delta levels
   logic [15:0] reg_dt_mask;  // mask for delta time, it has as many 1s as the number of bits for the delta time
@@ -229,6 +230,7 @@ module dlc #(
     Delta-Levels Configuration
   */
   assign reg_log_wl = reg2hw.dlvl_log_level_width.q;
+  assign reg_discard = reg2hw.discard_bits.q;
   assign reg_dlvl_bits = reg2hw.dlvl_n_bits.q;
   assign reg_dlvl_mask = reg2hw.dlvl_mask.q;
   assign reg_dlvl_twoscomp_n_sgnmod = reg2hw.dlvl_format.q;
@@ -337,13 +339,37 @@ module dlc #(
       This either means that the input data belongs to a level above or below the current level.
   */
 
-  logic [31:0] tmp;
-  logic next_dir;
+  logic signed [31:0] tmp1;
+  logic signed [15:0] tmp2;
+
+  always_ff @(negedge rst_ni or posedge clk_i) begin
+    if (~rst_ni) begin
+      dlc_dir_o <= 1'b0;
+    end else begin
+      /*
+      Update the direction output when there are crossings
+      */
+      if (dlc_xing_o) begin
+        dlc_dir_o <= dir;
+      end
+    end
+  end
 
   always_comb begin
+
+    tmp1 = '0;
+    tmp2 = '0;
+    din_lvl = '0;
+    dlvl = '0;
+    dir = '0;
+    dlc_xing_o = '0;
+    hw2reg.curr_lvl.de = '0;
+    hw2reg.curr_lvl.d = '0;
+
     if (hw_r_fifo_pop == 1'b1) begin
-      tmp = (hw_r_fifo_data_out >>> reg_log_wl);
-      din_lvl = tmp[15:0];
+      tmp1 = hw_r_fifo_data_out >> reg_discard; // First we discard the least significant bits that are not relevant
+      tmp2 = tmp1[15:0];  // We keep only the relevant 16 bits
+      din_lvl = tmp2 >>> reg_log_wl;  // Then we right shift keeping the sign. 
       dlvl = add_res;
       if (dlc_state == DLC_RUN && dlvl != 0) begin
 
@@ -367,24 +393,7 @@ module dlc #(
         hw2reg.curr_lvl.de = 1;
         hw2reg.curr_lvl.d = din_lvl;
 
-        /*
-        Update the direction output when there are crossings
-        */
-        dlc_dir_o <= dlc_xing_o ? dir : dlc_dir_o;
-      end else begin
-        dir = dir;
-        dlc_dir_o = dlc_dir_o;
-        dlc_xing_o = '0;
-        hw2reg.curr_lvl.de = '0;
-      end 
-    end else begin
-      tmp = '0;
-      din_lvl = din_lvl;
-      dlvl = dlvl;
-      dir = dir;
-      dlc_dir_o = dlc_dir_o;
-      dlc_xing_o = '0;
-      hw2reg.curr_lvl.de = '0;
+      end
     end
   end
 

@@ -53,11 +53,11 @@ int16_t dlc_circular_mode_results_buffer[DLC_WINDOWS][DLC_BUFFER_SIZE];
     
 // dLC programming registers
 uint32_t* dlvl_log_level_width    = DLC_START_ADDRESS + DLC_DLVL_LOG_LEVEL_WIDTH_REG_OFFSET;
+uint32_t* dlvl_discard_bits       = DLC_START_ADDRESS + DLC_DISCARD_BITS_REG_OFFSET;
 uint32_t* dlvl_n_bits             = DLC_START_ADDRESS + DLC_DLVL_N_BITS_REG_OFFSET;
 uint32_t* dlvl_format             = DLC_START_ADDRESS + DLC_DLVL_FORMAT_REG_OFFSET;
 uint32_t* dlvl_mask               = DLC_START_ADDRESS + DLC_DLVL_MASK_REG_OFFSET;
 uint32_t* dt_mask                 = DLC_START_ADDRESS + DLC_DT_MASK_REG_OFFSET;
-uint32_t* dlc_rnw                 = DLC_START_ADDRESS + DLC_READNOTWRITE_REG_OFFSET;
 uint32_t* dlc_size                = DLC_START_ADDRESS + DLC_TRANS_SIZE_REG_OFFSET;
 
 dma_target_t tgt_src;
@@ -87,7 +87,7 @@ void dma_intr_handler_trans_done(uint8_t channel)
 int main() {
  
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    CSR_SET_BITS(CSR_REG_MIE, (1 << 11) | (1 << 19));
+    CSR_SET_BITS(CSR_REG_MIE, (1 << 18) | (1 << 29));
 
     #ifdef TEST_ID_0
 
@@ -99,6 +99,7 @@ int main() {
     *dlvl_format = LC_PARAMS_DATA_IN_TWOS_COMPLEMENT;
     // dlvl_log_level_width: log2 of the delta-levels width
     *dlvl_log_level_width = LC_PARAMS_LC_LEVEL_WIDTH_BY_BITS;
+    *dlvl_discard_bits = 0;
     // dlvl_n_bits: number of bits for the delta-levels field
     //              if dlvl_format is set to '1' the number of bits for the delta-levels is dlvl_n_bits
     //              if dlvl_format is set to '0' the number of bits for the delta-levels is dlvl_n_bits - 1 to account for the sign bit 
@@ -108,9 +109,6 @@ int main() {
     *dlvl_mask = (1 << (*dlvl_n_bits)) - 1;
     // dt_mask: mask for the delta-time field (it has as many bits set to 1 as the number of bits for the delta-time field)
     *dt_mask = (1 << (LC_PARAMS_LC_ACQUISITION_WORD_SIZE_OF_TIME)) - 1;
-    // dlc_rnw: if set to '1' the dLC decrements DMA downcounter each time it reads data from the HW_READ_FIFO
-    //          if set to '0' the dLC decrements DMA downcounter each time it write data to the HW_WRITE_FIFO
-    *dlc_rnw = 1;
     *dlc_size = DATA_SIZE;
 
     tgt_src.ptr = (uint8_t *) ecg_data;
