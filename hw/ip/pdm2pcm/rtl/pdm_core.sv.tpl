@@ -23,8 +23,9 @@ module pdm_core #(
     // Width of the datapath
     localparam WIDTH = 18,
     // First decimator internal counter width
-    localparam DECIM_COMBS_CNT_W = 4,
+    localparam DECIM_COMBS_CNT_W = 4
 % if cic_mode == 0:
+    ,
     // Second decimator internal counter width
     localparam DECIM_HFBD1_CNT_W = 5,
     // Third decimator internal counter width
@@ -39,16 +40,11 @@ module pdm_core #(
     localparam STAGES_FIR = 26,
     localparam COEFFS_FIR = 14,
     // Width of the filter coefficients (Halfbands and FIR)
-    localparam COEFFSWIDTH = 18,
+    localparam COEFFSWIDTH = 18
 % endif
-    // Width of the clock divider count
-    localparam CLKDIVWIDTH = 16
-
 ) (
     // Clock input
-    input logic clk_i,
-    // Clock divider division index
-    input logic [CLKDIVWIDTH-1:0] par_clkdiv_idx,
+    input logic div_clk_i,
     // Reset input
     input logic rstn_i,
     // Enable input
@@ -83,8 +79,6 @@ module pdm_core #(
   logic             r_send;
   logic             r_data;
 
-  logic             div_clk;
-
   // Auxiliary signals to link the filter blocks
   logic [WIDTH-1:0] data;
   logic [WIDTH-1:0] integr_to_comb;
@@ -104,57 +98,18 @@ module pdm_core #(
   logic             fir_en;
 % endif
 
-  clk_int_div #(
-      .DIV_VALUE_WIDTH(CLKDIVWIDTH),
-      .DEFAULT_DIV_VALUE(2)
-  ) clk_int_div_inst (
-      .clk_i(clk_i),
-      .rst_ni(rstn_i),
-      .en_i(en_i),
-      .test_mode_en_i(1'b0),
-      .clk_o(div_clk),
-      .div_i(par_clkdiv_idx),
-      .div_valid_i(1'b1),
-      .div_ready_o(),
-      .cycl_count_o()
-  );
-
   // Output synchronized with the last decimator
-  logic last_decimator_en;
   % if cic_mode == 0:
-    assign last_decimator_en = fir_en;
+    assign pcm_data_valid_o =  fir_en;
   % else:
-    assign last_decimator_en = combs_en;
+    assign pcm_data_valid_o =  combs_en;
   % endif
-
-  // Check the rising edge of last_decimator_en and set the pcm_data_valid_o flag high
-  // for one clk_i clock cycle since there is no real handshake with the output fifo
-  logic last_decimator_en_d;
-
-  always_ff @(posedge clk_i or negedge rstn_i) begin
-    if (~rstn_i) begin
-      last_decimator_en_d <= 1'b0;
-    end else begin
-      last_decimator_en_d <= last_decimator_en;
-    end
-  end
-
-  always_ff @(posedge clk_i or negedge rstn_i) begin
-    if (~rstn_i) begin
-      pcm_data_valid_o <= 1'b0;
-    end else if (last_decimator_en & ~last_decimator_en_d) begin
-      pcm_data_valid_o <= 1'b1;
-    end else begin
-      pcm_data_valid_o <= 1'b0;
-    end
-  end
-
 
   ///////////////////////////////////////////////////////////////////////////
   //////////// PIECE OF CODE I NEED TO MAKE EASIER TO UNDERSTAND ////////////
   ///////////////////////////////////////////////////////////////////////////
 
-  always_ff @(posedge div_clk or negedge rstn_i) begin : proc_r_store
+  always_ff @(posedge div_clk_i or negedge rstn_i) begin : proc_r_store
     if (~rstn_i) begin
       r_store   <= 1;
       r_send    <= 0;
@@ -178,7 +133,7 @@ module pdm_core #(
 
   assign s_clr = en_i & !r_en;
 
-  always_ff @(posedge div_clk or negedge rstn_i) begin
+  always_ff @(posedge div_clk_i or negedge rstn_i) begin
     if (~rstn_i) r_en <= 'h0;
     else r_en <= en_i;
   end
@@ -200,7 +155,7 @@ module pdm_core #(
   // (made with asciiflow.com)
 
   cic_integrators #(STAGES_CIC, WIDTH) cic_integrators_inst (
-      .clk_i (div_clk),
+      .clk_i (div_clk_i),
       .rstn_i(rstn_i),
       .clr_i (s_clr),
       .en_i  (r_send),
@@ -209,7 +164,7 @@ module pdm_core #(
   );
 
   decimator #(DECIM_COMBS_CNT_W) decimator_before_hb1 (
-      .clk_i(div_clk),
+      .clk_i(div_clk_i),
       .rst_i(rstn_i),
       .clr_i(s_clr),
       .par_decimation_index(par_decim_idx_combs),
@@ -218,7 +173,7 @@ module pdm_core #(
   );
 
   cic_combs #(STAGES_CIC, WIDTH) cic_combs_inst (
-      .clk_i (div_clk),
+      .clk_i (div_clk_i),
       .rstn_i(rstn_i),
       .clr_i (s_clr),
       .en_i  (combs_en),
@@ -228,7 +183,7 @@ module pdm_core #(
 
 % if cic_mode == 0:
     halfband #(WIDTH, COEFFSWIDTH, STAGES_HB1) halfband_inst1 (
-        .clk_i(div_clk),
+        .clk_i(div_clk_i),
         .rstn_i(rstn_i),
         .clr_i(s_clr),
         .en_i(combs_en),
@@ -238,7 +193,7 @@ module pdm_core #(
     );
 
     decimator #(DECIM_HFBD1_CNT_W) decimator_before_hb2 (
-        .clk_i(div_clk),
+        .clk_i(div_clk_i),
         .rst_i(rstn_i),
         .clr_i(s_clr),
         .par_decimation_index(par_decim_idx_hfbd2),
@@ -247,7 +202,7 @@ module pdm_core #(
     );
 
     halfband #(WIDTH, COEFFSWIDTH, STAGES_HB2) halfband_inst2 (
-        .clk_i(div_clk),
+        .clk_i(div_clk_i),
         .rstn_i(rstn_i),
         .clr_i(s_clr),
         .en_i(hb2_en),
@@ -257,7 +212,7 @@ module pdm_core #(
     );
 
     decimator #(DECIM_HFBD2_CNT_W) decimator_before_fir (
-        .clk_i(div_clk),
+        .clk_i(div_clk_i),
         .rst_i(rstn_i),
         .clr_i(s_clr),
         .par_decimation_index(par_decim_idx_fir),
@@ -266,7 +221,7 @@ module pdm_core #(
     );
 
     fir #(WIDTH, COEFFSWIDTH, STAGES_FIR) fir_inst (
-        .clk_i(div_clk),
+        .clk_i(div_clk_i),
         .rstn_i(rstn_i),
         .clr_i(s_clr),
         .en_i(fir_en),
@@ -277,33 +232,5 @@ module pdm_core #(
 % else:
       assign pcm_o = combs_to_hb1;
 % endif
-
-  //
-  // Some of the finest debugging goodness
-  //
-  //always_ff @(posedge clk_i)
-  //begin
-  //
-  //  if (r_send == 1) begin
-  //    //$display("integr_to_comb = ", integr_to_comb);
-  //  end
-  //
-  //  if (combs_en == 1) begin
-  //    //$display("combs_to_hb1 = ", combs_to_hb1);
-  //  end
-  //
-  //  if (hb1_en == 1) begin
-  //    //$display("hb1_to_hb2 = ", hb1_to_hb2);
-  //  end
-  //
-  //  if (hb2_en == 1) begin
-  //    //$display("hb2_to_fir = ", hb2_to_fir);
-  //  end
-  //
-  //  if (hb2_en == 1) begin
-  //    //$display("pcm_o = ", pcm_o);
-  //  end
-  //
-  //end
 
 endmodule

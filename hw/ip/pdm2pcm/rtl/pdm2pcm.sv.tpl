@@ -22,7 +22,9 @@ module pdm2pcm #(
     parameter type reg_rsp_t = logic,
     parameter int unsigned FIFO_DEPTH = 4,
     parameter int unsigned FIFO_WIDTH = 18,
-    localparam int unsigned FIFO_ADDR_WIDTH = $clog2(FIFO_DEPTH)
+    localparam int unsigned FIFO_ADDR_WIDTH = $clog2(FIFO_DEPTH),
+    // Width of the clock divider count
+    localparam int unsigned CLKDIVWIDTH = 16
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -67,8 +69,9 @@ module pdm2pcm #(
   reg_req_t        [                      0:0] fifo_win_h2d;
   reg_rsp_t        [                      0:0] fifo_win_d2h;
 
-  logic push, pop;
-  logic empty, full;
+  logic cdc_fifo_src_ready;
+  logic cdc_fifo_src_valid;
+  logic cdc_fifo_dst_valid;
 
   assign rx_data = ({{{32 - FIFO_WIDTH} {1'b0}}, rx_fifo});
 
@@ -117,17 +120,29 @@ module pdm2pcm #(
       };
 % endif
 
+  clk_int_div #(
+      .DIV_VALUE_WIDTH(CLKDIVWIDTH),
+      .DEFAULT_DIV_VALUE(2)
+  ) clk_int_div_inst (
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .en_i(reg2hw.control.enabl.q),
+      .test_mode_en_i(1'b0),
+      .clk_o(div_clk),
+      .div_i(par_clkdiv_idx),
+      .div_valid_i(1'b1),
+      .div_ready_o(),
+      .cycl_count_o()
+  );
+
   pdm_core #() pdm_core_i (
-      .clk_i,
+      .div_clk_i(div_clk),
       .rstn_i(rst_ni),
       .en_i(reg2hw.control.enabl.q),
       .par_decim_idx_combs,
 % if cic_mode == 0:
       .par_decim_idx_hfbd2,
       .par_decim_idx_fir,
-% endif
-      .par_clkdiv_idx,
-% if cic_mode == 0:
       .coeffs_hb1,
       .coeffs_hb2,
       .coeffs_fir,
@@ -138,27 +153,27 @@ module pdm2pcm #(
       .pcm_data_valid_o(pcm_data_valid)
   );
 
-  assign push                  = pcm_data_valid & ~full;
-  assign pop                   = rx_ready & ~empty;
+  assign cdc_fifo_src_valid = pcm_data_valid & cdc_fifo_src_ready;
 
-  assign hw2reg.status.fulll.d = full;
-  assign hw2reg.status.empty.d = empty;
+  assign hw2reg.status.fulll.d = ~cdc_fifo_src_ready;
+  assign hw2reg.status.empty.d = ~cdc_fifo_dst_valid;
 
-  fifo_v3 #(
-      .DEPTH(FIFO_DEPTH),
-      .DATA_WIDTH(FIFO_WIDTH)
+  // Clock domain crossing FIFO
+  cdc_fifo_gray #(
+      .T(logic [17:0]),
+      .LOG_DEPTH(FIFO_ADDR_WIDTH)
   ) pdm2pcm_fifo_i (
-      .clk_i,
-      .rst_ni,
-      .flush_i(reg2hw.control.clear.q),
-      .testmode_i(1'b0),
-      .full_o(full),
-      .empty_o(empty),
-      .usage_o(fifo_usage),
-      .data_i(pcm),
-      .push_i(push),
-      .data_o(rx_fifo),
-      .pop_i(pop)
+      .src_clk_i  (div_clk),
+      .src_rst_ni (rst_ni),
+      .src_ready_o(cdc_fifo_src_ready),
+      .src_data_i (pcm),
+      .src_valid_i(cdc_fifo_src_valid),
+
+      .dst_rst_ni (rst_ni),
+      .dst_clk_i  (clk_i),
+      .dst_data_o (rx_fifo),
+      .dst_valid_o(cdc_fifo_dst_valid),
+      .dst_ready_i(rx_ready)
   );
 
   pdm2pcm_reg_top #(
