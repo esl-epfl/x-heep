@@ -14,7 +14,7 @@ class Peripheral(ABC):
     """
     Basic description of a peripheral. These peripherals are not linked to a hjson file, they only have a memory range. This class cannot be instantiated.
 
-    :param int address: The virtual (in peripheral domain) memory address of the peripheral, the base address should be known by the creator of the class.
+    :param int address: The virtual (in peripheral domain) memory address of the peripheral, the start address should be known by the creator of the class.
     :param int length: The size taken in memory by the peripheral
     """
 
@@ -78,10 +78,9 @@ class DataConfiguration(ABC):
         """
         Select a custom configuration for the peripheral.
 
-        :param str config_path: The path to the hjson file that describes the peripheral. If the path does not exist, a FileNotFoundError will be raised.
+        :param str config_path: The path to the hjson file that describes the peripheral. When calling validate function, the config file path must be valid (or there should be a corresponding .tpl file).
         """
-        if not path.exists(config_path):
-            raise FileNotFoundError(f"The config file {config_path} does not exist")
+
         self._config_path = config_path
 
     def get_config_path(self):
@@ -109,29 +108,29 @@ class PeripheralDomain(ABC):
     Abstract class representing a peripheral domain. This class cannot be instantiated.
 
     :param str name: The name of the peripheral domain. Convention : starts with a capital letter and is in singular form (no "peripheral domain" at the end)
-    :param int base_address: The base address of the peripheral domain.
+    :param int start_address: The start address of the peripheral domain.
     :param int length: The length of the peripheral domain.
     :param list[Peripheral] peripherals: The list of peripherals in the domain. There can be more than one instance of the same peripheral.
     """
 
     _name: str
-    _base_address: int
+    _start_address: int
     _length: int
     _peripherals: List[
         Peripheral
     ]  # type has to be precised for filtering in validation
 
     @abstractmethod
-    def __init__(self, name: str, base_address: int, length: int):
+    def __init__(self, name: str, start_address: int, length: int):
         """
         Initialize the peripheral domain. Is abstract because each peripheral domain has its own way of initializing without letting the user define start address and length.
 
         :param str name: The name of the peripheral domain. Convention : starts with a capital letter and is in singular form (no "peripheral domain" at the end)
-        :param int base_address: The base address of the peripheral domain.
+        :param int start_address: The start address of the peripheral domain.
         :param int length: The length of the peripheral domain.
         """
         self._name = f"{name} Peripheral Domain"
-        self._base_address = base_address
+        self._start_address = start_address
         self._length = length
         self._peripherals = []
 
@@ -153,12 +152,12 @@ class PeripheralDomain(ABC):
         """
         ...
 
-    def get_base_address(self):
+    def get_start_address(self):
         """
-        :return: The base address of the peripheral domain.
+        :return: The start address of the peripheral domain.
         :rtype: int
         """
-        return self._base_address
+        return self._start_address
 
     def get_length(self):
         """
@@ -177,6 +176,16 @@ class PeripheralDomain(ABC):
             if self._peripherals is None or len(self._peripherals) == 0
             else [deepcopy(p) for p in self._peripherals]
         )
+
+    def contains_peripheral(self, peripheral_name: str):
+        """
+        Check if the peripheral domain contains a peripheral with the given name.
+
+        :param str peripheral_name: The name of the peripheral to check (case sensitive).
+        :return: True if the peripheral domain contains a peripheral with the given name, False otherwise.
+        :rtype: bool
+        """
+        return any(p.get_name() == peripheral_name for p in self._peripherals)
 
     # Build function
 
@@ -385,11 +394,32 @@ class PeripheralDomain(ABC):
 
         return return_bool
 
+    def __check_peripheral_domain_bounds(self):
+        """
+        Check if the peripheral domain is within the bounds it can use (being above 0x10000).
+
+        :return: True if the peripheral domain is within the bounds of the memory, False otherwise.
+        :rtype: bool
+        """
+
+        if self.get_start_address() < int("10000", 16):
+            print(
+                f"Peripheral domain {self._name} start address must be greater than 0x10000"
+            )
+            return False
+
+        return True
+
     def validate(self):
         """
-        Validate the peripheral domain. Checks if the paths to the configuration files of the peripherals that have one are valid and if the peripherals do not overlap.
+        Validate the peripheral domain. Checks if the paths to the configuration files of the peripherals that have one are valid, if the peripherals do not overlap and if the peripheral domain is within the bounds.
 
         :return: True if the peripheral domain is valid, False otherwise.
         :rtype: bool
         """
-        return self.__check_paths() and self.__check_peripheral_non_overlap()
+
+        return (
+            self.__check_paths()
+            and self.__check_peripheral_non_overlap()
+            and self.__check_peripheral_domain_bounds()
+        )

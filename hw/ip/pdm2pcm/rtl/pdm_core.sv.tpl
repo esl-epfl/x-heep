@@ -7,6 +7,17 @@
 // Date: 05.2025
 // Description: PDM to PCM converter core
 
+<%
+    pdm2pcm = xheep.get_user_peripheral_domain().get_pdm2pcm()
+    if pdm2pcm is None :
+        cic_mode = -1
+    else :
+        if pdm2pcm.get_cic_mode() :
+            cic_mode = 1
+        else :
+            cic_mode = 0
+%>
+
 module pdm_core #(
     // Number of stages of the CIC filter
     parameter integer STAGES_CIC = 4,
@@ -14,7 +25,7 @@ module pdm_core #(
     parameter integer WIDTH = 18,
     // First decimator internal counter width
     parameter integer DECIM_COMBS_CNT_W = 4,
-% if peripherals['pdm2pcm']['cic_only'] == '0':
+% if cic_mode == 0 :
     // Second decimator internal counter width
     localparam DECIM_HFBD1_CNT_W = 5,
     // Third decimator internal counter width
@@ -49,7 +60,7 @@ module pdm_core #(
     input logic [STAGES_CIC-1:0] par_cic_activated_stages,
     // First decimator decimation index
     input logic [DECIM_COMBS_CNT_W-1:0] par_decim_idx_combs,
-% if peripherals['pdm2pcm']['cic_only'] == '0':
+% if cic_mode == 0:
     // Second decimator decimation index
     input logic [DECIM_HFBD1_CNT_W-1:0] par_decim_idx_hfbd2,
     // Third decimator decimation index
@@ -82,7 +93,7 @@ module pdm_core #(
   logic [WIDTH-1:0] data;
   logic [WIDTH-1:0] integr_to_comb;
   logic [WIDTH-1:0] combs_to_hb1;
-% if peripherals['pdm2pcm']['cic_only'] == '0':
+% if cic_mode == 0:
   logic [WIDTH-1:0] hb1_to_hb2;
   logic [WIDTH-1:0] hb2_to_fir;
 %endif
@@ -92,7 +103,7 @@ module pdm_core #(
 
   // Decimators output signals
   logic             combs_en;
-% if peripherals['pdm2pcm']['cic_only'] == '0':
+% if cic_mode == 0:
   logic             hb2_en;
   logic             fir_en;
 % endif
@@ -122,7 +133,7 @@ module pdm_core #(
   assign div_clk_e = div_clk & ~div_clk_p;
 
   // Output synchronized with the last decimator
-% if peripherals['pdm2pcm']['cic_only'] == '0':
+% if cic_mode == 0:
   assign pcm_data_valid_o = fir_en & div_clk & div_clk_e;
 % else:
   assign pcm_data_valid_o = combs_en & div_clk & div_clk_e;
@@ -206,7 +217,7 @@ module pdm_core #(
       .data_o(combs_to_hb1)
   );
 
-% if peripherals['pdm2pcm']['cic_only'] == '0':
+% if cic_mode == 0:
     halfband #(WIDTH, COEFFSWIDTH, STAGES_HB1) halfband_inst1 (
         .clk_i(div_clk),
         .rstn_i(rstn_i),
