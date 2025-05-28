@@ -39,16 +39,14 @@ module cic_integrators #(
   genvar i;
   generate
     for (i = 0; i < STAGES; i = i + 1) begin : cic_stages
-
       cic_integrator #(WIDTH) cic_integrator_inst (
           .clk_i (clk_i),
           .rstn_i(rstn_i),
           .clr_i (clr_i),
-          .en_i  (en_i),
+          .en_i  (par_cic_activated_stages[i] & en_i),
           .data_i(integrator_data[i]),
           .data_o(integrator_data[i+1])
       );
-
     end
   endgenerate
 

@@ -75,7 +75,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "4:0" }
+        { bits: "3:0" }
       ]
     }
 

@@ -34,7 +34,7 @@ module cic_comb #(
   localparam integer MAX_DELAY = 2 ** DELAYCOMBWIDTH - 1;
 
   // Register for the previous signal data
-  logic [WIDTH-1:0] r_previousdata[MAX_DELAY-1:0];
+  logic [WIDTH-1:0] r_previousdata[MAX_DELAY:0];
 
   // Register to buffer output data
   logic [WIDTH-1:0] r_data;
