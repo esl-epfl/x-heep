@@ -50,8 +50,6 @@ module pdm2pcm #(
   logic              [               17:0]     coeffs_fir          [0:13];
 % endif
 
-  logic              [FIFO_ADDR_WIDTH-1:0]     fifo_usage;
-
   logic                                        pcm_data_valid;
 
   logic                                        rx_ready;
@@ -69,14 +67,14 @@ module pdm2pcm #(
   reg_req_t        [                      0:0] fifo_win_h2d;
   reg_rsp_t        [                      0:0] fifo_win_d2h;
 
+  logic div_clk;
+
   logic cdc_fifo_src_ready;
   logic cdc_fifo_src_valid;
   logic cdc_fifo_dst_valid;
 
   assign rx_data = ({{{32 - FIFO_WIDTH} {1'b0}}, rx_fifo});
 
-  assign hw2reg.status.reach.d  = ({{{32-FIFO_ADDR_WIDTH}{1'b0}},fifo_usage}) > {{26{1'b0}},reg2hw.reachcount.q};
-  assign hw2reg.status.reach.de = 1;
   assign hw2reg.status.fulll.de = 1;
   assign hw2reg.status.empty.de = 1;
   assign par_clkdiv_idx = reg2hw.clkdividx.q;
