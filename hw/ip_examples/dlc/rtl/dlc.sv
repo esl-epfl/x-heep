@@ -98,6 +98,8 @@ module dlc #(
   logic dir_out;  // dir actual output
   logic [16:0] dlc_output;  // dLC output packet
 
+  logic xing; // a crossing event
+
   // ------------------------- FSM
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -124,14 +126,14 @@ module dlc #(
 
   always_comb begin
     if (dlc_state == DLC_RUN) begin
-      /* 
+      /*
         dlvl has overflowed and write fifo is not full
         (if the hw write fifo is full, no need to stall because din_lvl will be preserved
         as no pop operation will be issued from the hw read fifo)
       */
       if (dlvl_ovf) begin  // && !hw_w_fifo_full) begin
         dlc_state_n = DLC_DLVL_OVF;
-        /* 
+        /*
         delta time has overflowed
       */
       end else if (sdiff_cnt_en && (sdiff_cnt == reg_dt_mask)) begin
@@ -278,7 +280,7 @@ module dlc #(
     */
 
     hw_w_fifo_push = 1'b0;
-    if (hw_w_fifo_full == 1'b0 && ((dlc_xing_o && dlc_state == DLC_RUN && !dlvl_ovf) ||  // crossing detected
+    if (hw_w_fifo_full == 1'b0 && ((xing && dlc_state == DLC_RUN && !dlvl_ovf) ||  // crossing detected
         (dlc_state == DLC_DLVL_OVF) ||  // delta levels overflows
         (dlc_state == DLC_DT_OVF))) begin  // delta time overflows
       hw_w_fifo_push = 1'b1;
@@ -342,67 +344,70 @@ module dlc #(
   logic signed [31:0] tmp1;
   logic signed [15:0] tmp2;
 
+
+
   always_ff @(negedge rst_ni or posedge clk_i) begin
     if (~rst_ni) begin
-      dlc_dir_o <= 1'b0;
+      dlc_dir_o <= '0;
+      dir_d1 <= '0;
+      dlc_xing_o <= '0;
     end else begin
-      /*
-      Update the direction output when there are crossings
-      */
-      if (dlc_xing_o) begin
+      if (dlc_state == DLC_RUN && dlvl != 0) begin
+        /*On every level crossed the direction is updated. Even if we do not issue a xing, the last dir is updated.*/
+        dir_d1 <= dir;
+      end
+      if (xing) begin
+        /*
+        Update the direction output when there are crossings
+        */
         dlc_dir_o <= dir;
       end
+      dlc_xing_o <= xing;
+    end
+  end
+
+
+  always_comb begin
+    dir = 0;
+    xing = 0;
+    hw2reg.curr_lvl.de = '0;
+    hw2reg.curr_lvl.d = '0;
+
+    if (dlc_state == DLC_RUN && dlvl != 0) begin
+      /*
+      Compute the direction of the crossing
+      */
+      dir = dlvl[15];
+
+      /*
+        A crossing is detected once the hw read fifo is poped, if the dLC is in run state and:
+        a) "the level difference is non zero", and
+        b) only if hysteresis is enabled: "the direction of the xing is the same as the previous direction"
+      */
+      xing = (reg2hw.hysteresis_en ? (dir_d1 == dir) : 1'b1);
+
+      /*
+      Threshold updating:
+        the current level is updated only when a crossing is detected and the dLC is in DLC_RUN state.
+        the current level is updated with the input data level.
+      */
+      hw2reg.curr_lvl.de = 1;
+      hw2reg.curr_lvl.d = din_lvl;
+
     end
   end
 
   always_comb begin
-
-    tmp1 = '0;
-    tmp2 = '0;
-    din_lvl = '0;
-    dlvl = '0;
-    dir = '0;
-    dlc_xing_o = '0;
-    hw2reg.curr_lvl.de = '0;
-    hw2reg.curr_lvl.d = '0;
-
     if (hw_r_fifo_pop == 1'b1) begin
       tmp1 = hw_r_fifo_data_out >> reg_discard; // First we discard the least significant bits that are not relevant
       tmp2 = tmp1[15:0];  // We keep only the relevant 16 bits
-      din_lvl = tmp2 >>> reg_log_wl;  // Then we right shift keeping the sign. 
+      din_lvl = tmp2 >>> reg_log_wl;  // Then we right shift keeping the sign.
       dlvl = add_res;
-      if (dlc_state == DLC_RUN && dlvl != 0) begin
-
-        /*
-        Compute the direction of the crossing
-        */
-        dir = dlvl[15];
-
-        /*
-          A crossing is detected once the hw read fifo is poped, if the dLC is in run state and:
-          a) "the level difference is non zero", and
-          b) only if hysteresis is enabled: "the direction of the dlc_xing_o is the same as the previous direction"
-        */
-        dlc_xing_o = (reg2hw.hysteresis_en ? (dir_d1 == dir) : 1'b1);
-
-        /* 
-        Threshold updating:
-          the current level is updated only when a crossing is detected and the dLC is in DLC_RUN state.
-          the current level is updated with the input data level.
-        */
-        hw2reg.curr_lvl.de = 1;
-        hw2reg.curr_lvl.d = din_lvl;
-
-      end
-    end
-  end
-
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (~rst_ni) begin
-      dir_d1 <= '0;
     end else begin
-      /*On every level crossed the direction is updated. Even if we do not issue a dlc_xing_o, the last dir is updated.*/
-      dir_d1 <= dir;
+      tmp1 = '0;
+      tmp2 = '0;
+      din_lvl = '0;
+      dlvl = '0;
     end
   end
 
@@ -414,13 +419,13 @@ module dlc #(
         the sample difference counter is enabled when no crossing happened and the hw read fifo is being popped.
         This means that the sample difference counter is incremented only when a crossing is not detected on a valid input data.
     */
-    sdiff_cnt_en = !dlc_xing_o && hw_r_fifo_pop;
+    sdiff_cnt_en = !xing && hw_r_fifo_pop;
 
     /*
       sample difference counter reset:
         the sample difference counter is reset when a crossing is detected or the sample difference counter has overflowed.
     */
-    sdiff_cnt_rst = (dlc_xing_o && !dlvl_ovf) || (dlc_state == DLC_DT_OVF && !hw_w_fifo_full) || (dlc_state == DLC_DLVL_OVF);
+    sdiff_cnt_rst = (xing && !dlvl_ovf) || (dlc_state == DLC_DT_OVF && !hw_w_fifo_full) || (dlc_state == DLC_DLVL_OVF);
   end
 
   // Sample difference 16-bit Counter
@@ -473,7 +478,7 @@ module dlc #(
         This is detected by ANDing dlvl with the inverted delta levels mask and then checking if any of the bits is set to 1.
         If this is the case, it means that dlvl cannot be represented with the current number of bits dedicated to it.
     */
-    dlvl_ovf = (reg_bypass == 1'b0) ? (dlc_xing_o && (|(dlvl_abs & ~reg_dlvl_mask))) : 1'b0;
+    dlvl_ovf = (reg_bypass == 1'b0) ? (xing && (|(dlvl_abs & ~reg_dlvl_mask))) : 1'b0;
 
     /*
       delta-level overflow stops when add_res is equal to 0 or or negative
