@@ -24,7 +24,7 @@ module pdm_core #(
     localparam WIDTH = 18,
     // First decimator internal counter width
     localparam DECIM_COMBS_CNT_W = 4,
-% if cic_mode == 0 :
+% if cic_mode == 0:
     // Second decimator internal counter width
     localparam DECIM_HFBD1_CNT_W = 5,
     // Third decimator internal counter width
@@ -84,8 +84,6 @@ module pdm_core #(
   logic             r_data;
 
   logic             div_clk;
-  logic             div_clk_p;
-  logic             div_clk_e;
 
   // Auxiliary signals to link the filter blocks
   logic [WIDTH-1:0] data;
@@ -107,7 +105,8 @@ module pdm_core #(
 % endif
 
   clk_int_div #(
-      .DIV_VALUE_WIDTH(CLKDIVWIDTH)
+      .DIV_VALUE_WIDTH(CLKDIVWIDTH),
+      .DEFAULT_DIV_VALUE(2)
   ) clk_int_div_inst (
       .clk_i(clk_i),
       .rst_ni(rstn_i),
@@ -120,22 +119,36 @@ module pdm_core #(
       .cycl_count_o()
   );
 
+  // Output synchronized with the last decimator
+  logic last_decimator_en;
+  % if cic_mode == 0:
+    assign last_decimator_en = fir_en;
+  % else:
+    assign last_decimator_en = combs_en;
+  % endif
+
+  // Check the rising edge of last_decimator_en and set the pcm_data_valid_o flag high
+  // for one clk_i clock cycle since there is no real handshake with the output fifo
+  logic last_decimator_en_d;
+
   always_ff @(posedge clk_i or negedge rstn_i) begin
     if (~rstn_i) begin
-      div_clk_p <= 0;
+      last_decimator_en_d <= 1'b0;
     end else begin
-      div_clk_p <= div_clk;
+      last_decimator_en_d <= last_decimator_en;
     end
   end
 
-  assign div_clk_e = div_clk & ~div_clk_p;
+  always_ff @(posedge clk_i or negedge rstn_i) begin
+    if (~rstn_i) begin
+      pcm_data_valid_o <= 1'b0;
+    end else if (last_decimator_en & ~last_decimator_en_d) begin
+      pcm_data_valid_o <= 1'b1;
+    end else begin
+      pcm_data_valid_o <= 1'b0;
+    end
+  end
 
-  // Output synchronized with the last decimator
-% if cic_mode == 0:
-  assign pcm_data_valid_o = fir_en & div_clk & div_clk_e;
-% else:
-  assign pcm_data_valid_o = combs_en & div_clk & div_clk_e;
-% endif
 
   ///////////////////////////////////////////////////////////////////////////
   //////////// PIECE OF CODE I NEED TO MAKE EASIER TO UNDERSTAND ////////////
@@ -178,12 +191,12 @@ module pdm_core #(
   assign data = r_data ? 'h1 : {WIDTH{1'b1}};
 
   // Instantiation sequence
-  //┌───────────────────────┐                                       
-  //│       CIC Filter      │                                       
+  //┌───────────────────────┐
+  //│       CIC Filter      │
   //│┌─────┐ ┌─────┐ ┌─────┐│┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐
   //││Intgs├─►Decim├─►Combs├│►Hlfbd├─►Decim├─►Hlfbd├─►Decim├─► FIR │
   //│└─────┘ └─────┘ └─────┘│└─────┘ └─────┘ └─────┘ └─────┘ └─────┘
-  //└───────────────────────┘                                       
+  //└───────────────────────┘
   // (made with asciiflow.com)
 
   cic_integrators #(STAGES_CIC, WIDTH) cic_integrators_inst (
