@@ -25,6 +25,8 @@ module pdm_core #(
     parameter integer WIDTH = 18,
     // First decimator internal counter width
     parameter integer DECIM_COMBS_CNT_W = 4,
+    // Widht of the comb delay parameter
+    parameter integer DELAYCOMBWIDTH = 5,
 % if cic_mode == 0 :
     // Second decimator internal counter width
     localparam DECIM_HFBD1_CNT_W = 5,
@@ -60,6 +62,8 @@ module pdm_core #(
     input logic [STAGES_CIC-1:0] par_cic_activated_stages,
     // First decimator decimation index
     input logic [DECIM_COMBS_CNT_W-1:0] par_decim_idx_combs,
+    //Delay D in the combs stage
+    input logic [DELAYCOMBWIDTH-1:0] par_delay_combs,
 % if cic_mode == 0:
     // Second decimator decimation index
     input logic [DECIM_HFBD1_CNT_W-1:0] par_decim_idx_hfbd2,
@@ -207,12 +211,13 @@ module pdm_core #(
       .en_o(combs_en)
   );
 
-  cic_combs #(STAGES_CIC, WIDTH) cic_combs_inst (
+  cic_combs #(STAGES_CIC, WIDTH, DELAYCOMBWIDTH) cic_combs_inst (
       .clk_i (div_clk),
       .rstn_i(rstn_i),
       .clr_i (s_clr),
       .en_i  (combs_en),
       .par_cic_activated_stages,
+      .par_delay_combs,
       .data_i(integr_to_comb),
       .data_o(combs_to_hb1)
   );

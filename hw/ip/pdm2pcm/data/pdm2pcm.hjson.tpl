@@ -70,6 +70,15 @@
       ]
     }
 
+    { name:     "cic_delay_comb"
+      desc:     "delay in each comb block (D)"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "4:0" }
+      ]
+    }
+
     // DECIMATORS
 
     { name:     "DECIMCIC"

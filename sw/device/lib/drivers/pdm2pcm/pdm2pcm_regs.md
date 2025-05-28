@@ -75,10 +75,25 @@
 </tr></table></td></tr>
 <tr><th width=5%>Bits</th><th width=5%>Type</th><th width=5%>Reset</th><th>Name</th><th>Description</th></tr><tr><td class="regbits">5:0</td><td class="regperm">rw</td><td class="regrv">x</td><td class="regfn">cic_activated_stages</td><td class="regde"></td></table>
 <br>
+<table class="regdef" id="Reg_cic_delay_comb">
+ <tr>
+  <th class="regdef" colspan=5>
+   <div>pdm2pcm.cic_delay_comb @ 0x14</div>
+   <div><p>delay in each comb block (D)</p></div>
+   <div>Reset default = 0x0, mask 0x1f</div>
+  </th>
+ </tr>
+<tr><td colspan=5><table class="regpic"><tr><td class="bitnum">31</td><td class="bitnum">30</td><td class="bitnum">29</td><td class="bitnum">28</td><td class="bitnum">27</td><td class="bitnum">26</td><td class="bitnum">25</td><td class="bitnum">24</td><td class="bitnum">23</td><td class="bitnum">22</td><td class="bitnum">21</td><td class="bitnum">20</td><td class="bitnum">19</td><td class="bitnum">18</td><td class="bitnum">17</td><td class="bitnum">16</td></tr><tr><td class="unused" colspan=16>&nbsp;</td>
+</tr>
+<tr><td class="bitnum">15</td><td class="bitnum">14</td><td class="bitnum">13</td><td class="bitnum">12</td><td class="bitnum">11</td><td class="bitnum">10</td><td class="bitnum">9</td><td class="bitnum">8</td><td class="bitnum">7</td><td class="bitnum">6</td><td class="bitnum">5</td><td class="bitnum">4</td><td class="bitnum">3</td><td class="bitnum">2</td><td class="bitnum">1</td><td class="bitnum">0</td></tr><tr><td class="unused" colspan=11>&nbsp;</td>
+<td class="fname" colspan=5>cic_delay_comb</td>
+</tr></table></td></tr>
+<tr><th width=5%>Bits</th><th width=5%>Type</th><th width=5%>Reset</th><th>Name</th><th>Description</th></tr><tr><td class="regbits">4:0</td><td class="regperm">rw</td><td class="regrv">x</td><td class="regfn">cic_delay_comb</td><td class="regde"></td></table>
+<br>
 <table class="regdef" id="Reg_decimcic">
  <tr>
   <th class="regdef" colspan=5>
-   <div>pdm2pcm.DECIMCIC @ 0x14</div>
+   <div>pdm2pcm.DECIMCIC @ 0x18</div>
    <div><p>Samples count after which to decimate in the CIC filter.</p></div>
    <div>Reset default = 0x0, mask 0xf</div>
   </th>
@@ -93,14 +108,14 @@
 <table class="regdef" id="Reg_rxdata">
   <tr>
     <th class="regdef">
-      <div>pdm2pcm.RXDATA @ + 0x18</div>
+      <div>pdm2pcm.RXDATA @ + 0x1c</div>
       <div>1 item ro window</div>
       <div>Byte writes are <i>not</i> supported</div>
     </th>
   </tr>
-<tr><td><table class="regpic"><tr><td width="10%"></td><td class="bitnum">31</td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum">0</td></tr><tr><td class="regbits">+0x18</td><td class="fname" colspan=32>&nbsp;</td>
+<tr><td><table class="regpic"><tr><td width="10%"></td><td class="bitnum">31</td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum"></td><td class="bitnum">0</td></tr><tr><td class="regbits">+0x1c</td><td class="fname" colspan=32>&nbsp;</td>
+</tr><tr><td class="regbits">+0x20</td><td class="fname" colspan=32>&nbsp;</td>
+</tr><tr><td>&nbsp;</td><td align=center colspan=32>...</td></tr><tr><td class="regbits">+0x18</td><td class="fname" colspan=32>&nbsp;</td>
 </tr><tr><td class="regbits">+0x1c</td><td class="fname" colspan=32>&nbsp;</td>
-</tr><tr><td>&nbsp;</td><td align=center colspan=32>...</td></tr><tr><td class="regbits">+0x14</td><td class="fname" colspan=32>&nbsp;</td>
-</tr><tr><td class="regbits">+0x18</td><td class="fname" colspan=32>&nbsp;</td>
 </tr></td></tr></table><tr><td class="regde"><p>PCM Receive data</p></td></tr></table>
 <br>

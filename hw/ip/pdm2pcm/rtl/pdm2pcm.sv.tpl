@@ -43,11 +43,13 @@ module pdm2pcm #(
   localparam integer CicStageNumber = $bits(reg2hw.cic_activated_stages.q);
   localparam integer DecimCicWidth  = $bits(reg2hw.decimcic.q);
   localparam integer ClkDivIdxWidth = $bits(reg2hw.clkdividx.q);
+  localparam integer DelayCombWidth = $bits(reg2hw.cic_delay_comb.q);
 
 
   logic              [ ClkDivIdxWidth-1:0]     par_clkdiv_idx;
   logic              [  DecimCicWidth-1:0]     par_decim_idx_combs;
   logic              [ CicStageNumber-1:0]     par_cic_activated_stages;
+  logic              [ DelayCombWidth-1:0]     par_delay_combs;
 % if cic_mode == 0:
   logic              [                4:0]     par_decim_idx_hfbd2;
   logic              [                5:0]     par_decim_idx_fir;
@@ -87,6 +89,7 @@ module pdm2pcm #(
   assign par_clkdiv_idx = reg2hw.clkdividx.q;
   assign par_decim_idx_combs = reg2hw.decimcic.q;
   assign par_cic_activated_stages = reg2hw.cic_activated_stages.q;
+  assign par_delay_combs = reg2hw.cic_delay_comb.q;
 
 % if cic_mode == 0:
   assign par_decim_idx_hfbd2 = reg2hw.decimhb1.q;
@@ -131,13 +134,15 @@ module pdm2pcm #(
       .STAGES_CIC(CicStageNumber),
       .WIDTH(FIFO_WIDTH),
       .DECIM_COMBS_CNT_W(DecimCicWidth),
-      .CLKDIVWIDTH(ClkDivIdxWidth)
+      .CLKDIVWIDTH(ClkDivIdxWidth),
+      .DELAYCOMBWIDTH(DelayCombWidth)
   ) pdm_core_i (
       .clk_i,
       .rstn_i(rst_ni),
       .en_i(reg2hw.control.enabl.q),
       .par_cic_activated_stages,
       .par_decim_idx_combs,
+      .par_delay_combs,
 % if cic_mode == 0:
       .par_decim_idx_hfbd2,
       .par_decim_idx_fir,

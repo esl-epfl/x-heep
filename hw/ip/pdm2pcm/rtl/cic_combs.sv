@@ -10,7 +10,9 @@ module cic_combs #(
     // Number of integrators
     parameter integer STAGES = 4,
     // Width of the datapath
-    parameter integer WIDTH  = 18
+    parameter integer WIDTH = 18,
+    // Width of the delay parameter
+    parameter integer DELAYCOMBWIDTH = 5
 ) (
     // Clock input
     input logic clk_i,
@@ -23,6 +25,8 @@ module cic_combs #(
 
     // Which/How many CIC stage are activated (Thermometric, right-aligned)
     input logic [STAGES-1:0] par_cic_activated_stages,
+    // Value of delay parameter
+    input logic [DELAYCOMBWIDTH-1:0] par_delay_combs,
 
     // Data input
     input  logic [WIDTH-1:0] data_i,
@@ -41,11 +45,12 @@ module cic_combs #(
   generate
     for (i = 0; i < STAGES; i = i + 1) begin : cic_stages
 
-      cic_comb #(WIDTH) cic_comb_inst (
-          .clk_i (clk_i),
+      cic_comb #(WIDTH, DELAYCOMBWIDTH) cic_comb_inst (
+          .clk_i(clk_i),
           .rstn_i(rstn_i),
-          .clr_i (clr_i),
-          .en_i  (en_i),
+          .clr_i(clr_i),
+          .en_i(en_i),
+          .par_delay(par_delay_combs),
           .data_i(comb_data[i]),
           .data_o(comb_data[i+1])
       );
