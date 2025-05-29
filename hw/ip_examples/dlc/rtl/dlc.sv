@@ -98,7 +98,7 @@ module dlc #(
   logic dir_out;  // dir actual output
   logic [16:0] dlc_output;  // dLC output packet
 
-  logic xing; // a crossing event
+  logic xing;  // a crossing event
 
   // ------------------------- FSM
 
