@@ -235,7 +235,7 @@ fast_intr_ctrl_result_t enable_fast_interrupt(fast_intr_ctrl_fast_interrupt_t\
 
 fast_intr_ctrl_result_t enable_all_fast_interrupts(bool enable)
 {
-    fast_intr_ctrl_peri->FAST_INTR_ENABLE = enable ? 0x7fff : 0x0000;
+    fast_intr_ctrl_peri->FAST_INTR_ENABLE = enable ? 0xffff : 0x0000;
     return kFastIntrCtrlOk_e;
 }
 
