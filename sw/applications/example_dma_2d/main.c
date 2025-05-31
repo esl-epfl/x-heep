@@ -72,7 +72,7 @@
 #define OUT_DIM_2D ( OUT_D1_PAD_STRIDE * OUT_D2_PAD_STRIDE )
 
 /* Mask for the direct register operations example */
-#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ))
+#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ) | (1 << 30))
 
 /* Transposition example def */
 #define TRANSPOSITION_EN 1

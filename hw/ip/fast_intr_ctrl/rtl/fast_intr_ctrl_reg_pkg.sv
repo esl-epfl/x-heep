@@ -13,33 +13,33 @@ package fast_intr_ctrl_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {logic [14:0] q;} fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t;
+  typedef struct packed {logic [15:0] q;} fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t;
 
-  typedef struct packed {logic [14:0] q;} fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t;
+  typedef struct packed {logic [15:0] q;} fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t;
 
-  typedef struct packed {logic [14:0] q;} fast_intr_ctrl_reg2hw_fast_intr_enable_reg_t;
+  typedef struct packed {logic [15:0] q;} fast_intr_ctrl_reg2hw_fast_intr_enable_reg_t;
 
   typedef struct packed {
-    logic [14:0] d;
+    logic [15:0] d;
     logic        de;
   } fast_intr_ctrl_hw2reg_fast_intr_pending_reg_t;
 
   typedef struct packed {
-    logic [14:0] d;
+    logic [15:0] d;
     logic        de;
   } fast_intr_ctrl_hw2reg_fast_intr_clear_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t fast_intr_pending;  // [44:30]
-    fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t   fast_intr_clear;    // [29:15]
-    fast_intr_ctrl_reg2hw_fast_intr_enable_reg_t  fast_intr_enable;   // [14:0]
+    fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t fast_intr_pending;  // [47:32]
+    fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t   fast_intr_clear;    // [31:16]
+    fast_intr_ctrl_reg2hw_fast_intr_enable_reg_t  fast_intr_enable;   // [15:0]
   } fast_intr_ctrl_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    fast_intr_ctrl_hw2reg_fast_intr_pending_reg_t fast_intr_pending;  // [31:16]
-    fast_intr_ctrl_hw2reg_fast_intr_clear_reg_t   fast_intr_clear;    // [15:0]
+    fast_intr_ctrl_hw2reg_fast_intr_pending_reg_t fast_intr_pending;  // [33:17]
+    fast_intr_ctrl_hw2reg_fast_intr_clear_reg_t   fast_intr_clear;    // [16:0]
   } fast_intr_ctrl_hw2reg_t;
 
   // Register offsets

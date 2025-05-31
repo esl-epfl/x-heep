@@ -4,6 +4,7 @@
 
 `verilator_config
 
+lint_off -rule DECLFILENAME -file "*/fast_intr_ctrl_reg_top.sv"
 lint_off -rule WIDTH -file "*/fast_intr_ctrl_reg_top.sv" -match "Operator ASSIGNW expects *"
 lint_off -rule UNUSED -file "*/fast_intr_ctrl.sv" -match "Bits of signal are not used: 'reg2hw'*"
 lint_off -rule UNUSED -file "*/fast_intr_ctrl.sv" -match "Bits of signal are not used: 'reg2hw'*"

@@ -15,8 +15,8 @@ module fast_intr_ctrl #(
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    input  logic [14:0] fast_intr_i,
-    output logic [14:0] fast_intr_o
+    input  logic [15:0] fast_intr_i,
+    output logic [15:0] fast_intr_o
 );
 
   import fast_intr_ctrl_reg_pkg::*;
@@ -24,8 +24,8 @@ module fast_intr_ctrl #(
   fast_intr_ctrl_reg2hw_t reg2hw;
   fast_intr_ctrl_hw2reg_t hw2reg;
 
-  logic [14:0] fast_intr_pending_de;
-  logic [14:0] fast_intr_clear_de;
+  logic [15:0] fast_intr_pending_de;
+  logic [15:0] fast_intr_clear_de;
 
   fast_intr_ctrl_reg_top #(
       .reg_req_t(reg_req_t),
@@ -40,7 +40,7 @@ module fast_intr_ctrl #(
       .devmode_i(1'b1)
   );
 
-  for (genvar i = 0; i < 15; i++) begin : gen_fast_interrupt
+  for (genvar i = 0; i < 16; i++) begin : gen_fast_interrupt
 
     always_comb begin
       if (reg2hw.fast_intr_clear.q[i]) begin

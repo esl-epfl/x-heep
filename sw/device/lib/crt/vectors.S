@@ -77,12 +77,10 @@ vector_table:
 	j handler_irq_fast_gpio_6
 	// 29 : fast interrupt - gpio_7
 	j handler_irq_fast_gpio_7
-  // 30 : fast interrupt - dma_window
-  j handler_irq_fast_dma_window
-	// 31 : fast interrupt - unmapped
-	j __no_irq_handler
-	// 31 : fast interrupt - unmapped - reserved for external accelerators
-	j __no_irq_handler
+	// 30 : fast interrupt - dma_window
+	j handler_irq_fast_dma_window
+	// 31 : fast interrupt - external peripheral
+	j handler_irq_fast_external_peripheral
 
 
 .section .text.vecs
@@ -91,7 +89,7 @@ vector_table:
 __no_irq_handler:
 	/*
 	REMOVING THIS CALL REDUCES CODE SIZE CONSIDERABLY
-	This will not print an error message in case of not finding 
+	This will not print an error message in case of not finding
 	the proper handler to manage an interrupt.
 	la a0, no_exception_handler_msg
 	jal ra, puts
@@ -100,7 +98,7 @@ __no_irq_handler:
 
 /*
 THESE STRINGS ARE NOT LONGER NEEDED
-Only the last two were used, and their 
+Only the last two were used, and their
 call was removed to reduce base code size
 .section .rodata
 illegal_insn_msg:
