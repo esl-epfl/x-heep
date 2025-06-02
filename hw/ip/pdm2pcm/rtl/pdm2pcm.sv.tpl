@@ -24,8 +24,6 @@ module pdm2pcm #(
     parameter int unsigned FIFO_DEPTH = 4,
     parameter int unsigned FIFO_WIDTH = 18,
     localparam int unsigned FIFO_ADDR_WIDTH = $clog2(FIFO_DEPTH),
-    // Width of the clock divider count
-    localparam int unsigned CLKDIVWIDTH = 16
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -132,7 +130,7 @@ module pdm2pcm #(
 % endif
 
   clk_int_div #(
-      .DIV_VALUE_WIDTH(CLKDIVWIDTH),
+      .DIV_VALUE_WIDTH(ClkDivIdxWidth),
       .DEFAULT_DIV_VALUE(2)
   ) clk_int_div_inst (
       .clk_i(clk_i),
