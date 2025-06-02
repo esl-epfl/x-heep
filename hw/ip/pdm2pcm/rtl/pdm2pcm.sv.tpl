@@ -40,7 +40,7 @@ module pdm2pcm #(
   import pdm2pcm_reg_pkg::*;
 
   //Compile time operation
-  localparam integer CicStageNumber = $bits(reg2hw.cic_activated_stages.q);
+  localparam integer CicMaxStageNumber = $bits(reg2hw.cic_activated_stages.q);
   localparam integer DecimCicWidth  = $bits(reg2hw.decimcic.q);
   localparam integer ClkDivIdxWidth = $bits(reg2hw.clkdividx.q);
   localparam integer DelayCombWidth = $bits(reg2hw.cic_delay_comb.q);
@@ -48,7 +48,7 @@ module pdm2pcm #(
 
   logic              [ ClkDivIdxWidth-1:0]     par_clkdiv_idx;
   logic              [  DecimCicWidth-1:0]     par_decim_idx_combs;
-  logic              [ CicStageNumber-1:0]     par_cic_activated_stages;
+  logic              [ CicMaxStageNumber-1:0]     par_cic_activated_stages;
   logic              [ DelayCombWidth-1:0]     par_delay_combs;
 % if cic_mode == 0:
   logic              [                4:0]     par_decim_idx_hfbd2;
@@ -145,7 +145,7 @@ module pdm2pcm #(
   );
 
   pdm_core #(
-      .STAGES_CIC(CicStageNumber),
+      .STAGES_CIC(CicMaxStageNumber),
       .WIDTH(FIFO_WIDTH),
       .DECIM_COMBS_CNT_W(DecimCicWidth),
       .DELAYCOMBWIDTH(DelayCombWidth)
