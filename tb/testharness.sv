@@ -97,6 +97,8 @@ module testharness #(
 
   // dLC done signal
   logic dlc_done;
+  logic dlc_xing_o;
+  logic dlc_dir_o;
 
   // External DMA slots
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx;
@@ -302,6 +304,7 @@ module testharness #(
       .ext_dma_slot_tx_i(ext_dma_slot_tx),
       .ext_dma_slot_rx_i(ext_dma_slot_rx),
       .ext_dma_stop_i('0),
+      .intr_ext_peripheral_i(gpio[31]),
       .hw_fifo_done_i({{(core_v_mini_mcu_pkg::DMA_CH_NUM - 1) {1'b0}}, dlc_done}),
       .dma_done_o(dma_busy)
   );
@@ -530,12 +533,13 @@ module testharness #(
       dlc dlc_i (
           .clk_i(clk_i),
           .rst_ni(rst_ni),
-          .dlc_xing_intr_o(),
           .dlc_done_o(dlc_done),
           .reg_req_i(ext_periph_slv_req[testharness_pkg::DLC_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::DLC_IDX]),
           .hw_fifo_req_i(hw_fifo_req[0]),
-          .hw_fifo_resp_o(hw_fifo_resp[0])
+          .hw_fifo_resp_o(hw_fifo_resp[0]),
+          .dlc_xing_o,
+          .dlc_dir_o
       );
 
       simple_accelerator #(
