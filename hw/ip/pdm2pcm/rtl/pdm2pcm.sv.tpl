@@ -23,7 +23,7 @@ module pdm2pcm #(
     parameter type reg_rsp_t = logic,
     parameter int unsigned FIFO_DEPTH = 4,
     parameter int unsigned FIFO_WIDTH = 18,
-    localparam int unsigned FIFO_ADDR_WIDTH = $clog2(FIFO_DEPTH),
+    localparam int unsigned FIFO_ADDR_WIDTH = $clog2(FIFO_DEPTH)
 ) (
     input logic clk_i,
     input logic rst_ni,
