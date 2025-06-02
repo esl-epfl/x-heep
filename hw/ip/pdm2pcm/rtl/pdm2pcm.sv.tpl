@@ -150,7 +150,6 @@ module pdm2pcm #(
       .STAGES_CIC(CicStageNumber),
       .WIDTH(FIFO_WIDTH),
       .DECIM_COMBS_CNT_W(DecimCicWidth),
-      .CLKDIVWIDTH(ClkDivIdxWidth),
       .DELAYCOMBWIDTH(DelayCombWidth)
   ) pdm_core_i (
       .div_clk_i(div_clk),

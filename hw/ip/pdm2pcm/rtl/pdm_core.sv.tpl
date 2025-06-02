@@ -19,14 +19,6 @@
 %>
 
 module pdm_core #(
-    // Number of stages of the CIC filter
-    parameter integer STAGES_CIC = 4,
-    // Width of the datapath
-    parameter integer WIDTH = 18,
-    // First decimator internal counter width
-    parameter integer DECIM_COMBS_CNT_W = 4,
-    // Widht of the comb delay parameter
-    parameter integer DELAYCOMBWIDTH = 5,
 % if cic_mode == 0:
     // Second decimator internal counter width
     localparam DECIM_HFBD1_CNT_W = 5,
@@ -42,10 +34,16 @@ module pdm_core #(
     localparam STAGES_FIR = 26,
     localparam COEFFS_FIR = 14,
     // Width of the filter coefficients (Halfbands and FIR)
-    localparam COEFFSWIDTH = 18
+    localparam COEFFSWIDTH = 18,
 % endif
-    // Width of the clock divider count
-    parameter integer CLKDIVWIDTH = 16
+    // Number of stages of the CIC filter
+    parameter integer STAGES_CIC = 4,
+    // Width of the datapath
+    parameter integer WIDTH = 18,
+    // First decimator internal counter width
+    parameter integer DECIM_COMBS_CNT_W = 4,
+    // Widht of the comb delay parameter
+    parameter integer DELAYCOMBWIDTH = 5
 
 ) (
     // Clock input
