@@ -30,7 +30,7 @@ extern "C"
 #define DMA_SELECTION_OFFSET_START 0
 
 /* Mask for direct register operations */
-#define DMA_CSR_REG_MIE_MASK ((1 << 19) | (1 << 11))
+#define DMA_CSR_REG_MIE_MASK ((1 << 19) | (1 << 11) | (1 << 30))
 
     /**********************************/
     /* ---- FUNCTION DEFINITIONS ---- */
