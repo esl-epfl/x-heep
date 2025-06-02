@@ -42,19 +42,7 @@
       hwaccess: "hrw"
       fields: [
         { bits: "0", name: "EMPTY", desc: "The FIFO buffer is empty." }
-        { bits: "1", name: "REACH", desc: "The FIFO buffer reached the specified quantity of signal taps." }
-        { bits: "2", name: "FULLL", desc: "The FIFO buffer is full."}
-      ]
-    }
-
-    // WINDOW INTERFACE CONFIGURATION
-
-    { name:     "REACHCOUNT"
-      desc:     "Number of signal taps stored into the FIFO to assert the FILLD bit in the STATUS register."
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "5:0", name: "COUNT", desc: "Set the signal taps count" }
+        { bits: "1", name: "FULLL", desc: "The FIFO buffer is full."}
       ]
     }
 
