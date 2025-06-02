@@ -138,7 +138,7 @@ module pdm2pcm #(
       .en_i(reg2hw.control.enabl.q),
       .test_mode_en_i(1'b0),
       .clk_o(div_clk),
-      .div_i(par_clkdiv_idx),
+      .div_i(par_clkdiv_idx >> 1),
       .div_valid_i(1'b1),
       .div_ready_o(),
       .cycl_count_o()
