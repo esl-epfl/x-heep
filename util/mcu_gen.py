@@ -511,7 +511,9 @@ def write_template(tpl_path, outfile, **kwargs):
             if outfile:
                 filename = outfile
             else:
-                filename = tpl_path.stem
+                filename = tpl_path.with_suffix("")
+
+            print(filename)
             with open(filename, "w") as file:
                 code = tpl.render_unicode(**kwargs)
                 code = re_trailws.sub("", code)
@@ -1360,8 +1362,10 @@ def main():
         )
 
         args = parser.parse_args()
+        outtpl = args.outtpl
+        outfile = args.outfile
 
-        write_template(args.outtpl, args.outfile, **kwargs)
+        write_template(outtpl, outfile, **kwargs)
 
     else:
         # X-Heep object must be generated
