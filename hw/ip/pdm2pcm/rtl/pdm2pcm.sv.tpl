@@ -41,14 +41,14 @@ module pdm2pcm #(
 
   //Compile time operation
   localparam integer CicMaxStageNumber = $bits(reg2hw.cic_activated_stages.q);
-  localparam integer DecimCicWidth  = $bits(reg2hw.decimcic.q);
-  localparam integer ClkDivIdxWidth = $bits(reg2hw.clkdividx.q);
-  localparam integer DelayCombWidth = $bits(reg2hw.cic_delay_comb.q);
+  localparam integer DecimCicWidth     = $bits(reg2hw.decimcic.q);
+  localparam integer ClkDivIdxWidth    = $bits(reg2hw.clkdividx.q);
+  localparam integer DelayCombWidth    = $bits(reg2hw.cic_delay_comb.q);
 
 
   logic              [ ClkDivIdxWidth-1:0]     par_clkdiv_idx;
   logic              [  DecimCicWidth-1:0]     par_decim_idx_combs;
-  logic              [ CicMaxStageNumber-1:0]     par_cic_activated_stages;
+  logic              [ CicMaxStageNumber-1:0]  par_cic_activated_stages;
   logic              [ DelayCombWidth-1:0]     par_delay_combs;
 % if cic_mode == 0:
   logic              [                4:0]     par_decim_idx_hfbd2;
@@ -129,8 +129,24 @@ module pdm2pcm #(
       };
 % endif
 
+  // The following factor compensates for the effective frequency reduction caused by the 
+  // use of `r_send` as an enable signal in the integrator and decimation stage of `pdm_core`. 
+  // Since `r_send` toggles at half the rate of `div_clk`, the downstream processing 
+  // operates at half the expected frequency unless this correction is applied.
+  // 
+  // Without this factor, the actual sampling frequency would be incorrectly 
+  // calculated as half the intended value.
+  //
+  // Corrected frequency relationships:
+  //   actual_sampling_frequency = freq(clk_i) / clkdividx
+  //   actual_output_frequency   = freq(clk_i) / (clkdividx * decimcic)
+  
+  localparam integer CLK_DIV_CORRECTION_FACTOR = 1;
+  wire [ClkDivIdxWidth-1:0] corrected_par_clkdiv_idx;
+  assign corrected_par_clkdiv_idx = par_clkdiv_idx >> CLK_DIV_CORRECTION_FACTOR;
+
   clk_int_div #(
-      .DIV_VALUE_WIDTH(ClkDivIdxWidth),
+      .DIV_VALUE_WIDTH(ClkDivIdxWidth-CLK_DIV_CORRECTION_FACTOR),
       .DEFAULT_DIV_VALUE(2)
   ) clk_int_div_inst (
       .clk_i(clk_i),
@@ -138,7 +154,7 @@ module pdm2pcm #(
       .en_i(reg2hw.control.enabl.q),
       .test_mode_en_i(1'b0),
       .clk_o(div_clk),
-      .div_i(par_clkdiv_idx >> 1),
+      .div_i((corrected_par_clkdiv_idx[ClkDivIdxWidth-CLK_DIV_CORRECTION_FACTOR-1:0])),
       .div_valid_i(1'b1),
       .div_ready_o(),
       .cycl_count_o()
