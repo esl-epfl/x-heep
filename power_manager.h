@@ -105,7 +105,7 @@ typedef struct power_manager_ram_map_t {
   uint32_t monitor_power_gate;
 } power_manager_ram_map_t;
 
-static power_manager_ram_map_t power_manager_ram_map[6] = {
+static power_manager_ram_map_t power_manager_ram_map[2] = {
   (power_manager_ram_map_t) {
     .clk_gate = POWER_MANAGER_RAM_0_CLK_GATE_REG_OFFSET,
     .power_gate_ack = POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_ACK_REG_OFFSET,
@@ -123,42 +123,6 @@ static power_manager_ram_map_t power_manager_ram_map[6] = {
     .iso = POWER_MANAGER_RAM_1_ISO_REG_OFFSET,
     .retentive = POWER_MANAGER_RAM_1_RETENTIVE_REG_OFFSET,
     .monitor_power_gate = POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_1_REG_OFFSET
-  },
-  (power_manager_ram_map_t) {
-    .clk_gate = POWER_MANAGER_RAM_2_CLK_GATE_REG_OFFSET,
-    .power_gate_ack = POWER_MANAGER_POWER_GATE_RAM_BLOCK_2_ACK_REG_OFFSET,
-    .switch_off = POWER_MANAGER_RAM_2_SWITCH_REG_OFFSET,
-    .wait_ack_switch = POWER_MANAGER_RAM_2_WAIT_ACK_SWITCH_ON_REG_OFFSET,
-    .iso = POWER_MANAGER_RAM_2_ISO_REG_OFFSET,
-    .retentive = POWER_MANAGER_RAM_2_RETENTIVE_REG_OFFSET,
-    .monitor_power_gate = POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_2_REG_OFFSET
-  },
-  (power_manager_ram_map_t) {
-    .clk_gate = POWER_MANAGER_RAM_3_CLK_GATE_REG_OFFSET,
-    .power_gate_ack = POWER_MANAGER_POWER_GATE_RAM_BLOCK_3_ACK_REG_OFFSET,
-    .switch_off = POWER_MANAGER_RAM_3_SWITCH_REG_OFFSET,
-    .wait_ack_switch = POWER_MANAGER_RAM_3_WAIT_ACK_SWITCH_ON_REG_OFFSET,
-    .iso = POWER_MANAGER_RAM_3_ISO_REG_OFFSET,
-    .retentive = POWER_MANAGER_RAM_3_RETENTIVE_REG_OFFSET,
-    .monitor_power_gate = POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_3_REG_OFFSET
-  },
-  (power_manager_ram_map_t) {
-    .clk_gate = POWER_MANAGER_RAM_4_CLK_GATE_REG_OFFSET,
-    .power_gate_ack = POWER_MANAGER_POWER_GATE_RAM_BLOCK_4_ACK_REG_OFFSET,
-    .switch_off = POWER_MANAGER_RAM_4_SWITCH_REG_OFFSET,
-    .wait_ack_switch = POWER_MANAGER_RAM_4_WAIT_ACK_SWITCH_ON_REG_OFFSET,
-    .iso = POWER_MANAGER_RAM_4_ISO_REG_OFFSET,
-    .retentive = POWER_MANAGER_RAM_4_RETENTIVE_REG_OFFSET,
-    .monitor_power_gate = POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_4_REG_OFFSET
-  },
-  (power_manager_ram_map_t) {
-    .clk_gate = POWER_MANAGER_RAM_5_CLK_GATE_REG_OFFSET,
-    .power_gate_ack = POWER_MANAGER_POWER_GATE_RAM_BLOCK_5_ACK_REG_OFFSET,
-    .switch_off = POWER_MANAGER_RAM_5_SWITCH_REG_OFFSET,
-    .wait_ack_switch = POWER_MANAGER_RAM_5_WAIT_ACK_SWITCH_ON_REG_OFFSET,
-    .iso = POWER_MANAGER_RAM_5_ISO_REG_OFFSET,
-    .retentive = POWER_MANAGER_RAM_5_RETENTIVE_REG_OFFSET,
-    .monitor_power_gate = POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_5_REG_OFFSET
   },
 };
 

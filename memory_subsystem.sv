@@ -31,23 +31,11 @@ module memory_subsystem
 
   logic [13-1:0] ram_req_addr_0;
   logic [13-1:0] ram_req_addr_1;
-  logic [13-1:0] ram_req_addr_2;
-  logic [13-1:0] ram_req_addr_3;
-  logic [13-1:0] ram_req_addr_4;
-  logic [13-1:0] ram_req_addr_5;
 
 
   assign ram_req_addr_0 = ram_req_i[0].addr[15-1:2];
 
   assign ram_req_addr_1 = ram_req_i[1].addr[15-1:2];
-
-  assign ram_req_addr_2 = ram_req_i[2].addr[15-1:2];
-
-  assign ram_req_addr_3 = ram_req_i[3].addr[15-1:2];
-
-  assign ram_req_addr_4 = ram_req_i[4].addr[15-1:2];
-
-  assign ram_req_addr_5 = ram_req_i[5].addr[15-1:2];
 
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram
 
@@ -102,74 +90,6 @@ module memory_subsystem
       .pwrgate_ack_no(pwrgate_ack_no[1]),
       .set_retentive_ni(set_retentive_ni[1]),
       .rdata_o(ram_resp_o[1].rdata)
-  );
-
-  sram_wrapper #(
-      .NumWords (8192),
-      .DataWidth(32'd32)
-  ) ram2_i (
-      .clk_i(clk_cg[2]),
-      .rst_ni(rst_ni),
-      .req_i(ram_req_i[2].req),
-      .we_i(ram_req_i[2].we),
-      .addr_i(ram_req_addr_2),
-      .wdata_i(ram_req_i[2].wdata),
-      .be_i(ram_req_i[2].be),
-      .pwrgate_ni(pwrgate_ni[2]),
-      .pwrgate_ack_no(pwrgate_ack_no[2]),
-      .set_retentive_ni(set_retentive_ni[2]),
-      .rdata_o(ram_resp_o[2].rdata)
-  );
-
-  sram_wrapper #(
-      .NumWords (8192),
-      .DataWidth(32'd32)
-  ) ram3_i (
-      .clk_i(clk_cg[3]),
-      .rst_ni(rst_ni),
-      .req_i(ram_req_i[3].req),
-      .we_i(ram_req_i[3].we),
-      .addr_i(ram_req_addr_3),
-      .wdata_i(ram_req_i[3].wdata),
-      .be_i(ram_req_i[3].be),
-      .pwrgate_ni(pwrgate_ni[3]),
-      .pwrgate_ack_no(pwrgate_ack_no[3]),
-      .set_retentive_ni(set_retentive_ni[3]),
-      .rdata_o(ram_resp_o[3].rdata)
-  );
-
-  sram_wrapper #(
-      .NumWords (8192),
-      .DataWidth(32'd32)
-  ) ram4_i (
-      .clk_i(clk_cg[4]),
-      .rst_ni(rst_ni),
-      .req_i(ram_req_i[4].req),
-      .we_i(ram_req_i[4].we),
-      .addr_i(ram_req_addr_4),
-      .wdata_i(ram_req_i[4].wdata),
-      .be_i(ram_req_i[4].be),
-      .pwrgate_ni(pwrgate_ni[4]),
-      .pwrgate_ack_no(pwrgate_ack_no[4]),
-      .set_retentive_ni(set_retentive_ni[4]),
-      .rdata_o(ram_resp_o[4].rdata)
-  );
-
-  sram_wrapper #(
-      .NumWords (8192),
-      .DataWidth(32'd32)
-  ) ram5_i (
-      .clk_i(clk_cg[5]),
-      .rst_ni(rst_ni),
-      .req_i(ram_req_i[5].req),
-      .we_i(ram_req_i[5].we),
-      .addr_i(ram_req_addr_5),
-      .wdata_i(ram_req_i[5].wdata),
-      .be_i(ram_req_i[5].be),
-      .pwrgate_ni(pwrgate_ni[5]),
-      .pwrgate_ack_no(pwrgate_ack_no[5]),
-      .set_retentive_ni(set_retentive_ni[5]),
-      .rdata_o(ram_resp_o[5].rdata)
   );
 
 

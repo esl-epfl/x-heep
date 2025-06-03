@@ -11,10 +11,10 @@ MEMORY
     ram0 (rwxai) : ORIGIN = 0x000000, LENGTH = 0x00e800
     FLASH0 (rx)  : ORIGIN = 0x40000000, LENGTH = 0x00e800
 
-    ram1 (rwxai) : ORIGIN = 0x00e800, LENGTH = 0x021800
-    FLASH1 (rx)  : ORIGIN = 0x4000e800, LENGTH = 0x021800
+    ram1 (rwxai) : ORIGIN = 0x00e800, LENGTH = 0x001800
+    FLASH1 (rx)  : ORIGIN = 0x4000e800, LENGTH = 0x001800
 
-    FLASH_left (rx) : ORIGIN = 0x40030000, LENGTH = 0xfd0000
+    FLASH_left (rx) : ORIGIN = 0x40010000, LENGTH = 0xff0000
 }
 
 

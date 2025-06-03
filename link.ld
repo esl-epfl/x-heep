@@ -21,7 +21,7 @@ MEMORY
      allowing initialized sections to be placed there). Infact we dump all
      sections to ram. */
     ram0 (rwxai) : ORIGIN = 0x000000, LENGTH = 0x00e800
-    ram1 (rwxai) : ORIGIN = 0x00e800, LENGTH = 0x021800
+    ram1 (rwxai) : ORIGIN = 0x00e800, LENGTH = 0x001800
 }
 
 /*

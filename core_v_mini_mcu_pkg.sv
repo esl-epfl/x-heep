@@ -49,14 +49,14 @@ package core_v_mini_mcu_pkg;
   // Internal slave memory map and index
   // -----------------------------------
   //must be power of two
-  localparam int unsigned MEM_SIZE = 32'h00030000;
+  localparam int unsigned MEM_SIZE = 32'h00010000;
 
-  localparam SYSTEM_XBAR_NSLAVE = 11;
+  localparam SYSTEM_XBAR_NSLAVE = 7;
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
 
-  localparam int unsigned NUM_BANKS = 6;
+  localparam int unsigned NUM_BANKS = 2;
   localparam int unsigned NUM_BANKS_IL = 0;
   localparam int unsigned EXTERNAL_DOMAINS = 0;
 
@@ -73,52 +73,32 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] RAM1_SIZE = 32'h00008000;
   localparam logic [31:0] RAM1_START_ADDRESS = 32'h00008000;
   localparam logic [31:0] RAM1_END_ADDRESS = 32'h00010000;
-  localparam logic [31:0] RAM2_IDX = 32'd3;
-  localparam logic [31:0] RAM2_SIZE = 32'h00008000;
-  localparam logic [31:0] RAM2_START_ADDRESS = 32'h00010000;
-  localparam logic [31:0] RAM2_END_ADDRESS = 32'h00018000;
-  localparam logic [31:0] RAM3_IDX = 32'd4;
-  localparam logic [31:0] RAM3_SIZE = 32'h00008000;
-  localparam logic [31:0] RAM3_START_ADDRESS = 32'h00018000;
-  localparam logic [31:0] RAM3_END_ADDRESS = 32'h00020000;
-  localparam logic [31:0] RAM4_IDX = 32'd5;
-  localparam logic [31:0] RAM4_SIZE = 32'h00008000;
-  localparam logic [31:0] RAM4_START_ADDRESS = 32'h00020000;
-  localparam logic [31:0] RAM4_END_ADDRESS = 32'h00028000;
-  localparam logic [31:0] RAM5_IDX = 32'd6;
-  localparam logic [31:0] RAM5_SIZE = 32'h00008000;
-  localparam logic [31:0] RAM5_START_ADDRESS = 32'h00028000;
-  localparam logic [31:0] RAM5_END_ADDRESS = 32'h00030000;
 
 
   localparam logic[31:0] DEBUG_START_ADDRESS = 32'h10000000;
   localparam logic[31:0] DEBUG_SIZE = 32'h00100000;
   localparam logic[31:0] DEBUG_END_ADDRESS = DEBUG_START_ADDRESS + DEBUG_SIZE;
-  localparam logic[31:0] DEBUG_IDX = 32'd7;
+  localparam logic[31:0] DEBUG_IDX = 32'd3;
 
   localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h20000000;
   localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h100000;
   localparam logic[31:0] AO_PERIPHERAL_END_ADDRESS = AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE;
-  localparam logic[31:0] AO_PERIPHERAL_IDX = 32'd8;
+  localparam logic[31:0] AO_PERIPHERAL_IDX = 32'd4;
 
   localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h30000000;
   localparam logic[31:0] PERIPHERAL_SIZE = 32'h100000;
   localparam logic[31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
-  localparam logic[31:0] PERIPHERAL_IDX = 32'd9;
+  localparam logic[31:0] PERIPHERAL_IDX = 32'd5;
 
   localparam logic[31:0] FLASH_MEM_START_ADDRESS = 32'h40000000;
   localparam logic[31:0] FLASH_MEM_SIZE = 32'h01000000;
   localparam logic[31:0] FLASH_MEM_END_ADDRESS = FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE;
-  localparam logic[31:0] FLASH_MEM_IDX = 32'd10;
+  localparam logic[31:0] FLASH_MEM_IDX = 32'd6;
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS },
       '{ idx: RAM0_IDX, start_addr: RAM0_START_ADDRESS, end_addr: RAM0_END_ADDRESS },
       '{ idx: RAM1_IDX, start_addr: RAM1_START_ADDRESS, end_addr: RAM1_END_ADDRESS },
-      '{ idx: RAM2_IDX, start_addr: RAM2_START_ADDRESS, end_addr: RAM2_END_ADDRESS },
-      '{ idx: RAM3_IDX, start_addr: RAM3_START_ADDRESS, end_addr: RAM3_END_ADDRESS },
-      '{ idx: RAM4_IDX, start_addr: RAM4_START_ADDRESS, end_addr: RAM4_END_ADDRESS },
-      '{ idx: RAM5_IDX, start_addr: RAM5_START_ADDRESS, end_addr: RAM5_END_ADDRESS },
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
       '{ idx: AO_PERIPHERAL_IDX, start_addr: AO_PERIPHERAL_START_ADDRESS, end_addr: AO_PERIPHERAL_END_ADDRESS },
       '{ idx: PERIPHERAL_IDX, start_addr: PERIPHERAL_START_ADDRESS, end_addr: PERIPHERAL_END_ADDRESS },
@@ -153,6 +133,7 @@ package core_v_mini_mcu_pkg;
   // ---------------------
 
   localparam AO_PERIPHERALS = 12;
+
   localparam int DMA_CH_NUM = 4;
   localparam DMA_CH_SIZE = 32'h100;
   localparam int DMA_NUM_MASTER_PORTS = 2;
@@ -309,6 +290,7 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] I2S_SIZE = 32'h10000;
   localparam logic [31:0] I2S_END_ADDRESS = I2S_START_ADDRESS + I2S_SIZE;
   localparam logic [31:0] I2S_IDX = 32'd6;
+
 
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{ idx: RV_PLIC_IDX, start_addr: RV_PLIC_START_ADDRESS, end_addr: RV_PLIC_END_ADDRESS },

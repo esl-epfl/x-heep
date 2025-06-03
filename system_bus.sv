@@ -170,10 +170,6 @@ module system_bus
   assign error_slave_req = int_slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
   assign ram_req_o[0] = int_slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
   assign ram_req_o[1] = int_slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
-  assign ram_req_o[2] = int_slave_req[core_v_mini_mcu_pkg::RAM2_IDX];
-  assign ram_req_o[3] = int_slave_req[core_v_mini_mcu_pkg::RAM3_IDX];
-  assign ram_req_o[4] = int_slave_req[core_v_mini_mcu_pkg::RAM4_IDX];
-  assign ram_req_o[5] = int_slave_req[core_v_mini_mcu_pkg::RAM5_IDX];
   assign debug_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
   assign ao_peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX];
   assign peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
@@ -197,10 +193,6 @@ module system_bus
   assign int_slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
   assign int_slave_resp[core_v_mini_mcu_pkg::RAM0_IDX] = ram_resp_i[0];
   assign int_slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram_resp_i[1];
-  assign int_slave_resp[core_v_mini_mcu_pkg::RAM2_IDX] = ram_resp_i[2];
-  assign int_slave_resp[core_v_mini_mcu_pkg::RAM3_IDX] = ram_resp_i[3];
-  assign int_slave_resp[core_v_mini_mcu_pkg::RAM4_IDX] = ram_resp_i[4];
-  assign int_slave_resp[core_v_mini_mcu_pkg::RAM5_IDX] = ram_resp_i[5];
   assign int_slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX] = ao_peripheral_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
