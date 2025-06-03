@@ -513,7 +513,6 @@ def write_template(tpl_path, outfile, **kwargs):
             else:
                 filename = tpl_path.with_suffix("")
 
-            print(filename)
             with open(filename, "w") as file:
                 code = tpl.render_unicode(**kwargs)
                 code = re_trailws.sub("", code)
