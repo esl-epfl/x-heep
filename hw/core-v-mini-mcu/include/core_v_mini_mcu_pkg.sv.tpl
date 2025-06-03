@@ -145,21 +145,10 @@ package core_v_mini_mcu_pkg;
   // ---------------------
 
   localparam AO_PERIPHERALS = ${len(base_peripheral_domain.get_peripherals())};
-<<<<<<< HEAD
 
-<<<<<<< HEAD
-  localparam AO_PERIPHERALS = ${len(base_peripheral_domain.get_peripherals())};
-  localparam int DMA_CH_NUM = ${dma.get_num_channels()};
-=======
-  localparam DMA_CH_NUM = ${hex(dma.get_num_channels())[2:]};
->>>>>>> 01ee01b (refactor: encapsulate peripheral domains)
-  localparam DMA_CH_SIZE = 32'h${hex(dma.get_ch_length())[2:]};
-  localparam int DMA_NUM_MASTER_PORTS = ${dma.get_num_master_ports()};
-=======
   localparam int DMA_CH_NUM = ${hex(dma.get_num_channels())[2:]};
   localparam DMA_CH_SIZE = 32'h${hex(dma.get_ch_length())[2:]};
   localparam int DMA_NUM_MASTER_PORTS = ${hex(dma.get_num_master_ports())[2:]};
->>>>>>> a82c5df (fix: fix template)
 
 % if dma.get_num_master_ports() > 1:
   localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()[::-1]}};
@@ -167,27 +156,12 @@ package core_v_mini_mcu_pkg;
 % else:
   localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()}};
 % endif
-<<<<<<< HEAD
-<<<<<<< HEAD
 
   localparam int DMA_FIFO_DEPTH = ${dma.get_fifo_depth()};
 
 % for peripheral in base_peripheral_domain.get_peripherals():
   localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${hex(peripheral.get_address())[2:]};
   localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${hex(peripheral.get_length())[2:]};
-
-=======
-<<<<<<< HEAD
- 
-=======
-
->>>>>>> a82c5df (fix: fix template)
-  localparam int DMA_FIFO_DEPTH = ${dma.get_fifo_depth()};
-  
-% for peripheral in base_peripheral_domain.get_peripherals():
-  localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"};
-  localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"};
->>>>>>> 01ee01b (refactor: encapsulate peripheral domains)
   localparam logic [31:0] ${peripheral.get_name().upper()}_END_ADDRESS = ${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE;
   localparam logic [31:0] ${peripheral.get_name().upper()}_IDX = 32'd${loop.index};
   
@@ -203,13 +177,8 @@ package core_v_mini_mcu_pkg;
 
   // Relative DMA channels addresses
 % for i in range(dma.get_num_channels()):
-<<<<<<< HEAD
   localparam logic [7:0] DMA_CH${i}_START_ADDRESS = 8'h${hex((dma.get_ch_length() * i) >> 8)[2:]};
   localparam logic [7:0] DMA_CH${i}_SIZE = 8'h${hex((dma.get_ch_length()) >> 8)[2:]};
-=======
-  localparam logic [7:0] DMA_CH${i}_START_ADDRESS = 8'h${hex(int(hex(dma.get_ch_length())[2:], 16)*(i) >> 8)[2:]};
-  localparam logic [7:0] DMA_CH${i}_SIZE = 8'h${hex(int(hex(dma.get_ch_length())[2:], 16) >> 8)[2:]};
->>>>>>> 01ee01b (refactor: encapsulate peripheral domains)
   localparam logic [7:0] DMA_CH${i}_END_ADDRESS = DMA_CH${i}_START_ADDRESS + DMA_CH${i}_SIZE;
   localparam logic [7:0] DMA_CH${i}_IDX = 8'd${i};
 
@@ -231,23 +200,14 @@ package core_v_mini_mcu_pkg;
   localparam PERIPHERALS = ${len(user_peripheral_domain.get_peripherals())};
 
 % for peripheral in user_peripheral_domain.get_peripherals():
-<<<<<<< HEAD
   localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${hex(peripheral.get_address())[2:]};
   localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${hex(peripheral.get_length())[2:]};
-=======
-  localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${f"{peripheral.get_address() & 0xFFFFFFFF:08X}"};
-  localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${f"{peripheral.get_length() & 0xFFFFFFFF:08X}"};
->>>>>>> 01ee01b (refactor: encapsulate peripheral domains)
   localparam logic [31:0] ${peripheral.get_name().upper()}_END_ADDRESS = ${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE;
   localparam logic [31:0] ${peripheral.get_name().upper()}_IDX = 32'd${loop.index};
   
 % endfor
 
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
-<<<<<<< HEAD
-
-=======
->>>>>>> 01ee01b (refactor: encapsulate peripheral domains)
 % for peripheral in user_peripheral_domain.get_peripherals():
       '{ idx: ${peripheral.get_name().upper()}_IDX, start_addr: ${peripheral.get_name().upper()}_START_ADDRESS, end_addr: ${peripheral.get_name().upper()}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor
