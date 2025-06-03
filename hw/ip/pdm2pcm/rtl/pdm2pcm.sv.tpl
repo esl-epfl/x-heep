@@ -140,13 +140,17 @@ module pdm2pcm #(
   // Corrected frequency relationships:
   //   actual_sampling_frequency = freq(clk_i) / clkdividx
   //   actual_output_frequency   = freq(clk_i) / (clkdividx * decimcic)
+  //
+  // WATCH OUT : clkdividx need to be an event number. If not, it will be rounded down. (ex : 15->14)
   
   localparam integer CLK_DIV_CORRECTION_FACTOR = 1;
-  wire [ClkDivIdxWidth-1:0] corrected_par_clkdiv_idx;
-  assign corrected_par_clkdiv_idx = par_clkdiv_idx >> CLK_DIV_CORRECTION_FACTOR;
+  localparam integer correctedClkDivIdxWidth = ClkDivIdxWidth-CLK_DIV_CORRECTION_FACTOR;
+  
+  logic [ClkDivIdxWidth-1:0] corrected_par_clkdiv_idx;
+  assign corrected_par_clkdiv_idx = (par_clkdiv_idx >> CLK_DIV_CORRECTION_FACTOR);
 
   clk_int_div #(
-      .DIV_VALUE_WIDTH(ClkDivIdxWidth-CLK_DIV_CORRECTION_FACTOR),
+      .DIV_VALUE_WIDTH(correctedClkDivIdxWidth),
       .DEFAULT_DIV_VALUE(2)
   ) clk_int_div_inst (
       .clk_i(clk_i),
@@ -154,7 +158,7 @@ module pdm2pcm #(
       .en_i(reg2hw.control.enabl.q),
       .test_mode_en_i(1'b0),
       .clk_o(div_clk),
-      .div_i((corrected_par_clkdiv_idx[ClkDivIdxWidth-CLK_DIV_CORRECTION_FACTOR-1:0])),
+      .div_i(corrected_par_clkdiv_idx[correctedClkDivIdxWidth-1:0]),
       .div_valid_i(1'b1),
       .div_ready_o(),
       .cycl_count_o()
