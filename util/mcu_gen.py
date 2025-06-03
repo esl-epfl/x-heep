@@ -1452,6 +1452,8 @@ def main():
 
         kwargs = generate_xheep(args)
 
+        # Create directory structure if it doesn't exist
+        os.makedirs(os.path.dirname(cached_path), exist_ok=True)
         with open(cached_path, "wb") as f:
             pickle.dump(kwargs, f)
 
