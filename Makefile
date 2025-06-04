@@ -42,10 +42,8 @@ LINKER   ?= on_chip
 
 # Target options are 'sim' (default) and 'pynq-z2' and 'nexys-a7-100t'
 TARGET   	?= sim
-MCU_CFG_PERIPHERALS  	?= mcu_cfg.hjson
 X_HEEP_CFG  ?= configs/general.hjson
-PAD_CFG  	?= pad_cfg.hjson
-EXT_PAD_CFG ?=
+PYTHON_X_HEEP_CFG ?= 
 
 # Cached xheep object location
 XHEEP_CACHE ?= build/xheep_cache.pickle
@@ -122,7 +120,7 @@ environment.yml: python-requirements.txt
 ## @param X_HEEP_CFG=[configs/general.hjson(default),<path-to-config-file> ]
 ## @param MCU_CFG_PERIPHERALS=[mcu_cfg.hjson(default),<path-to-config-file>]
 mcu-gen:
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --external_pads $(EXT_PAD_CFG)
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --config $(X_HEEP_CFG) --python_x_heep_cfg $(PYTHON_X_HEEP_CFG) --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS)
 	$(PYTHON) util/mcu_gen.py ${CACHED} --outtpl hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
 	$(PYTHON) util/mcu_gen.py ${CACHED} --outtpl hw/core-v-mini-mcu/system_bus.sv.tpl
 	$(PYTHON) util/mcu_gen.py ${CACHED} --outtpl hw/core-v-mini-mcu/system_xbar.sv.tpl
