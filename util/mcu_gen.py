@@ -1422,7 +1422,6 @@ def main():
         )
 
         args = parser.parse_args()
-
         kwargs = generate_xheep(args)
 
         # Create directory structure if it doesn't exist
