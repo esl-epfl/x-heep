@@ -1,8 +1,9 @@
 from dataclasses import *
 from typing import Optional
 
+
 @dataclass
-class LinkerSection():
+class LinkerSection:
     """
     Object representing a section in the linker configuration.
 
@@ -44,7 +45,7 @@ class LinkerSection():
             raise TypeError("start should be of type int")
         if type(self.end) is not int and self.end is not None:
             raise TypeError("end should be of type int")
-        
+
         if self.name == "":
             raise ValueError("name should not be empty")
         if self.start < 0:
@@ -69,9 +70,9 @@ class LinkerSection():
             raise TypeError("start should be of type int")
         if type(size) is not int:
             raise TypeError("size should be of type int")
-        
+
         return LinkerSection(name, start, start + size)
-    
+
     @property
     def size(self) -> Optional[int]:
         """The size in Bytes"""
