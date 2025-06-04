@@ -54,10 +54,14 @@
 #define STRIDE_OUT_D2 1
 
 /* Set the padding parameters */
-#define TOP_PAD 1
-#define BOTTOM_PAD 1
-#define LEFT_PAD 1
-#define RIGHT_PAD 1
+#define TOP_PAD 0
+#define BOTTOM_PAD 0
+#define LEFT_PAD 0
+#define RIGHT_PAD 0
+
+#if !DMA_ZERO_PADDING && (TOP_PAD || BOTTOM_PAD || LEFT_PAD || RIGHT_PAD)
+#error("ERROR: DMA Zero Padding logic disabled, change the test parameters!")
+#endif
 
 /* Macros for dimensions computation */
 #define OUT_D1_PAD ( SIZE_EXTR_D1 + LEFT_PAD + RIGHT_PAD )
@@ -68,7 +72,7 @@
 #define OUT_DIM_2D ( OUT_D1_PAD_STRIDE * OUT_D2_PAD_STRIDE )
 
 /* Mask for the direct register operations example */
-#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ))
+#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ) | (1 << 30))
 
 /* Transposition example def */
 #define TRANSPOSITION_EN 1
@@ -158,14 +162,17 @@ int main()
     trans.dst = &tgt_dst;
     trans.mode = DMA_TRANS_MODE_SINGLE;
     trans.dim = DMA_DIM_CONF_2D;
-    trans.pad_top_du     = TOP_PAD,
-    trans.pad_bottom_du  = BOTTOM_PAD,
-    trans.pad_left_du    = LEFT_PAD,
-    trans.pad_right_du   = RIGHT_PAD,
     trans.size_d1_du     = SIZE_EXTR_D1;
     trans.size_d2_du     = SIZE_EXTR_D2;
     trans.win_du         = 0,
     trans.end            = DMA_TRANS_END_INTR;
+    
+    #if (DMA_ZERO_PADDING)
+    trans.pad_top_du     = TOP_PAD,
+    trans.pad_bottom_du  = BOTTOM_PAD,
+    trans.pad_left_du    = LEFT_PAD,
+    trans.pad_right_du   = RIGHT_PAD,
+    #endif
 
     dma_init(NULL);
     
@@ -351,15 +358,18 @@ int main()
     trans.dst            = &tgt_dst;
     trans.mode           = DMA_TRANS_MODE_SINGLE;
     trans.dim            = DMA_DIM_CONF_2D;
-    trans.pad_top_du     = TOP_PAD;
-    trans.pad_bottom_du  = BOTTOM_PAD;
-    trans.pad_left_du    = LEFT_PAD;
-    trans.pad_right_du   = RIGHT_PAD;
     trans.dim_inv        = TRANSPOSITION_EN;
     trans.size_d1_du     = SIZE_EXTR_D1;
     trans.size_d2_du     = SIZE_EXTR_D2;
     trans.win_du         = 0,
     trans.end            = DMA_TRANS_END_INTR;
+    
+    #if (DMA_ZERO_PADDING)
+    trans.pad_top_du     = TOP_PAD;
+    trans.pad_bottom_du  = BOTTOM_PAD;
+    trans.pad_left_du    = LEFT_PAD;
+    trans.pad_right_du   = RIGHT_PAD;
+    #endif
     
     dma_init(NULL);
     
@@ -539,15 +549,18 @@ int main()
     trans.dst            = &tgt_dst;
     trans.mode           = DMA_TRANS_MODE_SINGLE;
     trans.dim            = DMA_DIM_CONF_1D;
-    trans.pad_top_du     = 0;
-    trans.pad_bottom_du  = 0;
-    trans.pad_left_du    = LEFT_PAD;
-    trans.pad_right_du   = RIGHT_PAD;
     trans.dim_inv        = 0;
     trans.win_du         = 0;
     trans.size_d1_du     = SIZE_EXTR_D1;
     trans.size_d2_du     = 0;
     trans.end            = DMA_TRANS_END_INTR;
+
+    #if (DMA_ZERO_PADDING)
+    trans.pad_top_du     = 0;
+    trans.pad_bottom_du  = 0;
+    trans.pad_left_du    = LEFT_PAD;
+    trans.pad_right_du   = RIGHT_PAD;
+    #endif
 
     dma_init(NULL);
 
@@ -766,6 +779,7 @@ int main()
                     peri );
 
     /* Padding configuration */
+    #if (DMA_ZERO_PADDING)
     write_register( TOP_PAD,
                     DMA_PAD_TOP_REG_OFFSET,
                     DMA_PAD_TOP_PAD_MASK,
@@ -789,6 +803,7 @@ int main()
                     DMA_PAD_BOTTOM_PAD_MASK,
                     DMA_PAD_BOTTOM_PAD_OFFSET,
                     peri );
+    #endif
 
     /* Set the sizes */
 

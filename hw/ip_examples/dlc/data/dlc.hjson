@@ -9,12 +9,44 @@
   ]
   regwidth: "32"
   registers: [
+    { name:     "TRANS_SIZE"
+      desc:     "Size of the transaction"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "15:0", name: "SIZE", desc: "size" },
+      ]
+    }
+    { name:     "CURR_LVL"
+      desc:     "Current level of the dLC (can be used as initial condition)"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "15:0", name: "LVL", desc: "current level" },
+      ]
+    }
+    { name:     "HYSTERESIS_EN"
+      desc:     "Whether or not to have 1-level of hysteresis"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "HYSTERESIS", desc: "Enable hysteresis" },
+      ]
+    }
     { name:     "DLVL_LOG_LEVEL_WIDTH"
       desc:     "Log2 of the level width"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
         { bits: "3:0", name: "LOG_WL", desc: "log2 of the level width" },
+      ]
+    }
+    { name:     "DISCARD_BITS"
+      desc:     "Number of LSB to discard"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "3:0", name: "DISCARD", desc: "Number of LSBs to discard" },
       ]
     }
     { name:     "DLVL_N_BITS"
@@ -49,38 +81,12 @@
         { bits: "15:0", name: "MASK", desc: "delta time mask, it has many 1s as the number of bits allocated to delta time within the dlc output packet" },
       ]
     }
-    { name:     "READNOTWRITE"
-      desc:     "dLC response push setting"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "RNW", desc: "if 1, dlc sets response push every time it reads from read_hw_fifo, if 0, dlc set response push every time it pushes to write_hw_fifo" },
-      ]
-    }
     { name:     "BYPASS"
       desc:     "Bypass input data to output without filter"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
         { bits: "0", name: "BP", desc: "if 1, dlc forwards input to output" },
-      ]
-    }
-    { name:     "INTERRUPT_EN"
-      desc:     "Interrupt enable to be used in bypass mode"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "0", name: "EN", desc: "if 1, interrupt generation is enable" },
-      ]
-    }
-    { name:     "XING_INTR"
-      desc:     "Interrupt bit set whena crossing is detected"
-      swaccess: "ro",
-      hwaccess: "hrw",
-      hwext:    "true",
-      hwre:     "true", // latched signal of software write pulse
-      fields: [
-        { bits: "0", name: "XING", desc: "if 1, interrupt has been triggered" },
       ]
     }
   ]

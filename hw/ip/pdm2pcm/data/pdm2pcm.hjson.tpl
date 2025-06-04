@@ -42,19 +42,7 @@
       hwaccess: "hrw"
       fields: [
         { bits: "0", name: "EMPTY", desc: "The FIFO buffer is empty." }
-        { bits: "1", name: "REACH", desc: "The FIFO buffer reached the specified quantity of signal taps." }
-        { bits: "2", name: "FULLL", desc: "The FIFO buffer is full."}
-      ]
-    }
-
-    // WINDOW INTERFACE CONFIGURATION
-
-    { name:     "REACHCOUNT"
-      desc:     "Number of signal taps stored into the FIFO to assert the FILLD bit in the STATUS register."
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "5:0", name: "COUNT", desc: "Set the signal taps count" }
+        { bits: "1", name: "FULLL", desc: "The FIFO buffer is full."}
       ]
     }
 
@@ -68,6 +56,12 @@
         { bits: "3:0", name: "COUNT", desc: "Set the samples count" }
       ]
     }
+
+<%
+  pdm2pcm = xheep.get_user_peripheral_domain().get_pdm2pcm()
+%>
+
+% if pdm2pcm != None and not pdm2pcm.get_cic_mode() :
     { name:     "DECIMHB1"
       desc:     "Samples count after which to decimate after the first halfband filter."
       swaccess: "rw"
@@ -296,6 +290,9 @@
         { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
+% endif
+
+    // WINDOW
     { window: {
         name: "RXDATA"
         items: "1"

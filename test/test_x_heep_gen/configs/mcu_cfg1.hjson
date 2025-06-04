@@ -45,6 +45,12 @@
             num_master_ports: 0x1
             num_channels_per_master_port: 0x1
             path:    "./hw/ip/dma/data/dma.hjson"
+            fifo_depth: 0x4
+            addr_mode_en: "yes"
+            subaddr_mode_en: "yes"
+            hw_fifo_mode_en: "yes"
+            zero_padding_en: "yes"
+            path:    "./hw/ip/dma/data/dma.hjson"
         }
         power_manager: {
             offset:  0x00040000
@@ -122,6 +128,7 @@
             length:  0x00010000
             is_included: "no"
             path:    "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
+            cic_only: 0x1
         }
         i2s: {
             offset:  0x00070000
@@ -197,7 +204,6 @@
             intr_host_timeout:       48
             spi2_intr_event:         49
             i2s_intr_event:          50
-            dma_window_intr:         51
         }
     }
 }

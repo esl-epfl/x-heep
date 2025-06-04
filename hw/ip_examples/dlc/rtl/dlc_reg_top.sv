@@ -68,9 +68,21 @@ module dlc_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
+  logic [15:0] trans_size_qs;
+  logic [15:0] trans_size_wd;
+  logic trans_size_we;
+  logic [15:0] curr_lvl_qs;
+  logic [15:0] curr_lvl_wd;
+  logic curr_lvl_we;
+  logic hysteresis_en_qs;
+  logic hysteresis_en_wd;
+  logic hysteresis_en_we;
   logic [3:0] dlvl_log_level_width_qs;
   logic [3:0] dlvl_log_level_width_wd;
   logic dlvl_log_level_width_we;
+  logic [3:0] discard_bits_qs;
+  logic [3:0] discard_bits_wd;
+  logic discard_bits_we;
   logic [3:0] dlvl_n_bits_qs;
   logic [3:0] dlvl_n_bits_wd;
   logic dlvl_n_bits_we;
@@ -83,19 +95,92 @@ module dlc_reg_top #(
   logic [15:0] dt_mask_qs;
   logic [15:0] dt_mask_wd;
   logic dt_mask_we;
-  logic readnotwrite_qs;
-  logic readnotwrite_wd;
-  logic readnotwrite_we;
   logic bypass_qs;
   logic bypass_wd;
   logic bypass_we;
-  logic interrupt_en_qs;
-  logic interrupt_en_wd;
-  logic interrupt_en_we;
-  logic xing_intr_qs;
-  logic xing_intr_re;
 
   // Register instances
+  // R[trans_size]: V(False)
+
+  prim_subreg #(
+      .DW      (16),
+      .SWACCESS("RW"),
+      .RESVAL  (16'h0)
+  ) u_trans_size (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(trans_size_we),
+      .wd(trans_size_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.trans_size.q),
+
+      // to register interface (read)
+      .qs(trans_size_qs)
+  );
+
+
+  // R[curr_lvl]: V(False)
+
+  prim_subreg #(
+      .DW      (16),
+      .SWACCESS("RW"),
+      .RESVAL  (16'h0)
+  ) u_curr_lvl (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(curr_lvl_we),
+      .wd(curr_lvl_wd),
+
+      // from internal hardware
+      .de(hw2reg.curr_lvl.de),
+      .d (hw2reg.curr_lvl.d),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.curr_lvl.q),
+
+      // to register interface (read)
+      .qs(curr_lvl_qs)
+  );
+
+
+  // R[hysteresis_en]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_hysteresis_en (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(hysteresis_en_we),
+      .wd(hysteresis_en_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.hysteresis_en.q),
+
+      // to register interface (read)
+      .qs(hysteresis_en_qs)
+  );
+
+
   // R[dlvl_log_level_width]: V(False)
 
   prim_subreg #(
@@ -120,6 +205,33 @@ module dlc_reg_top #(
 
       // to register interface (read)
       .qs(dlvl_log_level_width_qs)
+  );
+
+
+  // R[discard_bits]: V(False)
+
+  prim_subreg #(
+      .DW      (4),
+      .SWACCESS("RW"),
+      .RESVAL  (4'h0)
+  ) u_discard_bits (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(discard_bits_we),
+      .wd(discard_bits_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.discard_bits.q),
+
+      // to register interface (read)
+      .qs(discard_bits_qs)
   );
 
 
@@ -231,33 +343,6 @@ module dlc_reg_top #(
   );
 
 
-  // R[readnotwrite]: V(False)
-
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
-  ) u_readnotwrite (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(readnotwrite_we),
-      .wd(readnotwrite_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.readnotwrite.q),
-
-      // to register interface (read)
-      .qs(readnotwrite_qs)
-  );
-
-
   // R[bypass]: V(False)
 
   prim_subreg #(
@@ -285,63 +370,21 @@ module dlc_reg_top #(
   );
 
 
-  // R[interrupt_en]: V(False)
-
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
-  ) u_interrupt_en (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(interrupt_en_we),
-      .wd(interrupt_en_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.interrupt_en.q),
-
-      // to register interface (read)
-      .qs(interrupt_en_qs)
-  );
 
 
-  // R[xing_intr]: V(True)
-
-  prim_subreg_ext #(
-      .DW(1)
-  ) u_xing_intr (
-      .re (xing_intr_re),
-      .we (1'b0),
-      .wd ('0),
-      .d  (hw2reg.xing_intr.d),
-      .qre(reg2hw.xing_intr.re),
-      .qe (),
-      .q  (reg2hw.xing_intr.q),
-      .qs (xing_intr_qs)
-  );
-
-
-
-
-  logic [8:0] addr_hit;
+  logic [9:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[0] = (reg_addr == DLC_DLVL_LOG_LEVEL_WIDTH_OFFSET);
-    addr_hit[1] = (reg_addr == DLC_DLVL_N_BITS_OFFSET);
-    addr_hit[2] = (reg_addr == DLC_DLVL_MASK_OFFSET);
-    addr_hit[3] = (reg_addr == DLC_DLVL_FORMAT_OFFSET);
-    addr_hit[4] = (reg_addr == DLC_DT_MASK_OFFSET);
-    addr_hit[5] = (reg_addr == DLC_READNOTWRITE_OFFSET);
-    addr_hit[6] = (reg_addr == DLC_BYPASS_OFFSET);
-    addr_hit[7] = (reg_addr == DLC_INTERRUPT_EN_OFFSET);
-    addr_hit[8] = (reg_addr == DLC_XING_INTR_OFFSET);
+    addr_hit[0] = (reg_addr == DLC_TRANS_SIZE_OFFSET);
+    addr_hit[1] = (reg_addr == DLC_CURR_LVL_OFFSET);
+    addr_hit[2] = (reg_addr == DLC_HYSTERESIS_EN_OFFSET);
+    addr_hit[3] = (reg_addr == DLC_DLVL_LOG_LEVEL_WIDTH_OFFSET);
+    addr_hit[4] = (reg_addr == DLC_DISCARD_BITS_OFFSET);
+    addr_hit[5] = (reg_addr == DLC_DLVL_N_BITS_OFFSET);
+    addr_hit[6] = (reg_addr == DLC_DLVL_MASK_OFFSET);
+    addr_hit[7] = (reg_addr == DLC_DLVL_FORMAT_OFFSET);
+    addr_hit[8] = (reg_addr == DLC_DT_MASK_OFFSET);
+    addr_hit[9] = (reg_addr == DLC_BYPASS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -357,73 +400,82 @@ module dlc_reg_top #(
                (addr_hit[5] & (|(DLC_PERMIT[5] & ~reg_be))) |
                (addr_hit[6] & (|(DLC_PERMIT[6] & ~reg_be))) |
                (addr_hit[7] & (|(DLC_PERMIT[7] & ~reg_be))) |
-               (addr_hit[8] & (|(DLC_PERMIT[8] & ~reg_be)))));
+               (addr_hit[8] & (|(DLC_PERMIT[8] & ~reg_be))) |
+               (addr_hit[9] & (|(DLC_PERMIT[9] & ~reg_be)))));
   end
 
-  assign dlvl_log_level_width_we = addr_hit[0] & reg_we & !reg_error;
+  assign trans_size_we = addr_hit[0] & reg_we & !reg_error;
+  assign trans_size_wd = reg_wdata[15:0];
+
+  assign curr_lvl_we = addr_hit[1] & reg_we & !reg_error;
+  assign curr_lvl_wd = reg_wdata[15:0];
+
+  assign hysteresis_en_we = addr_hit[2] & reg_we & !reg_error;
+  assign hysteresis_en_wd = reg_wdata[0];
+
+  assign dlvl_log_level_width_we = addr_hit[3] & reg_we & !reg_error;
   assign dlvl_log_level_width_wd = reg_wdata[3:0];
 
-  assign dlvl_n_bits_we = addr_hit[1] & reg_we & !reg_error;
+  assign discard_bits_we = addr_hit[4] & reg_we & !reg_error;
+  assign discard_bits_wd = reg_wdata[3:0];
+
+  assign dlvl_n_bits_we = addr_hit[5] & reg_we & !reg_error;
   assign dlvl_n_bits_wd = reg_wdata[3:0];
 
-  assign dlvl_mask_we = addr_hit[2] & reg_we & !reg_error;
+  assign dlvl_mask_we = addr_hit[6] & reg_we & !reg_error;
   assign dlvl_mask_wd = reg_wdata[15:0];
 
-  assign dlvl_format_we = addr_hit[3] & reg_we & !reg_error;
+  assign dlvl_format_we = addr_hit[7] & reg_we & !reg_error;
   assign dlvl_format_wd = reg_wdata[0];
 
-  assign dt_mask_we = addr_hit[4] & reg_we & !reg_error;
+  assign dt_mask_we = addr_hit[8] & reg_we & !reg_error;
   assign dt_mask_wd = reg_wdata[15:0];
 
-  assign readnotwrite_we = addr_hit[5] & reg_we & !reg_error;
-  assign readnotwrite_wd = reg_wdata[0];
-
-  assign bypass_we = addr_hit[6] & reg_we & !reg_error;
+  assign bypass_we = addr_hit[9] & reg_we & !reg_error;
   assign bypass_wd = reg_wdata[0];
-
-  assign interrupt_en_we = addr_hit[7] & reg_we & !reg_error;
-  assign interrupt_en_wd = reg_wdata[0];
-
-  assign xing_intr_re = addr_hit[8] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[3:0] = dlvl_log_level_width_qs;
+        reg_rdata_next[15:0] = trans_size_qs;
       end
 
       addr_hit[1]: begin
-        reg_rdata_next[3:0] = dlvl_n_bits_qs;
+        reg_rdata_next[15:0] = curr_lvl_qs;
       end
 
       addr_hit[2]: begin
-        reg_rdata_next[15:0] = dlvl_mask_qs;
+        reg_rdata_next[0] = hysteresis_en_qs;
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[0] = dlvl_format_qs;
+        reg_rdata_next[3:0] = dlvl_log_level_width_qs;
       end
 
       addr_hit[4]: begin
-        reg_rdata_next[15:0] = dt_mask_qs;
+        reg_rdata_next[3:0] = discard_bits_qs;
       end
 
       addr_hit[5]: begin
-        reg_rdata_next[0] = readnotwrite_qs;
+        reg_rdata_next[3:0] = dlvl_n_bits_qs;
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[0] = bypass_qs;
+        reg_rdata_next[15:0] = dlvl_mask_qs;
       end
 
       addr_hit[7]: begin
-        reg_rdata_next[0] = interrupt_en_qs;
+        reg_rdata_next[0] = dlvl_format_qs;
       end
 
       addr_hit[8]: begin
-        reg_rdata_next[0] = xing_intr_qs;
+        reg_rdata_next[15:0] = dt_mask_qs;
+      end
+
+      addr_hit[9]: begin
+        reg_rdata_next[0] = bypass_qs;
       end
 
       default: begin

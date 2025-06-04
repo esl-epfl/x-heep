@@ -31,6 +31,7 @@ module spi_slave_regs #(
   assign wrap_length  = {reg2, reg1};
 
   always_comb begin
+    rd_data = reg0;
     case (rd_addr)
       2'b00: rd_data = reg0;
       2'b01: rd_data = reg1;

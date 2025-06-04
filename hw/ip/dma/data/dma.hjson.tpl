@@ -2,6 +2,14 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+<%
+  dma = xheep.get_base_peripheral_domain().get_dma()
+  dma_addr_mode = dma.get_addr_mode() == 1
+  dma_subaddr_mode = dma.get_subaddr_mode() == 1
+  dma_hw_fifo_mode = dma.get_hw_fifo_mode() == 1
+  dma_zero_padding = dma.get_zero_padding() == 1
+%>
+
 { name: "dma"
   clock_primary: "clk_i"
   bus_interfaces: [
@@ -25,6 +33,7 @@
         { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
       ]
     }
+    % if dma_addr_mode:
     { name:     "ADDR_PTR"
       desc:     "Addess data pointer (word aligned)"
       swaccess: "rw"
@@ -33,6 +42,7 @@
         { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
       ]
     }
+    % endif
     { name:     "SIZE_D1"
       desc:     "Number of elements to copy from, defined with respect to the first dimension - Once a value is written, the copy starts"
       swaccess: "rw"
@@ -186,18 +196,28 @@
       hwaccess: "hro"
       resval:   0
       fields: [
-        { bits: "2:0", name: "MODE"
+        { bits: "1:0", name: "MODE"
           desc: "DMA operation mode"
           enum: [
             { value: "0", name: "LINEAR_MODE", desc: "Transfers data linearly"}
             { value: "1", name: "CIRCULAR_MODE", desc: "Transfers data in circular mode"}
             { value: "2", name: "ADDRESS_MODE", desc: "Transfers data using as destination address the data from ADD_PTR"}
             { value: "3", name: "SUBADDRESS_MODE", desc: "Implements transferring of data when SRC_PTR is fixed and related to a peripheral"}
-            { value: "4", name: "HW_FIFO_MODE", desc: "Mode for exploting external stream accelerators"}
           ]
         }
       ]
     }
+    % if dma_hw_fifo_mode:
+    { name:     "HW_FIFO_EN"
+      desc:     '''Enable the HW FIFO mode'''
+      swaccess: "rw"
+      hwaccess: "hro"
+      resval:   0
+      fields: [
+        { bits: "0", name: "HW_FIFO_MODE", desc: "Mode for exploting external stream accelerators"}
+      ]
+    }
+    % endif
     { name:     "DIM_CONFIG"
       desc:     '''Set the dimensionality of the DMA'''
       swaccess: "rw"
@@ -206,7 +226,7 @@
       fields: [
         { bits: "0", name: "DMA_DIM", desc: "DMA transfer dimensionality"}
       ]
-    }
+    }                          
     { name:     "DIM_INV"
       desc:     '''DMA dimensionality inversion selector'''
       swaccess: "rw"
@@ -216,6 +236,7 @@
         { bits: "0", name: "SEL", desc: "DMA dimensionality inversion, used to perform transposition"}
       ]
     }
+    % if dma_zero_padding:
     { name:     "PAD_TOP"
       desc:     '''Set the top padding'''
       swaccess: "rw"
@@ -252,11 +273,13 @@
         { bits: "5:0", name: "PAD", desc: "Left margin padding (1D/2D)"}
       ]
     }
+    % endif
     { name:    "WINDOW_SIZE"
       desc:    '''Will trigger a every "WINDOW_SIZE" writes
                   Set to 0 to disable.'''
       swaccess: "rw"
       hwaccess: "hro"
+      hwqe:     "true" // enable `qe` latched signal of software write pulse
       resval:   0
       fields: [
         { bits: "12:0", name: "WINDOW_SIZE", desc: ""}
@@ -303,24 +326,6 @@
       resval:        0
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for window done interrupt" }
-      ]
-    }
-    { name:     "HW_FIFO_MODE_SIGN_EXT"
-      desc:     '''In HW_FIFO_MODE, is the input data to be sign extended before sending it to the hw read fifo?
-                    (The input of the hw read fifo is on 32 bits, which could be wider than the src data type)'''
-      swaccess: "rw"
-      hwaccess: "hro"
-      resval:        0
-      
-      fields: [
-        { bits: "0"
-          name: "HW_FIFO_SIGNED"
-          desc: "Extend the sign to 32 bits"
-          enum: [
-            { value: "0", name: "NO_EXTEND", desc: "Does not extend the sign"}
-            { value: "1", name: "EXTEND", desc: "Extends the sign"}
-          ]
-        }
       ]
     }
   ]

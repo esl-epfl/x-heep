@@ -44,6 +44,11 @@
             num_channels:   0x1
             num_master_ports: 0x1
             num_channels_per_master_port: 0x1
+            fifo_depth: 0x4
+            addr_mode_en: "no"
+            subaddr_mode_en: "no"
+            hw_fifo_mode_en: "no"
+            zero_padding_en: "no"
             path:    "./hw/ip/dma/data/dma.hjson"
         }
         power_manager: {
@@ -196,7 +201,6 @@
             intr_host_timeout:       48
             spi2_intr_event:         49
             i2s_intr_event:          50
-            dma_window_intr:         51
         }
     }
 }

@@ -30,7 +30,7 @@ extern "C"
 #define DMA_SELECTION_OFFSET_START 0
 
 /* Mask for direct register operations */
-#define DMA_CSR_REG_MIE_MASK ((1 << 19) | (1 << 11))
+#define DMA_CSR_REG_MIE_MASK ((1 << 19) | (1 << 11) | (1 << 30))
 
     /**********************************/
     /* ---- FUNCTION DEFINITIONS ---- */
@@ -64,6 +64,7 @@ extern "C"
         return;
     }
 
+    #if DMA_ADDR_MODE
     void dma_copy_to_addr(uint32_t addr_ptr, uint32_t src_ptr, uint32_t size, uint8_t channel)
     {
         volatile dma *the_dma = dma_peri(channel);
@@ -72,6 +73,7 @@ extern "C"
         DMA_WAIT(channel);
         return;
     }
+    #endif
 
     void dma_fill(uint32_t dst_ptr, uint32_t value_ptr, uint32_t size, uint8_t channel, dma_data_type_t src_type, dma_data_type_t dst_type, uint8_t signed_data)
     {

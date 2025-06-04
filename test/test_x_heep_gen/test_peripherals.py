@@ -34,6 +34,7 @@ class PeripheralsDescription:
     """
 
     def __init__(self, example, extension):
+        print(output_filename(example, extension))
         with open(output_filename(example, extension), "r") as file:
             content = hjson.load(file)
 
@@ -49,9 +50,19 @@ class PeripheralsDescription:
         self.num_dma_xbar_channels_per_master_port = content[
             "num_dma_xbar_channels_per_master_port"
         ]
+        self.fifo_depth = content["fifo_depth"]
+        self.addr_mode_en = content["addr_mode_en"]
+        self.subaddr_mode_en = content["subaddr_mode_en"]
+        self.hw_fifo_mode_en = content["hw_fifo_mode_en"]
+        self.zero_padding_en = content["zero_padding_en"]
         self.dma_xbar_masters_array = content["dma_xbar_masters_array"]
         self.peripheral_start_address = content["peripheral_start_address"]
         self.peripheral_size_address = content["peripheral_size_address"]
+
+        try:
+            self.pdm2pcm_cic_only = content["pdm2pcm_cic_only"]
+        except:
+            self.pdm2pcm_cic_only = None
 
         # Standardize the peripherals
         added = 0
@@ -160,6 +171,11 @@ class PeripheralsDescription:
             eq = False
             print(
                 f"peripherals_count: {self.peripherals_count} ({self.extension[1:]}) != {other.peripherals_count} ({other.extension[1:]})"
+            )
+        if self.pdm2pcm_cic_only != other.pdm2pcm_cic_only:
+            eq = False
+            print(
+                f"pdm2pcm_cic_only: {self.pdm2pcm_cic_only} ({self.extension[1:]}) != {other.pdm2pcm_cic_only} ({other.extension[1:]})"
             )
 
         return eq

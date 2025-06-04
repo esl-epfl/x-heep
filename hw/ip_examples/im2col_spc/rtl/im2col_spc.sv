@@ -34,7 +34,9 @@ module im2col_spc
   import dma_if_pkg::*;
   import im2col_spc_reg_pkg::*;
   import dma_reg_pkg::*;
+  `include "dma_conf.svh"
 
+`ifdef ZERO_PADDING_EN
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Parameter definition */
@@ -137,7 +139,7 @@ module im2col_spc
   /* DMA FIFO */
   fifo_v3 #(
       .DEPTH(FIFO_DEPTH),
-      .FALL_THROUGH(1'b1),
+      .FALL_THROUGH(1'b0),
       .dtype(dma_if_t)
   ) dma_fifo_i (
       .clk_i,
@@ -620,4 +622,5 @@ module im2col_spc
   /* DMA channel offset */
   assign dma_ch_offset = reg2hw.spc_ch_offset.q;
 
+`endif
 endmodule
