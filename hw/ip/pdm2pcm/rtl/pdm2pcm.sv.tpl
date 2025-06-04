@@ -2,8 +2,9 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-// Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
-// Date: 19.02.2022
+// Authors: Pierre Guillod <pierre.guillod@epfl.ch> ,EPFL, STI-SEL
+//          Jérémie Moullet<jeremie.moullet@epfl.ch>,EPFL, STI-SEL
+// Date: 05.2025
 // Description: Top wrapper for the PDM2PCM acquisition peripheral
 
 <%
@@ -22,9 +23,7 @@ module pdm2pcm #(
     parameter type reg_rsp_t = logic,
     parameter int unsigned FIFO_DEPTH = 4,
     parameter int unsigned FIFO_WIDTH = 18,
-    localparam int unsigned FIFO_ADDR_WIDTH = $clog2(FIFO_DEPTH),
-    // Width of the clock divider count
-    localparam int unsigned CLKDIVWIDTH = 16
+    localparam int unsigned FIFO_ADDR_WIDTH = $clog2(FIFO_DEPTH)
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -40,21 +39,30 @@ module pdm2pcm #(
 
   import pdm2pcm_reg_pkg::*;
 
-  logic              [               15:0]     par_clkdiv_idx;
-  logic              [                3:0]     par_decim_idx_combs;
+  //Compile time operation
+  localparam integer CicMaxStageNumber = $bits(reg2hw.cic_activated_stages.q);
+  localparam integer DecimCicWidth     = $bits(reg2hw.decimcic.q);
+  localparam integer ClkDivIdxWidth    = $bits(reg2hw.clkdividx.q);
+  localparam integer DelayCombWidth    = $bits(reg2hw.cic_delay_comb.q);
+
+
+  logic              [ ClkDivIdxWidth-1:0]     par_clkdiv_idx;
+  logic              [  DecimCicWidth-1:0]     par_decim_idx_combs;
+  logic              [ CicMaxStageNumber-1:0]  par_cic_activated_stages;
+  logic              [ DelayCombWidth-1:0]     par_delay_combs;
 % if cic_mode == 0:
   logic              [                4:0]     par_decim_idx_hfbd2;
   logic              [                5:0]     par_decim_idx_fir;
-  logic              [               17:0]     coeffs_hb1          [ 0:3];
-  logic              [               17:0]     coeffs_hb2          [ 0:6];
-  logic              [               17:0]     coeffs_fir          [0:13];
+  logic              [     FIFO_WIDTH-1:0]     coeffs_hb1          [ 0:3];
+  logic              [     FIFO_WIDTH-1:0]     coeffs_hb2          [ 0:6];
+  logic              [     FIFO_WIDTH-1:0]     coeffs_fir          [0:13];
 % endif
 
   logic                                        pcm_data_valid;
 
   logic                                        rx_ready;
 
-  logic              [               17:0]     pcm;
+  logic              [     FIFO_WIDTH-1:0]     pcm;
 
   // FIFO/window related signals
   logic              [               31:0]     rx_data;
@@ -64,8 +72,8 @@ module pdm2pcm #(
   pdm2pcm_reg2hw_t                             reg2hw;
   pdm2pcm_hw2reg_t                             hw2reg;
 
-  reg_req_t        [                      0:0] fifo_win_h2d;
-  reg_rsp_t        [                      0:0] fifo_win_d2h;
+  reg_req_t         [                  0:0]   fifo_win_h2d;
+  reg_rsp_t         [                  0:0]   fifo_win_d2h;
 
   logic div_clk;
 
@@ -79,6 +87,9 @@ module pdm2pcm #(
   assign hw2reg.status.empty.de = 1;
   assign par_clkdiv_idx = reg2hw.clkdividx.q;
   assign par_decim_idx_combs = reg2hw.decimcic.q;
+  assign par_cic_activated_stages = reg2hw.cic_activated_stages.q;
+  assign par_delay_combs = reg2hw.cic_delay_comb.q;
+
 % if cic_mode == 0:
   assign par_decim_idx_hfbd2 = reg2hw.decimhb1.q;
   assign par_decim_idx_fir = reg2hw.decimhb2.q;
@@ -118,8 +129,34 @@ module pdm2pcm #(
       };
 % endif
 
+  // The following factor compensates for the effective frequency reduction caused by the 
+  // use of `r_send` as an enable signal in the integrator and decimation stage of `pdm_core`. 
+  // Since `r_send` toggles at half the rate of `div_clk`, the downstream processing 
+  // operates at half the expected frequency unless this correction is applied.
+  // 
+  // Without this factor, the actual sampling frequency would be incorrectly 
+  // calculated as half the intended value. With this, we can also reduce the width of the 
+  // decimation counter by 1 bit.
+  //
+  // Corrected frequency relationships:
+  //   actual_sampling_frequency = freq(clk_i) / clkdividx
+  //   actual_output_frequency   = freq(clk_i) / (clkdividx * decimcic)
+  //
+  // WATCH OUT : -clkdividx need to be an event number. If not, it will be rounded down. (ex : 15->14, but 16->16)
+  //             -decimcic don't have this requirement.
+  
+  localparam integer CLK_DIV_CORRECTION_FACTOR = 1;
+  localparam integer correctedClkDivIdxWidth = ClkDivIdxWidth-CLK_DIV_CORRECTION_FACTOR;
+
+  logic [ClkDivIdxWidth-1:0] corrected_par_clkdiv_idx;
+  assign corrected_par_clkdiv_idx = (par_clkdiv_idx >> CLK_DIV_CORRECTION_FACTOR);
+  
+  logic [correctedClkDivIdxWidth-1:0] reduced_par_clkdiv_idx;
+  assign reduced_par_clkdiv_idx = corrected_par_clkdiv_idx[correctedClkDivIdxWidth-1:0];
+
+
   clk_int_div #(
-      .DIV_VALUE_WIDTH(CLKDIVWIDTH),
+      .DIV_VALUE_WIDTH(correctedClkDivIdxWidth),
       .DEFAULT_DIV_VALUE(2)
   ) clk_int_div_inst (
       .clk_i(clk_i),
@@ -127,17 +164,24 @@ module pdm2pcm #(
       .en_i(reg2hw.control.enabl.q),
       .test_mode_en_i(1'b0),
       .clk_o(div_clk),
-      .div_i(par_clkdiv_idx),
+      .div_i(reduced_par_clkdiv_idx),
       .div_valid_i(1'b1),
       .div_ready_o(),
       .cycl_count_o()
   );
 
-  pdm_core #() pdm_core_i (
+  pdm_core #(
+      .STAGES_CIC(CicMaxStageNumber),
+      .WIDTH(FIFO_WIDTH),
+      .DECIM_COMBS_CNT_W(DecimCicWidth),
+      .DELAYCOMBWIDTH(DelayCombWidth)
+  ) pdm_core_i (
       .div_clk_i(div_clk),
       .rstn_i(rst_ni),
       .en_i(reg2hw.control.enabl.q),
+      .par_cic_activated_stages,
       .par_decim_idx_combs,
+      .par_delay_combs,
 % if cic_mode == 0:
       .par_decim_idx_hfbd2,
       .par_decim_idx_fir,

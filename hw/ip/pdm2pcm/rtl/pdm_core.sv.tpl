@@ -2,8 +2,9 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-// Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
-// Date: 14.12.2022
+// Authors: Pierre Guillod <pierre.guillod@epfl.ch> ,EPFL, STI-SEL
+//          Jérémie Moullet<jeremie.moullet@epfl.ch>,EPFL, STI-SEL
+// Date: 05.2025
 // Description: PDM to PCM converter core
 
 <%
@@ -18,14 +19,7 @@
 %>
 
 module pdm_core #(
-    // Number of stages of the CIC filter
-    localparam STAGES_CIC = 4,
-    // Width of the datapath
-    localparam WIDTH = 18,
-    // First decimator internal counter width
-    localparam DECIM_COMBS_CNT_W = 4
 % if cic_mode == 0:
-    ,
     // Second decimator internal counter width
     localparam DECIM_HFBD1_CNT_W = 5,
     // Third decimator internal counter width
@@ -40,8 +34,17 @@ module pdm_core #(
     localparam STAGES_FIR = 26,
     localparam COEFFS_FIR = 14,
     // Width of the filter coefficients (Halfbands and FIR)
-    localparam COEFFSWIDTH = 18
+    localparam COEFFSWIDTH = 18,
 % endif
+    // Number of stages of the CIC filter
+    parameter integer STAGES_CIC = 4,
+    // Width of the datapath
+    parameter integer WIDTH = 18,
+    // First decimator internal counter width
+    parameter integer DECIM_COMBS_CNT_W = 4,
+    // Widht of the comb delay parameter
+    parameter integer DELAYCOMBWIDTH = 5
+
 ) (
     // Clock input
     input logic div_clk_i,
@@ -51,9 +54,12 @@ module pdm_core #(
     input logic en_i,
     // Clock output to the microphone
     output logic pdm_clk_o,
-
+    // Which/How many CIC stage are activated (Thermometric, right-aligned)
+    input logic [STAGES_CIC-1:0] par_cic_activated_stages,
     // First decimator decimation index
     input logic [DECIM_COMBS_CNT_W-1:0] par_decim_idx_combs,
+    //Delay D in the combs stage
+    input logic [DELAYCOMBWIDTH-1:0] par_delay_combs,
 % if cic_mode == 0:
     // Second decimator decimation index
     input logic [DECIM_HFBD1_CNT_W-1:0] par_decim_idx_hfbd2,
@@ -159,6 +165,7 @@ module pdm_core #(
       .rstn_i(rstn_i),
       .clr_i (s_clr),
       .en_i  (r_send),
+      .par_cic_activated_stages,
       .data_i(data),
       .data_o(integr_to_comb)
   );
@@ -172,11 +179,13 @@ module pdm_core #(
       .en_o(combs_en)
   );
 
-  cic_combs #(STAGES_CIC, WIDTH) cic_combs_inst (
+  cic_combs #(STAGES_CIC, WIDTH, DELAYCOMBWIDTH) cic_combs_inst (
       .clk_i (div_clk_i),
       .rstn_i(rstn_i),
       .clr_i (s_clr),
       .en_i  (combs_en),
+      .par_cic_activated_stages,
+      .par_delay_combs,
       .data_i(integr_to_comb),
       .data_o(combs_to_hb1)
   );
