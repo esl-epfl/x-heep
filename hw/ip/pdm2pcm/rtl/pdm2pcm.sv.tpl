@@ -39,6 +39,10 @@ module pdm2pcm #(
 
   import pdm2pcm_reg_pkg::*;
 
+  // Interface signals
+  pdm2pcm_reg2hw_t                             reg2hw;
+  pdm2pcm_hw2reg_t                             hw2reg;
+
   //Compile time operation
   localparam integer CicMaxStageNumber = $bits(reg2hw.cic_activated_stages.q);
   localparam integer DecimCicWidth     = $bits(reg2hw.decimcic.q);
@@ -67,10 +71,6 @@ module pdm2pcm #(
   // FIFO/window related signals
   logic              [               31:0]     rx_data;
   logic              [     FIFO_WIDTH-1:0]     rx_fifo;
-
-  // Interface signals
-  pdm2pcm_reg2hw_t                             reg2hw;
-  pdm2pcm_hw2reg_t                             hw2reg;
 
   reg_req_t         [                  0:0]   fifo_win_h2d;
   reg_rsp_t         [                  0:0]   fifo_win_d2h;
