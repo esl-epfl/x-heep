@@ -151,7 +151,7 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl $(LINK_FOLDER)/link_flash_load.ld.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/dma/data/dma.hjson.tpl 
 	bash -c "cd hw/ip/dma; source dma_gen.sh; cd ../../../"	
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) -cached --outtpl hw/ip/dma/data/dma_conf.svh.tpl 
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/dma/data/dma_conf.svh.tpl 
 	$(PYTHON) util/structs_periph_gen.py --cfg_peripherals $(XHEEP_CACHE)
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/fpga/sram_wrapper.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/fpga/scripts/generate_sram.tcl.tpl
@@ -166,6 +166,11 @@ mcu-gen-help:
 ## Runs verible formating
 verible:
 	util/format-verible;
+
+## Runs black formating for python xheep generator files
+black:
+	black util/x_heep_gen
+	black util/mcu_gen.py
 
 ## @section APP FW Build
 
