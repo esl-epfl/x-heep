@@ -19,6 +19,7 @@
 %>
 
 module pdm_core #(
+% if cic_mode == 0:
     // Second decimator internal counter width
     localparam DECIM_HFBD1_CNT_W = 5,
     // Third decimator internal counter width
