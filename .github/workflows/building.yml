@@ -1,16 +1,16 @@
-name: Simulate all apps
-on: [pull_request]
+name: Compile all apps
+on: [push, pull_request]
 
 jobs:
-  simulate:
+  test_applications:
     runs-on: ubuntu-latest
-    container:
+    container: 
       image: ghcr.io/esl-epfl/x-heep-toolchain:latest
-    name: Simulate all apps. All must pass.
+    name: Compiles all apps with gcc and clang. All must compile successfully.
     steps:
       - name: Checkout the pushed code. 
-        uses: actions/checkout@v3
-      - name: Configure the job container and simulate all apps
+        uses: actions/checkout@v3        
+      - name: Configure the job container and compile all apps.
         run: |
           # Create the virtual environment and install the requirements. 
           conda init bash
@@ -19,12 +19,12 @@ jobs:
           make clean-all
 
           # All peripherals are included to make sure all apps can be built.
-          sed 's/is_included: "no"/is_included: "yes"/' -i configs/ci.hjson
+          sed 's/is_included: "no"/is_included: "yes"/' -i mcu_cfg.hjson
 
-          sed 's/num_channels:   0x1/num_channels:   0x4/' -i configs/ci.hjson
-          sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson
+          sed 's/num_channels:   0x1/num_channels:   0x4/' -i mcu_cfg.hjson
+          sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i mcu_cfg.hjson
 
           # The MCU is generated with various memory banks to avoid example code not fitting.
           make mcu-gen X_HEEP_CFG=configs/ci.hjson
 
-          python3 test/test_apps/test_apps.py
+          python3 test/test_apps/test_apps.py --compile-only

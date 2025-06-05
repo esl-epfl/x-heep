@@ -78,10 +78,8 @@ class DataConfiguration(ABC):
         """
         Select a custom configuration for the peripheral.
 
-        :param str config_path: The path to the hjson file that describes the peripheral. If the path does not exist, a FileNotFoundError will be raised.
+        :param str config_path: The path to the hjson file that describes the peripheral. When calling validate function, the config file path must be valid (or there should be a corresponding .tpl file).
         """
-        if not path.exists(config_path) and not path.exists(config_path + ".tpl"):
-            raise FileNotFoundError(f"The config file {config_path} does not exist")
         self._config_path = config_path
 
     def get_config_path(self):
@@ -418,12 +416,6 @@ class PeripheralDomain(ABC):
         :return: True if the peripheral domain is valid, False otherwise.
         :rtype: bool
         """
-
-        # return (
-        #     self.__check_paths()
-        #     and self.__check_peripheral_non_overlap()
-        #     and self.__check_peripheral_domain_bounds()
-        # )
 
         return (
             self.__check_peripheral_non_overlap()

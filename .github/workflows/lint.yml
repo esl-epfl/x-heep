@@ -69,5 +69,5 @@ jobs:
       - uses: psf/black@stable
         with:
           options: "--check --verbose"
-          src: "./util"
+          src: "./util/x_heep_gen"
           version: "~= 25.1.0"

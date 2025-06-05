@@ -34,6 +34,7 @@ class PeripheralsDescription:
     """
 
     def __init__(self, example, extension):
+        print(output_filename(example, extension))
         with open(output_filename(example, extension), "r") as file:
             content = hjson.load(file)
 
