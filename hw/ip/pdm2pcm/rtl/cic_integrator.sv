@@ -8,7 +8,7 @@
 
 module cic_integrator #(
     // Width of the datapath
-    parameter WIDTH = 18
+    parameter integer WIDTH = 18
 ) (
     // Clock input
     input logic clk_i,
