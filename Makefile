@@ -168,9 +168,9 @@ verible:
 	util/format-verible;
 
 ## Runs black formating for python xheep generator files
-black:
-	black util/x_heep_gen
-	black util/mcu_gen.py
+format-python:
+	$(PYTHON) -m black util/x_heep_gen
+	$(PYTHON) -m black util/mcu_gen.py
 
 ## @section APP FW Build
 

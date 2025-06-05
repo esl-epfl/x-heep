@@ -70,4 +70,4 @@ jobs:
         with:
           options: "--check --verbose"
           src: "./util/x_heep_gen"
-          version: "~= 25.1.0"
+          version: "~= 24.8.0"
