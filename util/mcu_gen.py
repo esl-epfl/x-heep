@@ -719,6 +719,14 @@ def generate_xheep(args):
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
+    with open(args.pads_cfg, "r") as file:
+        try:
+            srcfull = file.read()
+            pad_cfg = hjson.loads(srcfull, use_decimal=True)
+            pad_cfg = JsonRef.replace_refs(pad_cfg)
+        except ValueError:
+            raise SystemExit(sys.exc_info()[1])
+
     config_override = x_heep_gen.system.Override(None, None, None)
 
     if args.cpu != None and args.cpu != "":
@@ -801,10 +809,10 @@ def generate_xheep(args):
 
     interrupts = {**config["interrupts"]["list"], **ext_int_list}
 
-    pads = config["pads"]
+    pads = pad_cfg["pads"]
 
     try:
-        pads_attributes = config["attributes"]
+        pads_attributes = pad_cfg["attributes"]
         pads_attributes_bits = pads_attributes["bits"]
     except KeyError:
         pads_attributes = None
@@ -1250,7 +1258,7 @@ def generate_xheep(args):
 
     # If layout parameters exist in the config, compute the pad offset/skip parameters and order the pads on each side
     try:
-        physical_attributes = config["physical_attributes"]
+        physical_attributes = pad_cfg["physical_attributes"]
         (
             top_pad_list,
             bottom_pad_list,
@@ -1375,6 +1383,15 @@ def main():
             nargs="?",
             default="",
             help="X-Heep custom configuration",
+        )
+
+        parser.add_argument(
+            "--pads_cfg",
+            "-pc",
+            metavar="file",
+            type=str,
+            required=True,
+            help="Pads configuration",
         )
 
         parser.add_argument(

@@ -11,7 +11,7 @@ import hjson
 
 
 x_heep_cfg = "configs/general.hjson"
-pad_cfg = "pad_cfg.hjson"
+pads_cfg = "configs/pad_cfg.hjson"
 config_directory = "test/test_x_heep_gen/configs/"
 existing_extensions = [".hjson", ".py"]
 output_directory = "test/test_x_heep_gen/outputs"
@@ -222,6 +222,8 @@ def __generate_argv(
         f"{config_dir}/example{example_number}.hjson",
         "--python_x_heep_cfg",
         python_x_heep_cfg,
+        "--pads_cfg",
+        pads_cfg,
     ]
 
 

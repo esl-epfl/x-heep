@@ -111,8 +111,6 @@ class I2S(UserPeripheral, DataConfiguration):
 
 
 # Domain Class
-
-
 class UserPeripheralDomain(PeripheralDomain):
     """
     Domain for user peripherals. All user peripherals must be added.
