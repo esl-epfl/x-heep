@@ -242,7 +242,7 @@ def main() -> int:
     )
     print("PATHS", sv_paths)
     if args.merge:
-        with open("design.sv", "w") as outfile:
+        with open('design.sv', 'w') as outfile:
             for fname in sv_paths:
                 with open(fname) as infile:
                     for line in infile:
@@ -251,7 +251,7 @@ def main() -> int:
                 with open(fname) as infile:
                     for line in infile:
                         outfile.write(line)
-        sv_paths = ["design.sv"]
+        sv_paths = ['design.sv']
 
     try:
         transform(
