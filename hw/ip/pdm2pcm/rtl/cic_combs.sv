@@ -11,7 +11,7 @@
 //              Each stage computes a delayed difference.
 //
 // Parameters:
-//   - STAGES         : Total number of comb stages.
+//   - MAX_STAGE_CIC  : Total number of comb stages.
 //   - WIDTH          : Bit-width of the datapath.
 //   - DELAYCOMBWIDTH : Bit-width of the programmable delay index.
 //
@@ -30,7 +30,7 @@
 
 module cic_combs #(
     // Number of integrators
-    parameter integer STAGES = 4,
+    parameter integer MAX_STAGE_CIC = 4,
     // Width of the datapath
     parameter integer WIDTH = 18,
     // Width of the delay parameter
@@ -46,7 +46,7 @@ module cic_combs #(
     input logic clr_i,
 
     // Which/How many CIC stage are activated (Thermometric, right-aligned)
-    input logic [STAGES-1:0] par_cic_activated_stages,
+    input logic [MAX_STAGE_CIC-1:0] par_cic_activated_stages,
     // Value of delay parameter
     input logic [DELAYCOMBWIDTH-1:0] par_delay_combs,
 
@@ -57,7 +57,7 @@ module cic_combs #(
 );
 
   // Auxiliary array to pass data from one instance to the next one
-  logic [WIDTH-1:0] comb_data[0:STAGES];
+  logic [WIDTH-1:0] comb_data[0:MAX_STAGE_CIC];
   // First element is the input
   assign comb_data[0] = data_i;
 
@@ -65,7 +65,7 @@ module cic_combs #(
   // Stages instantiation
   genvar i;
   generate
-    for (i = 0; i < STAGES; i = i + 1) begin : cic_stages
+    for (i = 0; i < MAX_STAGE_CIC; i = i + 1) begin : cic_stages
       cic_comb #(WIDTH, DELAYCOMBWIDTH) cic_comb_inst (
           .clk_i(clk_i),
           .rstn_i(rstn_i),
@@ -79,13 +79,13 @@ module cic_combs #(
   endgenerate
 
   // MUX for the stages output
-  logic [$clog2(STAGES)-1:0] msb_index;
+  logic [$clog2(MAX_STAGE_CIC)-1:0] msb_index;
 
   always_comb begin
     msb_index = '0;
-    for (int k = STAGES - 1; k >= 0; k--) begin
+    for (int k = MAX_STAGE_CIC - 1; k >= 0; k--) begin
       if (par_cic_activated_stages[k]) begin
-        msb_index = k[$clog2(STAGES)-1:0] + 1;
+        msb_index = k[$clog2(MAX_STAGE_CIC)-1:0] + 1;
         break;
       end
     end
