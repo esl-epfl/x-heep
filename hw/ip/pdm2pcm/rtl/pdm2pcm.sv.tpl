@@ -202,7 +202,7 @@ module pdm2pcm #(
 
   // Clock domain crossing FIFO
   cdc_fifo_gray #(
-      .T(logic [17:0]),
+      .T(logic [FIFO_WIDTH-1:0]),
       .LOG_DEPTH(FIFO_ADDR_WIDTH)
   ) pdm2pcm_fifo_i (
       .src_clk_i  (div_clk),
