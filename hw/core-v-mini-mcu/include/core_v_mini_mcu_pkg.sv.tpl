@@ -145,13 +145,13 @@ package core_v_mini_mcu_pkg;
   // ---------------------
 
   localparam AO_PERIPHERALS = ${len(base_peripheral_domain.get_peripherals())};
+
   localparam int DMA_CH_NUM = ${dma.get_num_channels()};
   localparam DMA_CH_SIZE = 32'h${hex(dma.get_ch_length())[2:]};
   localparam int DMA_NUM_MASTER_PORTS = ${dma.get_num_master_ports()};
 
 % if dma.get_num_master_ports() > 1:
   localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()[::-1]}};
-
 % else:
   localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()}};
 % endif
@@ -163,7 +163,6 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${hex(peripheral.get_length())[2:]};
   localparam logic [31:0] ${peripheral.get_name().upper()}_END_ADDRESS = ${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE;
   localparam logic [31:0] ${peripheral.get_name().upper()}_IDX = 32'd${loop.index};
-  
 % endfor
 
   localparam addr_map_rule_t [AO_PERIPHERALS-1:0] AO_PERIPHERALS_ADDR_RULES = '{
@@ -180,11 +179,10 @@ package core_v_mini_mcu_pkg;
   localparam logic [7:0] DMA_CH${i}_SIZE = 8'h${hex((dma.get_ch_length()) >> 8)[2:]};
   localparam logic [7:0] DMA_CH${i}_END_ADDRESS = DMA_CH${i}_START_ADDRESS + DMA_CH${i}_SIZE;
   localparam logic [7:0] DMA_CH${i}_IDX = 8'd${i};
-
 % endfor
 
   localparam addr_map_rule_8bit_t [DMA_CH_NUM-1:0] DMA_ADDR_RULES = '{
-  % for i in range(dma.get_num_channels()):
+% for i in range(dma.get_num_channels()):
       '{ idx: DMA_CH${i}_IDX, start_addr: DMA_CH${i}_START_ADDRESS, end_addr: DMA_CH${i}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor
   };
@@ -203,8 +201,8 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${hex(peripheral.get_length())[2:]};
   localparam logic [31:0] ${peripheral.get_name().upper()}_END_ADDRESS = ${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE;
   localparam logic [31:0] ${peripheral.get_name().upper()}_IDX = 32'd${loop.index};
-  
 % endfor
+
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
 % for peripheral in user_peripheral_domain.get_peripherals():
       '{ idx: ${peripheral.get_name().upper()}_IDX, start_addr: ${peripheral.get_name().upper()}_START_ADDRESS, end_addr: ${peripheral.get_name().upper()}_END_ADDRESS }${"," if not loop.last else ""}
