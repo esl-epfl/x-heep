@@ -62,12 +62,15 @@ jobs:
   # Black Formatter #
   ###################
   black_formatter:
-    name: Black Formatter
+    name: Check that the python files are formatted correctly using black
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: psf/black@stable
         with:
           options: "--check --verbose"
-          src: "./util/x_heep_gen"
+          src: >
+            ./util/x_heep_gen
+            ./util/mcu_gen.py
+            ./util/structs_periph_gen.py
           version: "~= 24.8.0"
