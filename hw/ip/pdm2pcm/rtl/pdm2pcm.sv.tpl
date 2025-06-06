@@ -60,7 +60,8 @@
 //      - bit 0 : The FIFO buffer is empty.
 //      - bit 1 : The FIFO buffer is full.
 //
-// Output register : rxdata
+// Output:
+//   - rx_data (via FIFO window)
 //
 // Features:
 //   - Configurable CIC filter: number of stages, decimation, and comb delay.
