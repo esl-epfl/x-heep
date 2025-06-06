@@ -13,7 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: Jérémie Moullet <jeremie.moullet@epfl.ch>, EPFL, STI-SEL
+ * Author: Jérémie Moullet <jeremie.moullet@epfl.ch>, EPFL, STI-SEL (2025)
+ *
+ * Description : Tester for the PDM2PCM peripheral in CIC-only mode.
+ *
+ * This program configures the PDM2PCM block with:
+ *  - clk divider = 16
+ *  - CIC decimation = 15
+ *  - 4 CIC stages enabled
+ *  - Comb delay = 1
+ *
+ * It enables the peripheral and reads output samples from RXDATA,
+ * checking them against a predefined groundtruth.
+ *
+ * If all samples match, a success message is printed; otherwise, an error
+ * with the mismatching index is shown.
+ *
  */
 
 #include <stdio.h>
