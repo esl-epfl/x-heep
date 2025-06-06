@@ -1,4 +1,4 @@
-// Copyright 2022 EPFL
+// Copyright 2025 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
@@ -7,28 +7,26 @@
 //
 // Date: 06.2025
 //
-// Description: Cascaded comb stages for CIC decimation filter.
-//
-// Each active stage computes:
-//   y[n] = x[n] - x[n - D]
-// where D = par_delay_combs. Stages are enabled thermometrically.
+// Description: Cascaded comb stages of a CIC decimation filter.
+//              Each stage computes a delayed difference.
 //
 // Parameters:
-//   - STAGES         : Number of cascaded comb stages.
-//   - WIDTH          : Bit-width of datapath.
-//   - DELAYCOMBWIDTH : Bit-width of delay control.
+//   - STAGES         : Total number of comb stages.
+//   - WIDTH          : Bit-width of the datapath.
+//   - DELAYCOMBWIDTH : Bit-width of the programmable delay index.
 //
 // Ports:
 //   - clk_i, rstn_i : Clock and active-low reset.
 //   - en_i, clr_i   : Enable and synchronous clear.
-//   - par_cic_activated_stages : Bitfield to enable selected comb stages.
-//   - par_delay_combs          : Shared delay parameter D.
-//   - data_i        : Input sample.
-//   - data_o        : Output after selected comb stage.
+//   - par_cic_activated_stages : Right-aligned bitmask enabling selected stages.
+//   - par_delay_combs : Common delay D used for all comb stages.
+//   - data_i         : Input sample.
+//   - data_o         : Output from the last active stage.
 //
 // Notes:
 //   - Internally instantiates STAGES `cic_comb` modules.
-//   - Output is selected from the last active stage.
+//   - A MUX selects the output of the last active stage.
+//   - If no stages are active, output defaults to input.
 
 module cic_combs #(
     // Number of integrators

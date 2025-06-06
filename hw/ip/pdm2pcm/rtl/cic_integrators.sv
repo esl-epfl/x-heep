@@ -1,4 +1,4 @@
-// Copyright 2022 EPFL
+// Copyright 2025 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
@@ -7,25 +7,24 @@
 //
 // Date: 06.2025
 //
-// Description: Cascaded integrator stages for CIC decimation filter.
-//
-// Each active stage integrates the incoming signal:
-//   y[n] = y[n-1] + x[n]
+// Description: Cascaded integrator stages of a CIC decimation filter.
+//              Each stage accumulates its input over time.
 //
 // Parameters:
-//   - STAGES : Number of cascaded integrator stages.
-//   - WIDTH  : Bit-width of datapath.
+//   - STAGES : Total number of integrator stages.
+//   - WIDTH  : Bit-width of the datapath.
 //
 // Ports:
 //   - clk_i, rstn_i : Clock and active-low reset.
 //   - en_i, clr_i   : Enable and synchronous clear.
-//   - par_cic_activated_stages : Bitfield to enable selected integrator stages.
+//   - par_cic_activated_stages : Right-aligned bitmask enabling selected stages (e.g., 4'b0111 enables 3 stages).
 //   - data_i        : Input sample.
-//   - data_o        : Output after last active integrator.
+//   - data_o        : Output from the last active stage.
 //
 // Notes:
 //   - Internally instantiates STAGES `cic_integrator` modules.
-//   - Output is selected from the last enabled stage.
+//   - A MUX selects the output of the last active stage.
+//   - If no stages are active, output defaults to input.
 
 module cic_integrators #(
     // Number of integrators
