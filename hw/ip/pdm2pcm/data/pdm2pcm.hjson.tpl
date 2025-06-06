@@ -1,9 +1,11 @@
-// Copyright 2022 EPFL
+// Copyright 2025 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-
-// Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
-// Date: 19.02.2022
+//
+// Authors: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
+//          Jérémie Moullet<jeremie.moullet@epfl.ch>,EPFL, STI-SEL  
+//
+// Date: 06.2025
 
 { name: "pdm2pcm"
   clock_primary: "clk_i"
@@ -16,7 +18,7 @@
     // CLOCK DIVISION
 
     { name:     "CLKDIVIDX"
-      desc:     "Control register"
+      desc:     "Decimation ratio from the sys_clk to the sampling frequency"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
@@ -318,8 +320,7 @@
         name: "RXDATA"
         items: "1"
         validbits: "32"
-        desc: '''PCM Receive data
-                  '''
+        desc: "Filtered output data"
         swaccess: "ro"
       }
     }

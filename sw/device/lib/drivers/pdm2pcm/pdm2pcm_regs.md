@@ -2,7 +2,7 @@
  <tr>
   <th class="regdef" colspan=5>
    <div>pdm2pcm.CLKDIVIDX @ 0x0</div>
-   <div><p>Control register</p></div>
+   <div><p>Decimation ratio from the sys_clk to the sampling frequency</p></div>
    <div>Reset default = 0x0, mask 0xffff</div>
   </th>
  </tr>
@@ -101,5 +101,5 @@
 </tr><tr><td class="regbits">+0x1c</td><td class="fname" colspan=32>&nbsp;</td>
 </tr><tr><td>&nbsp;</td><td align=center colspan=32>...</td></tr><tr><td class="regbits">+0x14</td><td class="fname" colspan=32>&nbsp;</td>
 </tr><tr><td class="regbits">+0x18</td><td class="fname" colspan=32>&nbsp;</td>
-</tr></td></tr></table><tr><td class="regde"><p>PCM Receive data</p></td></tr></table>
+</tr></td></tr></table><tr><td class="regde"><p>Filtered output data</p></td></tr></table>
 <br>
