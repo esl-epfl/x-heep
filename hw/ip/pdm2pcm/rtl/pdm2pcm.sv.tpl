@@ -1,11 +1,62 @@
-// Copyright 2022 EPFL
+// Copyright 2025 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-
+//
 // Authors: Pierre Guillod <pierre.guillod@epfl.ch> ,EPFL, STI-SEL
 //          Jérémie Moullet<jeremie.moullet@epfl.ch>,EPFL, STI-SEL
-// Date: 05.2025
-// Description: Top wrapper for the PDM2PCM acquisition peripheral
+//
+// Date: 06.2025
+//
+// Description: This is the top-level wrapper for the PDM2PCM (Pulse Density Modulation to Pulse Code Modulation) peripheral.
+//              It implements runtime-configurable decimation filters (CIC, half-band, and FIR), supports clock division,
+//              and interfaces with a register map and CDC FIFO for data transfer between clock domains.
+//
+// Modes:
+//   - CIC-only mode                   : Minimal configuration using only a CIC filter.
+//   - CIC + 2×(HB + Decim) + FIR mode : Full pipeline with cascaded half-band filters and FIR post-processing.
+//
+//┌───────────────────────┐
+//│       CIC Filter      │
+//│┌─────┐ ┌─────┐ ┌─────┐│┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐
+//││Intgs├─►Decim├─►Combs├│►Hlfbd├─►Decim├─►Hlfbd├─►Decim├─► FIR │
+//│└─────┘ └─────┘ └─────┘│└─────┘ └─────┘ └─────┘ └─────┘ └─────┘
+//└───────────────────────┘
+// (made with asciiflow.com)
+//
+// NOTE: In CIC-only mode, the additional filter stages are fully excluded from synthesis,
+//       reducing both power consumption and area.
+//
+// Compile-Time Parameters (RTL):
+//   - FIFO_DEPTH : Number of entries in the clock domain crossing FIFO.
+//   - FIFO_WIDTH : Bit-width of the data path.
+//
+// Runtime Configuration (via register interface):
+//   - CLKDIVIDX            : Clock divider from system clock to sampling frequency (must be even).
+//   - DECIMCIC             : Decimation factor from sampling frequency to CIC output frequency.
+//   - cic_delay_comb       : Delay parameter (D) in the CIC comb stage.
+//   - cic_activated_stages : Thermometric, right-aligned encoding of the number of active CIC stages.
+//                            (e.g., 4'b1111 means 4 stages are active).
+//
+// NOTE: This list includes runtime configuration for the CIC block only.
+//       The full PDM2PCM register map is defined in `pdm2pcm.hjson`.
+// NOTE: The maximum value for each configuration parameter is determined
+//       by the bit-width defined in `pdm2pcm.hjson`.
+//
+// Ports:
+//   - clk_i     : Main system clock.
+//   - rst_ni    : Active-low reset.
+//   - reg_req_i : Register interface request input.
+//   - reg_rsp_o : Register interface response output.
+//   - pdm_i     : 1-bit digital input from the PDM source.
+//   - pdm_clk_o : Output clock signal that samples `pdm_i`.
+//                 (One sample per rising edge of `pdm_clk_o`.)
+//
+// Features:
+//   - Configurable CIC filter: number of stages, decimation, and comb delay.
+//   - Optional post-processing: Half-band and FIR filters (when `cic_mode == 0`).
+//   - Integer-based dynamic clock division for sampling control.
+//   - CDC FIFO for safe data transfer between clock domains.
+//   - Standardized register and window interface integration for memory-mapped access.
 
 <%
     pdm2pcm = xheep.get_user_peripheral_domain().get_pdm2pcm()
@@ -72,8 +123,8 @@ module pdm2pcm #(
   pdm2pcm_reg2hw_t                             reg2hw;
   pdm2pcm_hw2reg_t                             hw2reg;
 
-  reg_req_t         [                  0:0]   fifo_win_h2d;
-  reg_rsp_t         [                  0:0]   fifo_win_d2h;
+  reg_req_t          [                0:0]    fifo_win_h2d;
+  reg_rsp_t          [                0:0]    fifo_win_d2h;
 
   logic div_clk;
 

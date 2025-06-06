@@ -1,10 +1,30 @@
 // Copyright 2022 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-
-// Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
-// Date: 14.12.2022
-// Description: Integrator component of the CIC filter
+//
+// Authors: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
+//          Jérémie Moullet<jeremie.moullet@epfl.ch>,EPFL, STI-SEL  
+//
+// Date: 06.2025
+//
+// Description: Single-stage integrator for CIC decimation.
+//              
+// This module accumulates input samples over time:
+//    data_o = ∑(data_i)
+// Acts as a low-pass filter in the CIC structure.
+//
+// Parameters:
+//   - WIDTH: Bit-width of the data path.
+//
+// Ports:
+//   - clk_i, rstn_i : Clock and active-low reset.
+//   - en_i, clr_i   : Enable and synchronous clear.
+//   - data_i        : Input sample.
+//   - data_o        : Accumulated output sample.
+//
+// Behavior:
+//   - On en_i: adds input to internal state.
+//   - On clr_i or reset: clears accumulator.
 
 module cic_integrator #(
     // Width of the datapath

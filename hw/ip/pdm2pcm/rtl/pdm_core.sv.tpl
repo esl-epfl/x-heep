@@ -1,11 +1,53 @@
 // Copyright 2022 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-
+//
 // Authors: Pierre Guillod <pierre.guillod@epfl.ch> ,EPFL, STI-SEL
 //          Jérémie Moullet<jeremie.moullet@epfl.ch>,EPFL, STI-SEL
-// Date: 05.2025
-// Description: PDM to PCM converter core
+//
+// Date: 06.2025
+//
+// Description: Core logic of the PDM-to-PCM conversion pipeline.
+//              This module captures a 1-bit Pulse Density Modulated (PDM) signal
+//              and converts it into a multi-bit Pulse Code Modulated (PCM) signal.
+//
+// Filter Chain:
+//┌───────────────────────┐
+//│       CIC Filter      │
+//│┌─────┐ ┌─────┐ ┌─────┐│┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐
+//││Intgs├─►Decim├─►Combs├│►Hlfbd├─►Decim├─►Hlfbd├─►Decim├─► FIR │
+//│└─────┘ └─────┘ └─────┘│└─────┘ └─────┘ └─────┘ └─────┘ └─────┘
+//└───────────────────────┘
+// (made with asciiflow.com)
+//
+// Parameters (compile-time):
+//   - MAX_STAGE_CIC       : Maximal Number of stages in the CIC filter.
+//   - WIDTH               : Bit-width of internal datapath and output PCM value.
+//   - DECIM_COMBS_CNT_W   : Width of the decimation factor input for the CIC decimator.
+//   - DELAYCOMBWIDTH      : Width of the comb delay parameter.
+//
+// Ports:
+//   - div_clk_i                : Clock input (from programmable divider).
+//   - rstn_i                   : Active-low reset.
+//   - en_i                     : Core enable signal (gates all processing).
+//   - pdm_clk_o                : Output clock signal that samples `pdm_i`.
+//   - pdm_i                    : 1-bit PDM input signal.
+//   - par_cic_activated_stages : Thermometric input selecting active CIC stages (e.g., 4 stages = 4'b1111).
+//   - par_decim_idx_combs      : Decimation factor applied after integrators.
+//   - par_delay_combs          : Comb stage delay parameter (CIC D).
+//   - pcm_o                    : Output PCM word.
+//   - pcm_data_valid_o         : Pulse indicating `pcm_o` contains valid data.
+//
+// Features:
+//   - Converts PDM {0,1} into signed ±1 format.
+//   - CIC chain follows standard structure: integrator stages, decimator, comb stages.
+//   - Decimation counter allows runtime programmable downsampling ratio.
+//   - Comb stage includes programmable delay D.
+//   - `pdm_clk_o` pulses exactly once per data fetch.
+//
+// Notes:
+//   - Designed for efficient synthesis in low-area and low-power applications.
+//   - All post-CIC filters (halfband, FIR) are excluded from synthesis in CIC-only mode.
 
 <%
     pdm2pcm = xheep.get_user_peripheral_domain().get_pdm2pcm()
@@ -37,7 +79,7 @@ module pdm_core #(
     localparam COEFFSWIDTH = 18,
 % endif
     // Number of stages of the CIC filter
-    parameter integer STAGES_CIC = 4,
+    parameter integer MAX_STAGE_CIC = 4,
     // Width of the datapath
     parameter integer WIDTH = 18,
     // First decimator internal counter width
@@ -55,7 +97,7 @@ module pdm_core #(
     // Clock output to the microphone
     output logic pdm_clk_o,
     // Which/How many CIC stage are activated (Thermometric, right-aligned)
-    input logic [STAGES_CIC-1:0] par_cic_activated_stages,
+    input logic [MAX_STAGE_CIC-1:0] par_cic_activated_stages,
     // First decimator decimation index
     input logic [DECIM_COMBS_CNT_W-1:0] par_decim_idx_combs,
     //Delay D in the combs stage
@@ -151,16 +193,7 @@ module pdm_core #(
   // Converts binary PDM {0,1} to bipolar PDM {-1,1}
   assign data = r_data ? 'h1 : {WIDTH{1'b1}};
 
-  // Instantiation sequence
-  //┌───────────────────────┐
-  //│       CIC Filter      │
-  //│┌─────┐ ┌─────┐ ┌─────┐│┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐
-  //││Intgs├─►Decim├─►Combs├│►Hlfbd├─►Decim├─►Hlfbd├─►Decim├─► FIR │
-  //│└─────┘ └─────┘ └─────┘│└─────┘ └─────┘ └─────┘ └─────┘ └─────┘
-  //└───────────────────────┘
-  // (made with asciiflow.com)
-
-  cic_integrators #(STAGES_CIC, WIDTH) cic_integrators_inst (
+  cic_integrators #(MAX_STAGE_CIC, WIDTH) cic_integrators_inst (
       .clk_i (div_clk_i),
       .rstn_i(rstn_i),
       .clr_i (s_clr),
@@ -179,7 +212,7 @@ module pdm_core #(
       .en_o(combs_en)
   );
 
-  cic_combs #(STAGES_CIC, WIDTH, DELAYCOMBWIDTH) cic_combs_inst (
+  cic_combs #(MAX_STAGE_CIC, WIDTH, DELAYCOMBWIDTH) cic_combs_inst (
       .clk_i (div_clk_i),
       .rstn_i(rstn_i),
       .clr_i (s_clr),

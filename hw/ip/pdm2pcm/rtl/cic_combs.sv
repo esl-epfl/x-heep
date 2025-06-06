@@ -2,9 +2,33 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-// Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
-// Date: 14.12.2022
-// Description: Combs instances of the CIC filter
+// Authors: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
+//          Jérémie Moullet<jeremie.moullet@eofl.ch>,EPFL, STI-SEL
+//
+// Date: 06.2025
+//
+// Description: Cascaded comb stages for CIC decimation filter.
+//
+// Each active stage computes:
+//   y[n] = x[n] - x[n - D]
+// where D = par_delay_combs. Stages are enabled thermometrically.
+//
+// Parameters:
+//   - STAGES         : Number of cascaded comb stages.
+//   - WIDTH          : Bit-width of datapath.
+//   - DELAYCOMBWIDTH : Bit-width of delay control.
+//
+// Ports:
+//   - clk_i, rstn_i : Clock and active-low reset.
+//   - en_i, clr_i   : Enable and synchronous clear.
+//   - par_cic_activated_stages : Bitfield to enable selected comb stages.
+//   - par_delay_combs          : Shared delay parameter D.
+//   - data_i        : Input sample.
+//   - data_o        : Output after selected comb stage.
+//
+// Notes:
+//   - Internally instantiates STAGES `cic_comb` modules.
+//   - Output is selected from the last active stage.
 
 module cic_combs #(
     // Number of integrators
