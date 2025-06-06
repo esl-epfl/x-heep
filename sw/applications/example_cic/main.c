@@ -29,6 +29,8 @@
  * If all samples match, a success message is printed; otherwise, an error
  * with the mismatching index is shown.
  *
+ * NOTE : It can be configured at runtime, just deactivate the peripheral before
+ *        changing the configuration.
  */
 
 #include <stdio.h>
