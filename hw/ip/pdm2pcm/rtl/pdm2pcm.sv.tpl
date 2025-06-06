@@ -52,6 +52,14 @@
 //   - pdm_clk_o : Output clock signal that samples `pdm_i`.
 //                 (One sample per rising edge of `pdm_clk_o`.)
 //
+// Control and status registers:
+//   - control :
+//      - bit 0 : Starts PDM data processing. The FIFO starts to fill with PCM data.
+//      - bit 1 : Clears the FIFO buffer.
+//   - status  :
+//      - bit 0 : The FIFO buffer is empty.
+//      - bit 1 : The FIFO buffer is full.
+//
 // Features:
 //   - Configurable CIC filter: number of stages, decimation, and comb delay.
 //   - Optional post-processing: Half-band and FIR filters (when `cic_mode == 0`).
