@@ -39,6 +39,7 @@
 //
 // NOTE: This list includes runtime configuration for the CIC block only.
 //       The full PDM2PCM register map is defined in `pdm2pcm.hjson`.
+//
 // NOTE: The maximum value for each configuration parameter is determined
 //       by the bit-width defined in `pdm2pcm.hjson`.
 //
