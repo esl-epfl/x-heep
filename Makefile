@@ -171,6 +171,7 @@ verible:
 format-python:
 	$(PYTHON) -m black util/x_heep_gen
 	$(PYTHON) -m black util/mcu_gen.py
+	$(PYTHON) -m black util/structs_periph_gen.py
 
 ## @section APP FW Build
 
