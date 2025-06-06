@@ -2,9 +2,30 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-// Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
-// Date: 14.12.2022
-// Description: Integrators instances of the CIC filter
+// Authors: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
+//          Jérémie Moullet<jeremie.moullet@epfl.ch>,EPFL, STI-SEL  
+//
+// Date: 06.2025
+//
+// Description: Cascaded integrator stages for CIC decimation filter.
+//
+// Each active stage integrates the incoming signal:
+//   y[n] = y[n-1] + x[n]
+//
+// Parameters:
+//   - STAGES : Number of cascaded integrator stages.
+//   - WIDTH  : Bit-width of datapath.
+//
+// Ports:
+//   - clk_i, rstn_i : Clock and active-low reset.
+//   - en_i, clr_i   : Enable and synchronous clear.
+//   - par_cic_activated_stages : Bitfield to enable selected integrator stages.
+//   - data_i        : Input sample.
+//   - data_o        : Output after last active integrator.
+//
+// Notes:
+//   - Internally instantiates STAGES `cic_integrator` modules.
+//   - Output is selected from the last enabled stage.
 
 module cic_integrators #(
     // Number of integrators

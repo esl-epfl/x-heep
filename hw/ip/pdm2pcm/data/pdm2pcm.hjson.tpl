@@ -16,7 +16,7 @@
     // CLOCK DIVISION
 
     { name:     "CLKDIVIDX"
-      desc:     "Control register"
+      desc:     "Decimation ratio from the sys_clk to the sampling frequency"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
@@ -318,8 +318,7 @@
         name: "RXDATA"
         items: "1"
         validbits: "32"
-        desc: '''PCM Receive data
-                  '''
+        desc: "Filtered output data"
         swaccess: "ro"
       }
     }
