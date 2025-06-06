@@ -31,6 +31,8 @@
  *
  * NOTE : It can be configured at runtime, just deactivate the peripheral before
  *        changing the configuration.
+ * 
+ * NOTE : A description of the registers can be found in the rtl files.
  */
 
 #include <stdio.h>
