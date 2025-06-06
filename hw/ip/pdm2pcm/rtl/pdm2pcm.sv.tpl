@@ -61,7 +61,7 @@
 //      - bit 1 : The FIFO buffer is full.
 //
 // Output:
-//   - rx_data (via FIFO window)
+//   - rxdata (via FIFO window)
 //
 // Features:
 //   - Configurable CIC filter: number of stages, decimation, and comb delay.
