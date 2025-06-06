@@ -1,4 +1,4 @@
-// Copyright 2022 EPFL
+// Copyright 2025 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
@@ -27,27 +27,23 @@
 //   - DELAYCOMBWIDTH      : Width of the comb delay parameter.
 //
 // Ports:
-//   - div_clk_i                : Clock input (from programmable divider).
-//   - rstn_i                   : Active-low reset.
-//   - en_i                     : Core enable signal (gates all processing).
+//   - div_clk_i, rstn_i        : Decimated clock and active-low reset.
+//   - en_i                     : Enables sampling and filtering.
 //   - pdm_clk_o                : Output clock signal that samples `pdm_i`.
 //   - pdm_i                    : 1-bit PDM input signal.
 //   - par_cic_activated_stages : Thermometric input selecting active CIC stages (e.g., 4 stages = 4'b1111).
 //   - par_decim_idx_combs      : Decimation factor applied after integrators.
-//   - par_delay_combs          : Comb stage delay parameter (CIC D).
-//   - pcm_o                    : Output PCM word.
+//   - par_delay_combs          : Delay D used in all comb stages.
+//   - pcm_o                    : Output PCM signal.
 //   - pcm_data_valid_o         : Pulse indicating `pcm_o` contains valid data.
 //
-// Features:
-//   - Converts PDM {0,1} into signed ±1 format.
-//   - CIC chain follows standard structure: integrator stages, decimator, comb stages.
-//   - Decimation counter allows runtime programmable downsampling ratio.
-//   - Comb stage includes programmable delay D.
-//   - `pdm_clk_o` pulses exactly once per data fetch.
-//
 // Notes:
-//   - Designed for efficient synthesis in low-area and low-power applications.
-//   - All post-CIC filters (halfband, FIR) are excluded from synthesis in CIC-only mode.
+//   - Converts binary PDM to signed representation (1 → +1, 0 → -1).
+//   - Internally consists of integrator stages, a programmable decimator,
+//     and comb stages.
+//   - When full filtering is enabled (not in CIC-only mode), additional
+//     halfband and FIR filters are appended downstream.
+//   - Output is synchronized with the last active decimation stage.
 
 <%
     pdm2pcm = xheep.get_user_peripheral_domain().get_pdm2pcm()
