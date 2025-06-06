@@ -46,7 +46,7 @@ module cic_combs #(
     input logic clr_i,
 
     // Which/How many CIC stage are activated (Thermometric, right-aligned)
-    input logic [MAX_STAGE_CIC-1:0] par_cic_activated_stages,
+    input logic [ MAX_STAGE_CIC-1:0] par_cic_activated_stages,
     // Value of delay parameter
     input logic [DELAYCOMBWIDTH-1:0] par_delay_combs,
 

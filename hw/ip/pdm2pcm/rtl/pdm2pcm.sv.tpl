@@ -234,7 +234,7 @@ module pdm2pcm #(
   );
 
   pdm_core #(
-      .MAX_STAGES_CIC(CicMaxStageNumber),
+      .MAX_STAGE_CIC(CicMaxStageNumber),
       .WIDTH(FIFO_WIDTH),
       .DECIM_COMBS_CNT_W(DecimCicWidth),
       .DELAYCOMBWIDTH(DelayCombWidth)
