@@ -73,4 +73,5 @@ jobs:
             ./util/x_heep_gen
             ./util/mcu_gen.py
             ./util/structs_periph_gen.py
+            ./test/test_x_heep_gen/test_peripherals.py
           version: "~= 24.8.0"
