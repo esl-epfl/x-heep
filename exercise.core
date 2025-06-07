@@ -1,0 +1,153 @@
+CAPI=2:
+
+# Copyright 2025 Francesco Poluzzi
+# Solderpad Hardware License, Version 2.1, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: "francesco_poluzzi_xheep_exercise"
+description: "System integrating add_two_number.sv into x-heep via the eXtension interface"
+
+filesets:
+  # Generic RTL
+  rtl_generic:
+    depend:
+      - openhwgroup.org:systems:core-v-mini-mcu
+      - x-heep:ip:pad_control
+    files:
+      - hw/exercise/add_two_number.sv
+      - hw/exercise/add_two_number_wrapper.sv
+      - hw/exercise/exercise_top.sv
+      - hw/vendor/esl_epfl_x_heep/hw/system/pad_ring.sv
+    file_type: systemVerilogSource
+
+  # FPGA
+  rtl_fpga:
+    files:
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/sram_wrapper.sv
+    file_type: systemVerilogSource
+
+  ip_fpga:
+    files:
+      - hw/fpga/scripts/set_design_properties.tcl:  { file_type: tclSource }
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/scripts/generate_sram.tcl: { file_type: tclSource }
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/prim_xilinx_clk.sv
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/cv32e40px_xilinx_clock_gate.sv
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/pad_cell_input_xilinx.sv
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/pad_cell_output_xilinx.sv
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/pad_cell_inout_xilinx.sv
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/pad_cell_bypass_input_xilinx.sv
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/pad_cell_bypass_output_xilinx.sv
+    file_type: systemVerilogSource
+
+  ip_fpga_pynq_z2:
+    files:
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/scripts/pynq-z2/xilinx_generate_clk_wizard.tcl
+    file_type: tclSource
+
+  xdc_fpga_pynq_z2:
+    files:
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/constraints/pynq-z2/pin_assign.xdc
+      - hw/vendor/esl_epfl_x_heep/hw/fpga/constraints/pynq-z2/constraints.xdc
+    file_type: xdc
+
+  # Testbench
+  tb:
+    depend:
+      - x-heep::tb-utils
+    files:
+      - tb/testharness.sv
+      - tb/tb_top.sv
+    file_type: systemVerilogSource
+
+  # Scripts for hooks
+  pre_build_uartdpi:
+    files:
+      - scripts/sim/compile_uart_dpi.sh
+    file_type: user
+
+  pre_build_remote_bitbang:
+    files:
+      - scripts/sim/compile_remote_bitbang.sh
+    file_type: user
+
+  pre_patch_modelsim_Makefile:
+    files:
+      - hw/vendor/esl_epfl_x_heep/scripts/sim/modelsim/patch_modelsim_Makefile.py
+    file_type: user
+
+parameters:
+  JTAG_DPI:
+    datatype: int
+    paramtype: vlogparam
+    description: |
+      Enables testbench JTAG DIPs. Admitted values: 1|0.
+    default: 0
+  SYNTHESIS:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+
+scripts:
+  pre_build_remote_bitbang:
+    cmd:
+      - sh
+      - ../../../scripts/sim/compile_remote_bitbang.sh
+  pre_build_uartdpi:
+    cmd:
+      - sh
+      - ../../../scripts/sim/compile_uart_dpi.sh
+  pre_patch_modelsim_Makefile:
+    cmd:
+      - python
+      - ../../../hw/vendor/esl_epfl_x_heep/scripts/sim/modelsim/patch_modelsim_Makefile.py
+
+targets:
+  default: &default_target
+    filesets:
+      - rtl_generic
+
+  sim:
+    <<: *default_target
+    default_tool: modelsim
+    filesets_append:
+      - tb
+      - tool_modelsim? (pre_build_remote_bitbang)
+      - tool_modelsim? (pre_build_uartdpi)
+      - tool_modelsim? (pre_patch_modelsim_Makefile)
+    toplevel:
+      - tb_top
+    hooks:
+      pre_build:
+        - tool_modelsim? (pre_build_uartdpi)
+        - tool_modelsim? (pre_build_remote_bitbang)
+        - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
+    parameters:
+      - JTAG_DPI
+    tools:
+      modelsim:
+        vlog_options:
+          - -override_timescale 1ns/1ps
+          - -suppress vlog-2583
+          - -suppress vlog-2577
+          - -pedanticerrors
+          - -define MODELSIM
+        vsim_options:
+          - -sv_lib ../../../hw/vendor/esl_epfl_x_heep/hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi
+          - -sv_lib ../../../hw/vendor/esl_epfl_x_heep/hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs
+
+  pynq-z2:
+    <<: *default_target
+    default_tool: vivado
+    description: TUL Pynq-Z2 Board
+    filesets_append:
+      - rtl_fpga
+      - ip_fpga
+      - ip_fpga_pynq_z2
+      - xdc_fpga_pynq_z2
+    parameters:
+      - SYNTHESIS=true
+    tools:
+      vivado:
+        part: xc7z020clg400-1
+    toplevel:
+      - xilinx_fheep_wrapper
