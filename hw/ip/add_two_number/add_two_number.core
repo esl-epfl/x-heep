@@ -1,0 +1,26 @@
+CAPI=2:
+
+name: "x-heep:ip:add_two_number"
+description: "integrate peripheral exercise solution"
+
+# Copyright 2022 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+# Author: Francesco Poluzzi
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+    files:
+      - rtl/add_two_number_reg_pkg.sv 
+      - rtl/add_two_number_reg_top.sv 
+      - rtl/add_two_number.sv 
+    
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

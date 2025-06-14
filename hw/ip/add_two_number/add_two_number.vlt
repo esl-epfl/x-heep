@@ -1,0 +1,12 @@
+// Copyright 2022 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule WIDTH -file "*/add_two_number_reg_top.sv" -match "Operator ASSIGNW expects *"
+
+lint_off -rule UNUSED -file "*/add_two_number.sv" -match "Bits of signal are not *"
+lint_off -rule UNDRIVEN -file "*/add_two_number.sv" -match "*"
+
+lint_off -rule DECLFILENAME -file "*/add_two_number_reg_top.sv" -match "Filename 'add_two_number_reg_top' does not match MODULE name: 'add_two_number_reg_top_intf'"

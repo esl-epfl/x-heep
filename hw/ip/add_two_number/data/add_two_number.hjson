@@ -1,0 +1,60 @@
+// Copyright 2025 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+// Author: Francesco Poluzzi
+
+{ name: "add_two_number"
+  clock_primary: "clk_i"
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ]
+  regwidth: "32"
+  registers: [
+
+    // OPERAND 0
+
+    { name:     "ADD_TWO_NUMBER_OPERAND0"
+      desc:     "First input of the sum."
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "31:0", name: "ADD_TWO_NUMBER_OPERAND0", desc: "First input of the sum." }
+      ]
+    }
+
+    // OPERAND 1
+
+    { name:     "ADD_TWO_NUMBER_OPERAND1"
+      desc:     "Second input of the sum."
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "31:0", name: "ADD_TWO_NUMBER_OPERAND0", desc: "Second input of the sum." }
+      ]
+    }
+
+    // SUM RESULT
+
+    { name:     "ADD_TWO_NUMBER_RESULT"
+      desc:     "Result of the sum."
+      swaccess: "ro"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "31:0", name: "ADD_TWO_NUMBER_RESULT", desc: "Result of the sum." }
+      ]
+    }
+
+    // STATUS & CONTROL REGISTERS
+
+    { name:     "ADD_TWO_NUMBER_CTRL"
+      desc:     "Control register"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "0", name: "ENABLE", desc: "Trigger the sum." }
+      ]
+    }
+  ]
+}
+
