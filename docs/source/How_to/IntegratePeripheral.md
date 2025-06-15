@@ -332,3 +332,76 @@ and then connect your signal in `peripheral_subsystem.sv` to the plic
 ```
 
 In software the interrupt gets trigger as "external" interrupt see `rv_plic` documentation, your interrupt number to be used in c is automatically added to the `core_v_mini_mcu.h` under the preprosessor define `<YOUR INTERRUPT>` .
+
+
+## How to integrate into the mcu-gen workflow
+
+To enable automatic integration of your peripheral using the `mcu-gen` tool, follow these additional steps:
+
+1. **Create the Peripheral Driver Folder**
+
+   Create a new directory under:
+
+   ```
+   sw/device/lib/drivers/<peripheral>
+   ```
+
+   This folder will contain the generated header files, like `<peripheral>_regs.h`.
+
+2. **Rename the RTL File Template**
+
+   If you want your peripheral’s SystemVerilog file to be dynamically generated (needed for the PR checks), rename:
+
+   ```
+   <peripheral>.sv → <peripheral>.sv.tpl
+   ```
+
+3. **Edit `user_peripherals.py`**
+
+   Define a new class for your peripheral in:
+
+   ```
+   util/x_heep_gen/peripherals/user_peripherals.py
+   ```
+
+   Example:
+
+   ```python
+   class <PERIPHERAL>(UserPeripheral, DataConfiguration):
+       _name = "<peripheral>"
+       _config_path = "./hw/ip/<peripheral>/data/<peripheral>.hjson"
+
+       def __init__(self, address: int = None, length: int = None):
+           super().__init__(address, length)
+   ```
+
+4. **Edit `load_config.py`**
+
+   Add a new condition in:
+
+   ```
+   util/x_heep_gen/load_config.py
+   ```
+
+   to include your peripheral class during peripheral parsing:
+
+   ```python
+   elif peripheral_name == "<peripheral>":
+       peripheral = <PERIPHERAL>(offset, length)
+       peripheral.custom_configuration(peripheral_config["path"])
+   ```
+
+5. **Modify the Top-Level Makefile**
+
+   In the `Makefile`, under `mcu-gen:` rule and add your peripheral entries:
+
+   ```makefile
+	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/ip/<peripheral>/data --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/ip/<peripheral>/data/<peripheral>.hjson
+	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg_peripherals $(MCU_CFG_PERIPHERALS) --pads_cfg $(PAD_CFG) --outdir hw/ip/<peripheral>/rtl --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/ip/<peripheral>/rtl/<peripheral>.sv.tpl
+	bash -c "cd hw/ip/<peripheral>; source <peripheral>.sh; cd ../../../"
+   ```
+
+   These commands enable template and register generation during MCU build.
+
+By completing these steps, your peripheral will be integrated into the `mcu-gen` flow, and necessary files will be automatically generated and connected.
+
