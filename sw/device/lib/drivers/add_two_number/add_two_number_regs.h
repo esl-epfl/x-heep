@@ -1,7 +1,7 @@
 // Generated register defines for add_two_number
 
 // Copyright information found in source file:
-// Copyright 2022 EPFL
+// Copyright 2025 EPFL
 
 // Licensing information found in source file:
 // 

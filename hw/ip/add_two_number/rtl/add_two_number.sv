@@ -51,8 +51,8 @@ module add_two_number #(
       .reg_req_i,
       .reg_rsp_o,
       .reg2hw,
-      .hw2reg, 
-      .devmode_i(1'b1) 
+      .hw2reg,
+      .devmode_i(1'b1)
   );
 
 endmodule
