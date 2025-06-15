@@ -87,7 +87,7 @@
 
     peripherals: {
         address: 0x30000000
-        length:  0x00100000
+        length:  0x00110000
         rv_plic: {
             offset:  0x00000000
             length:  0x00010000
@@ -135,6 +135,12 @@
             length:  0x00010000
             is_included: "yes"
             path:    "./hw/ip/i2s/data/i2s.hjson"
+        }
+        add_two_number: {
+            offset:  0x00080000
+            length:  0x00010000
+            is_included: "yes"
+            path:    "./hw/ip/add_two_number/data/add_two_number.hjson"
         }
 
     }

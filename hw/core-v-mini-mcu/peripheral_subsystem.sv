@@ -327,6 +327,16 @@ module peripheral_subsystem
       .intr_spi_event_o(spi_intr_event_o)
   );
 
+  add_two_number #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) add_two_number_i (
+      .clk_i(clk_cg),
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::ADD_TWO_NUMBER_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::ADD_TWO_NUMBER_IDX])
+  );
+
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
