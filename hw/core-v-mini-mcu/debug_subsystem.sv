@@ -185,17 +185,18 @@ module debug_subsystem
         .consumer_resp_i(debug_master_resp_i)
     );
   end else begin : gen_no_spi_slave
-    assign tofifo_req         = '0;
-    assign tofifo_resp        = '0;
-    assign dbg_spi_req[0]     = '0;
-    assign dbg_spi_req[1]     = '0;
-    assign dbg_spi_resp[0]    = '0;
-    assign dbg_spi_resp[1]    = '0;
-    assign spi_slave_req      = '0;
-    assign spi_slave_resp     = '0;
-    assign spi_slave_miso_o   = '0;
-    assign debug_master_req_o = dm_req;
-    assign dm_resp            = debug_master_resp_i;
+    assign tofifo_req          = '0;
+    assign tofifo_resp         = '0;
+    assign dbg_spi_req[0]      = '0;
+    assign dbg_spi_req[1]      = '0;
+    assign dbg_spi_resp[0]     = '0;
+    assign dbg_spi_resp[1]     = '0;
+    assign spi_slave_req       = '0;
+    assign spi_slave_resp      = '0;
+    assign spi_slave_miso_o    = '0;
+    assign spi_slave_miso_oe_o = '0;
+    assign debug_master_req_o  = dm_req;
+    assign dm_resp             = debug_master_resp_i;
   end
 
 

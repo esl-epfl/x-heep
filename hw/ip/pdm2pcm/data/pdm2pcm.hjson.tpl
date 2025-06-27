@@ -46,6 +46,27 @@
       ]
     }
 
+    // CIC Filter stages
+
+    //The maximal number of stage is determined by the number of bits of this field.
+    { name:   "cic_activated_stages"
+    desc:     "Thermometric value of the activated stages (The 1s should be contiguous and right-aligned)"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "5:0" }
+      ]
+    }
+
+    { name:     "cic_delay_comb"
+      desc:     "delay in each comb block (D)"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "3:0" }
+      ]
+    }
+
     // DECIMATORS
 
     { name:     "DECIMCIC"

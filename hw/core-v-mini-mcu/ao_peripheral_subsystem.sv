@@ -265,6 +265,7 @@ module ao_peripheral_subsystem
       );
 
     end else begin : gen_no_aopb
+      assign ao2spc_resp_o = '0;
       assign perconv2regdemux_req = peripheral_req;
       assign peripheral_rsp = regdemux2perconv_resp;
     end
