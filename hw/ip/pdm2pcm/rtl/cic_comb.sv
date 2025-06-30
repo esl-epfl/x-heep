@@ -1,10 +1,30 @@
-// Copyright 2022 EPFL
+// Copyright 2025 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// Authors: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
+//          Jérémie Moullet<jeremie.moullet@eofl.ch>,EPFL, STI-SEL
+//
+// Date: 06.2025
+//
+// Description: Single-stage comb filter for CIC decimation.
+//              Computes difference: y[n] = x[n] - x[n-D]
+//
+// Parameters:
+//   - WIDTH          : Bit-width of the datapath.
+//   - DELAYCOMBWIDTH : Bit-width of the programmable delay index.
+//
+// Ports:
+//   - clk_i, rstn_i : Clock and active-low reset.
+//   - en_i, clr_i   : Enable and synchronous clear.
+//   - par_delay     : Configurable delay D.
+//   - data_i        : Input sample.
+//   - data_o        : Output sample.
+//
+// Notes:
+//   - Internally maintains a shift register of delayed samples.
+//   - If par_delay = 0, output default to input.
 
-// Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
-// Date: 14.12.2022
-// Description: Comb component of the CIC filter
 
 module cic_comb #(
     // Width of the datapath
