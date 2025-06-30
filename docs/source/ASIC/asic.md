@@ -83,7 +83,7 @@ There are no references yet about this chip as it hasn't been tested yet.
 
 `X-TRELA` is the third sillicon implementation of X-HEEP, developed by the [CEI](https://www.cei.upm.es/) lab of the Universidad Politécnica de Madrid (UPM), Spain.
 
-![X-TRELA](/images/chips/xtrela.png)
+![X-TRELA](..//images/chips/xtrela.png)
 
 <p  align="center">Figure 3: X-TRELA Test Chip layout in TSMC 65nm LP </p>
 
@@ -92,3 +92,17 @@ The chip was taped out in February 2025. The chosen X-HEEP configuration for thi
 The design uses LVT cells, slim digital IOs, and CUP bondpads, and memory macros sourced from ARM. This is the first tape out of CEI-UPM, employing a single power domain to simplify the ASIC flow.
 
 This chip has been funded by the [A-IQ Ready](https://www.aiqready.eu/) project, supported by the Spanish Government MICIU/AEI 10.13039/501100011033 (PCI2022-135077-2) and the European Union NextGenerationEU/PRTR (101096658).
+
+## HEEPidermis
+
+HEEPnosis is the first X-HEEP MCU extended with an analog front end. It was built as a collaboration of the Embedded Systems Laboratory (ESL) of EPFL with Universidad Católica del Uruguay (UCU) and Politecnico di Torino. 
+
+It was designed to record Galvanic Skin Response (GSR), for which it includes two 8-bit current Digital-to-Analog Converters (iDACs) and two digitization channels with a VCO-based ADC, which can be used independently or as pseudo differential. The integrated DMA allows the autonomous operation of iDACs and ADCs. Additionally, the DMA can filter data before it is stored in memory by diverting it into a Level-Crossing stream accelerator. 
+
+HEEPidermis can be used as a powerful ADC with embedded feature extraction by reading data through its SPI slave interface. It can also control external ADCs for more versatile measurements, both trough SPI and through a dedicated ΔΣ input where data can be decimated. 
+
+![HEEPidermis](../images/chips/HEEPidermis.png)
+
+<p  align="center">Figure 4: HEEPidermis Test Chip layout in TSMC 65nm LP </p>
+
+This chip has been sponsored by [SwissChips](https://swisschips.ethz.ch/).
