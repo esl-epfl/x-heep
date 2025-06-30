@@ -95,7 +95,7 @@ This chip has been funded by the [A-IQ Ready](https://www.aiqready.eu/) project,
 
 ## HEEPidermis
 
-HEEPnosis is the first X-HEEP MCU extended with an analog front end. It was built as a collaboration of the Embedded Systems Laboratory (ESL) of EPFL with Universidad Católica del Uruguay (UCU) and Politecnico di Torino. 
+HEEPidermis is the first X-HEEP MCU extended with an analog front end. It was built as a collaboration of the Embedded Systems Laboratory (ESL) of EPFL with Universidad Católica del Uruguay (UCU) and Politecnico di Torino. 
 
 It was designed to record Galvanic Skin Response (GSR), for which it includes two 8-bit current Digital-to-Analog Converters (iDACs) and two digitization channels with a VCO-based ADC, which can be used independently or as pseudo differential. The integrated DMA allows the autonomous operation of iDACs and ADCs. Additionally, the DMA can filter data before it is stored in memory by diverting it into a Level-Crossing stream accelerator. 
 
