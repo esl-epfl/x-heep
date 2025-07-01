@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/openhwgroup/cve2.git",
-    rev: "9df7ab1babe0cafc48a18a560d50759ccc79e62f",
+    rev: "468b3595cdec81afe63d9b0abdfe9f9343bd228d",
   },
 
   patch_dir: "patches/openhwgroup_cv32e20",

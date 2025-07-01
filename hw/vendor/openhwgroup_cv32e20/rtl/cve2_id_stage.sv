@@ -20,7 +20,8 @@
 module cve2_id_stage #(
   parameter bit               RV32E           = 0,
   parameter cve2_pkg::rv32m_e RV32M           = cve2_pkg::RV32MFast,
-  parameter cve2_pkg::rv32b_e RV32B           = cve2_pkg::RV32BNone
+  parameter cve2_pkg::rv32b_e RV32B           = cve2_pkg::RV32BNone,
+  parameter bit               XInterface      = 1'b0
 ) (
   input  logic                      clk_i,
   input  logic                      rst_ni,
@@ -101,6 +102,25 @@ module cve2_id_stage #(
 
   input  logic                      lsu_addr_incr_req_i,
   input  logic [31:0]               lsu_addr_last_i,
+
+  //  Core-V eXtension Interface (CV-X-IF)
+  //  Issue Interface
+  output logic                      x_issue_valid_o,
+  input  logic                      x_issue_ready_i,
+  output cve2_pkg::x_issue_req_t    x_issue_req_o,
+  input  cve2_pkg::x_issue_resp_t   x_issue_resp_i,
+
+  // Register Interface
+  output  cve2_pkg::x_register_t    x_register_o,
+
+  // Commit Interface
+  output logic                      x_commit_valid_o,
+  output cve2_pkg::x_commit_t       x_commit_o,
+
+  // Result Interface
+  input  logic                      x_result_valid_i,
+  output logic                      x_result_ready_o,
+  input   cve2_pkg::x_result_t      x_result_i,
 
   // Interrupt signals
   input  logic                      csr_mstatus_mie_i,
@@ -196,10 +216,10 @@ module cve2_id_stage #(
 
   // Register file interface
 
-  rf_wd_sel_e  rf_wdata_sel;
-  logic        rf_we_dec, rf_we_raw;
-  logic        rf_ren_a, rf_ren_b;
-  logic        rf_ren_a_dec, rf_ren_b_dec;
+  logic [XInterface:0] rf_wdata_sel;
+  logic                rf_we_dec, rf_we_raw;
+  logic                rf_ren_a, rf_ren_b;
+  logic                rf_ren_a_dec, rf_ren_b_dec;
 
   // Read enables should only be asserted for valid and legal instructions
   assign rf_ren_a = instr_valid_i & ~instr_fetch_err_i & ~illegal_insn_o & rf_ren_a_dec;
@@ -242,6 +262,81 @@ module cve2_id_stage #(
 
   logic [31:0] alu_operand_a;
   logic [31:0] alu_operand_b;
+
+  // CV-X-IF
+  logic stall_coproc;
+
+  ///////////////
+  // ID-EX FSM //
+  ///////////////
+
+  typedef enum logic { FIRST_CYCLE, MULTI_CYCLE } id_fsm_e;
+  id_fsm_e id_fsm_q, id_fsm_d;
+
+  always_ff @(posedge clk_i or negedge rst_ni) begin : id_pipeline_reg
+    if (!rst_ni) begin
+      id_fsm_q <= FIRST_CYCLE;
+    end else if (instr_executing) begin
+      id_fsm_q <= id_fsm_d;
+    end
+  end
+
+  // CV-X-IF
+  if (XInterface) begin: gen_xif
+
+    logic coproc_done;
+    assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : (illegal_insn_dec ? coproc_done : ex_valid_i);
+
+    assign coproc_done = (x_issue_valid_o & x_issue_ready_i & ~x_issue_resp_i.writeback) | (x_result_valid_i & x_result_i.we);
+
+    // Issue Interface
+    assign x_issue_valid_o     = instr_executing & illegal_insn_dec & (id_fsm_q == FIRST_CYCLE);
+    assign x_issue_req_o.instr = instr_rdata_i;
+
+    // Register Interface
+    assign x_register_o.rs[0]    = rf_rdata_a_fwd;
+    assign x_register_o.rs[1]    = rf_rdata_b_fwd;
+    assign x_register_o.rs_valid = '1;
+
+    // Commit Interface
+    assign x_commit_valid_o       = 1'b1;
+    assign x_commit_o.commit_kill = 1'b0;
+
+    // Result Interface
+    assign x_result_ready_o = 1'b1;
+
+    assign illegal_insn_o = instr_valid_i & (illegal_csr_insn_i | (x_issue_valid_o & x_issue_ready_i & ~x_issue_resp_i.accept));
+  end
+
+  else begin: no_gen_xif
+    logic          unused_x_issue_ready;
+    x_issue_resp_t unused_x_issue_resp;
+    logic          unused_x_result_valid;
+    x_result_t     unused_x_result;
+
+
+    assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : ex_valid_i;
+
+    // Issue Interface
+    assign x_issue_valid_o      = 1'b0;
+    assign unused_x_issue_ready = x_issue_ready_i;
+    assign x_issue_req_o        = '0;
+    assign unused_x_issue_resp  = x_issue_resp_i;
+
+    // Register Interface
+    assign x_register_o = '0;
+
+    // Commit Interface
+    assign x_commit_valid_o = 1'b0;
+    assign x_commit_o       = '0;
+
+    // Result Interface
+    assign x_result_ready_o      = 1'b0;
+    assign unused_x_result_valid = x_result_valid_i;
+    assign unused_x_result       = x_result_i;
+
+    assign illegal_insn_o = instr_valid_i & (illegal_csr_insn_i | illegal_insn_dec);
+  end
 
   /////////////
   // LSU Mux //
@@ -323,10 +418,11 @@ module cve2_id_stage #(
 
   // Register file write data mux
   always_comb begin : rf_wdata_id_mux
-    unique case (rf_wdata_sel)
-      RF_WD_EX:  rf_wdata_id_o = result_ex_i;
-      RF_WD_CSR: rf_wdata_id_o = csr_rdata_i;
-      default:   rf_wdata_id_o = result_ex_i;
+    unique case ($bits(rf_wd_sel_e)'({rf_wdata_sel}))
+      RF_WD_EX:     rf_wdata_id_o   = result_ex_i;
+      RF_WD_CSR:    rf_wdata_id_o   = csr_rdata_i;
+      RF_WD_COPROC: rf_wdata_id_o   = XInterface? x_result_i.data : result_ex_i;
+      default:      rf_wdata_id_o   = result_ex_i;
     endcase
   end
 
@@ -337,7 +433,8 @@ module cve2_id_stage #(
   cve2_decoder #(
     .RV32E          (RV32E),
     .RV32M          (RV32M),
-    .RV32B          (RV32B)
+    .RV32B          (RV32B),
+    .XInterface     (XInterface)
   ) decoder_i (
     .clk_i (clk_i),
     .rst_ni(rst_ni),
@@ -402,6 +499,10 @@ module cve2_id_stage #(
     .data_type_o          (lsu_type),
     .data_sign_extension_o(lsu_sign_ext),
 
+    // Core-V eXtension Interface (CV-X-IF)
+    .x_issue_resp_register_read_i(x_issue_resp_i.register_read),
+    .x_issue_resp_writeback_i(x_issue_resp_i.writeback),
+
     // jump/branches
     .jump_in_dec_o  (jump_in_dec),
     .branch_in_dec_o(branch_in_dec)
@@ -441,8 +542,6 @@ module cve2_id_stage #(
   ////////////////
   // Controller //
   ////////////////
-
-  assign illegal_insn_o = instr_valid_i & (illegal_insn_dec | illegal_csr_insn_i);
 
   cve2_controller #(
   ) controller_i (
@@ -599,21 +698,6 @@ module cve2_id_stage #(
   assign jump_set        = jump_set_raw        & ~branch_jump_set_done_q;
   assign branch_set      = branch_set_raw      & ~branch_jump_set_done_q;
 
-  ///////////////
-  // ID-EX FSM //
-  ///////////////
-
-  typedef enum logic { FIRST_CYCLE, MULTI_CYCLE } id_fsm_e;
-  id_fsm_e id_fsm_q, id_fsm_d;
-
-  always_ff @(posedge clk_i or negedge rst_ni) begin : id_pipeline_reg
-    if (!rst_ni) begin
-      id_fsm_q <= FIRST_CYCLE;
-    end else if (instr_executing) begin
-      id_fsm_q <= id_fsm_d;
-    end
-  end
-
   // ID/EX stage can be in two states, FIRST_CYCLE and MULTI_CYCLE. An instruction enters
   // MULTI_CYCLE if it requires multiple cycles to complete regardless of stalls and other
   // considerations. An instruction may be held in FIRST_CYCLE if it's unable to begin executing
@@ -626,6 +710,7 @@ module cve2_id_stage #(
     stall_jump              = 1'b0;
     stall_branch            = 1'b0;
     stall_alu               = 1'b0;
+    stall_coproc            = 1'b0;
     branch_set_raw_d        = 1'b0;
     jump_set_raw            = 1'b0;
     perf_branch_o           = 1'b0;
@@ -673,6 +758,30 @@ module cve2_id_stage #(
               id_fsm_d      = MULTI_CYCLE;
               rf_we_raw     = 1'b0;
             end
+            illegal_insn_dec: begin
+
+              // CV-X-IF
+              if(XInterface) begin
+                if(x_issue_valid_o && x_issue_ready_i) begin
+                  if(x_issue_resp_i.accept && x_issue_resp_i.writeback) begin
+                      id_fsm_d = MULTI_CYCLE;
+                      stall_coproc = 1'b1;
+                  end
+                  else begin
+                    id_fsm_d = FIRST_CYCLE;
+                  end
+                end
+                else begin
+                  stall_coproc = 1'b1;
+                  id_fsm_d = FIRST_CYCLE;
+                end
+              end
+              else begin
+                id_fsm_d = FIRST_CYCLE;
+              end
+
+            end
+
             default: begin
               id_fsm_d      = FIRST_CYCLE;
             end
@@ -690,6 +799,7 @@ module cve2_id_stage #(
             stall_multdiv   = multdiv_en_dec;
             stall_branch    = branch_in_dec;
             stall_jump      = jump_in_dec;
+            stall_coproc    = XInterface & illegal_insn_dec;
           end
         end
 
@@ -700,13 +810,16 @@ module cve2_id_stage #(
     end
   end
 
+
+
+
   `ASSERT(StallIDIfMulticycle, (id_fsm_q == FIRST_CYCLE) & (id_fsm_d == MULTI_CYCLE) |-> stall_id)
 
 
   // Stall ID/EX stage for reason that relates to instruction in ID/EX, update assertion below if
   // modifying this.
   assign stall_id = stall_mem | stall_multdiv | stall_jump | stall_branch |
-                      stall_alu;
+                      stall_alu | (XInterface & stall_coproc);
 
   // Generally illegal instructions have no reason to stall, however they must still stall waiting
   // for outstanding memory requests so exceptions related to them take priority over the illegal
@@ -723,34 +836,32 @@ module cve2_id_stage #(
   // Used by ALU to access RS3 if ternary instruction.
   assign instr_first_cycle_id_o = instr_first_cycle;
 
-    assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : ex_valid_i;
+  assign data_req_allowed = instr_first_cycle;
 
-    assign data_req_allowed = instr_first_cycle;
+  // Without Writeback Stage always stall the first cycle of a load/store.
+  // Then stall until it is complete
+  assign stall_mem = instr_valid_i & (lsu_req_dec & (~lsu_resp_valid_i | instr_first_cycle));
 
-    // Without Writeback Stage always stall the first cycle of a load/store.
-    // Then stall until it is complete
-    assign stall_mem = instr_valid_i & (lsu_req_dec & (~lsu_resp_valid_i | instr_first_cycle));
+  // Without writeback stage any valid instruction that hasn't seen an error will execute
+  assign instr_executing_spec = instr_valid_i & ~instr_fetch_err_i & controller_run;
+  assign instr_executing = instr_executing_spec;
 
-    // Without writeback stage any valid instruction that hasn't seen an error will execute
-    assign instr_executing_spec = instr_valid_i & ~instr_fetch_err_i & controller_run;
-    assign instr_executing = instr_executing_spec;
+  `ASSERT(IbexStallIfValidInstrNotExecuting,
+    instr_valid_i & ~instr_fetch_err_i & ~instr_executing & controller_run |-> stall_id)
 
-    `ASSERT(IbexStallIfValidInstrNotExecuting,
-      instr_valid_i & ~instr_fetch_err_i & ~instr_executing & controller_run |-> stall_id)
+  // No data forwarding without writeback stage so always take source register data direct from
+  // register file
+  assign rf_rdata_a_fwd = rf_rdata_a_i;
+  assign rf_rdata_b_fwd = rf_rdata_b_i;
 
-    // No data forwarding without writeback stage so always take source register data direct from
-    // register file
-    assign rf_rdata_a_fwd = rf_rdata_a_i;
-    assign rf_rdata_b_fwd = rf_rdata_b_i;
+  // Unused Writeback stage only IO & wiring
+  // Assign inputs and internal wiring to unused signals to satisfy lint checks
+  // Tie-off outputs to constant values
+  logic unused_data_req_done_ex;
 
-    // Unused Writeback stage only IO & wiring
-    // Assign inputs and internal wiring to unused signals to satisfy lint checks
-    // Tie-off outputs to constant values
-    logic unused_data_req_done_ex;
+  assign perf_dside_wait_o = instr_executing & lsu_req_dec & ~lsu_resp_valid_i;
 
-    assign perf_dside_wait_o = instr_executing & lsu_req_dec & ~lsu_resp_valid_i;
-
-    assign instr_id_done_o = instr_done;
+  assign instr_id_done_o = instr_done;
 
   // Signal which instructions to count as retired in minstret, all traps along with ebrk and
   // ecall instructions are not counted.
@@ -784,9 +895,17 @@ module cve2_id_stage #(
       OP_A_FWD,
       OP_A_CURRPC,
       OP_A_IMM})
-  `ASSERT(IbexRegfileWdataSelValid, instr_valid_i |-> rf_wdata_sel inside {
-      RF_WD_EX,
-      RF_WD_CSR})
+  if (XInterface) begin: gen_asserts_xif
+    `ASSERT(IbexRegfileWdataSelValid, instr_valid_i |-> rf_wdata_sel inside {
+        RF_WD_EX,
+        RF_WD_CSR,
+        RF_WD_COPROC})
+  end 
+  else begin : no_gen_asserts_xif
+    `ASSERT(IbexRegfileWdataSelValid, instr_valid_i |-> rf_wdata_sel inside {
+        RF_WD_EX,
+        RF_WD_CSR})
+  end
   `ASSERT_KNOWN(IbexWbStateKnown, id_fsm_q)
 
   // Branch decision must be valid when jumping.
@@ -803,7 +922,7 @@ module cve2_id_stage #(
 
   // Multicycle enable signals must be unique.
   `ASSERT(IbexMulticycleEnableUnique,
-      $onehot0({lsu_req_dec, multdiv_en_dec, branch_in_dec, jump_in_dec}))
+      $onehot0({lsu_req_dec, multdiv_en_dec, branch_in_dec, jump_in_dec, illegal_insn_dec}))
 
   // Duplicated instruction flops must match
   // === as DV environment can produce instructions with Xs in, so must use precise match that
