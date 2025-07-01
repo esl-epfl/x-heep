@@ -1,0 +1,2 @@
+./../../vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py -r -t rtl data/add_two_number.hjson
+./../../vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py --cdefines -o ../../../sw/device/lib/drivers/add_two_number/add_two_number_regs.h data/add_two_number.hjson

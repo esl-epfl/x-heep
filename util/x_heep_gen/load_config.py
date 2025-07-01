@@ -31,6 +31,7 @@ from .peripherals.user_peripherals import (
     SPI2,
     PDM2PCM,
     I2S,
+    ADD_TWO_NUMBER,
 )
 from .linker_section import LinkerSection
 from .system import BusType, Override, XHeep
@@ -373,6 +374,9 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "i2s":
                         peripheral = I2S(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "add_two_number":
+                        peripheral = ADD_TWO_NUMBER(offset, length)
                         peripheral.custom_configuration(peripheral_config["path"])
                     else:
                         raise ValueError(

@@ -98,6 +98,19 @@ class PDM2PCM(UserPeripheral, DataConfiguration):
         """
         return self._cic_only
 
+class ADD_TWO_NUMBER(UserPeripheral, DataConfiguration):
+
+    _name = "add_two_number"
+    _config_path = "./hw/ip/add_two_number/data/add_two_number.hjson"
+
+    def __init__(self, address: int = None, length: int = None, cic_only: bool = True):
+
+        super().__init__(address, length)
+        self._cic_only = cic_only
+
+    def get_cic_mode(self):
+        
+        return self._cic_only
 
 class I2S(UserPeripheral, DataConfiguration):
     """
