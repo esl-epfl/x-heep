@@ -106,3 +106,21 @@ HEEPidermis can be used as a powerful ADC with embedded feature extraction by re
 <p  align="center">Figure 4: HEEPidermis Test Chip layout in TSMC 65nm LP </p>
 
 This chip has been sponsored by [SwissChips](https://swisschips.ethz.ch/).
+
+## X-EROS
+
+`X‑EROS` is a silicon tape‑out of the X‑HEEP design carried out by the [CEI](https://www.cei.upm.es/) lab at the Universidad Politécnica de Madrid (UPM), Spain.
+
+![X-EROS](..//images/chips/xeros.png)
+
+<p  align="center">Figure 3: X-EROS Test Chip layout in TSMC 65nm LP </p>
+
+
+The chip was taped out in June 2025. The chosen X-HEEP configuration for this SoC includes a CV32E40P CPU, an NtoM bus topology and four 128KB contiguous banks of 32 KB each. Peripherals include a DMA, SPI interfaces, an I2C interface, GPIOs, a UART, and JTAG. 
+
+`X-EROS` integrates an [Extensible Reliable Offloading Solution (EROS)](https://github.com/des-cei/eros), featuring three CV32E20 CPU capable of operating in both safety and non‑safety modes and two 32 KB memory banks for instruction and data respectively. It is intended to serve as a safety‑critical accelerator island for mixed‑critical applications.
+For more information about this safety island accelerator, check this [paper](https://dl.acm.org/doi/pdf/10.1145/3706594.3726982).
+
+The design uses LVT cells, slim digital IOs, and CUP bondpads, and memory macros sourced from ARM. This is the second tape-out of CEI-UPM, employing a single power domain to simplify the ASIC flow.
+
+This chip has been sponsored by Talent2Concept (PDC2023-145865)
