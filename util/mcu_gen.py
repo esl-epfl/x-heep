@@ -12,6 +12,7 @@ import pathlib
 import sys
 import re
 import logging
+import pickle
 from subprocess import run
 import csv
 from jsonref import JsonRef
@@ -25,6 +26,7 @@ import x_heep_gen.peripherals.base_peripherals
 import x_heep_gen.peripherals.user_peripherals
 import x_heep_gen.peripherals.abstractions
 import math
+import os
 
 
 class Pad:
@@ -501,21 +503,24 @@ def string2int(hex_json_string):
     return (hex_json_string.split("x")[1]).split(",")[0]
 
 
-def write_template(tpl_path, outdir, outfile, **kwargs):
+def write_template(tpl_path, outfile, **kwargs):
     if tpl_path:
         tpl_path = pathlib.Path(tpl_path).absolute()
         if tpl_path.exists():
             tpl = Template(filename=str(tpl_path))
-            if outfile == None:
-                filename = outdir / tpl_path.with_suffix("").name
-            else:
+            if outfile:
                 filename = outfile
+            else:
+                filename = tpl_path.with_suffix("")
+
             with open(filename, "w") as file:
                 code = tpl.render_unicode(**kwargs)
                 code = re_trailws.sub("", code)
                 file.write(code)
         else:
-            raise FileNotFoundError
+            raise FileNotFoundError("Template file not found: {0}".format(tpl_path))
+    else:
+        raise FileNotFoundError("Template file not provided")
 
 
 def prepare_pads_for_layout(total_pad_list, physical_attributes):
@@ -694,167 +699,48 @@ def set_pad_positions(pad_list, physical_attributes):
     return pad_list, bp_offset
 
 
-def main():
-    parser = argparse.ArgumentParser(prog="mcugen")
-    parser.add_argument(
-        "--cfg_peripherals",
-        "-c",
-        metavar="file",
-        type=argparse.FileType("r"),
-        required=True,
-        help="A configuration file",
-    )
+"""
+    Ideally, generate the xheep object with the configuration passed in args. After generating the xheep object, serialize it to a file and save it.
 
-    parser.add_argument(
-        "--config",
-        metavar="file",
-        type=str,
-        required=True,
-        help="X-Heep general configuration",
-    )
+    Currently, generates xheep object with other parameters (and serialize everything)
+"""
 
-    parser.add_argument(
-        "--pads_cfg",
-        "-pc",
-        metavar="file",
-        type=argparse.FileType("r"),
-        required=True,
-        help="A pad configuration file",
-    )
 
-    parser.add_argument(
-        "--outdir", "-of", type=pathlib.Path, required=True, help="Target directory."
-    )
-
-    parser.add_argument(
-        "--outfile",
-        "-o",
-        type=pathlib.Path,
-        required=False,
-        help="Target filename, if omitted the template basename is taken.",
-    )
-
-    # Parse arguments.
-
-    parser.add_argument(
-        "--cpu",
-        metavar="cv32e20,cv32e40p,cv32e40x,cv32e40px",
-        nargs="?",
-        default="",
-        help="CPU type (default value from cfg file)",
-    )
-
-    parser.add_argument(
-        "--bus",
-        metavar="onetoM,NtoM",
-        nargs="?",
-        default="",
-        help="Bus type (default value from cfg file)",
-    )
-
-    parser.add_argument(
-        "--memorybanks",
-        metavar="from 2 to 16",
-        nargs="?",
-        default="",
-        help="Number of 32KB Banks (default value from cfg file)",
-    )
-
-    parser.add_argument(
-        "--memorybanks_il",
-        metavar="0, 2, 4 or 8",
-        nargs="?",
-        default="",
-        help="Number of interleaved memory banks (default value from cfg file)",
-    )
-
-    parser.add_argument(
-        "--external_domains",
-        metavar="from 0 to 32",
-        nargs="?",
-        default="1",
-        help="Number of external domains",
-    )
-
-    parser.add_argument(
-        "--pkg-sv", metavar="PKG_SV", help="Name of top-level package file (output)"
-    )
-
-    parser.add_argument(
-        "--tpl-sv",
-        metavar="TPL_SV",
-        help="Name of SystemVerilog template for your module (output)",
-    )
-
-    parser.add_argument(
-        "--header-c", metavar="HEADER_C", help="Name of header file (output)"
-    )
-
-    parser.add_argument(
-        "--linker_script",
-        metavar="LINKER_SCRIPT",
-        help="Name of the linker script (output)",
-    )
-
-    parser.add_argument(
-        "--external_pads",
-        metavar="file",
-        type=argparse.FileType("r"),
-        required=False,
-        nargs="?",
-        default=None,
-        const=None,
-        help="Name of the hjson file contaiting extra pads",
-    )
-
-    parser.add_argument(
-        "-v", "--verbose", help="increase output verbosity", action="store_true"
-    )
-
-    args = parser.parse_args()
+def generate_xheep(args):
 
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Read HJSON description of System.
-    with args.cfg_peripherals as file:
+    with open(args.config, "r") as file:
         try:
             srcfull = file.read()
-            obj = hjson.loads(srcfull, use_decimal=True)
-            obj = JsonRef.replace_refs(obj)
+            config = hjson.loads(srcfull, use_decimal=True)
+            config = JsonRef.replace_refs(config)
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
-    with args.pads_cfg as file:
+    with open(args.pads_cfg, "r") as file:
         try:
             srcfull = file.read()
-            obj_pad = hjson.loads(srcfull, use_decimal=True)
-            obj_pad = JsonRef.replace_refs(obj_pad)
+            pad_cfg = hjson.loads(srcfull, use_decimal=True)
+            pad_cfg = JsonRef.replace_refs(pad_cfg)
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
-
-    if not args.outdir.is_dir():
-        exit("Out directory is not a valid path.")
-
-    outdir = args.outdir
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    outfile = args.outfile
 
     config_override = x_heep_gen.system.Override(None, None, None)
 
     if args.cpu != None and args.cpu != "":
         cpu_type = args.cpu
     else:
-        cpu_type = obj["cpu_type"]
+        cpu_type = config["cpu_type"]
 
-    if "cve2_rv32e" in obj:
-        cve2_rv32e = obj["cve2_rv32e"]
+    if "cve2_rv32e" in config:
+        cve2_rv32e = config["cve2_rv32e"]
     else:
         cve2_rv32e = None
 
-    if "cve2_rv32m" in obj:
-        cve2_rv32m = obj["cve2_rv32m"]
+    if "cve2_rv32m" in config:
+        cve2_rv32m = config["cve2_rv32m"]
     else:
         cve2_rv32m = None
 
@@ -878,30 +764,35 @@ def main():
         )
 
     try:
-        has_spi_slave = 1 if obj["debug"]["has_spi_slave"] == "yes" else 0
+        has_spi_slave = 1 if config["debug"]["has_spi_slave"] == "yes" else 0
     except KeyError:
         has_spi_slave = 0
 
-    xheep = x_heep_gen.load_config.load_cfg_file(
-        pathlib.PurePath(str(args.config)), config_override
-    )
+    if args.python_x_heep_cfg != None and args.python_x_heep_cfg != "":
+        xheep = x_heep_gen.load_config.load_cfg_file(
+            pathlib.PurePath(str(args.python_x_heep_cfg)), config_override
+        )
+    else:
+        xheep = x_heep_gen.load_config.load_cfg_file(
+            pathlib.PurePath(str(args.config)), config_override
+        )
 
-    load_peripherals_config(xheep, args.cfg_peripherals.name)
+    # config is used as the base config for peripherals (if a domain is not defined in the config, it will be added to xheep using informations in config)
+    load_peripherals_config(xheep, args.config)
 
-    debug_start_address = string2int(obj["debug"]["address"])
+    debug_start_address = string2int(config["debug"]["address"])
     if int(debug_start_address, 16) < int("10000", 16):
         exit("debug start address must be greater than 0x10000")
 
-    debug_size_address = string2int(obj["debug"]["length"])
+    debug_size_address = string2int(config["debug"]["length"])
+    ext_slave_start_address = string2int(config["ext_slaves"]["address"])
+    ext_slave_size_address = string2int(config["ext_slaves"]["length"])
 
-    ext_slave_start_address = string2int(obj["ext_slaves"]["address"])
-    ext_slave_size_address = string2int(obj["ext_slaves"]["length"])
+    flash_mem_start_address = string2int(config["flash_mem"]["address"])
+    flash_mem_size_address = string2int(config["flash_mem"]["length"])
 
-    flash_mem_start_address = string2int(obj["flash_mem"]["address"])
-    flash_mem_size_address = string2int(obj["flash_mem"]["length"])
-
-    stack_size = string2int(obj["linker_script"]["stack_size"])
-    heap_size = string2int(obj["linker_script"]["heap_size"])
+    stack_size = string2int(config["linker_script"]["stack_size"])
+    heap_size = string2int(config["linker_script"]["heap_size"])
 
     if (int(stack_size, 16) + int(heap_size, 16)) > xheep.ram_size_address():
         exit(
@@ -909,35 +800,27 @@ def main():
             + str(stack_size + heap_size)
         )
 
-    plic_used_n_interrupts = len(obj["interrupts"]["list"])
-    plit_n_interrupts = obj["interrupts"]["number"]
+    plic_used_n_interrupts = len(config["interrupts"]["list"])
+    plit_n_interrupts = config["interrupts"]["number"]
     ext_int_list = {
         f"EXT_INTR_{k}": v
         for k, v in enumerate(range(plic_used_n_interrupts, plit_n_interrupts))
     }
 
-    interrupts = {**obj["interrupts"]["list"], **ext_int_list}
+    interrupts = {**config["interrupts"]["list"], **ext_int_list}
 
-    pads = obj_pad["pads"]
+    pads = pad_cfg["pads"]
 
     try:
-        pads_attributes = obj_pad["attributes"]
+        pads_attributes = pad_cfg["attributes"]
         pads_attributes_bits = pads_attributes["bits"]
     except KeyError:
         pads_attributes = None
         pads_attributes_bits = "-1:0"
 
     # Read HJSON description of External Pads
-    if args.external_pads != None:
-        with args.external_pads as file_external_pads:
-            try:
-                srcfull = file_external_pads.read()
-                ext_pads_obj = hjson.loads(srcfull, use_decimal=True)
-                ext_pads_obj = JsonRef.replace_refs(ext_pads_obj)
-            except ValueError:
-                raise SystemExit(sys.exc_info()[1])
-
-        external_pads = ext_pads_obj["pads"]
+    if "external_pads" in config:
+        external_pads = config["external_pads"]
     else:
         external_pads = None
 
@@ -1373,9 +1256,9 @@ def main():
     last_pad.remove_comma_io_interface()
     total_pad_list.append(last_pad)
 
-    # If layout parameters exist in the pad config file, compute the pad offset/skip parameters and order the pads on each side
+    # If layout parameters exist in the config, compute the pad offset/skip parameters and order the pads on each side
     try:
-        physical_attributes = obj_pad["physical_attributes"]
+        physical_attributes = pad_cfg["physical_attributes"]
         (
             top_pad_list,
             bottom_pad_list,
@@ -1427,21 +1310,141 @@ def main():
         "pads_attributes": pads_attributes,
     }
 
-    ###########
-    # Package #
-    ###########
+    return kwargs
 
-    if args.pkg_sv != None:
-        write_template(args.pkg_sv, outdir, outfile, **kwargs)
 
-    if args.header_c != None:
-        write_template(args.header_c, outdir, outfile, **kwargs)
+def main():
+    parser = argparse.ArgumentParser(prog="mcugen")
 
-    if args.tpl_sv != None:
-        write_template(args.tpl_sv, outdir, outfile, **kwargs)
+    parser.add_argument(
+        "--cached_path", "-cp", help="Path to the cached xheep file", required=True
+    )
 
-    if args.linker_script != None:
-        write_template(args.linker_script, outdir, outfile, **kwargs)
+    parser.add_argument(
+        "--cached",
+        "-ca",
+        help="If set, the script will not generate the xheep object, but will use the cached version instead",
+        required=False,
+        action="store_true",
+    )
+
+    args, _ = parser.parse_known_args()
+
+    if args.cached:
+        # Validate cached file exists
+        if not os.path.exists(args.cached_path):
+            parser.error(
+                f"Cached file {args.cached_path} does not exist. Cannot use --cached flag."
+            )
+
+        # X-Heep object has been generated
+        with open(args.cached_path, "rb") as f:
+            kwargs = pickle.load(f)
+
+        parser.add_argument(
+            "--outfile",
+            "-o",
+            type=pathlib.Path,
+            required=False,
+            help="Target filename. If not provided, the template filename will be used as the output filename.",
+        )
+
+        parser.add_argument(
+            "--outtpl",
+            "-ot",
+            type=pathlib.Path,
+            required=True,
+            help="Target template filename",
+        )
+
+        args = parser.parse_args()
+        outtpl = args.outtpl
+        outfile = args.outfile
+
+        write_template(outtpl, outfile, **kwargs)
+
+    else:
+        # X-Heep object must be generated
+        cached_path = args.cached_path
+
+        parser.add_argument(
+            "--config",
+            metavar="file",
+            type=str,
+            required=True,
+            help="X-Heep general configuration",
+        )
+
+        parser.add_argument(
+            "--python_x_heep_cfg",
+            metavar="file",
+            type=str,
+            required=False,
+            nargs="?",
+            default="",
+            help="X-Heep custom configuration",
+        )
+
+        parser.add_argument(
+            "--pads_cfg",
+            "-pc",
+            metavar="file",
+            type=str,
+            required=True,
+            help="Pads configuration",
+        )
+
+        parser.add_argument(
+            "--cpu",
+            metavar="cv32e20,cv32e40p,cv32e40x,cv32e40px",
+            nargs="?",
+            default="",
+            help="CPU type (default value from cfg file)",
+        )
+
+        parser.add_argument(
+            "--bus",
+            metavar="onetoM,NtoM",
+            nargs="?",
+            default="",
+            help="Bus type (default value from cfg file)",
+        )
+
+        parser.add_argument(
+            "--memorybanks",
+            metavar="from 2 to 16",
+            nargs="?",
+            default="",
+            help="Number of 32KB Banks (default value from cfg file)",
+        )
+
+        parser.add_argument(
+            "--memorybanks_il",
+            metavar="0, 2, 4 or 8",
+            nargs="?",
+            default="",
+            help="Number of interleaved memory banks (default value from cfg file)",
+        )
+
+        parser.add_argument(
+            "--external_domains",
+            metavar="from 0 to 32",
+            nargs="?",
+            default="1",
+            help="Number of external domains",
+        )
+
+        parser.add_argument(
+            "-v", "--verbose", help="increase output verbosity", action="store_true"
+        )
+
+        args = parser.parse_args()
+        kwargs = generate_xheep(args)
+
+        # Create directory structure if it doesn't exist
+        os.makedirs(os.path.dirname(cached_path), exist_ok=True)
+        with open(cached_path, "wb") as f:
+            pickle.dump(kwargs, f)
 
 
 if __name__ == "__main__":

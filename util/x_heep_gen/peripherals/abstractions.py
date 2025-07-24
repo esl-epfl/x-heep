@@ -80,7 +80,6 @@ class DataConfiguration(ABC):
 
         :param str config_path: The path to the hjson file that describes the peripheral. When calling validate function, the config file path must be valid (or there should be a corresponding .tpl file).
         """
-
         self._config_path = config_path
 
     def get_config_path(self):
