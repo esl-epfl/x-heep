@@ -555,13 +555,13 @@ i2c_result_t i2c_write_byte_raw(const i2c_t *i2c, uint8_t byte,
   }
   // Validate that "write only" flags and "read only" flags are not set
   // simultaneously.
-  bool has_write_flags = flags.start || flags.stop || flags.suppress_nak_irq;
+  bool has_write_flags = flags.start || flags.suppress_nak_irq;
   bool has_read_flags = flags.read || flags.read_cont;
   if (has_write_flags && has_read_flags) {
     return kDifI2cBadArg;
   }
-  // Also, read_cont requires read.
-  if (flags.read_cont && !flags.read) {
+  // Also, read_cont requires read and is not allowed with stop.
+  if (flags.read_cont && (!flags.read || flags.stop)) {
     return kDifI2cBadArg;
   }
 
