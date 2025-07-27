@@ -1,4 +1,6 @@
 import hjson
+import pickle
+from mcu_gen import Pad
 import structs_gen
 import x_heep_gen.load_config
 import x_heep_gen.peripherals
@@ -55,8 +57,8 @@ def scan_peripherals_python(peripherals):
     :param peripherals: The peripherals to scan, list of Peripheral objects
     """
     for p in peripherals:
-        if isinstance(p, x_heep_gen.peripherals.DataConfiguration):
-            add_peripheral(p.get_name(), p.get_configpath())
+        if isinstance(p, x_heep_gen.peripherals.abstractions.DataConfiguration):
+            add_peripheral(p.get_name(), p.get_config_path())
 
 
 def format_dma_channels(file_path, new_string):
@@ -111,7 +113,19 @@ if __name__ == "__main__":
     if not os.path.exists(mcu_cfg_file):
         exit(f"Error: Configuration file {mcu_cfg_file} not found")
 
-    if mcu_cfg_file.endswith(".py"):
+    if mcu_cfg_file.endswith(".pickle"):
+        with open(mcu_cfg_file, "rb") as f:
+            kwargs = pickle.load(f)
+
+        x_heep = kwargs["xheep"]
+
+        base_peripherals = x_heep.get_base_peripheral_domain().get_peripherals()
+        user_peripherals = x_heep.get_user_peripheral_domain().get_peripherals()
+
+        scan_peripherals_python(base_peripherals)
+        scan_peripherals_python(user_peripherals)
+
+    elif mcu_cfg_file.endswith(".py"):
         x_heep = x_heep_gen.load_config.load_cfg_script_file(mcu_cfg_file)
 
         base_peripherals = x_heep.get_base_peripheral_domain().get_peripherals()

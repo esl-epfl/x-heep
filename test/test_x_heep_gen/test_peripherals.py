@@ -11,7 +11,7 @@ import hjson
 
 
 x_heep_cfg = "configs/general.hjson"
-pad_cfg = "pad_cfg.hjson"
+pads_cfg = "configs/pad_cfg.hjson"
 config_directory = "test/test_x_heep_gen/configs/"
 existing_extensions = [".hjson", ".py"]
 output_directory = "test/test_x_heep_gen/outputs"
@@ -206,24 +206,41 @@ def run_test(example, example_name):
 def __generate_argv(
     example_number: int,
     config_dir: str,
-    pads_cfg: str,
+    output_dir: str,
+    extension: str,
+):
+
+    python_x_heep_cfg = (
+        f"{config_dir}/example{example_number}.py" if extension == "py" else ""
+    )
+
+    return [
+        "mcu_gen.py",
+        "--cached_path",
+        f"{output_dir}/example{example_number}-{extension}.pickle",
+        "--config",
+        f"{config_dir}/example{example_number}.hjson",
+        "--python_x_heep_cfg",
+        python_x_heep_cfg,
+        "--pads_cfg",
+        pads_cfg,
+    ]
+
+
+def __generate_cached_argv(
+    example_number: int,
     output_dir: str,
     template: str,
     extension: str,
 ):
     return [
         "mcu_gen.py",
-        "--config",
-        f"{config_dir}/example{example_number}.{extension}",
-        "--pads_cfg",
-        pads_cfg,
-        "--cfg_peripherals",
-        f"{config_dir}/mcu_cfg{example_number}.hjson",
-        "--outdir",
-        output_dir,
+        "--cached_path",
+        f"{output_dir}/example{example_number}-{extension}.pickle",
+        "-ca",
         "--outfile",
         f"{output_dir}/example{example_number}-{extension}.hjson",
-        "--tpl-sv",
+        "--outtpl",
         template,
     ]
 
@@ -231,7 +248,6 @@ def __generate_argv(
 def generate_examples(
     num_examples: int,
     config_dir: str,
-    pads_cfg: str,
     output_dir: str,
     template: str,
 ):
@@ -240,8 +256,6 @@ def generate_examples(
 
     :param num_examples: Number of tests to run
     :param config_dir: Directory containing example (test) configurations
-    :param pads_cfg: Path to pads configuration file
-    :param cfg_peripherals: Path to peripherals configuration file
     :param output_dir: Directory to store generated outputs
     :param template: Path to template file to drop mcu_gen.py outputs (kwargs)
     """
@@ -264,7 +278,12 @@ def generate_examples(
             sys.argv = __generate_argv(
                 example_number=i,
                 config_dir=config_dir,
-                pads_cfg=pads_cfg,
+                output_dir=output_dir,
+                extension="py",
+            )
+            mcu_gen.main()
+            sys.argv = __generate_cached_argv(
+                example_number=i,
                 output_dir=output_dir,
                 template=template,
                 extension="py",
@@ -276,13 +295,17 @@ def generate_examples(
             sys.argv = __generate_argv(
                 example_number=i,
                 config_dir=config_dir,
-                pads_cfg=pads_cfg,
+                output_dir=output_dir,
+                extension="hjson",
+            )
+            mcu_gen.main()
+            sys.argv = __generate_cached_argv(
+                example_number=i,
                 output_dir=output_dir,
                 template=template,
                 extension="hjson",
             )
             mcu_gen.main()
-
             print(f"Example {i} processed")
 
     finally:
@@ -312,7 +335,6 @@ def main():
     generate_examples(
         num_examples=len(test_names),
         config_dir="test/test_x_heep_gen/configs",
-        pads_cfg="pad_cfg.hjson",
         output_dir="test/test_x_heep_gen/outputs",
         template="test/test_x_heep_gen/template.hjson.tpl",
     )
