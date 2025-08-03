@@ -25,11 +25,13 @@ $(info USING VENV)
 FUSESOC 	= $(PWD)/$(VENV)/fusesoc
 PYTHON  	= $(PWD)/$(VENV)/python
 RV_PROFILE 	= $(PWD)/$(VENV)/rv_profile
+AREA_PLOT  	= $(PWD)/$(VENV)/area-plot
 else
 $(info USING MINICONDA $(CONDA_DEFAULT_ENV))
 FUSESOC 	:= $(shell which fusesoc)
 PYTHON  	:= $(shell which python)
 RV_PROFILE  := $(shell which rv_profile)
+AREA_PLOT   := $(shell which area-plot)
 endif
 
 # Project options are based on the app to be build (default - hello_world)
@@ -360,6 +362,19 @@ run-fpga-flash-load:
 .PHONY: profile
 profile:
 	bash util/profile/run_profile.sh $(RV_PROFILE)
+
+
+## @section Area Plot
+## Generate post-synthesis area plot given a synthesis area report
+
+# Default arguments
+AREA_RPT ?= $(word 1, $(shell find build -type f -name "*area*.rpt")) # path to the area report file
+PLOT_OUTDIR ?= util/area-plot/ # output directory for the area plot
+PLOT_TOP ?= u_core_v_mini_mcu # top level module to consider for the area plot
+# For additional arguments use area-plot --help
+.PHONY: area-plot
+area-plot:
+	$(AREA_PLOT) --filename $(AREA_RPT) --out-dir $(PLOT_OUTDIR) --top-module $(PLOT_TOP)
 
 ## @section Cleaning commands
 
