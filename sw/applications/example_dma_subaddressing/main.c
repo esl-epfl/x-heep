@@ -31,10 +31,6 @@
     #define PRINTF(...)
 #endif
 
-#if defined(TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_ZCU102) || defined(TARGET_NEXYS_A7_100T)
-    #define USE_SPI_FLASH
-#endif
-
 // Start buffers (the original data)
 #include "test_data.h"
 
@@ -77,11 +73,7 @@ int main(int argc, char *argv[]) {
 
     // Pick the correct spi device based on simulation type
     spi_host_t* spi;
-    #ifndef USE_SPI_FLASH
-    spi = spi_host1;
-    #else
     spi = spi_flash;
-    #endif
 
     // Define status variable
     int32_t errors = 0;
@@ -97,9 +89,12 @@ int main(int argc, char *argv[]) {
 
     dma_data_type = TYPE_WORD;
     errors += test_read_dma(TEST_BUFFER_WORDS, LENGTH, dma_data_type, 0);
+    PRINTF("A\n");
     dma_data_type = TYPE_HALF_WORD;
     errors += test_read_dma(TEST_BUFFER_HALF_WORDS, LENGTH, dma_data_type, 0);
+    PRINTF("B\n");
     errors += test_read_dma(TEST_BUFFER_SE_HALF_WORDS, LENGTH, dma_data_type, 1);
+    PRINTF("C\n");
     dma_data_type = TYPE_BYTE;
     errors += test_read_dma(TEST_BUFFER_BYTES, LENGTH, dma_data_type, 0);
     errors += test_read_dma(TEST_BUFFER_SE_BYTES, LENGTH, dma_data_type, 1);
@@ -157,27 +152,23 @@ uint32_t test_read_flash_only_dma(uint32_t *test_buffer, uint32_t len, dma_trans
 
     dma_init(NULL);
 
-    // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
-    #ifndef USE_SPI_FLASH
-    uint8_t slot = DMA_TRIG_SLOT_SPI_RX;
-    #else
+    // The DMA will wait for the SPI FLASH RX FIFO valid signal
     uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
-    #endif
 
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
 
     // Set up DMA source target
-    dma_target_t tgt_src = {
-        .inc_d1_du = 0, // Target is peripheral, no increment
-        .type = dma_trans_data_type,
+    dma_target_t static tgt_src = {
+        .inc_d1_du = 0 // Target is peripheral, no increment
     };
+    tgt_src.type = dma_trans_data_type,
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*) (w25q128jw_read_standard_setup(test_buffer_flash, flash_data, len));
     // Trigger to control the data flow
     tgt_src.trig = slot;
 
     // Set up DMA destination target
-    dma_target_t tgt_dst = {
+    dma_target_t static tgt_dst = {
         .inc_d1_du = 1, // Increment by 1 data unit (word)
         .type = DMA_DATA_TYPE_WORD,
         .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
@@ -185,13 +176,13 @@ uint32_t test_read_flash_only_dma(uint32_t *test_buffer, uint32_t len, dma_trans
     tgt_dst.ptr = (uint8_t*)flash_data; // Target is the data buffer
 
     // Set up DMA transaction
-    dma_trans_t trans = {
+    dma_trans_t static trans = {
         .src = &tgt_src,
         .dst = &tgt_dst,
         .end = DMA_TRANS_END_POLLING,
-        .mode = DMA_TRANS_MODE_SUBADDRESS,
-        .sign_ext = sign_extend,
+        .mode = DMA_TRANS_MODE_SUBADDRESS
     };
+    trans.sign_ext = sign_extend;
 
     // Size is in data units (words in this case)
     trans.size_d1_du = len >> (dma_data_type);
@@ -245,25 +236,21 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma
 
     dma_init(NULL);
 
-    // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
-    #ifndef USE_SPI_FLASH
-    uint8_t slot = DMA_TRIG_SLOT_SPI_RX;
-    #else
+    // The DMA will wait for the SPI FLASH RX FIFO valid signal
     uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
-    #endif
 
     // Set up DMA source target
-    dma_target_t tgt_src = {
-        .inc_d1_du = 0, // Target is peripheral, no increment
-        .type = dma_trans_data_type,
+    dma_target_t static tgt_src = {
+        .inc_d1_du = 0 // Target is peripheral, no increment
     };
+    tgt_src.type = dma_trans_data_type;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*) (w25q128jw_read_standard_setup((uint32_t*)(TEST_BUFFER_WORDS), flash_data, len));
     // Trigger to control the data flow
     tgt_src.trig = slot;
 
     // Set up DMA destination target
-    dma_target_t tgt_dst = {
+    dma_target_t static tgt_dst = {
         .inc_d1_du = 1, // Increment by 1 data unit (word)
         .type = DMA_DATA_TYPE_WORD,
         .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
@@ -271,13 +258,13 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma
     tgt_dst.ptr = (uint8_t*)flash_data; // Target is the data buffer
 
     // Set up DMA transaction
-    dma_trans_t trans = {
+    dma_trans_t static trans = {
         .src = &tgt_src,
         .dst = &tgt_dst,
         .end = DMA_TRANS_END_POLLING,
-        .mode = DMA_TRANS_MODE_SUBADDRESS,
-        .sign_ext = sign_extend,
+        .mode = DMA_TRANS_MODE_SUBADDRESS
     };
+    trans.sign_ext = sign_extend;
 
     // Size is in data units (words in this case)
     trans.size_d1_du = len >> (dma_data_type);
@@ -319,25 +306,21 @@ uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_
 
     dma_init(NULL);
 
-    // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
-    #ifndef USE_SPI_FLASH
-    uint8_t slot = DMA_TRIG_SLOT_SPI_RX;
-    #else
+    // The DMA will wait for the SPI FLASH RX FIFO valid signal
     uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
-    #endif
 
     // Set up DMA source target
-    dma_target_t tgt_src = {
-        .inc_d1_du = 0, // Target is peripheral, no increment
-        .type = dma_trans_data_type,
+    dma_target_t static tgt_src = {
+        .inc_d1_du = 0 // Target is peripheral, no increment
     };
+    tgt_src.type = dma_trans_data_type;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*) (w25q128jw_read_quad_setup((uint32_t*)(TEST_BUFFER_WORDS), flash_data, len));
     // Trigger to control the data flow
     tgt_src.trig = slot;
 
     // Set up DMA destination target
-    dma_target_t tgt_dst = {
+    dma_target_t static tgt_dst = {
         .inc_d1_du = 1, // Increment by 1 data unit (word)
         .type = DMA_DATA_TYPE_WORD,
         .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
@@ -345,13 +328,14 @@ uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_
     tgt_dst.ptr = (uint8_t*)flash_data; // Target is the data buffer
 
     // Set up DMA transaction
-    dma_trans_t trans = {
+    dma_trans_t static trans = {
         .src = &tgt_src,
         .dst = &tgt_dst,
         .end = DMA_TRANS_END_POLLING,
-        .mode = DMA_TRANS_MODE_SUBADDRESS,
-        .sign_ext = sign_extend,
+        .mode = DMA_TRANS_MODE_SUBADDRESS
     };
+    
+    trans.sign_ext = sign_extend;
 
     // Size is in data units (words in this case)
     trans.size_d1_du = len >> (dma_data_type);

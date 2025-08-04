@@ -41,6 +41,13 @@ if(NOT WIN32)
   set(BoldWhite   "${Esc}[1;37m")
 endif()
 
+# Necessary when cross-compiling with clang+GCC. Otherwise the compiler
+# complains that it cannot compiler a simple test program. Has to be
+# set before the project() command.
+if (${COMPILER} MATCHES "clang")
+  set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+endif()
+
 # set the project name
 project(${PROJECT} ASM C CXX)
 
@@ -291,6 +298,8 @@ message( "${Magenta}Root project: ${ROOT_PROJECT}${ColourReset}")
 message( "${Magenta}Source path: ${SOURCE_PATH}${ColourReset}")
 message( "${Magenta}LIB_CRT PATH for Cmake: ${LIB_CRT_P}${ColourReset}")
 message( "${Magenta}LINKER File for Cmake: ${LINK_FILE}${ColourReset}")
+message( "${Magenta}LIB_DRIVERS PATH for Cmake: ${LIB_DRIVERS}${ColourReset}")
+message( "${Magenta}Targetting folder: ${INC_FOLDERS}${ColourReset}")
 message( "${Magenta}Target: ${TARGET}${ColourReset}")
 
 endif()
@@ -435,6 +444,7 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                             ${INCLUDE_FOLDERS} \
                              -static ${LINKED_FILES} \
                              -Wl,-Map=${MAINFILE}.map \
+                             -Wl,--gc-sections \
                              -L ${RISCV}/${COMPILER_PREFIX}elf/lib \
                              -lc -lm -lgcc -flto \
                              -fpermissive -fno-rtti -fno-exceptions -fno-threadsafe-statics \
@@ -475,6 +485,9 @@ endif()
 #######################################################################
 #      SET CUSTOM COMMANDS
 #######################################################################
+
+# Set CMAKE_OBJDUMP to the GCC objdump since we always link with GCC
+set(CMAKE_OBJDUMP "${RISCV}/bin/${COMPILER_PREFIX}elf-objdump")
 
 # Post processing command to create a disassembly file
 add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD

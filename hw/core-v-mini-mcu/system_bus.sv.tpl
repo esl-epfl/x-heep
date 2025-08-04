@@ -15,6 +15,10 @@
 //              Simone Machetti <simone.machetti@epfl.ch>
 //              Michele Caon <michele.caon@epfl.ch>
 
+<%
+  dma = xheep.get_base_peripheral_domain().get_dma()
+%>
+
 module system_bus
   import obi_pkg::*;
   import addr_map_rule_pkg::*;
@@ -59,6 +63,7 @@ module system_bus
 
     output obi_req_t  ao_peripheral_slave_req_o,
     input  obi_resp_t ao_peripheral_slave_resp_i,
+
 
     output obi_req_t  peripheral_slave_req_o,
     input  obi_resp_t peripheral_slave_resp_i,
@@ -120,7 +125,7 @@ module system_bus
   assign int_master_req[core_v_mini_mcu_pkg::CORE_DATA_IDX] = core_data_req_i;
   assign int_master_req[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX] = debug_master_req_i;
 
-  % for i in range(int(num_dma_master_ports)):
+  % for i in range(dma.get_num_master_ports()):
   assign int_master_req[${3+i*3}]  = dma_read_req_i[${i}];
   assign int_master_req[${4+i*3}] = dma_write_req_i[${i}];
   assign int_master_req[${5+i*3}]  = dma_addr_req_i[${i}];
@@ -146,7 +151,7 @@ module system_bus
   assign core_data_resp_o = int_master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX];
   assign debug_master_resp_o = int_master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
 
-  % for i in range(int(num_dma_master_ports)):
+  % for i in range(dma.get_num_master_ports()):
   assign dma_read_resp_o[${i}] = int_master_resp[${3+i*3}];
   assign dma_write_resp_o[${i}] = int_master_resp[${4+i*3}];
   assign dma_addr_resp_o[${i}] = int_master_resp[${5+i*3}];
@@ -175,6 +180,7 @@ module system_bus
   assign ext_core_instr_req_o = demux_xbar_req[CORE_INSTR_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
   assign ext_core_data_req_o = demux_xbar_req[CORE_DATA_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
   assign ext_debug_master_req_o = demux_xbar_req[DEBUG_MASTER_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
+
   generate
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin : gen_ext_dma_master_req_map
       assign ext_dma_read_req_o[i] = demux_xbar_req[core_v_mini_mcu_pkg::DMA_READ_P0_IDX+3*i][DEMUX_XBAR_EXT_SLAVE_IDX];
@@ -198,6 +204,7 @@ module system_bus
   assign demux_xbar_resp[CORE_INSTR_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_core_instr_resp_i;
   assign demux_xbar_resp[CORE_DATA_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_core_data_resp_i;
   assign demux_xbar_resp[DEBUG_MASTER_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_debug_master_resp_i;
+
   generate
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin : gen_ext_dma_master_resp_map
       assign demux_xbar_resp[core_v_mini_mcu_pkg::DMA_READ_P0_IDX+3*i][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_read_resp_i[i];

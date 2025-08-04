@@ -24,6 +24,8 @@
 
 % if pads_attributes != None:
 % for pad in total_pad_list:
+% if pad.pad_type == 'input' or pad.pad_type == 'output' or pad.pad_type == 'inout':
+% if pad.constant_attribute == False:
     { name:     "PAD_ATTRIBUTE_${pad.name.upper()}",
       desc:     "${pad.name} Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
       resval:   "${pads_attributes['resval']}"
@@ -33,7 +35,8 @@
         { bits: "${pads_attributes['bits']}", name: "PAD_ATTRIBUTE_${pad.name.upper()}", desc: "Pad Attribute ${pad.name.upper()} Reg" }
       ]
     }
-
+% endif
+% endif
 % endfor
 % endif
 

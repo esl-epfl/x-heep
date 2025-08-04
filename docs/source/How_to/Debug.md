@@ -106,6 +106,12 @@ In a 3rd shell, conenct gdb as:
 $RISCV/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
 ```
 
+In case gdb is started in python mode (due to initialisation conditions set in the ~/.gdbinit) - then run the command as:
+```
+$RISCV/bin/riscv32-unknown-elf-gdb -nx ./sw/build/main.elf
+```
+
+
 Once `gdb` starts, do the following 3 commands:
 ```
 (gdb) set remotetimeout 2000
@@ -293,3 +299,6 @@ ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6014", MODE="664", GROUP="plugdev"
 Otherwise for the EPFL Programmer, follow [ProgramFlash](./ProgramFlash.md).
 
 You may also need to run `sudo usermod -a -G plugdev yourusername` and restart the utility with `sudo udevadm control --reload`.
+Once OpenOCD is configured and connected for the FPGA, you have to open a new shell for gdb and follow the steps from the previous section as described for gdb.
+
+Please note, in case you are using FPGA, along with the HS2 cable, you'll also need CP210X UART to USB Adaptor so that you can connect it for viewing the output of UART via serial port in your PC.

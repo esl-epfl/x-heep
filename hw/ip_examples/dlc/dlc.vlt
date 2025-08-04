@@ -1,0 +1,13 @@
+// Copyright 2025 EPFL & Politecnico di Torino
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1 
+
+`verilator_config
+
+lint_off -rule UNUSED -file "*/dlc/rtl/dlc.sv" -match "*tmp*"
+
+lint_off -rule DECLFILENAME -file "*/dlc/rtl/dlc_reg_top.sv"
+lint_off -rule WIDTH -file "*/dlc/rtl/dlc_reg_top.sv" -match "Operator ASSIGNW expects 6 bits on the Assign RHS, but Assign RHS's SEL generates 32 bits.*"
+lint_off -rule UNUSED -file "*/dlc/rtl/dlc.sv" -match "Bits of signal are not used: 'dlc_output'[16]*"
+lint_off -rule UNUSED -file "*/dlc/rtl/dlc.sv" -match "Bits of signal are not used: 'hw_fifo_req_i'[32]*"
+lint_off -rule UNUSED -file "*/dlc/rtl/dlc.sv" -match "Bits of signal are not used: 'reg2hw'[4]"

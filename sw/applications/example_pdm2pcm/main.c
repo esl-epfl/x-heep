@@ -43,7 +43,8 @@
 
 int main(int argc, char *argv[])
 {
-
+    // TODO : This app is testing a wrong version of the PDM2PCM acting only as a CIC filter. 
+    // When fixed, it not passes anymore. Need to be updated with new groundtruth.
 
     PRINTF("PDM2PCM DEMO\n\r");
     PRINTF(" > Start\n\r");
@@ -51,7 +52,8 @@ int main(int argc, char *argv[])
     mmio_region_t pdm2pcm_base_addr = mmio_region_from_addr((uintptr_t)PDM2PCM_START_ADDRESS);
 
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CLKDIVIDX_REG_OFFSET ,15);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_REACHCOUNT_REG_OFFSET, 1);
+
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CIC_ACTIVATED_STAGES_REG_OFFSET, 0b1111);
 
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMCIC_REG_OFFSET, 15);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB1_REG_OFFSET, 31);

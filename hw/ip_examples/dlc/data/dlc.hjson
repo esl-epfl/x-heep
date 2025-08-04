@@ -1,0 +1,93 @@
+// Copyright EPFL and Politecnico di Torino contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "dlc"
+  clock_primary: "clk_i"
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ]
+  regwidth: "32"
+  registers: [
+    { name:     "TRANS_SIZE"
+      desc:     "Size of the transaction"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "15:0", name: "SIZE", desc: "size" },
+      ]
+    }
+    { name:     "CURR_LVL"
+      desc:     "Current level of the dLC (can be used as initial condition)"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "15:0", name: "LVL", desc: "current level" },
+      ]
+    }
+    { name:     "HYSTERESIS_EN"
+      desc:     "Whether or not to have 1-level of hysteresis"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "HYSTERESIS", desc: "Enable hysteresis" },
+      ]
+    }
+    { name:     "DLVL_LOG_LEVEL_WIDTH"
+      desc:     "Log2 of the level width"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "3:0", name: "LOG_WL", desc: "log2 of the level width" },
+      ]
+    }
+    { name:     "DISCARD_BITS"
+      desc:     "Number of LSB to discard"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "3:0", name: "DISCARD", desc: "Number of LSBs to discard" },
+      ]
+    }
+    { name:     "DLVL_N_BITS"
+      desc:     "Delta level N bits"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "3:0", name: "N_BITS", desc: "number of bits allocated to delta levels within the dlc output packet" },
+      ]
+    }
+    { name:     "DLVL_MASK"
+      desc:     "Delta level mask"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "15:0", name: "MASK", desc: "delta level mask, it has many 1s as the number of bits allocated to delta levels within the dlc output packet" },
+      ]
+    }
+    { name:     "DLVL_FORMAT"
+      desc:     "Delta level format"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "TWOSCOMP_N_SGNMOD", desc: "if '1' delta levels are in 2s complement, else sign|abs_value" },
+      ]
+    }
+    { name:     "DT_MASK"
+      desc:     "Delta time mask"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "15:0", name: "MASK", desc: "delta time mask, it has many 1s as the number of bits allocated to delta time within the dlc output packet" },
+      ]
+    }
+    { name:     "BYPASS"
+      desc:     "Bypass input data to output without filter"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "BP", desc: "if 1, dlc forwards input to output" },
+      ]
+    }
+  ]
+}

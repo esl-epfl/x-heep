@@ -39,7 +39,7 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic uart_rx_i,
     inout logic uart_tx_o,
 
-    inout logic [17:0] gpio_io,
+    inout logic [13:0] gpio_io,
 
     output logic exit_value_o,
     inout  logic exit_valid_o,
@@ -51,6 +51,11 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic [3:0] spi_sd_io,
     inout logic spi_csb_o,
     inout logic spi_sck_o,
+
+    inout logic spi_slave_sck_io,
+    inout logic spi_slave_cs_io,
+    inout logic spi_slave_mosi_io,
+    inout logic spi_slave_miso_io,
 
     inout logic [3:0] spi2_sd_io,
     inout logic [1:0] spi2_csb_o,
@@ -185,10 +190,10 @@ module xilinx_core_v_mini_mcu_wrapper
       .gpio_11_io(gpio_io[11]),
       .gpio_12_io(gpio_io[12]),
       .gpio_13_io(gpio_io[13]),
-      .gpio_14_io(gpio_io[14]),
-      .gpio_15_io(gpio_io[15]),
-      .gpio_16_io(gpio_io[16]),
-      .gpio_17_io(gpio_io[17]),
+      .spi_slave_sck_io(spi_slave_sck_io),
+      .spi_slave_cs_io(spi_slave_cs_io),
+      .spi_slave_miso_io(spi_slave_miso_io),
+      .spi_slave_mosi_io(spi_slave_mosi_io),
       .spi_flash_sd_0_io(spi_flash_sd_io[0]),
       .spi_flash_sd_1_io(spi_flash_sd_io[1]),
       .spi_flash_sd_2_io(spi_flash_sd_io[2]),
@@ -218,7 +223,11 @@ module xilinx_core_v_mini_mcu_wrapper
       .i2s_ws_io(i2s_ws_io),
       .i2s_sd_io(i2s_sd_io),
       .ext_dma_slot_tx_i('0),
-      .ext_dma_slot_rx_i('0)
+      .ext_dma_slot_rx_i('0),
+      .ext_dma_stop_i('0),
+      .intr_ext_peripheral_i('0),
+      .hw_fifo_done_i('0),
+      .dma_done_o()
   );
 
   assign exit_value_o = exit_value[0];

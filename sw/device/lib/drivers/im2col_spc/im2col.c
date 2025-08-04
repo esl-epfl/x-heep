@@ -206,14 +206,14 @@ int im2col_spc_run(im2col_trans_t trans){
                   im2col_spc_base_addr );
 
   /* Write the adapted pad regions */
-  write_register( trans.adpt_pad_right,
-                  IM2COL_SPC_ADPT_PAD_RIGHT_REG_OFFSET,
+  write_register( trans.last_patch_w,
+                  IM2COL_SPC_LAST_PATCH_W_REG_OFFSET,
                   0xffffffff,
                   0,
                   im2col_spc_base_addr );
 
-  write_register( trans.adpt_pad_bottom,
-                  IM2COL_SPC_ADPT_PAD_BOTTOM_REG_OFFSET,
+  write_register( trans.last_patch_h,
+                  IM2COL_SPC_LAST_PATCH_H_REG_OFFSET,
                   0xffffffff,
                   0,
                   im2col_spc_base_addr );

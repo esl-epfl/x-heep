@@ -89,6 +89,10 @@
 #define LEFT_PAD 0
 #define RIGHT_PAD 0
 
+#if !DMA_ZERO_PADDING && (TOP_PAD || BOTTOM_PAD || LEFT_PAD || RIGHT_PAD)
+#error("ERROR: DMA Zero Padding logic disabled, change the test parameters!")
+#endif
+
 /* Macros for dimensions computation */
 #define OUT_D1_PAD ( SIZE_EXTR_D1 + LEFT_PAD + RIGHT_PAD )
 #define OUT_D2_PAD ( SIZE_EXTR_D2  + TOP_PAD + BOTTOM_PAD )
@@ -118,7 +122,7 @@
 #define TEST_DATA_FLASH_PTR test_data_flash
 
 /* Mask for direct register operations example */
-#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ))
+#define DMA_CSR_REG_MIE_MASK (( 1 << 30 ) |( 1 << 19 ) | (1 << 11 ))
 
 /* Transposition example def */
 #define TRANSPOSITION_EN 1
@@ -141,11 +145,6 @@
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
-#endif
-
-/* FPGA SPI board selection */
-#if !TARGET_SIM
-    #define USE_SPI_FLASH
 #endif
 
 /* QuestaSim macro to enable test 4, by default is disabled */
@@ -245,10 +244,6 @@ int main()
 
     /* The DMA channels are initialized (i.e. Any current transaction is cleaned.) */
     dma_init(NULL);
-
-    plic_Init();
-    plic_irq_set_priority( DMA_WINDOW_INTR, 1);
-    plic_irq_set_enabled(  DMA_WINDOW_INTR, kPlicToggleEnabled);
 
     /* Enable global interrupts */
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -1082,6 +1077,7 @@ int main()
     trans[1].win_du         = 0;
     trans[1].end            = DMA_TRANS_END_INTR;
     trans[1].channel        = DMA_CH1_IDX;
+    trans[1].dim_inv        = 0;
     
     /* Initialize the SPI */
     soc_ctrl_t soc_ctrl;
@@ -1095,11 +1091,7 @@ int main()
 
     /* Pick the correct spi device based on simulation type */
     spi_host_t *spi;
-    #ifndef USE_SPI_FLASH
-    spi = spi_host1;
-    #else
     spi = spi_flash;
-    #endif
 
     /* Init SPI host and SPI<->Flash bridge parameters */
     if (w25q128jw_init(spi) != FLASH_OK)

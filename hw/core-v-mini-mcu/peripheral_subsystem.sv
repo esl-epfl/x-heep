@@ -2,6 +2,8 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+
+
 module peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
@@ -32,9 +34,6 @@ module peripheral_subsystem
     input logic uart_intr_rx_break_err_i,
     input logic uart_intr_rx_timeout_i,
     input logic uart_intr_rx_parity_err_i,
-
-    // DMA window PLIC interrupt
-    input logic dma_window_intr_i,
 
     //GPIO
     input  logic [31:8] cio_gpio_i,
@@ -69,6 +68,7 @@ module peripheral_subsystem
     output logic [                        3:0] spi2_sd_o,
     output logic [                        3:0] spi2_sd_en_o,
     input  logic [                        3:0] spi2_sd_i,
+
 
     //RV TIMER
     output logic rv_timer_2_intr_o,
@@ -172,7 +172,6 @@ module peripheral_subsystem
   assign intr_vector[48] = i2c_intr_host_timeout;
   assign intr_vector[49] = spi2_intr_event;
   assign intr_vector[50] = i2s_intr_event;
-  assign intr_vector[51] = dma_window_intr_i;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
@@ -328,8 +327,6 @@ module peripheral_subsystem
       .intr_spi_event_o(spi_intr_event_o)
   );
 
-
-
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -443,7 +440,6 @@ module peripheral_subsystem
       .intr_spi_event_o(spi2_intr_event)
   );
 
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX] = '0;
   assign pdm2pcm_clk_o = '0;
 
   assign pdm2pcm_clk_en_o = 1;
@@ -469,5 +465,7 @@ module peripheral_subsystem
       .intr_i2s_event_o(i2s_intr_event),
       .i2s_rx_valid_o(i2s_rx_valid_o)
   );
+
+
 
 endmodule : peripheral_subsystem

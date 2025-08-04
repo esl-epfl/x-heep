@@ -21,9 +21,11 @@
 extern "C" {
 #endif
 
+
+#include "syscalls.h"
 #include <sys/stat.h>
-#include <string.h> 
 #include <sys/reent.h>
+#include <string.h>
 #include <newlib.h>
 #include <unistd.h>
 #include <reent.h>
@@ -33,7 +35,6 @@ extern "C" {
 #include "core_v_mini_mcu.h"
 #include "error.h"
 #include "x-heep.h"
-#include <stdio.h>
 
 #undef errno
 extern int errno;
@@ -49,20 +50,19 @@ pid_t   _getpid (void);
 int     _isatty (int __fildes);
 int     _link (const char *__path1, const char *__path2);
 _off_t  _lseek (int __fildes, _off_t __offset, int __whence);
-ssize_t _read (int __fd, void *__buf, size_t __nbyte);
+int     _read (int __fd, void *__buf, int __nbyte);
 void *  _sbrk (ptrdiff_t __incr);
 int     _brk(void *addr);
 int     _unlink (const char *__path);
-ssize_t _write (int __fd, const void *__buf, size_t __nbyte);
 int     _execve (const char *__path, char * const __argv[], char * const __envp[]);
 int     _kill (pid_t pid, int sig);
+void    _writestr(const void *ptr); // Not a standard function
 #endif
 
 
 void unimplemented_syscall()
 {
-    const char *p = "Unimplemented system call called!\n";
-    _write(STDOUT_FILENO, p, strlen(p));
+    _writestr("Unimplemented system call called!\n");
 }
 
 int nanosleep(const struct timespec *rqtp, struct timespec *rmtp)
@@ -95,7 +95,7 @@ int _chown(const char *path, uid_t owner, gid_t group)
     return -1;
 }
 
-int _close(int file)
+__attribute__((used)) int _close(int file)
 {
     return -1;
 }
@@ -128,7 +128,7 @@ pid_t _fork(void)
     return -1;
 }
 
-int _fstat(int file, struct stat *st)
+__attribute__((used)) int _fstat(int file, struct stat *st)
 {
     st->st_mode = S_IFCHR;
     return 0;
@@ -165,7 +165,7 @@ int _gettimeofday(struct timeval *tp, void *tzp)
     return -1;
 }
 
-int _isatty(int file)
+__attribute__((used)) int _isatty(int file)
 {
     return (file == STDOUT_FILENO);
 }
@@ -182,7 +182,7 @@ int _link(const char *old_name, const char *new_name)
     return -1;
 }
 
-off_t _lseek(int file, off_t ptr, int dir)
+__attribute__((used)) off_t _lseek(int file, off_t ptr, int dir)
 {
     return 0;
 }
@@ -204,7 +204,7 @@ int _openat(int dirfd, const char *name, int flags, int mode)
     return -1;
 }
 
-ssize_t _read(int file, void *ptr, size_t len)
+__attribute__((used)) int _read(int file, void *ptr, int len)
 {
     return 0;
 }
@@ -246,7 +246,7 @@ int _wait(int *status)
     return -1;
 }
 
-ssize_t _write(int file, const void *ptr, size_t len)
+int _write(int file, const void *ptr, int len)
 {
     if (file != STDOUT_FILENO) {
         errno = ENOSYS;
@@ -260,6 +260,11 @@ ssize_t _write(int file, const void *ptr, size_t len)
     uart.base_addr   = mmio_region_from_addr((uintptr_t)UART_START_ADDRESS);
     uart.baudrate    = UART_BAUDRATE;
     uart.clk_freq_hz = soc_ctrl_get_frequency(&soc_ctrl);
+    #ifdef UART_NCO
+    uart.nco         = UART_NCO;
+    #else
+    uart.nco         = ((uint64_t)uart.baudrate << (NCO_WIDTH + 4)) / uart.clk_freq_hz;
+    #endif
 
     if (uart_init(&uart) != kErrorOk) {
         errno = ENOSYS;
@@ -269,9 +274,14 @@ ssize_t _write(int file, const void *ptr, size_t len)
 }
 
 
-_ssize_t _write_r(struct _reent *ptr, int fd, const void *buf, size_t cnt)
+__attribute__((used)) _ssize_t _write_r(struct _reent *ptr, int fd, const void *buf, size_t cnt)
 {
     return _write(fd,buf,cnt);
+}
+
+void _writestr(const void *ptr)
+{
+    _write(STDOUT_FILENO, ptr, strlen(ptr)+1);
 }
 
 extern char __heap_start[];

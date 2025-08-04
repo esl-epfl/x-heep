@@ -2,14 +2,44 @@ import importlib
 from pathlib import PurePath
 from typing import List, Optional, Union
 import hjson
+import os
+import sys
+from jsonref import JsonRef
 
+from .peripherals.base_peripherals import (
+    BasePeripheralDomain,
+    SOC_ctrl,
+    Bootrom,
+    SPI_flash,
+    SPI_memio,
+    DMA,
+    Power_manager,
+    RV_timer_ao,
+    Fast_intr_ctrl,
+    Ext_peripheral,
+    Pad_control,
+    GPIO_ao,
+    UART,
+)
+from .peripherals.user_peripherals import (
+    UserPeripheralDomain,
+    RV_plic,
+    SPI_host,
+    GPIO,
+    I2C,
+    RV_timer,
+    SPI2,
+    PDM2PCM,
+    I2S,
+)
 from .linker_section import LinkerSection
 from .system import BusType, Override, XHeep
+
 
 def to_int(input) -> Union[int, None]:
     if type(input) is int:
         return input
-    
+
     if type(input) is str:
         base = 10
         if len(input) >= 2:
@@ -37,32 +67,37 @@ def ram_list(l: "List[int]", entry):
     """
     if type(l) is not list:
         raise TypeError("l should be of type list")
-    
+
     if type(entry) is int:
         l.append(entry)
         return
-    
+
     if type(entry) is list:
         for i in entry:
             ram_list(l, i)
         return
-    
+
     if type(entry) is hjson.OrderedDict:
         num = 1
         if "num" in entry:
             if type(entry["num"]) is not int:
-                raise RuntimeError("if the num field is present in ram configuration it should be an integer")
+                raise RuntimeError(
+                    "if the num field is present in ram configuration it should be an integer"
+                )
             num = entry["num"]
-        
+
         if "sizes" in entry:
             for _ in range(num):
                 ram_list(l, entry["sizes"])
             return
         else:
-            raise RuntimeError("dictionaries in continuous ram configuration sections should at least have a sizes entry")
-    
-    raise RuntimeError("entries in ram configuration should either be integer, lists, or dictionaries")
+            raise RuntimeError(
+                "dictionaries in continuous ram configuration sections should at least have a sizes entry"
+            )
 
+    raise RuntimeError(
+        "entries in ram configuration should either be integer, lists, or dictionaries"
+    )
 
 
 def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
@@ -82,7 +117,7 @@ def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
     for key, value in mem.items():
         if type(value) is not hjson.OrderedDict:
             raise RuntimeError("Ram configuration entries should be dictionaries")
-        
+
         section_name = ""
         if "auto_section" in value and value["auto_section"] == "auto":
             section_name = key
@@ -93,22 +128,27 @@ def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
             if type(t) is not str:
                 raise RuntimeError("ram type should be a string")
             if t != "continuous" and t != "interleaved":
-                raise RuntimeError(f"ram type should be continuous or interleaved not {t}")
-        
+                raise RuntimeError(
+                    f"ram type should be continuous or interleaved not {t}"
+                )
+
         if t == "interleaved":
             if "num" not in value or type(value["num"]) is not int:
-                raise RuntimeError("The num field is required for interleaved ram section and should be an integer")
-            
+                raise RuntimeError(
+                    "The num field is required for interleaved ram section and should be an integer"
+                )
+
             if "size" not in value or type(value["size"]) is not int:
-                raise RuntimeError("The size field is required for interleaved ram section and should be an integer")
-            
+                raise RuntimeError(
+                    "The size field is required for interleaved ram section and should be an integer"
+                )
+
             system.add_ram_banks_il(int(value["num"]), int(value["size"]), section_name)
 
         elif t == "continuous":
             banks: List[int] = []
             ram_list(banks, value)
             system.add_ram_banks(banks, section_name)
-
 
 
 def load_linker_config(system: XHeep, config: list):
@@ -122,31 +162,31 @@ def load_linker_config(system: XHeep, config: list):
     """
     if type(config) is not list:
         raise RuntimeError("Linker Section configuraiton should be a list.")
-    
+
     for l in config:
         if type(l) is not hjson.OrderedDict:
             raise RuntimeError("Sections should be represented as Dictionaries")
         if "name" not in l:
             raise RuntimeError("All sections should have names")
-        
+
         if "start" not in l:
             raise RuntimeError("All sections should have a start")
-        
+
         name = l["name"]
         start = to_int(l["start"])
 
         if type(name) is not str:
             raise RuntimeError("Section names should be strings")
-        
+
         if name == "":
             raise RuntimeError("Section names should not be empty")
-        
+
         if type(start) is not int:
             raise RuntimeError("The start of a section should be an integer")
-        
+
         if "size" in l and "end" in l:
             raise RuntimeError("Each section should only specify end or size.")
-        
+
         end = 0
         if "size" in l:
             size = to_int(l["size"])
@@ -155,7 +195,7 @@ def load_linker_config(system: XHeep, config: list):
             if size <= 0:
                 raise RuntimeError("Section sizes should be strictly positive")
             end = start + size
-        
+
         elif "end" in l:
             end = to_int(l["end"])
             if end is None:
@@ -164,10 +204,184 @@ def load_linker_config(system: XHeep, config: list):
                 raise RuntimeError("Sections should end after their start")
         else:
             end = None
-        
+
         system.add_linker_section(LinkerSection(name, start, end))
 
 
+def load_peripherals_config(system: XHeep, config_path: str):
+    """
+    Reads the whole peripherals configuration.
+
+    :param XHeep system: the system object where the peripherals should be added.
+    :param str config_path: The path to the configuration file.
+    :raise ValueError: If config file does not exist or if peripheral name doesn't match a peripheral class.
+    """
+
+    if not os.path.exists(config_path):
+        raise ValueError(
+            f"Peripherals configuration file {config_path} does not exist."
+        )
+
+    with open(config_path, "r") as file:
+        try:
+            srcfull = file.read()
+            config = hjson.loads(srcfull, use_decimal=True)
+            config = JsonRef.replace_refs(config)
+        except ValueError:
+            raise SystemExit(sys.exc_info()[1])
+
+    for name, fields in config.items():
+        # Base Peripherals
+        if name == "ao_peripherals":
+            base_peripherals = (
+                BasePeripheralDomain(
+                    int(fields["address"], 16), int(fields["length"], 16)
+                )
+                if not system.are_base_peripherals_configured()
+                else None
+            )
+            if base_peripherals is not None:
+                # iterate over all peripherals and create corresponding objects
+                for peripheral_name, peripheral_config in fields.items():
+                    if peripheral_name == "address" or peripheral_name == "length":
+                        continue
+                    # Skip if peripheral was already added by python configuration
+                    if (
+                        system.are_base_peripherals_configured()
+                        and system._base_peripheral_domain.contains_peripheral(
+                            peripheral_name
+                        )
+                    ):
+                        continue
+
+                    offset = int(peripheral_config["offset"], 16)
+                    length = int(peripheral_config["length"], 16)
+                    if peripheral_name == "soc_ctrl":
+                        peripheral = SOC_ctrl(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "bootrom":
+                        peripheral = Bootrom(offset, length)
+                    elif peripheral_name == "spi_flash":
+                        peripheral = SPI_flash(offset, length)
+                    elif peripheral_name == "spi_memio":
+                        peripheral = SPI_memio(offset, length)
+                    elif peripheral_name == "dma":
+                        addr_mode_en = peripheral_config["addr_mode_en"]
+                        subaddr_mode_en = peripheral_config["subaddr_mode_en"]
+                        hw_fifo_mode_en = peripheral_config["hw_fifo_mode_en"]
+                        zero_padding_en = peripheral_config["zero_padding_en"]
+                        if addr_mode_en != "no" and addr_mode_en != "yes":
+                            raise ValueError("addr_mode_en should be no or yes")
+                        if subaddr_mode_en != "no" and subaddr_mode_en != "yes":
+                            raise ValueError("subaddr_mode_en should be no or yes")
+                        if hw_fifo_mode_en != "no" and hw_fifo_mode_en != "yes":
+                            raise ValueError("hw_fifo_mode_en should be no or yes")
+                        if zero_padding_en != "no" and zero_padding_en != "yes":
+                            raise ValueError("zero_padding_en should be no or yes")
+                        peripheral = DMA(
+                            address=offset,
+                            length=length,
+                            ch_length=int(peripheral_config["ch_length"], 16),
+                            num_channels=int(peripheral_config["num_channels"], 16),
+                            num_master_ports=int(
+                                peripheral_config["num_master_ports"], 16
+                            ),
+                            num_channels_per_master_port=int(
+                                peripheral_config["num_channels_per_master_port"], 16
+                            ),
+                            fifo_depth=int(peripheral_config["fifo_depth"], 16),
+                            addr_mode=addr_mode_en,
+                            subaddr_mode=subaddr_mode_en,
+                            hw_fifo_mode=hw_fifo_mode_en,
+                            zero_padding=zero_padding_en,
+                        )
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "power_manager":
+                        peripheral = Power_manager(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "rv_timer_ao":
+                        peripheral = RV_timer_ao(offset, length)
+                    elif peripheral_name == "fast_intr_ctrl":
+                        peripheral = Fast_intr_ctrl(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "ext_peripheral":
+                        peripheral = Ext_peripheral(offset, length)
+                    elif peripheral_name == "pad_control":
+                        peripheral = Pad_control(offset, length)
+                    elif peripheral_name == "gpio_ao":
+                        peripheral = GPIO_ao(offset, length)
+                    elif peripheral_name == "uart":
+                        peripheral = UART(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    else:
+                        raise ValueError(
+                            f"Peripheral {peripheral_name} does not exist."
+                        )
+                    # Adding peripheral to domain
+                    base_peripherals.add_peripheral(peripheral)
+
+                # All peripherals in configuration file have been added
+                system.add_peripheral_domain(base_peripherals)
+
+        # User Peripherals
+        elif name == "peripherals":
+            user_peripherals = (
+                UserPeripheralDomain(
+                    int(fields["address"], 16), int(fields["length"], 16)
+                )
+                if not system.are_user_peripherals_configured()
+                else None
+            )
+            if user_peripherals is not None:
+                # iterate over all peripherals and create corresponding objects
+                for peripheral_name, peripheral_config in fields.items():
+                    if peripheral_name == "address" or peripheral_name == "length":
+                        continue
+                    # Skip if peripheral was already added by python configuration
+                    if (
+                        system.are_user_peripherals_configured()
+                        and system._user_peripheral_domain.contains_peripheral(
+                            peripheral_name
+                        )
+                    ):
+                        continue
+
+                    offset = int(peripheral_config["offset"], 16)
+                    length = int(peripheral_config["length"], 16)
+                    # Skip if the peripheral is not included
+                    if peripheral_config["is_included"] == "no":
+                        continue
+                    if peripheral_name == "rv_plic":
+                        peripheral = RV_plic(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "spi_host":
+                        peripheral = SPI_host(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "gpio":
+                        peripheral = GPIO(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "i2c":
+                        peripheral = I2C(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "rv_timer":
+                        peripheral = RV_timer(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "spi2":
+                        peripheral = SPI2(offset, length)
+                    elif peripheral_name == "pdm2pcm":
+                        peripheral = PDM2PCM(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "i2s":
+                        peripheral = I2S(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    else:
+                        raise ValueError(
+                            f"Peripheral {peripheral_name} does not exist."
+                        )
+                    # Adding peripheral to domain
+                    user_peripherals.add_peripheral(peripheral)
+                # All peripherals in configuration file have been added
+                system.add_peripheral_domain(user_peripherals)
 
 
 def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
@@ -200,7 +414,7 @@ def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
         raise RuntimeError("No memory configuration found")
     if bus_config is None:
         raise RuntimeError("No bus type configuration found")
-    
+
     ram_start = 0
     if ram_address_config is not None:
         if type(ram_address_config) is not int:
@@ -219,7 +433,6 @@ def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
     return system
 
 
-
 def _chk_purep(f):
     """
     Helper to check the type is `PurePath`
@@ -229,7 +442,6 @@ def _chk_purep(f):
     """
     if not isinstance(f, PurePath):
         raise TypeError("parameter should be of type PurePath")
-
 
 
 def load_cfg_hjson_file(f: PurePath, override: Optional[Override] = None) -> XHeep:
@@ -245,8 +457,7 @@ def load_cfg_hjson_file(f: PurePath, override: Optional[Override] = None) -> XHe
     _chk_purep(f)
 
     with open(f, "r") as file:
-         return load_cfg_hjson(file.read(), override)
-    
+        return load_cfg_hjson(file.read(), override)
 
 
 def load_cfg_script_file(f: PurePath) -> XHeep:
@@ -269,7 +480,6 @@ def load_cfg_script_file(f: PurePath) -> XHeep:
     spec.loader.exec_module(mod)
 
     return mod.config()
-    
 
 
 def load_cfg_file(f: PurePath, override: Optional[Override] = None) -> XHeep:
@@ -286,8 +496,8 @@ def load_cfg_file(f: PurePath, override: Optional[Override] = None) -> XHeep:
 
     if f.suffix == ".hjson":
         return load_cfg_hjson_file(f, override)
-    
+
     if f.suffix == ".py":
         return load_cfg_script_file(f)
-    
+
     raise RuntimeError(f"unsupported file extension {f.suffix}")

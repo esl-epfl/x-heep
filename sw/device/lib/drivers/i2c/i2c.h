@@ -101,6 +101,12 @@ typedef struct i2c_timing_config {
    * Setting this value to zero will result in the minimum period being used.
    */
   uint32_t scl_period_nanos;
+  /**
+   * The desired period of hold cycles between the start signal and the first bit transfer.
+   *
+   * If there is no particular device constraint, this can be as low as 0.
+   */
+  uint16_t data_signal_hold_cycles;
 } i2c_timing_config_t;
 
 /**

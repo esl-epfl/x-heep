@@ -11,6 +11,7 @@ The CPU is required to configure the transaction, but once launched it is free t
 
 This unit is capable of performing complex tasks that can significantly impact on the performance and power consumption of memory-intense applications. 
 It can be configured to perform *1D* or *2D* transactions and it can apply **zero padding** and perform **transpositions** on-the-fly, reducing the overhead of matrix operations.
+Furthermore, it supports **tighly-coupled stream accellerators** which can process data as it flows through the DMA, thus improving both latency and memory consumption.
 
 The DMA **Hardware Abstraction Layer (HAL)** facilitates the configuration of transactions from the users application. Furthermore, it adds an additional layer of safety checks to reduce the risk of faulty memory accesses, data override or infinite loops.
 
@@ -22,16 +23,48 @@ The DMA **SDK**, on the other hand, offers user-friendly functions for essential
 
 ## Structural description
 
-![DMA subsystem structure](/images/dma_structure.png)
+![DMA subsystem structure](/images/dma_general.png)
 
-<p  align="center">Figure 1: Structure of the DMA subsystem in X-Heep </p>
+<p  align="center">Figure 1: General structure of the DMA subsystem in X-Heep </p>
+
+### Getting started with the DMA
+
+This peripheral has been designed to suit the need of a wide spectrum of applications, following the main design principles of X-HEEP: **configurability** and **extendibility**.
+For this reason, each DMA feature is fully configurable, enabling the user to explore the area-performance design space with more precision.  
+Furthermore, the DMA can communicate and interface with _peripherals_ and _accelerators_ in a variety of eays, providing all the flexibility that designers need.
+
+The following paragraphs will describe and explore in detail each aspect of this system, providing examples and thorough explanations.
+To get started, this is a general overview of various aspects that defines the DMA. 
+`P` are high-level parameter-defined features; `P!` are SystemVerilog-level parameter-defined features; `X` provides extendability; `B` base features, always accessible.
+- [Number of channels and their system bus connection](#dma-channels-layout) `P`
+- [Interrupt system](#interrupts) `B`
+- [Internal FIFOs length](#data-fifos-configuration) `P`
+- [Advanced data processing](#advanced-data-processing) `P`
+- Custom interface with **peripherals & accelerators** `X`
+  - [Transaction synchronization](#triggers) `B`
+  - [Accelerator-controlled DMA register configuration (AOPB)](#always-on-peripheral-bus) `P!`
+  - [Tighly-coupled accelerators interface](#tighly-coupled-accelerator-interface-hw-fifo) `P`
+
+From a purely structural point of view, the DMA has been designed by **self-sufficient units**, i.e. units that perform one particular set of functions and are as independent from one another as possible. 
+An example of this design principle is the redundancy in the _counters_ that keeps track of the progression of the transaction: each unit has its own, which means that each unit works on its own account. This increases the robustness of the design, at the cost of some area for additional counters.
+These are the four units that constitutes the DMA system:
+- **Read Unit**: Reads data from the system bus using the OBI protocol, performs **sign-extension** and pushes data into the **read FIFO**.
+- **Processing Unit**: Pops data from the **read FIFO**, processes it (i.e. performs zero-padding) and pushes it into the **write FIFO**. If a tighly-coupled accelerator is present, data can be instead pushed into the accelerator using the [HW FIFO interface](#tighly-coupled-accelerator-interface-hw-fifo).
+- **Write Unit**: Pops data from either the **write FIFO** or the tightly-coupled accelerator output FIFO, casts it to the output datatype and puts it on the system bus using the OBI protocol. Additionally, it can use as destination address the data coming from the **address FIFO**.
+- **Read Address Unit**: Reads data from the system bus using the OBI protocol and pushes data into the **read FIFO**. This data can be used with the [Address Mode](#transaction-modes) as destination addresses for the transaction.
+- **Buffer Unit**: Includes all the FIFOs of the DMA System and the related logic.
+
+Depending on the configuration, some of these units can be modified or even removed completly, along with linked configuration registers. 
 
 ### DMA channels layout
 
-The DMA subsystem is composed of a parametrized number of control units called **channels**. 
+![DMA channel structure](/images/dma_channel.png)
+<p  align="center">Figure 2: Structure of a DMA channel, including a tighly-coupled accelerator </p>
+
+The DMA subsystem is composed of a parametrized number of control units called **channels**, configurable in `mcu_cfg.hjson`. 
 Each channel can be configured, by the CPU or by an external controller, to perform a *transaction*, independently of the state of other channels.
 
-N-channels are connected to a N-to-M bus that exposes M-master ports on the system bus. **Multiple channels** can thus perform multiple transactions in parallel, a feature that enables memory-intense applications to greatly increase their throuhput.
+N-channels are connected to a *N-to-M bus* that exposes M-master ports on the system bus. **Multiple channels** can thus perform **multiple transactions in parallel**, a feature that enables memory-intense applications to increase their throughput.
 
 There are several ways to connect N-channels to the system bus through M-master ports.
 
@@ -54,7 +87,7 @@ This mechanism guarantees **maximum flexibility**, enabling the user to adapt th
 
 ### Interrupts
 
-If enabled, a transaction interrupt is raised every time a DMA transaction is completed. However, due to architectural limitations, there is only a single transaction done signal for the entire DMA subsystem.
+If enabled, a transaction interrupt is raised every time a _DMA transaction is completed_. However, due to architectural limitations, there is only a single transaction done signal for the entire DMA subsystem.
 
 To allow users to identify which channel raised the transaction interrupt, an **interrupt flag register** system has been developed. Here's how it works: when a DMA channel completes its transaction and the interrupt enable register is correctly set, the transaction **IFR** (Interrupt Flag Register) is set. This register is designed to be cleared automatically once read, which is convenient as it eliminates the need for an additional register write.
 
@@ -68,33 +101,18 @@ For this reason, the handler implemented by the user should be as brief as possi
 
 Each DMA channel uses FIFOs to buffer the data to be read and written, which is crucial for mitigating the combined delays from the system bus and the Always On Peripheral Bus (**AOPB**). 
 
-The **size of the FIFOs is parametric** and is, by default, the same across all channels.
+The **size of the FIFOs is parametric** and is the same across all channels.
 
 Some applications can benefit from larger FIFOs because it allows for more values to be buffered in situations where the bus is heavily utilized or the target peripheral, such as the SPI, is too slow.
 On the other hand, other applications might not require such large FIFOs, so area can be saved by reducing its size.
-A hybrid system, where some channels have large FIFO sizes and others have smaller ones, could benefit both these types of applications.
 
-It is possible to specify the size of each DMA channel FIFOs in `dma_subsystem.sv`. 
-These are the steps to follow to take advantage this feature:
-
-- Uncomment `//'define EN_SET_FIFO_CH_SIZE;` to enable the mechanism
-- Adjust the parameters *LARGE_FIFO_CH_SIZE*, *MEDIUM_FIFO_CH_SIZE* and *SMALL_FIFO_CH_SIZE*. They define the size of a large, medium and small FIFOs.
-- Modify the parameter `typedef enum {L, M, S} fifo_ch_size_t;` to assign individual sizes to the FIFOs. The number of elements must reflect the number of DMA channels.
-
-e.g.
-
-Let's imagine to configure X-Heep to have 4 channels. These are the definitions of the sizes:
-- *LARGE_FIFO_CH_SIZE*: 10
-- *MEDIUM_FIFO_CH_SIZE*: 4
-- *SMALL_FIFO_CH_SIZE*: 2
-
-Now, let's set the first 2 channels, CH0 and CH1, to the large size, CH2 to small and CH3 to medium. This is the *fifo_ch_size_t* that would result from that configuration:
-
-<div style="text-align: center;">
-<pre style="display: inline-block; text-align: center;"><code>typedef enum {L, L, S, M} fifo_ch_size_t;</code></pre>
-</div>
+It is possible to specify the size of the DMA FIFOs in `mcu_cfg.hjson`, by modifying the `fifo_depth` parameter. 
 
 <br>
+
+## Advanced Data Processing
+
+The DMA can perform complex tasks such as *2D* transactions and it can apply **zero padding** and perform **transpositions** on-the-fly, reducing the overhead of matrix operations. However, as alwyas, performance costs area occupation. If needed, the zero padding feature can be disabled by modifying the `mcu_cgf.hjson` parameter `zero_padding_en: "yes"` to `zero_padding_en: "no"`. This will eliminate entirely the **processing unit**, which takes care of the zero padding feature. However, the 2D transactions feature will still be present, as it is managed by the **read unit** and **write unit**.
 
 ### Triggers
 
@@ -107,30 +125,28 @@ The DMA can be configured to respond to triggers by enabling the appropriate _sl
 
 <br>
 
-### Tips for DMA-based accelerator developers
+## Always-On Peripheral Bus
 
-The DMA subsystem has been developed with specific features to facilitate the creation of custom accelerators that can leverage it to improve memory-intense applications.
+![DMA channel structure](/images/dma_aopb.png)
+<p  align="center">Figure 3: Structure of the DMA system with AOPB and SPCs </p>
 
-- **Always-On Peripheral Bus** (AOPB): it exposes the register interface of the units in the Always-On subsystem to any Smart Peripheral Controller (SPC). 
-In the case of the DMA subsystem, this feature allows the developers to configure the DMA subsystem without any CPU action, reducing power consumption while at the same time increasing the performance and effectiveness of the accelerator. 
-Check out the _im2col SPC_ in the `\ip_examples` folder for a detailed example.
+This is a low-complexity bus that exposes the register interface of the units in the Always-On subsystem to any Smart Peripheral Controller (SPC), i.e. external accelerators. In this way, accelerators can bypass entirely the system bus.
+
+In the case of the DMA subsystem, this feature allows designers to configure the DMA subsystem **without any CPU action**, reducing power consumption while at the same time increasing the performance and effectiveness of the accelerator. 
+Check out the __im2col SPC__ in the `hw\ip_examples` folder for a detailed example, along with Tommaso Terzano's Master Thesis, which developed this unit (https://webthesis.biblio.polito.it/33222/).
 <br>
 
-- **Triggers**: useful to synchronize the data streams to and from the accelerator.
-<br>
+## Tighly-coupled Accelerator Interface (HW FIFO)
 
-- **Stop signal**: it can terminate a DMA transaction at any moment. It's particularly useful for accelerators that produce a large quantity of data, but with a variable trasfer size that cannot be known or computed beforehand. 
-A good example of such an accelerator is a level crossing subsampler, which writes sampled data only when they cross a specific threshold.
-<br>
+The DMA can support tighly-coupled accelerators via a simple push&pop interface, defined in `fifo_pkg.sv` in ``hw/core-v-mini-mcu/include`. 
+Functionally, the accelerator is **completly transparent to the DMA system**, as the accelerator is required to have both an input and an output FIFO: the DMA Processing Unit will **push data into the accelerator's input FIFO** and the Write Unit will **pop data from the accelerator's output FIFO**. 
 
-- **VerifHEEP**: this python library has been developed to test computational units and accelerators deployed on X-Heep. 
-It has been deployed succesfully to verify the _im2col SPC_ as it is expecially useful for data-driven accelerators.
-Additional documentation can be found in the **VerifHEEP documentation**, but in brief it includes methods to: 
-  - Generate random inputs and compute the corresponding golden results
-  - Launch synthesis & simulations on QuestaSim and Verilator
-  - Compile, program & launch applications on FPGA targets for a tenfold reduction in test and verification times
-  - Analyze the performance of the tests. 
-<br>
+The other crucial requirements for tighly-coupled accelerators is to provide a **done signal**. This is particularly necessary (and useful) for accelerators that _read N words and outputs M words_, such as down-samplers used in Edge AI.
+
+A part from this interface, there are no limits on the accelerator structure itself.
+
+Check out the **digital Level Crossing** example in the `hw\ip_examples` folder for a detailed example.
+A block diagram showing this DMA interface along with an external accelerator is shown in [figure 1](#dma-channels-layout).
 
 ## Registers description
 
@@ -172,7 +188,7 @@ The previous parameters, including the register offsets, can be found at `sw/dev
 
 - **ADDR_PTR_REG**
   - _SW access_: rw
-  - _Description_: Used only with the [address mode](#transaction-modes) . It contains the pointer to the source, which in this case must data stored in memory.
+  - _Description_: Used only with the [address mode](#transaction-modes) . It contains the pointer to the source, which in this case must data stored in memory. It will be removed if the address mode is disabled.
 
 <hr>
 
@@ -319,7 +335,18 @@ The previous parameters, including the register offsets, can be found at `sw/dev
     - 1: _circular mode_
     - 2: _address mode_
     - 3: _subaddress mode_
-    - 4: _hardware fifo mode_
+
+<hr>
+
+<div style="text-align: center;">
+  <pre style="display: inline-block; text-align: left;"><code>|---- 31 : 1 ----|---- 0 : 0 ----|
+|--- Reserved ---|---- HW_FIFO_MODE ---|</code></pre>
+</div>
+
+- **HW_FIFO_MODE**
+  - _SW access_: rw
+  - _Description_: enables the HW FIFO mode, i.e. tighly-coupled accelerators
+
 
 <hr>
 
@@ -352,7 +379,7 @@ The previous parameters, including the register offsets, can be found at `sw/dev
 
 - **PAD_TOP/BOTTOM/RIGHT/LEFT**
   - _SW access_: rw
-  - _Description_: defines the size of the padding to be applied to the source, in data units.
+  - _Description_: defines the size of the padding to be applied to the source, in data units. They will be removed if the zero-padding feature is disabled.
 
 <hr>
 
@@ -562,7 +589,7 @@ If senseless configurations are input to functions, assertions may halt the whol
 
 #### Transaction modes
 
-There are five different transaction modes:
+There are four different transaction modes:
 
 **Single Mode:** The default mode, where the DMA channel will perform the copy from the source target to the destination, and trigger an interrupt once done.
 
@@ -573,20 +600,14 @@ In this mode it's possible to perform only 1D transactions.
 
 **Subaddress Mode:** In this mode, the DMA can be configured to transfer words, half words or bytes from Flash to the destination target via the SPI slot. This mode is particularly useful as it allows the DMA to sequentially read the half words or bytes composing the word retrieved from Flash, and forward them to the appropriate location in the destination target. The key difference between Subaddress Mode and Single Mode in terms of SPI-Flash interaction lies in how data is handled. In Single Mode, when the destination data type is set to `Half-Word` or `Byte`, the DMA writes only the least significant half-word or byte from the word fetched via SPI. In contrast, Subaddress Mode ensures that each half-word or byte within the fetched word is considered and transferred correctly to the destination.
 
-**Hardware Fifo Mode:** In this mode, the DMA fetches data from the source target and forwards it directly to an external accelerator tightly coupled with the DMA itself. The DMA exposes a dedicated interface composed of two ports, respectively of type `hw_fifo_req_t` and `hw_fifo_resp_t`. Using this interface, the DMA can interact with an external streaming accelerator through input/output FIFOs. Input data to the DMA bypass the DMA internal FIFOs, and they are directly forwarded to the accelerator, which is required to have two internal FIFOs. The first one, referred to as _hardware read fifo_, is filled with data coming from the source target through the `hw_fifo_req_t` port. The second, referred to as _hardware write fifo_, is used by the accelerator to store the results of its computation. Once data is written in the hardware read fifo, the accelerator is in charge of popping from it and processing the data. In the end, results must be pushed into the hardware write fifo. Subsequently, the DMA reads data from the hardware write fifo through the `hw_fifo_resp_t` port, and stores it into the destination target. A block diagram showing this DMA interface along with an external accelerator is shown in figure.
+#### Tighly-Coupled FIFO-Based Accelerator Interface
 
-![hw fifo](/images/hw_fifo_mode.png)
-
-<p  align="center">Figure 2: External Streaming Accelerator tightly coupled with the DMA to be used in Hardware Fifo Mode </p>
-
+By setting the correct enable register, the DMA can fetch data from the source target and forwards it directly to an external accelerator tightly coupled with the DMA itself. Using this interface, the DMA can interact with an external streaming accelerator through input/output FIFOs. Once data is written in the accelerator's input fifo, the accelerator is in charge of popping from it and processing the data. In the end, results must be pushed into the accelerator's output fifo.
   
 
 #### Windows
 
-In order to process information as it arrives, the application can define a _window size_ (smaller than the _transaction size_). Every time the DMA has finished sending that amount of information, it will trigger an interrupt through the PLIC.
-
-> :warning: If the window size is a multiple of the transaction size, upon finishing the transaction there will be first an interrupt for the whole transaction (through the FIC), and then an interrupt for the window (through the PLIC, which is slower).
-
+In order to process information as it arrives, the application can define a _window size_ (smaller than the _transaction size_). Every time the DMA has finished sending that amount of information, it will trigger an interrupt through the FIC.
   
   
 
@@ -731,7 +752,7 @@ _Return Values_:
 #### <i> handler_irq_dma() </i>
 
 _Purpose_:
-The *handler_irq_dma* function is very similar to *fic_irq_dma*, but its called whenever one of the DMA channels triggers a window donw interrupt, i.e. the transaction has copied N elements. Just like the previous one, this function identifies the channel that triggered the interrupt and calls a handler function, *dma_intr_handler_window_done()*, passing the channel ID. 
+The *handler_irq_dma* function is very similar to *fic_irq_dma*, but its called whenever one of the DMA channels triggers a window done interrupt, i.e. the transaction has copied N elements. Just like the previous one, this function identifies the channel that triggered the interrupt and calls a handler function, *dma_intr_handler_window_done()*, passing the channel ID. 
 
 _Parameters_: 
 - None
@@ -1819,12 +1840,7 @@ void SPI_setup(){
 
   /* Pick the correct spi device based on simulation type */
   spi_host_t *spi;
-
-  #ifndef USE_SPI_FLASH
-  spi = spi_host1;
-  #else
   spi = spi_flash;
-  #endif
 
   /* Init SPI host and SPI<->Flash bridge parameters */
   if (w25q128jw_init(spi) != FLASH_OK)
