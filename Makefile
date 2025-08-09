@@ -178,7 +178,7 @@ format-python:
 
 ## Generates the build folder in sw using CMake to build (compile and linking)
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
-## @param TARGET=sim(default),systemc,pynq-z2,nexys-a7-100t,zcu104
+## @param TARGET=sim(default),systemc,pynq-z2,nexys-a7-100t,zcu104,zcu102
 ## @param LINKER=on_chip(default),flash_load,flash_exec
 ## @param COMPILER=gcc(default),clang
 ## @param COMPILER_PREFIX=riscv32-unknown-(default)
@@ -271,7 +271,7 @@ run-app-verilator: app
 ## @section Vivado
 
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado
-## @param FPGA_BOARD=nexys-a7-100t,pynq-z2,zcu104
+## @param FPGA_BOARD=nexys-a7-100t,pynq-z2,zcu104,zcu102
 ## @param FUSESOC_FLAGS=--flag=<flagname>
 vivado-fpga:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
@@ -320,7 +320,7 @@ flash-erase:
 
 ## Run openOCD w/ EPFL_Programmer
 openOCD_epflp:
-	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg;
+	xterm -e openocd -f ./tb/core-v-mini-mcu-esl-programmer.cfg;
 
 ## Run openOCD w/ BSCAN of the Pynq-Z2 board
 openOCD_bscan:
