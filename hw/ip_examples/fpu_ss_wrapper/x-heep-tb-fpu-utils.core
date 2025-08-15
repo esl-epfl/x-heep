@@ -12,7 +12,7 @@ filesets:
     depend:
     - pulp-platform.org:ip:fpu_ss
     files:
-    - hw/ip_examples/fpu_ss_wrapper/fpu_ss_wrapper.sv
+    - fpu_ss_wrapper.sv
     file_type: systemVerilogSource
 
 targets:
