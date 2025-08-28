@@ -372,3 +372,7 @@ clean-app:
 .PHONY: clean
 clean: clean-app
 	@rm -rf build
+
+## Leave the repository in a clean state, removing all generated files. For now, it just calls clean.
+.PHONY: clean-all
+clean-all: clean
