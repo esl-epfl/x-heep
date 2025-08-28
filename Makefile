@@ -363,25 +363,12 @@ profile:
 
 ## @section Cleaning commands
 
-## Clean the CMake build folder
-app-clean:
-	if [ -f "sw/build/Makefile" ]; then\
-		$(MAKE) -C sw/build clean;\
-	else\
-		$(MAKE) app-restore;\
-	fi
+## Remove the sw build folder
+.PHONY: clean-app
+clean-app:
+	@rm -rf sw/build
 
-
-## Removes the CMake build folder
-app-restore:
-	rm -rf sw/build
-
-## Removes the HW build folder
-clean-sim:
+## Remove the build folders
+.PHONY: clean
+clean: clean-app
 	@rm -rf build
-
-## Does the same as app-restore
-clean-app: app-restore
-
-## Removes the CMake build folder and the HW build folder
-clean-all: app-restore clean-sim
