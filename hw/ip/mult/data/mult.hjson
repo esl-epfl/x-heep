@@ -1,0 +1,40 @@
+{
+  name: "mult",
+  clock_primary: "clk_i",
+
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ],
+
+  regwidth: "32",
+
+  registers: [
+    {
+      name: "A",
+      desc: "Operand A register",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "A", desc: "Operand A value" }
+      ]
+    },
+    {
+      name: "B",
+      desc: "Operand B register",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "B", desc: "Operand B value" }
+      ]
+    },
+    {
+      name: "PRODUCT",
+      desc: "Product of A and B",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        { bits: "31:0", name: "PRODUCT", desc: "Result of multiplication" }
+      ]
+    }
+  ]
+}

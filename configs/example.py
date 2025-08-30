@@ -25,6 +25,7 @@ from x_heep_gen.peripherals.user_peripherals import (
     SPI2,
     PDM2PCM,
     I2S,
+    MULT,
 )
 
 
@@ -53,6 +54,7 @@ def config():
     user_peripheral_domain.add_peripheral(
         I2S()
     )  # If no address is provided, the peripheral will be automatically added where there is space.
+    user_peripheral_domain.add_peripheral(MULT())
 
     # Add the peripheral domains to the system
     system.add_peripheral_domain(base_peripheral_domain)

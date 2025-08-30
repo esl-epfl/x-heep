@@ -109,6 +109,16 @@ class I2S(UserPeripheral, DataConfiguration):
     _name = "i2s"
     _config_path = "./hw/ip/i2s/data/i2s.hjson"
 
+class MULT(UserPeripheral, DataConfiguration):
+    """
+    Multiplier peripheral.
+
+    Default configuration file: ./hw/ip/mult/data/mult.hjson
+    """
+
+    _name = "mult"
+    _config_path = "./hw/ip/mult/data/mult.hjson"
+
 
 # Domain Class
 class UserPeripheralDomain(PeripheralDomain):

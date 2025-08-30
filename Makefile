@@ -33,7 +33,7 @@ RV_PROFILE  := $(shell which rv_profile)
 endif
 
 # Project options are based on the app to be build (default - hello_world)
-PROJECT  ?= hello_world
+PROJECT  ?= mult
 
 LINK_FOLDER ?= $(mkfile_path)/sw/linker
 

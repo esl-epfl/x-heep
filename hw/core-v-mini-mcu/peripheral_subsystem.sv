@@ -466,6 +466,14 @@ module peripheral_subsystem
       .i2s_rx_valid_o(i2s_rx_valid_o)
   );
 
-
+  mult #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) mult_i (
+      .clk_i(clk_cg),
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::MULT_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::MULT_IDX])
+  );
 
 endmodule : peripheral_subsystem
