@@ -5,7 +5,7 @@ CAPI=2:
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 name: x-heep::tb-utils
-description: x-heep testbench files.
+description: X-HEEP testbench files.
 
 filesets:
   files_examples:
@@ -19,18 +19,16 @@ filesets:
     - example:ip:simple_accelerator
     - example:ip:dlc
     - example:ip:im2col_spc
-    files:
-    file_type: systemVerilogSource
 
   files_verilator_waiver:
     files:
-    - hw/ip_examples/slow_memory/slow_memory.vlt
-    - hw/ip_examples/ams/ams.vlt
-    - hw/ip_examples/iffifo/iffifo.vlt
-    - hw/ip_examples/simple_accelerator/simple_accelerator.vlt
-    - hw/ip_examples/dlc/dlc.vlt
-    - hw/ip_examples/im2col_spc/im2col_spc.vlt
-    - tb/tb.vlt
+    - ../hw/ip_examples/slow_memory/slow_memory.vlt
+    - ../hw/ip_examples/ams/ams.vlt
+    - ../hw/ip_examples/iffifo/iffifo.vlt
+    - ../hw/ip_examples/simple_accelerator/simple_accelerator.vlt
+    - ../hw/ip_examples/dlc/dlc.vlt
+    - ../hw/ip_examples/im2col_spc/im2col_spc.vlt
+    - tb.vlt
     file_type: vlt
 
   systemverilog_only_simjtag:
@@ -41,11 +39,11 @@ filesets:
     depend:
     - pulp-platform.org:ip:fpu_ss
     files:
-    - tb/tb_util.svh: {is_include_file: true}
-    - tb/testharness_pkg.sv
-    - tb/testharness.sv
-    - tb/ext_xbar.sv
-    - tb/ext_bus.sv
+    - tb_util.svh: {is_include_file: true}
+    - testharness_pkg.sv
+    - testharness.sv
+    - ext_xbar.sv
+    - ext_bus.sv
     file_type: systemVerilogSource
 
   uartdpi:
@@ -54,7 +52,7 @@ filesets:
 
   systemverilog_only_uart:
     files:
-    - hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.sv
+    - ../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.sv
     file_type: systemVerilogSource
 
   remote_bitbang_dpi:
@@ -64,21 +62,6 @@ filesets:
   cypress_flash:
     depend:
     - ::spiflash:0
-
-  tb-sv:
-    files:
-    - tb/tb_top.sv
-    file_type: systemVerilogSource
-
-  tb-verilator:
-    files:
-    - tb/tb_top.cpp
-    file_type: cppSource
-
-  tb-sc-verilator:
-    files:
-    - tb/tb_sc_top.cpp
-    file_type: cppSource
 
 targets:
   default: &default_target
@@ -97,8 +80,3 @@ targets:
     - tool_modelsim? (cypress_flash)
     - tool_vcs? (cypress_flash)
     - tool_xcelium? (cypress_flash)
-    toplevel:
-    - tool_modelsim? (tb_top)
-    - tool_vcs? (tb_top)
-    - tool_xcelium? (tb_top)
-    - tool_verilator? (testharness)

@@ -23,7 +23,7 @@ Three FPGA boards are supported: the Xilinx Pynq-z2, Nexys-A7-100t, and the ZCU1
 
 ## Running
 
-To build and program the bitstream for your FPGA with vivado, type:
+To build and program the bitstream for your FPGA with vivado, make sure you have run `mcu-gen` and then run:
 
 ```
 make vivado-fpga FPGA_BOARD=pynq-z2

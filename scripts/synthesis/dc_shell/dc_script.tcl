@@ -17,7 +17,7 @@ source ${READ_SOURCES}.tcl
 elaborate ${TOP_MODULE}
 link
 
-load_upf ../../../core-v-mini-mcu.dc.upf
+load_upf ../../../scripts/pnr/core-v-mini-mcu.dc.upf
 
 write -f ddc -hierarchy -output ${REPORT_DIR}/precompiled.ddc
 

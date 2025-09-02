@@ -28,7 +28,7 @@ Params:
 ```
 
 ```{note}
-You can run `make help` or `make` to see the most up-to-date documentation for the makefile. This includes the parameters available for this command, as well as the documentation for all other commands. Also check the different `clean` commands in the makefile to verify that you are using the correct one.
+You can run `make help` or `make` to see the most up-to-date documentation for the makefile. This includes the parameters available for this command, as well as the documentation for all other commands.
 ```
 
 For instance, to compile the `hello world` app with clang for the pynq-z2 FPGA, just run:
