@@ -232,7 +232,7 @@ def build_simulator(simulator):
     )
     try:
         simulation_build_output = subprocess.run(
-            ["make", f"{simulator}-sim"], capture_output=True, check=True
+            ["make", f"{simulator}-build"], capture_output=True, check=True
         )
     except subprocess.CalledProcessError as exc:
         print(BColors.FAIL + f"Error building {simulator} model." + BColors.ENDC)
