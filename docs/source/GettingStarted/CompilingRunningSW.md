@@ -21,7 +21,7 @@ You can find all the documentation and parameters for compiling applications in 
 Once you know how to generate the MCU and compile the `hello_world` application, you can run it on X-HEEP using the open-source Verilator simulator. This can be easily done with:
 
 ```
-make run-helloworld
+make verilator-run-helloworld
 ```
 
 After a couple of minutes, you should se a "hello world!" output.
