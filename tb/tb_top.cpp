@@ -70,7 +70,7 @@ int main (int argc, char * argv[])
   dut->jtag_tms_i           = 0;
   dut->jtag_trst_ni         = 0;
   dut->jtag_tdi_i           = 0;
-  dut->execute_from_flash_i = 0; //this cause boot_sel cannot be 1 anyway
+  dut->execute_from_flash_i = 0;
 
   dut->eval();
   m_trace->dump(sim_time);
@@ -83,22 +83,18 @@ int main (int argc, char * argv[])
   dut->rst_ni               = 0;
   runCycles(40, dut, m_trace);
 
-
   dut->rst_ni = 1;
   runCycles(40, dut, m_trace);
   std::cout<<"Reset Released"<< std::endl;
 
-
   dut->load_flash_hex(firmware.c_str());
 
   if(boot_sel != 1) {
-
     //Booting from JTAG or loading the memory from the testbench
-
-    //dont need to exit from boot loop if using OpenOCD
     if(use_openocd==false) {
       dut->tb_loadHEX(firmware.c_str());
       runCycles(1, dut, m_trace);
+      //you need to exit from the bootrom loop if not using OpenOCD
       dut->tb_set_exit_loop();
       std::cout<<"Set Exit Loop"<< std::endl;
       runCycles(1, dut, m_trace);
@@ -122,7 +118,6 @@ int main (int argc, char * argv[])
   }
 
   std::cout<<"Simulation finished after "<<(sim_time/CLK_PERIOD_ps)<<" clock cycles"<<std::endl;
-  
 
   // This should be the last message printed  so that the scripts like test-all can catch the exit value properly. 
   // The return value should be the last character (in case it is 0)
@@ -133,7 +128,6 @@ int main (int argc, char * argv[])
     std::cout<<"Simulation was terminated before program finished"<<std::endl;
     exit_val = 2; // exit 2 to indicate successful run but premature termination
   }
-
 
   m_trace->close();
   delete dut;

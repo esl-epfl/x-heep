@@ -41,8 +41,10 @@
 
 // Additional Contribution
 // Davide Schiavone davide.schiavone@epfl.ch
-// Converted to SystemVerilog and made it compatible with Verilator
+// Converted to SystemVerilog and made it compatible with Verilator for Single-Mode SPI
 // Memory Init is done in a separated task not part of this file
+// CAREFULL!!!! DUAL and QUAD SPI Flash Model doesnt work with Verilator
+// This is because it requires to model Hi-Z, which are not supported (yet?)
 
 module spiflash (
     input wire csb,
