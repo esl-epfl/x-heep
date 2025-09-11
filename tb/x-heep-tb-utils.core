@@ -77,6 +77,4 @@ targets:
     - tool_modelsim? (systemverilog_only_simjtag)
     - tool_vcs? (systemverilog_only_simjtag)
     - tool_xcelium? (systemverilog_only_simjtag)
-    - tool_modelsim? (cypress_flash)
-    - tool_vcs? (cypress_flash)
-    - tool_xcelium? (cypress_flash)
+    - cypress_flash

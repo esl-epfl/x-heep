@@ -4,8 +4,8 @@ name : ::spiflash:0
 
 filesets:
   model:
-    files : [spiflash.v]
-    file_type : verilogSource
+    files : [spiflash.sv]
+    file_type : systemVerilogSource
   tb:
     files : [spiflash_tb.v]
     file_type : verilogSource

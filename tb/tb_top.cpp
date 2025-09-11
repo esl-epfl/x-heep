@@ -57,12 +57,6 @@ int main (int argc, char * argv[])
 
   boot_sel     = cmd_lines_options->get_boot_sel();
 
-  if(boot_sel == 1) {
-    std::cout<<"[TESTBENCH]: ERROR: Executing from SPI is not supported (yet) in Verilator"<<std::endl;
-    std::cout<<"exit simulation..."<<std::endl;
-    exit(EXIT_FAILURE);
-  }
-
   svSetScope(svGetScopeFromName("TOP.testharness"));
   svScope scope = svGetScope();
   if (!scope) {
@@ -76,13 +70,14 @@ int main (int argc, char * argv[])
   dut->jtag_tms_i           = 0;
   dut->jtag_trst_ni         = 0;
   dut->jtag_tdi_i           = 0;
-  dut->execute_from_flash_i = 1; //this cause boot_sel cannot be 1 anyway
-  dut->boot_select_i        = boot_sel;
+  dut->execute_from_flash_i = 0; //this cause boot_sel cannot be 1 anyway
 
   dut->eval();
   m_trace->dump(sim_time);
 
   dut->rst_ni               = 1;
+  dut->boot_select_i        = boot_sel;
+
   //this creates the negedge
   runCycles(20, dut, m_trace);
   dut->rst_ni               = 0;
@@ -93,16 +88,23 @@ int main (int argc, char * argv[])
   runCycles(40, dut, m_trace);
   std::cout<<"Reset Released"<< std::endl;
 
-  //dont need to exit from boot loop if using OpenOCD or Boot from Flash
-  if(use_openocd==false || boot_sel == 1) {
-    dut->tb_loadHEX(firmware.c_str());
-    runCycles(1, dut, m_trace);
-    dut->tb_set_exit_loop();
-    std::cout<<"Set Exit Loop"<< std::endl;
-    runCycles(1, dut, m_trace);
-    std::cout<<"Memory Loaded"<< std::endl;
+  if(boot_sel != 1) {
+
+    //Booting from JTAG or loading the memory from the testbench
+
+    //dont need to exit from boot loop if using OpenOCD
+    if(use_openocd==false) {
+      dut->tb_loadHEX(firmware.c_str());
+      runCycles(1, dut, m_trace);
+      dut->tb_set_exit_loop();
+      std::cout<<"Set Exit Loop"<< std::endl;
+      runCycles(1, dut, m_trace);
+      std::cout<<"Memory Loaded"<< std::endl;
+    } else {
+      std::cout<<"Waiting for GDB"<< std::endl;
+    }
   } else {
-    std::cout<<"Waiting for GDB"<< std::endl;
+      std::cout<<"X-HEEP is loading from FLASH..."<< std::endl;
   }
 
   if(run_all==false) {
