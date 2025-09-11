@@ -74,9 +74,6 @@ To use this mode, when targetting ASICs or FPGA bitstreams,
 make sure you have the `boot_sel_i` input (e.g., a switch) set to 1,
 and the `execute_from_flash_i` set to 1 too.
 
-Note that the FLASH model is not compatible with **verilator**,
-thus the simulation must be carried out with either **modelsim** or **vcs**.
-
 Make sure to compile your SW using the link_flash_exec.ld linker script.
 
 In this repository, we provide two examples to try, one for FPGA/ASIC

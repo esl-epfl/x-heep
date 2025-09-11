@@ -159,6 +159,11 @@ You may pass additional simulation parameters to the generated simulation execut
   This allows you to run a compiled executable directly, as if it were already written in memory since the beginning of the simulation.
   For example, `./Vtestharness +firmware=../../../sw/build/main.hex` will launch the Verilator simulation and instruct it to load the compiled application executable into memory and run it.
 
+- `+boot_sel=<val>`:
+  Runs the simulation booting from testbench/jtag (`val=0`) or loading the firmware from the external flash (`val=1`).
+  When `0` (by default), you can run a compiled executable directly, as if it were already written in memory since the beginning of the simulation. While if it is `1`, the code is loaded from the external flash via SPI.
+  For example, `./Vtestharness +firmware=../../../sw/build/main.hex +boot_sel=1` will launch the Verilator simulation and instruct the bootrom to copy the firmware from the external flash to the main memory, then, the CPU will jump to SRAM and execute the code.
+  
 - `+max_sim_time=<time>`:
   Runs the simulation for a maximum of `<time>` clock cycles.
   This is useful in case your application gets stuck in a certain point and never finishes; this parameter will force the simulation to terminate after a certain time so that you can later analyze the generated `waveform.vcd` file.
