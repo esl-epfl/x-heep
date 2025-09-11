@@ -88,6 +88,9 @@ int main (int argc, char * argv[])
   runCycles(40, dut, m_trace);
   std::cout<<"Reset Released"<< std::endl;
 
+
+  dut->load_flash_hex(firmware.c_str());
+
   if(boot_sel != 1) {
 
     //Booting from JTAG or loading the memory from the testbench
@@ -106,6 +109,7 @@ int main (int argc, char * argv[])
   } else {
       std::cout<<"X-HEEP is loading from FLASH..."<< std::endl;
   }
+
 
   if(run_all==false) {
     while(dut->exit_valid_o!=1 && sim_time<max_sim_time) {
