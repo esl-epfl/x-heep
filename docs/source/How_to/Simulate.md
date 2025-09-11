@@ -110,12 +110,7 @@ You can also use vopt for HDL optimized compilation:
 make questasim-sim-opt
 ```
 
-then go to
-
-```
-cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_opt-modelsim/
-```
-and
+and then run as:
 
 ```
 make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
