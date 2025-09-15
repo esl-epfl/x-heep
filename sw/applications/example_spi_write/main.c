@@ -163,10 +163,21 @@ int main(int argc, char *argv[]) {
     PRINTF("Testing simple write...\n");
     errors += test_write(flash_original_1024B, BYTES_TO_WRITE);
 
+    if (errors) {
+        PRINTF("test_write FAILED\n");
+        return EXIT_FAILURE;
+    }
+
 #ifndef ON_CHIP
     // Test simple write on flash_only data
     PRINTF("Testing simple write. on flash only data..\n");
     errors += test_write_flash_only(flash_original_1024B, BYTES_TO_WRITE);
+
+    if (errors) {
+        PRINTF("test_write_flash_only FAILED\n");
+        return EXIT_FAILURE;
+    }
+
 #endif
 
 
@@ -174,13 +185,28 @@ int main(int argc, char *argv[]) {
     PRINTF("Testing simple write with DMA...\n");
     errors += test_write_dma(flash_original_1024B, BYTES_TO_WRITE);
 
+    if (errors) {
+        PRINTF("test_write_dma FAILED\n");
+        return EXIT_FAILURE;
+    }
+
     // Test quad write
     PRINTF("Testing quad write...\n");
     errors += test_write_quad(flash_original_1024B, BYTES_TO_WRITE);
 
+    if (errors) {
+        PRINTF("test_write_quad FAILED\n");
+        return EXIT_FAILURE;
+    }
+
     // Test quad write with DMA
     PRINTF("Testing quad write with DMA...\n");
     errors += test_write_quad_dma(flash_original_1024B, BYTES_TO_WRITE);
+
+    if (errors) {
+        PRINTF("test_write_quad_dma FAILED\n");
+        return EXIT_FAILURE;
+    }
 
     PRINTF("\n--------TEST FINISHED--------\n");
     if (errors == 0) {
@@ -325,13 +351,8 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
         if (test_buffer[i] != flash_read_data_char[i]) {
             PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_read_data_char[i]);
             errors++;
+            break;
         }
-    }
-
-    if (errors == 0) {
-        PRINTF("success!\n");
-    } else {
-        PRINTF("failure, %d errors!\n", errors);
     }
 
     return errors;
