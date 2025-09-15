@@ -339,5 +339,7 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
 
 // Erase the memory only if FPGA is used
 void erase_memory(uint32_t addr) {
+    #ifndef TARGET_SIM
     w25q128jw_4k_erase(addr);
+    #endif
 }
