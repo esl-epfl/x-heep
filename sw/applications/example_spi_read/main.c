@@ -19,9 +19,9 @@
 #define PRINTF_IN_SIM   0
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+        #define PRINTF(fmt, ...)    PRINTF(fmt, ## __VA_ARGS__)
 #elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+    #define PRINTF(fmt, ...)    PRINTF(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
 #endif
@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
     errors += test_read(TEST_BUFFER, LENGTH);
     
     if (errors) {
-        printf("test_read FAILED\n");
+        PRINTF("test_read FAILED\n");
         return EXIT_FAILURE;
     }
 
@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
     errors += test_read_flash_only(flash_only_buffer, FLASH_ONLY_BYTES);
 
     if (errors) {
-        printf("test_read_flash_only FAILED\n");
+        PRINTF("test_read_flash_only FAILED\n");
         return EXIT_FAILURE;
     }
 
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
     errors += test_read_dma(TEST_BUFFER, LENGTH);
 
     if (errors) {
-        printf("test_read_dma FAILED\n");
+        PRINTF("test_read_dma FAILED\n");
         return EXIT_FAILURE;
     }
 
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
     errors += test_read_quad(TEST_BUFFER, LENGTH);
 
     if (errors) {
-        printf("test_read_quad FAILED\n");
+        PRINTF("test_read_quad FAILED\n");
         return EXIT_FAILURE;
     }
 
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
     errors += test_read_quad_dma(TEST_BUFFER, LENGTH);
 
     if (errors) {
-        printf("test_read_quad_dma FAILED\n");
+        PRINTF("test_read_quad_dma FAILED\n");
         return EXIT_FAILURE;
     }
 
@@ -302,7 +302,7 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
 
     for (uint32_t i = 0; i < len; i++) {
         if (test_buffer[i] != flash_data_char[i]) {
-            printf("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_data_char[i]);
+            PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_data_char[i]);
             errors++;
             break;
         }
