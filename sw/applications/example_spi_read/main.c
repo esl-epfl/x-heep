@@ -19,9 +19,9 @@
 #define PRINTF_IN_SIM   0
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    PRINTF(fmt, ## __VA_ARGS__)
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #elif PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    PRINTF(fmt, ## __VA_ARGS__)
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
 #endif
