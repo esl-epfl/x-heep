@@ -41,7 +41,7 @@ string_toappend.append('opt-upf:' + "\n\t" + \
                          '-pa_genrpt=pa+de+cell+conn+pst+srcsink ' + \
                          '-pa_enable=vsim_msgs+highlight+debug ' + \
                          '-pa_checks=s+ul+i+p+cp+upc+ugc ' + \
-                         '-pa_upf ../../../core-v-mini-mcu.upf -pa_top "/tb_top/testharness_i/x_heep_system_i/core_v_mini_mcu_i" -pa_lib work +acc=npr $(addprefix -G,$(PARAMETERS)) $(TOPLEVEL) -o $(TOPLEVEL)_vopt' + "\n");
+                         '-pa_upf ../../../scripts/pnr/core-v-mini-mcu.upf -pa_top "/tb_top/testharness_i/x_heep_system_i/core_v_mini_mcu_i" -pa_lib work +acc=npr $(addprefix -G,$(PARAMETERS)) $(TOPLEVEL) -o $(TOPLEVEL)_vopt' + "\n");
 
 
 # opening a text file

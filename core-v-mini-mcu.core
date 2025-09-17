@@ -173,7 +173,6 @@ filesets:
     - tb/tb_sc_top.cpp
     file_type: cppSource
 
-
   openroad_base_files:
     files:
       - flow/OpenROAD-flow-scripts/flow/Makefile : {file_type: Makefile}
@@ -182,8 +181,8 @@ filesets:
 
   openroad_sky130_files:
     files:
-      - flow/sky130/config.mk : {file_type: configFile}
-      - flow/sky130/constraint.sdc : {file_type: SDC}
+      - hw/asic/sky130/config.mk : {file_type: configFile}
+      - hw/asic/sky130/constraint.sdc : {file_type: SDC}
 
 parameters:
   COREV_PULP:
@@ -257,6 +256,7 @@ parameters:
     paramtype: vlogdefine
     description: Primitives implementation to use, e.g. "prim_pkg::ImplGeneric".
     default: prim_pkg::ImplGeneri
+
 scripts:
   post_build_modelsim_scripts:
     cmd:

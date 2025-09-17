@@ -1,6 +1,8 @@
 <br />
 <p align="center"><img src="docs/source/images/x-heep-outline.png" width="500"></p>
 
+# X-HEEP
+
 `X-HEEP` (eXtendable Heterogeneous Energy-Efficient Platform) is a `RISC-V` microcontroller described in `SystemVerilog`
 that can be configured to target small and tiny platforms as well as extended to support accelerators.
 The cool thing about `X-HEEP` is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc.
@@ -16,36 +18,9 @@ The block diagram below shows the `X-HEEP` MCU
 
 You can access an editable version of this diagram for your use in presentations or publications [here](https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000FF&edit=_blank&layers=1&nav=1&title=X-HEEP-general-diagram.drawio&dark=auto#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1FxAmuywf1zneG0PeiYe_IHTJCv-3kLPI%26export%3Ddownload). 
 
-
-
 > :bookmark_tabs: Please refer to the documentation in [Read the Docs](https://x-heep.readthedocs.io/en/latest/index.html)
 
-# Repository folder structure
-
-    .
-    ├── .github/workflows
-    ├── ci/scripts
-    ├── hw
-    │   ├── asic
-    │   ├── core-v-mini-mcu
-    │   ├── fpga
-    │   ├── ip
-    │   ├── ip_examples
-    │   ├── simulation
-    │   └── vendor
-    ├── scripts
-    │   ├── sim
-    │   └── synthesis
-    ├── sw
-    │   ├── applications
-    │   ├── device/lib
-    │   ├── linker
-    │   └── vendor
-    ├── tb
-    ├── util
-    └── README.md
-
-# Reference
+## Reference
 
 If you use X-HEEP in your academic work you can cite us: [X-HEEP Paper](https://arxiv.org/abs/2401.05548)
 

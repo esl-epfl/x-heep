@@ -136,8 +136,8 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl sw/device/lib/runtime/core_v_mini_mcu.h.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl sw/device/lib/runtime/core_v_mini_mcu_memory.h.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl $(LINK_FOLDER)/link.ld.tpl
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl ./core-v-mini-mcu.upf.tpl
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl ./core-v-mini-mcu.dc.upf.tpl
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl scripts/pnr/core-v-mini-mcu.upf.tpl
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl scripts/pnr/core-v-mini-mcu.dc.upf.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/power_manager/rtl/power_manager.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/power_manager/data/power_manager.hjson.tpl
 	bash -c "cd hw/ip/power_manager; source power_manager_gen.sh; cd ../../../"
@@ -378,25 +378,16 @@ area-plot:
 
 ## @section Cleaning commands
 
-## Clean the CMake build folder
-app-clean:
-	if [ -f "sw/build/Makefile" ]; then\
-		$(MAKE) -C sw/build clean;\
-	else\
-		$(MAKE) app-restore;\
-	fi
+## Remove the sw build folder
+.PHONY: clean-app
+clean-app:
+	@rm -rf sw/build
 
-
-## Removes the CMake build folder
-app-restore:
-	rm -rf sw/build
-
-## Removes the HW build folder
-clean-sim:
+## Remove the build folders
+.PHONY: clean
+clean: clean-app
 	@rm -rf build
 
-## Does the same as app-restore
-clean-app: app-restore
-
-## Removes the CMake build folder and the HW build folder
-clean-all: app-restore clean-sim
+## Leave the repository in a clean state, removing all generated files. For now, it just calls clean.
+.PHONY: clean-all
+clean-all: clean

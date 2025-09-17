@@ -124,3 +124,19 @@ For more information about this safety island accelerator, check this [paper](ht
 The design uses LVT cells, slim digital IOs, and CUP bondpads, and memory macros sourced from ARM. This is the second tape-out of CEI-UPM, employing a single power domain to simplify the ASIC flow.
 
 This chip has been sponsored by Talent2Concept (PDC2023-145865)
+
+## HEEPatia
+
+`HEEPatia` is the first silicon implementation of X-HEEP taped out in the TSMC 16nm technology. It was built as part of a collaboration between the EPFL Embedded Systems Laboratory and Telecommunication Circuits Laboratory, as well as Politecnico di Torino. 
+
+![HEEPatia](..//images/chips/heepatia.png)
+
+<p  align="center">Figure 4: HEEPatia Test Chip layout in TSMC 16nm </p>
+
+`HEEPatia`, taped out in July 2025, utilizes a dual-core X-HEEP implementation configured with the CV32E40P and CV32E40PX CPUs, the latter of which is extended with the [Coprosit coprocessing unit for posit arithmetic](https://github.com/esl-epfl/Coprosit). HEEPatia contains a total of 608 kB of memory, including 352 kB of SRAM among the MCU and IPs, as well as 256 kB of [Gain-Cell Random Access Memory](https://raaam-tech.com/technology/).
+
+In addition to the novel coprocessor and memory units, HEEPatia contains various heterogeneous accelerator architectures to improve the performance and decrease the energy consumption of different edge-AI workloads. Namely, it integrates two instances of near-memory computing [Carus](https://ieeexplore.ieee.org/abstract/document/10964076) with the DomaIn-specific System-technology CO-design (DISCO) CGRA, an IP based on the [VWR2A](https://dl.acm.org/doi/abs/10.1145/3489517.3530980) architecture.
+
+HEEPatia is implemented using a mixture of LVT and SVT cells. Its purposes are to serve as a research platform used for comparing various hardware IPs in terms of PPA trade-offs, and to use a combination of the aforementioned IPs to execute state-of-the-art edge-AI applicaitons.
+
+This chip has been sponsored by [SwissChips](https://swisschips.ethz.ch/).
