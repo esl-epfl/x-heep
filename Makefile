@@ -25,11 +25,13 @@ $(info USING VENV)
 FUSESOC 	= $(PWD)/$(VENV)/fusesoc
 PYTHON  	= $(PWD)/$(VENV)/python
 RV_PROFILE 	= $(PWD)/$(VENV)/rv_profile
+AREA_PLOT  	= $(PWD)/$(VENV)/area-plot
 else
 $(info USING MINICONDA $(CONDA_DEFAULT_ENV))
 FUSESOC 	:= $(shell which fusesoc)
 PYTHON  	:= $(shell which python)
 RV_PROFILE  := $(shell which rv_profile)
+AREA_PLOT   := $(shell which area-plot)
 endif
 
 # Project options are based on the app to be build (default - hello_world)
@@ -83,8 +85,7 @@ FLASHREAD_ADDR ?= 0x0
 FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
 FLASHREAD_BYTES ?= 256
 
-
-#binary to store in flash memory
+# Binary to store in flash memory
 FLASHWRITE_FILE ?= $(mkfile_path)/sw/build/main.hex
 
 #max address in the hex file, used to program the flash
@@ -99,6 +100,11 @@ else
 	BYTES_AFTER_MAX_HEX_ADDRESS := $(shell tac $(FLASHWRITE_FILE) | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
 	FLASHWRITE_BYTES := $(shell echo $$(( $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 )))
 endif
+
+# Area plot default configuration
+AREA_PLOT_RPT 		?= $(word 1, $(shell find build -type f -name "*area*.rpt")) # path to the area report file
+AREA_PLOT_OUTDIR 	?= build/area-plot/ # output directory for the area plot
+AREA_PLOT_TOP 		?=# top level module to consider for the area plot (automatically infer)
 
 # Export variables to sub-makefiles
 export
@@ -360,6 +366,14 @@ run-fpga-flash-load:
 .PHONY: profile
 profile:
 	bash util/profile/run_profile.sh $(RV_PROFILE)
+
+
+## @section Area Plot
+## Generate post-synthesis area plot given a synthesis area report
+# For additional arguments use area-plot --help
+.PHONY: area-plot
+area-plot:
+	$(AREA_PLOT) --filename $(AREA_PLOT_RPT) --out-dir $(AREA_PLOT_OUTDIR) --top-module $(AREA_PLOT_TOP)
 
 ## @section Cleaning commands
 
