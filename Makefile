@@ -370,7 +370,6 @@ profile:
 
 ## @section Area Plot
 ## Generate post-synthesis area plot given a synthesis area report
-
 # For additional arguments use area-plot --help
 .PHONY: area-plot
 area-plot:
