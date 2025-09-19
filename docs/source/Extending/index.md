@@ -29,4 +29,3 @@ To learn how to extend X-HEEP you can read the guides in this section.
 eXtendingHW
 eXtendingSW
 eXamples
-*
