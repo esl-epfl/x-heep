@@ -52,4 +52,5 @@ Index
    /Testing/index
    /Peripherals/index
    /ExternalPeripherals/index
+   /FPGA/index
    /ASIC/index
