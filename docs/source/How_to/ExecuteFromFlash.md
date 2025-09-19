@@ -74,8 +74,15 @@ To use this mode, when targetting ASICs or FPGA bitstreams,
 make sure you have the `boot_sel_i` input (e.g., a switch) set to 1,
 and the `execute_from_flash_i` set to 1 too.
 
-Note that the FLASH model is not compatible with **verilator**,
+Note that the FLASH model is not `fully` compatible with **verilator**,
 thus the simulation must be carried out with either **modelsim** or **vcs**.
+The FLASH models requires a simulator capable of representing high-impedence states (`z`),
+and the current **verilator** version does not support them.
+However, high-impedence states are only required when reading in quad-mode, or 
+when writing (in any mode) - thus reading only in single-mode from FLASH is supported in 
+**verilator** as well (as for example booting from FLASH, where the bootrom and crt0 only reads in single-mode).
+!! Note that it supports single-mode just because the **verilator** model is compiled in a way that bidirectional `MOSI/MISO` signals 
+have been given priority to the FLASH, it may not be the case in future versions !!
 
 Make sure to compile your SW using the link_flash_exec.ld linker script.
 
