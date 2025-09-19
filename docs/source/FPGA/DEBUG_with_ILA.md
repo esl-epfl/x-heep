@@ -1,12 +1,10 @@
-## Using ILA for Debugging in Vivado
+# Using ILA for Debugging in Vivado
 
-### 🧠 What is the Integrated Logic Analyzer (ILA)?
+## 🧠 What is the Integrated Logic Analyzer (ILA)?
 
 The **Integrated Logic Analyzer (ILA)** is a built-in debug core in Vivado that allows real-time observation of internal FPGA signals. It works like a digital oscilloscope inside the FPGA, capturing signal transitions based on customizable trigger conditions. This enables you to debug and analyze logic behavior without needing external test equipment or adding temporary output pins.
 
----
-
-### 🛠️ Debugging X-HEEP on FPGA with ILA
+## 🛠️ Debugging X-HEEP on FPGA with ILA
 
 To debug the **X-HEEP** SoC running on an FPGA like the ZCU104 using the ILA tool:
 
@@ -75,14 +73,11 @@ To debug the **X-HEEP** SoC running on an FPGA like the ZCU104 using the ILA too
 ```{Warning}
    Do not decrease it the JTAG Frequency too much, it is not gonna work either. You need to find the golden middle.
 ```
----
 
-### ✅ Tipzzzzzzz
+## ✅ Tipz
 
 Use ILA especially when debugging:
 - AXI transactions
 - Handshakes in the instruction or data interfaces.
 - **Timing issues** or unexpected behavior in custom logic (your simulation works, but FPGA fails).
 - [Refer to the AMD Documentation](https://docs.amd.com/r/en-US/ug936-vivado-tutorial-programming-debugging/Using-the-Vivado-Integrated-Logic-Analyzer)
-
-
