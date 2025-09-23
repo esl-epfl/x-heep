@@ -25,7 +25,7 @@ plotly_get_chrome
 
 You can also customize the input report path, output directory, and top-level module for the plot (which may differ from X-HEEP’s main top-level) by providing additional arguments. For example:
 ```sh
-make area-plot AREA_RPT=./build/area.rpt PLOT_OUTDIR=./util/area-plot/ PLOT_TOP=u_core_v_mini_mcu
+make area-plot AREA_PLOT_RPT=./build/area.rpt AREA_PLOT_OUTDIR=./util/area-plot/ AREA_PLOT_TOP=u_core_v_mini_mcu
 ```
 
 For more advanced options, run:
