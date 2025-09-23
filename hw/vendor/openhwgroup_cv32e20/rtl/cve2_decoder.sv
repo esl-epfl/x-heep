@@ -16,7 +16,8 @@
 module cve2_decoder #(
   parameter bit RV32E               = 0,
   parameter cve2_pkg::rv32m_e RV32M = cve2_pkg::RV32MFast,
-  parameter cve2_pkg::rv32b_e RV32B = cve2_pkg::RV32BNone
+  parameter cve2_pkg::rv32b_e RV32B = cve2_pkg::RV32BNone,
+  parameter bit               XInterface    = 1'b0
 ) (
   input  logic                 clk_i,
   input  logic                 rst_ni,
@@ -50,46 +51,50 @@ module cve2_decoder #(
   output logic [31:0]           zimm_rs1_type_o,
 
   // register file
-  output cve2_pkg::rf_wd_sel_e rf_wdata_sel_o,   // RF write data selection
-  output logic                 rf_we_o,          // write enable for regfile
-  output logic [4:0]           rf_raddr_a_o,
-  output logic [4:0]           rf_raddr_b_o,
-  output logic [4:0]           rf_waddr_o,
-  output logic                 rf_ren_a_o,          // Instruction reads from RF addr A
-  output logic                 rf_ren_b_o,          // Instruction reads from RF addr B
+  output logic [XInterface:0]      rf_wdata_sel_o,   // RF write data selection
+  output logic                     rf_we_o,          // write enable for regfile
+  output logic [4:0]               rf_raddr_a_o,
+  output logic [4:0]               rf_raddr_b_o,
+  output logic [4:0]               rf_waddr_o,
+  output logic                     rf_ren_a_o,          // Instruction reads from RF addr A
+  output logic                     rf_ren_b_o,          // Instruction reads from RF addr B
 
   // ALU
-  output cve2_pkg::alu_op_e    alu_operator_o,        // ALU operation selection
-  output cve2_pkg::op_a_sel_e  alu_op_a_mux_sel_o,    // operand a selection: reg value, PC,
-                                                      // immediate or zero
-  output cve2_pkg::op_b_sel_e  alu_op_b_mux_sel_o,    // operand b selection: reg value or
-                                                      // immediate
-  output logic                 alu_multicycle_o,      // ternary bitmanip instruction
+  output cve2_pkg::alu_op_e        alu_operator_o,        // ALU operation selection
+  output cve2_pkg::op_a_sel_e      alu_op_a_mux_sel_o,    // operand a selection: reg value, PC,
+                                                          // immediate or zero
+  output cve2_pkg::op_b_sel_e      alu_op_b_mux_sel_o,    // operand b selection: reg value or
+                                                          // immediate
+  output logic                     alu_multicycle_o,      // ternary bitmanip instruction
 
   // MULT & DIV
-  output logic                 mult_en_o,             // perform integer multiplication
-  output logic                 div_en_o,              // perform integer division or remainder
-  output logic                 mult_sel_o,            // as above but static, for data muxes
-  output logic                 div_sel_o,             // as above but static, for data muxes
+  output logic                     mult_en_o,             // perform integer multiplication
+  output logic                     div_en_o,              // perform integer division or remainder
+  output logic                     mult_sel_o,            // as above but static, for data muxes
+  output logic                     div_sel_o,             // as above but static, for data muxes
 
-  output cve2_pkg::md_op_e     multdiv_operator_o,
-  output logic [1:0]           multdiv_signed_mode_o,
+  output cve2_pkg::md_op_e         multdiv_operator_o,
+  output logic [1:0]               multdiv_signed_mode_o,
 
   // CSRs
-  output logic                 csr_access_o,          // access to CSR
-  output cve2_pkg::csr_op_e    csr_op_o,              // operation to perform on CSR
+  output logic                     csr_access_o,          // access to CSR
+  output cve2_pkg::csr_op_e        csr_op_o,              // operation to perform on CSR
 
   // LSU
-  output logic                 data_req_o,            // start transaction to data memory
-  output logic                 data_we_o,             // write enable
-  output logic [1:0]           data_type_o,           // size of transaction: byte, half
-                                                      // word or word
-  output logic                 data_sign_extension_o, // sign extension for data read from
+  output logic                     data_req_o,            // start transaction to data memory
+  output logic                     data_we_o,             // write enable
+  output logic [1:0]               data_type_o,           // size of transaction: byte, half
+                                                          // word or word
+  output logic                     data_sign_extension_o, // sign extension for data read from
                                                       // memory
 
+  // Core-V eXtension interface (CV-X-IF)
+  input  cve2_pkg::readregflags_t  x_issue_resp_register_read_i,
+  input  cve2_pkg::writeregflags_t x_issue_resp_writeback_i,
+
   // jump/branches
-  output logic                 jump_in_dec_o,         // jump is being calculated in ALU
-  output logic                 branch_in_dec_o
+  output logic                     jump_in_dec_o,         // jump is being calculated in ALU
+  output logic                     branch_in_dec_o
 );
 
   import cve2_pkg::*;
@@ -205,7 +210,7 @@ module cve2_decoder #(
     multdiv_operator_o    = MD_OP_MULL;
     multdiv_signed_mode_o = 2'b00;
 
-    rf_wdata_sel_o        = RF_WD_EX;
+    rf_wdata_sel_o        = $bits(rf_wdata_sel_o)'({RF_WD_EX});
     rf_we                 = 1'b0;
     rf_ren_a_o            = 1'b0;
     rf_ren_b_o            = 1'b0;
@@ -612,7 +617,7 @@ module cve2_decoder #(
         end else begin
           // instruction to read/modify CSR
           csr_access_o     = 1'b1;
-          rf_wdata_sel_o   = RF_WD_CSR;
+          rf_wdata_sel_o   = $bits(rf_wdata_sel_o)'({RF_WD_CSR});
           rf_we            = 1'b1;
 
           if (~instr[14]) begin
@@ -653,6 +658,13 @@ module cve2_decoder #(
       jump_set_o      = 1'b0;
       branch_in_dec_o = 1'b0;
       csr_access_o    = 1'b0;
+      // CV-X-IF
+      if(XInterface) begin
+        rf_ren_a_o       = x_issue_resp_register_read_i[0];
+        rf_ren_b_o       = x_issue_resp_register_read_i[1];
+        rf_we            = x_issue_resp_writeback_i;
+        rf_wdata_sel_o   = $bits(rf_wdata_sel_o)'({RF_WD_COPROC});
+      end 
     end
   end
 
