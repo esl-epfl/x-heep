@@ -145,7 +145,7 @@ FOREACH(file_path IN LISTS new_list)
     endif()
   elseif( (${file_path} MATCHES "${SOURCE_PATH}external/") AND ( NOT  ${file_path} MATCHES "exclude" ) )
     SET(add 1)
-  elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/.*${MAINFILE}\." ) # look for main.*
+  elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}\\." ) # look for main.*
     SET(app_found 1)
   elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/" ) # other sources
     SET(add 1)
@@ -182,7 +182,7 @@ if( app_found EQUAL 0 )
       if(NOT ${file_path} MATCHES ".*/crt/.*")
         SET(add 1)
       endif()
-    elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) AND ( NOT  ${file_path} MATCHES "exclude" ) )
+    elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/${MAINFILE}\\." ) AND ( NOT  ${file_path} MATCHES "exclude" ) )
       SET(add 1)
     endif()
 
