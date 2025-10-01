@@ -1,3 +1,11 @@
+from enum import Enum
+
+class PadMapping(Enum):
+    TOP = "top"
+    RIGHT = "right"
+    BOTTOM = "bottom"
+    LEFT = "left"
+
 class Pad:
 
     def remove_comma_io_interface(self):
@@ -13,10 +21,10 @@ class Pad:
 
         # Mapping dictionary from string to integer
         mapping_dict = {
-            "top": "core_v_mini_mcu_pkg::TOP",
-            "right": "core_v_mini_mcu_pkg::RIGHT",
-            "bottom": "core_v_mini_mcu_pkg::BOTTOM",
-            "left": "core_v_mini_mcu_pkg::LEFT",
+            PadMapping.TOP: "core_v_mini_mcu_pkg::TOP",
+            PadMapping.RIGHT: "core_v_mini_mcu_pkg::RIGHT",
+            PadMapping.BOTTOM: "core_v_mini_mcu_pkg::BOTTOM",
+            PadMapping.LEFT: "core_v_mini_mcu_pkg::LEFT",
         }
 
         mapping = ""

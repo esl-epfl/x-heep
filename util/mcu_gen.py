@@ -25,7 +25,7 @@ from x_heep_gen.system import BusType
 import x_heep_gen.peripherals.base_peripherals
 import x_heep_gen.peripherals.user_peripherals
 import x_heep_gen.peripherals.abstractions
-from x_heep_gen.peripherals.pads import Pad
+from x_heep_gen.pads import Pad,PadMapping
 import math
 import os
 
@@ -69,15 +69,22 @@ def prepare_pads_for_layout(total_pad_list, physical_attributes):
     bottom_pad_list = []
     right_pad_list = []
     left_pad_list = []
+    pad_lists ={
+        PadMapping.TOP: top_pad_list,
+        PadMapping.BOTTOM: bottom_pad_list,
+        PadMapping.RIGHT: right_pad_list,
+        PadMapping.LEFT: left_pad_list,
+    }
     for pad in total_pad_list:
-        if pad.pad_mapping == "top":
-            top_pad_list.append(pad)
-        elif pad.pad_mapping == "bottom":
-            bottom_pad_list.append(pad)
-        elif pad.pad_mapping == "right":
-            right_pad_list.append(pad)
-        elif pad.pad_mapping == "left":
-            left_pad_list.append(pad)
+        if pad.pad_mapping in pad_lists:
+            pad_lists[pad.pad_mapping].append(pad)
+        else:
+            print(
+                "ERROR: Pad {0} has an invalid mapping {1}. Please set the mapping to top, bottom, left, or right.".format(
+                    pad.cell_name, pad.pad_mapping
+                )
+            )
+            return
 
     # Order pads according to layout index
     top_pad_list.sort(key=lambda x: x.layout_index)
@@ -387,7 +394,7 @@ def generate_xheep(args):
             pad_active = "high"
 
         try:
-            pad_mapping = pads[key]["mapping"].strip(",")
+            pad_mapping = PadMapping(pads[key]["mapping"].strip(","))
         except KeyError:
             pad_mapping = None
 
@@ -601,7 +608,7 @@ def generate_xheep(args):
                 pad_active = "high"
 
             try:
-                pad_mapping = external_pads[key]["mapping"]
+                pad_mapping = PadMapping(external_pads[key]["mapping"])
             except KeyError:
                 pad_mapping = None
 
