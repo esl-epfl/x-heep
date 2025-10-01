@@ -35,7 +35,7 @@ AREA_PLOT   := $(shell which area-plot)
 endif
 
 # Project options are based on the app to be build (default - hello_world)
-PROJECT  ?= hello_world
+PROJECT  ?= mult
 
 LINK_FOLDER ?= $(mkfile_path)/sw/linker
 

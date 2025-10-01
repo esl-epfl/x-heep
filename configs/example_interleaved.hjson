@@ -176,6 +176,13 @@
             path:    "./hw/ip/i2s/data/i2s.hjson"
         }
 
+        mult: {
+            offset:  0x00080000
+            length:  0x00010000
+            is_included: "yes"
+            path:    "./hw/ip/mult/data/mult.hjson"
+        }
+
     }
 
     flash_mem: {
@@ -243,6 +250,8 @@
             intr_host_timeout:       48
             spi2_intr_event:         49
             i2s_intr_event:          50
+            mult_intr_event:         51
+
         }
     }
 }

@@ -104,6 +104,12 @@
             length:  0x00010000
             path:    "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
         }
+
+        mult: {
+            offset:  0x000B0000
+            length:  0x00010000
+            path:    "./hw/ip/mult/data/mult.hjson"
+        }
     }
 
     peripherals: {
@@ -223,6 +229,8 @@
             intr_host_timeout:       48
             spi2_intr_event:         49
             i2s_intr_event:          50
+            mult_intr_event:         51
+
         }
     }
 }
