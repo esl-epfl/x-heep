@@ -385,7 +385,7 @@ ${pad.core_v_mini_mcu_interface}
       .ext_dma_addr_req_o(ext_dma_addr_req_o),
       .ext_dma_addr_resp_i(ext_dma_addr_resp_i),
       .my_ip_master_bus_req_i(my_ip_master_bus_req_i),
-      .my_ip_master_bus_resp_o(my_ip_master_bus_resp_o),
+      .my_ip_master_bus_resp_o(my_ip_master_bus_resp_o)
   );
 
   memory_subsystem #(
