@@ -486,7 +486,7 @@ my_ip #(
       .my_ip_done_o,
 
       // Interrupt signal
-      my_ip_interrupt_o(my_ip_intr_event),
+      .my_ip_interrupt_o(my_ip_intr_event),
 
       // Master ports on the system bus
       .my_ip_master_bus_req_o,
