@@ -174,7 +174,7 @@ module peripheral_subsystem
   assign intr_vector[50] = i2s_intr_event;
 
   // External interrupts assignement
-  for (genvar i = 0; i < NEXT_INT; i++) begin
+  for (genvar i = 0; i < NEXT_INT; i++) begin : gen_external_intr_vect
     assign intr_vector[i+PLIC_USED_NINT] = intr_vector_ext_i[i];
   end
 

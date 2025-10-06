@@ -332,12 +332,12 @@ module dma_read_unit
   assign data_in_addr = read_ptr_reg;
 
   generate
-    if (RVALID_FIFO_DEPTH != 1) begin
+    if (RVALID_FIFO_DEPTH != 1) begin : gen_rvalid_fifo
       assign read_data_offset_alm_full = (read_data_offset_usage == LastFifoUsage[AddrFifoDepth-1:0]);
       assign data_req_cond = (buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
                           read_data_offset_full == 1'b0 && read_data_offset_alm_full == 1'b0 &&
                           wait_for_rx == 1'b0);
-    end else begin
+    end else begin : gen_no_rvalid_fifo
       assign read_data_offset_alm_full = 1'b0;
       assign data_req_cond = (buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
                           wait_for_rx == 1'b0);

@@ -106,7 +106,7 @@ module testharness #(
 
   assign ext_dma_slot_tx[0] = iffifo_in_ready;
   assign ext_dma_slot_rx[0] = iffifo_out_valid;
-  if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin
+  if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : gen_dma_slot_tx
     assign ext_dma_slot_tx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
     assign ext_dma_slot_rx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
   end
