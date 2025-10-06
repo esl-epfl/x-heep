@@ -258,6 +258,7 @@ parameters:
     default: prim_pkg::ImplGeneri
 
 scripts:
+  # Build utils
   post_build_modelsim_scripts:
     cmd:
     - sh
@@ -274,11 +275,14 @@ scripts:
     cmd:
     - python
     - ../../../scripts/sim/modelsim/patch_modelsim_Makefile.py
-
   pre_patch_vcs_ams_Makefile:
     cmd:
     - python
     - ../../../scripts/sim/vcs/patch_vcs_ams_Makefile.py
+
+  # Simulation utils
+  print_uart_log:
+    cmd: [sh, -c, cat uart0.log]
 
 targets:
   default: &default_target
@@ -320,6 +324,8 @@ targets:
         - ams_sim? (pre_patch_vcs_ams_Makefile)
         - tool_xcelium? (pre_build_uartdpi)
         - tool_xcelium? (pre_build_remote_bitbang)
+      post_run:
+        - tool_verilator ? (print_uart_log)
     parameters:
     - COREV_PULP
     - FPU
@@ -524,3 +530,12 @@ targets:
         flow_path: flow/OpenROAD-flow-scripts/flow
         make_target: synth
 
+# Generators
+generators:
+  # Waivers generator for Verilator 5.XXX
+  waiver-v5-gen:
+    interpreter: python
+    command: util/waiver-gen.py
+    cache_type: input
+    file_input_parameters:
+    - waivers_v5 # list of .vlt files only required for Verilator 5.XXX
