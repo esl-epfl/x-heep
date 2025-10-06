@@ -1,10 +1,13 @@
-module my_ip (
+module my_ip #(
+    parameter type reg_req_t = reg_pkg::reg_req_t,
+    parameter type reg_rsp_t = reg_pkg::reg_rsp_t
+)(
     input logic clk_i,
     input logic rst_ni,
 
     // Register interface
-    input  reg_pkg::reg_req_t reg_req_i,
-    output reg_pkg::reg_rsp_t reg_rsp_o,
+    input  reg_req_t reg_req_i,
+    output reg_rsp_t reg_rsp_o,
 
     // Done signal
     output logic my_ip_done_o,
