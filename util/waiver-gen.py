@@ -53,6 +53,7 @@ def generate_core_file(config, major_version):
     # Append a list of Verilator 5.X specific waivers if the major version is >=5
     waiver_files_str = "      []" # default to an empty list (for Verilator 4.X)
     if major_version == 5:
+        print(f"> INFO: Detected Verilator 5.X, adding dedicated waivers to '{output_filename}'")
         files_root = config['files_root']
         waivers_v5_list = config['parameters']['waivers_v5']
         
@@ -84,6 +85,7 @@ targets:
     try:
         with open(output_filename, 'w') as f:
             f.write(core_template)
+            print(f"> INFO: Successfully wrote .core file to '{output_filename}'")
         return True
     except IOError as e:
         print(f"Error: Could not write to file '{output_filename}': {e}", file=sys.stderr)
