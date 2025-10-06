@@ -382,7 +382,7 @@ targets:
           - '--x-assign unique'
           - '--x-initial unique'
           - '--exe tb_top.cpp'
-          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
+          - '-CFLAGS "-Wall -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
 
@@ -416,7 +416,7 @@ targets:
           - '--x-assign unique'
           - '--x-initial unique'
           - '--exe tb_sc_top.cpp'
-          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
+          - '-CFLAGS "-std=c++14 -Wall -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf $(SYSTEMC_LIBDIR)/libsystemc.a"'
           - "-Wall"
 
