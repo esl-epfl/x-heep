@@ -162,7 +162,7 @@ module system_bus
   assign dma_addr_resp_o[${i}] = int_master_resp[${5+i*3}];
   % endfor
 
-  assign my_ip_master_bus_resp_o = int_master_resp[9]
+  assign my_ip_master_bus_resp_o = int_master_resp[9];
   
   // External master responses
   if (EXT_XBAR_NMASTER == 0) begin
