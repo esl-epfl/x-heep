@@ -85,7 +85,7 @@ targets:
     try:
         with open(output_filename, 'w') as f:
             f.write(core_template)
-            print(f"> INFO: Successfully wrote .core file to '{output_filename}'")
+            print(f"> INFO: Successfully wrote additional dependencies to '{output_filename}'")
         return True
     except IOError as e:
         print(f"Error: Could not write to file '{output_filename}': {e}", file=sys.stderr)
