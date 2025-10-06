@@ -89,7 +89,7 @@ module peripheral_subsystem
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
     output logic pdm2pcm_clk_en_o,
-    input  logic pdm2pcm_pdm_i
+    input  logic pdm2pcm_pdm_i,
 
     // My IP signals
     output logic     my_ip_done_o,
