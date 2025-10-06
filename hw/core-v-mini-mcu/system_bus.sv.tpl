@@ -50,6 +50,9 @@ module system_bus
     input  obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_i,
     output obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_o,
 
+    input   obi_req_t  my_ip_master_bus_req_i,
+    output  obi_resp_t my_ip_master_bus_resp_o,
+
     // External master ports
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
@@ -131,6 +134,8 @@ module system_bus
   assign int_master_req[${5+i*3}]  = dma_addr_req_i[${i}];
   % endfor
 
+  assign int_master_req[9] = my_ip_master_bus_req_i;
+
   // Internal + external master requests
   generate
     for (genvar i = 0; i < SYSTEM_XBAR_NMASTER; i++) begin: gen_sys_master_req_map
@@ -156,6 +161,8 @@ module system_bus
   assign dma_write_resp_o[${i}] = int_master_resp[${4+i*3}];
   assign dma_addr_resp_o[${i}] = int_master_resp[${5+i*3}];
   % endfor
+
+  assign my_ip_master_bus_resp_o = int_master_resp[9]
   
   // External master responses
   if (EXT_XBAR_NMASTER == 0) begin

@@ -109,6 +109,9 @@ class I2S(UserPeripheral, DataConfiguration):
     _name = "i2s"
     _config_path = "./hw/ip/i2s/data/i2s.hjson"
 
+class MY_IP(UserPeripheral, DataConfiguration):
+    _name = "my_ip"
+    _config_path = "./hw/ip/my_ip/data/my_ip.hjson"
 
 # Domain Class
 class UserPeripheralDomain(PeripheralDomain):

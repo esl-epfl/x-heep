@@ -1,0 +1,34 @@
+// Copyright EPFL and Politecnico di Torino contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "my_ip"
+  clock_primary: "clk_i"
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ]
+  regwidth: "32"
+  registers: [
+    { name:     "TEST_REG_W"
+      desc:     "Test register for writing"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "31:0", name: "WRITE", desc: "read" },
+      ]
+    }
+    { name:     "TEST_REG_R"
+      desc:     "Test register for reading"
+      swaccess: "ro"
+      hwaccess: "hro"
+      fields: [
+        { bits: "31:0", name: "READ", desc: "write" },
+      ]
+    }
+  ]
+  interrupt_list: [
+    { name: "my_ip_event"
+      desc: '''Event-related interrupts.'''
+    }
+  ]
+}

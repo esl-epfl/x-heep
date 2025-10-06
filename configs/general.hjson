@@ -159,6 +159,12 @@
             is_included: "yes"
             path:    "./hw/ip/i2s/data/i2s.hjson"
         }
+        my_ip: {
+            offset:  0x00080000
+            length:  0x00010000
+            is_included: "yes"
+            path:    "./hw/ip/my_ip/data/my_ip.hjson"
+        }
 
     }
 
@@ -227,6 +233,7 @@
             intr_host_timeout:       48
             spi2_intr_event:         49
             i2s_intr_event:          50
+            my_ip_intr_event:        51
         }
     }
 }

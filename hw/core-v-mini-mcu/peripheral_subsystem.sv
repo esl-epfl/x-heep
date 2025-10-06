@@ -9,7 +9,7 @@ module peripheral_subsystem
   import reg_pkg::*;
 #(
     //do not touch these parameters
-    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
+    parameter NEXT_INT_RND         = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -22,8 +22,8 @@ module peripheral_subsystem
 
     //PLIC
     input  logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
-    output logic                    irq_plic_o,
-    output logic                    msip_o,
+    output logic                irq_plic_o,
+    output logic                msip_o,
 
     //UART PLIC interrupts
     input logic uart_intr_tx_watermark_i,
@@ -90,6 +90,11 @@ module peripheral_subsystem
     output logic pdm2pcm_clk_o,
     output logic pdm2pcm_clk_en_o,
     input  logic pdm2pcm_pdm_i
+
+    // My IP signals
+    output logic     my_ip_done_o,
+    output obi_req_t my_ip_master_bus_req_o,
+    input  obi_rsp_t my_ip_master_bus_rsp_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -201,18 +206,18 @@ module peripheral_subsystem
 
 `else
 
-  obi_pkg::obi_req_t  slave_fifoin_req;
+  obi_pkg::obi_req_t slave_fifoin_req;
   obi_pkg::obi_resp_t slave_fifoin_resp;
 
-  obi_pkg::obi_req_t  slave_fifoout_req;
+  obi_pkg::obi_req_t slave_fifoout_req;
   obi_pkg::obi_resp_t slave_fifoout_resp;
 
   obi_fifo obi_fifo_i (
       .clk_i(clk_cg),
       .rst_ni,
-      .producer_req_i(slave_fifoin_req),
+      .producer_req_i (slave_fifoin_req),
       .producer_resp_o(slave_fifoin_resp),
-      .consumer_req_o(slave_fifoout_req),
+      .consumer_req_o (slave_fifoout_req),
       .consumer_resp_i(slave_fifoout_resp)
   );
 
@@ -466,6 +471,26 @@ module peripheral_subsystem
       .i2s_rx_valid_o(i2s_rx_valid_o)
   );
 
+my_ip #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) my_ip_i (
+      .clk_i(clk_cg),
+      .rst_ni,
 
+      // Register interface
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::MY_IP_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::MY_IP_IDX]),
+
+      // Done signal
+      .my_ip_done_o,
+
+      // Interrupt signal
+      my_ip_interrupt_o(my_ip_intr_event),
+
+      // Master ports on the system bus
+      .my_ip_master_bus_req_o,
+      .my_ip_master_bus_resp_i
+  );
 
 endmodule : peripheral_subsystem

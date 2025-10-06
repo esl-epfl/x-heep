@@ -75,6 +75,8 @@ ${pad.core_v_mini_mcu_interface}
     output logic  [EXT_HARTS_RND-1:0] ext_debug_req_o,
     output logic  ext_debug_reset_no,
 
+    output logic my_ip_done_o;
+
     // PLIC external interrupts
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     // FIC external interrupt
@@ -99,7 +101,7 @@ ${pad.core_v_mini_mcu_interface}
     // External SPC interface
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
-    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -142,6 +144,10 @@ ${pad.core_v_mini_mcu_interface}
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
   obi_resp_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_resp;
+
+  // MY IP signals
+  obi_req_t  my_ip_master_bus_req_i;
+  obi_resp_t my_ip_master_bus_resp_o;
 
   // debug signals
   obi_req_t debug_slave_req;
@@ -377,7 +383,9 @@ ${pad.core_v_mini_mcu_interface}
       .ext_dma_write_req_o(ext_dma_write_req_o),
       .ext_dma_write_resp_i(ext_dma_write_resp_i),
       .ext_dma_addr_req_o(ext_dma_addr_req_o),
-      .ext_dma_addr_resp_i(ext_dma_addr_resp_i)
+      .ext_dma_addr_resp_i(ext_dma_addr_resp_i),
+      .my_ip_master_bus_req_i(my_ip_master_bus_req_i),
+      .my_ip_master_bus_resp_o(my_ip_master_bus_resp_o),
   );
 
   memory_subsystem #(
@@ -526,7 +534,10 @@ ${pad.core_v_mini_mcu_interface}
       .i2s_sd_o(i2s_sd_o),
       .i2s_sd_oe_o(i2s_sd_oe_o),
       .i2s_sd_i(i2s_sd_i),
-      .i2s_rx_valid_o(i2s_rx_valid)
+      .i2s_rx_valid_o(i2s_rx_valid),
+      .my_ip_done_o(my_ip_done_o),
+      .my_ip_master_bus_req_o(my_ip_master_bus_req_i),
+      .my_ip_master_bus_resp_i(my_ip_master_bus_resp_o)
   );
 
   // Debug_req assign
