@@ -587,7 +587,7 @@ my_ip #(
 
       // Master ports on the system bus
       .my_ip_master_bus_req_o,
-      .my_ip_master_bus_resp_i
+      .my_ip_master_bus_rsp_i
   );
   
 endmodule : peripheral_subsystem

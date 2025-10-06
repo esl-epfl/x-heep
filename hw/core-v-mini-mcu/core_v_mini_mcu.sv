@@ -325,7 +325,7 @@ module core_v_mini_mcu
     output logic  [EXT_HARTS_RND-1:0] ext_debug_req_o,
     output logic  ext_debug_reset_no,
 
-    output logic my_ip_done_o,
+    output logic my_ip_done_o;
 
     // PLIC external interrupts
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
@@ -351,7 +351,7 @@ module core_v_mini_mcu
     // External SPC interface
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
-    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -637,7 +637,7 @@ module core_v_mini_mcu
       .ext_dma_addr_req_o(ext_dma_addr_req_o),
       .ext_dma_addr_resp_i(ext_dma_addr_resp_i),
       .my_ip_master_bus_req_i(my_ip_master_bus_req_i),
-      .my_ip_master_bus_resp_o(my_ip_master_bus_resp_o)
+      .my_ip_master_bus_resp_o(my_ip_master_bus_resp_o),
   );
 
   memory_subsystem #(
