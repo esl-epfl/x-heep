@@ -1,7 +1,7 @@
 module my_ip #(
     parameter type reg_req_t = reg_pkg::reg_req_t,
     parameter type reg_rsp_t = reg_pkg::reg_rsp_t
-)(
+) (
     input logic clk_i,
     input logic rst_ni,
 

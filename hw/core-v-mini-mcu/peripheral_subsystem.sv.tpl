@@ -96,7 +96,7 @@ module peripheral_subsystem
     // My IP signals
     output logic     my_ip_done_o,
     output obi_req_t my_ip_master_bus_req_o,
-    input  obi_resp_t my_ip_master_bus_rsp_i
+    input  obi_resp_t my_ip_master_bus_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -587,7 +587,7 @@ my_ip #(
 
       // Master ports on the system bus
       .my_ip_master_bus_req_o,
-      .my_ip_master_bus_rsp_i
+      .my_ip_master_bus_resp_i
   );
   
 endmodule : peripheral_subsystem
