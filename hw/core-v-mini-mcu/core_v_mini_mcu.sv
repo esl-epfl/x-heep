@@ -325,7 +325,7 @@ module core_v_mini_mcu
     output logic  [EXT_HARTS_RND-1:0] ext_debug_req_o,
     output logic  ext_debug_reset_no,
 
-    output logic my_ip_done_o;
+    output logic my_ip_done_o,
 
     // PLIC external interrupts
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
