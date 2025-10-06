@@ -13,7 +13,7 @@ module my_ip (
     output logic my_ip_interrupt_o,
 
     // Master ports on the system bus
-    output obi_req_t  my_ip_master_bus_req_o,
-    input  obi_resp_t my_ip_master_bus_resp_i
+    output obi_pkg::obi_req_t  my_ip_master_bus_req_o,
+    input  obi_pkg::obi_resp_t my_ip_master_bus_resp_i
 );
 endmodule
