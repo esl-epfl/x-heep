@@ -101,7 +101,7 @@ ${pad.core_v_mini_mcu_interface}
     // External SPC interface
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
-    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
 );
 
   import core_v_mini_mcu_pkg::*;
