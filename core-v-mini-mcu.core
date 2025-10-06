@@ -37,7 +37,7 @@ filesets:
     - x-heep:ip:obi_fifo
     - x-heep:ip:pdm2pcm
     - esl_epfl:ip:obi_spi_slave
-    - example:ip:my_ip
+    - x-heep:ip:my_ip
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
