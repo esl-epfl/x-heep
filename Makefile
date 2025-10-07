@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-MAKE                       = make
+MAKE	= make
 
 # Get the absolute path
 mkfile_path := $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")
@@ -37,29 +37,27 @@ endif
 # Project options are based on the app to be build (default - hello_world)
 PROJECT  ?= hello_world
 
+# Folder where the linker scripts are located
 LINK_FOLDER ?= $(mkfile_path)/sw/linker
-
 # Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
 LINKER   ?= on_chip
 
 # Target options are 'sim' (default) and 'pynq-z2' and 'nexys-a7-100t'
 TARGET   	?= sim
+
+# Mcu-gen configuration files
 X_HEEP_CFG  ?= configs/general.hjson
 PADS_CFG ?= configs/pad_cfg.hjson
 PYTHON_X_HEEP_CFG ?= 
-
-# Cached xheep object location
+# Cached mcu-gen xheep object location
 XHEEP_CACHE ?= build/xheep_cache.pickle
 
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER ?= gcc
-
 # Compiler prefix options are 'riscv32-unknown-' (default)
 COMPILER_PREFIX ?= riscv32-unknown-
-
 # Compiler flags to be passed (for both linking and compiling)
 COMPILER_FLAGS ?=
-
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
 ARCH     ?= rv32imc
 
@@ -68,13 +66,9 @@ SOURCE 	 ?= $(".")
 
 # Simulation engines options are verilator (default) and questasim
 SIMULATOR ?= verilator
-
 # SIM_ARGS: Additional simulation arguments for run-app-verilator based on input parameters:
 # - MAX_SIM_TIME: Maximum simulation time in clock cycles (unlimited if not provided)
 SIM_ARGS += $(if $(MAX_SIM_TIME),+max_sim_time=$(MAX_SIM_TIME))
-
-# Timeout for simulation, default 120
-TIMEOUT ?= 120
 
 # Testing flags
 # Optional TEST_FLAGS options are '--compile-only'
@@ -84,11 +78,9 @@ TEST_FLAGS=
 FLASHREAD_ADDR ?= 0x0
 FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
 FLASHREAD_BYTES ?= 256
-
 # Binary to store in flash memory
 FLASHWRITE_FILE ?= $(mkfile_path)/sw/build/main.hex
-
-#max address in the hex file, used to program the flash
+# Max address in the hex file, used to program the flash
 ifeq ($(wildcard $(FLASHWRITE_FILE)),)
 	MAX_HEX_ADDRESS  := 0
 	MAX_HEX_ADDRESS_DEC := 0
@@ -209,53 +201,51 @@ app-list:
 ## @section Simulation
 
 ## Verilator simulation with C++
-verilator-sim:
+verilator-build:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildsim.log
 
 ## Verilator simulation with SystemC
-verilator-sim-sc:
+verilator-build-sc:
 	$(FUSESOC) --cores-root . run --no-export --target=sim_sc --tool=verilator $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildsim.log
 
 ## Questasim simulation
-questasim-sim:
+questasim-build:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=modelsim $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildsim.log
 
 ## Questasim simulation with HDL optimized compilation
-questasim-sim-opt: questasim-sim
+questasim-build-opt: questasim-build
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt
 
 ## Questasim simulation with HDL optimized compilation and UPF power domain description
 ## @param FUSESOC_PARAM="--USE_UPF"
-questasim-sim-opt-upf: questasim-sim
+questasim-build-opt-upf: questasim-build
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt-upf
 
 ## VCS simulation
 ## @param CPU=cv32e20(default),cv32e40p,cv32e40x,cv32e40px
 ## @param BUS=onetoM(default),NtoM
-vcs-sim:
+vcs-build:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=vcs $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildsim.log
 
 ## VCS-AMS simulation:
-vcs-ams-sim:
+vcs-ams-build:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --flag "ams_sim" --tool=vcs $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildsim.log
 
 ## xcelium simulation
-xcelium-sim:
+xcelium-build:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=xcelium $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildsim.log
 
 ## Generates the build output for helloworld application
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
-run-helloworld: mcu-gen verilator-sim
+verilator-run-helloworld: mcu-gen verilator-build
 	$(MAKE) -C sw PROJECT=hello_world TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --run openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) \
 		--run_options="+firmware=../../../sw/build/main.hex $(SIM_ARGS)"
 
-## Generates the build output for freertos blinky application
-## Uses verilator to simulate the HW model and run the FW
+## First builds the app and then uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
-run-blinkyfreertos: mcu-gen verilator-sim
-	$(MAKE) -C sw PROJECT=example_freertos_blinky TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
+verilator-run-app: app
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --run openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) \
 		--run_options="+firmware=../../../sw/build/main.hex $(SIM_ARGS)"
 
@@ -263,9 +253,13 @@ run-blinkyfreertos: mcu-gen verilator-sim
 ## compiled firmware using the Verilator model previously built with the 
 ## `verilator-sim` target.
 ## UART Dumping in uart0.log to show recollected results
-run-app-verilator: app
+verilator-run: 
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --run openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) \
 		--run_options="+firmware=../../../sw/build/main.hex $(SIM_ARGS)"
+
+## Opens gtkwave to view the waveform generated by the last verilator simulation
+verilator-waves: .check-gtkwave
+	gtkwave ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator/waveform.vcd
 
 ## @section Vivado
 
@@ -293,7 +287,6 @@ openroad-sky130:
 	sed -i 's/(\*[^\n]*\*)//g' hw/vendor/pulp_platform_common_cells/src/*.sv
 	$(FUSESOC) --verbose --cores-root . run --target=asic_yosys_synthesis --flag=use_sky130 openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildopenroad.log
 	git checkout hw/vendor/pulp_platform_common_cells/*
-
 
 ## @section Program, Execute, and Debug w/ EPFL_Programmer
 
@@ -383,3 +376,11 @@ clean: clean-app
 ## Leave the repository in a clean state, removing all generated files. For now, it just calls clean.
 .PHONY: clean-all
 clean-all: clean
+
+## @section Utilities
+## Check if GTKWave is available
+.PHONY: .check-gtkwave
+.check-gtkwave:
+	@if [ ! `which gtkwave` ]; then \
+	printf -- "### ERROR: 'gtkwave' is not in PATH. Is the correct conda environment active?\n" >&2; \
+	exit 1; fi
