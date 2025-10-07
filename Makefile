@@ -170,6 +170,7 @@ format-python:
 	$(PYTHON) -m black util/x_heep_gen
 	$(PYTHON) -m black util/mcu_gen.py
 	$(PYTHON) -m black util/structs_periph_gen.py
+	$(PYTHON) -m black util/waiver-gen.py
 	$(PYTHON) -m black test/test_x_heep_gen/test_peripherals.py
 
 ## @section APP FW Build
