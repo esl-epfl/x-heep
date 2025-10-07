@@ -15,11 +15,20 @@ module testharness #(
     parameter USE_EXTERNAL_DEVICE_EXAMPLE = 1,
     parameter CLK_FREQUENCY               = 'd100_000  //KHz
 ) (
-    inout wire clk_i,
-    inout wire rst_ni,
-
-    inout wire boot_select_i,
-    inout wire execute_from_flash_i,
+`ifdef VERILATOR
+    input  wire         clk_i,
+    input  wire         rst_ni,
+    input  wire         boot_select_i,
+    input  wire         execute_from_flash_i,
+    output wire         exit_valid_o,
+`else // VERILATOR
+    inout  wire         clk_i,
+    inout  wire         rst_ni,
+    inout  wire         boot_select_i,
+    inout  wire         execute_from_flash_i,
+    inout  wire         exit_valid_o,
+`endif // VERILATOR
+    output logic [31:0] exit_value_o,
 
 `ifdef SIM_SYSTEMC
     output logic        ext_systemc_req_req_o,
@@ -36,9 +45,7 @@ module testharness #(
     input  wire         jtag_tms_i,
     input  wire         jtag_trst_ni,
     input  wire         jtag_tdi_i,
-    output wire         jtag_tdo_o,
-    output logic [31:0] exit_value_o,
-    inout  wire         exit_valid_o
+    output wire         jtag_tdo_o
 );
 
 
@@ -64,9 +71,21 @@ module testharness #(
   localparam EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS;
   localparam NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT;
 
+  // Internal signals
+  // ----------------
+  // Global pins
+  wire clk;
+  wire rst_n;
+  wire boot_select;
+  wire execute_from_flash;
+  wire exit_valid;
+
+  // UART
   wire uart_rx;
   wire uart_tx;
   logic sim_jtag_enable = (JTAG_DPI == 1);
+
+  // JTAG
   wire sim_jtag_tck;
   wire sim_jtag_tms;
   wire sim_jtag_tdi;
@@ -79,6 +98,7 @@ module testharness #(
   wire mux_jtag_trstn;
   wire [31:0] gpio;
 
+  // SPI
   wire [3:0] spi_flash_sd_io;
   wire [1:0] spi_flash_csb;
   wire spi_flash_sck;
@@ -86,8 +106,6 @@ module testharness #(
   wire [3:0] spi_sd_io;
   wire [1:0] spi_csb;
   wire spi_sck;
-
-  logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] ext_periph_select;
 
   logic iffifo_in_ready, iffifo_out_valid;
   logic iffifo_int_o;
@@ -112,6 +130,7 @@ module testharness #(
   end
 
   // External xbar master/slave and peripheral ports
+  logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] ext_periph_select;
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req;
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_req;
   obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_resp;
@@ -204,7 +223,17 @@ module testharness #(
   end
 `endif
 
-  // X-HEEP system
+  // -------------
+  // X-HEEP SYSTEM
+  // -------------
+  // Inout pins assignments
+  assign clk = clk_i;
+  assign rst_n = rst_ni;
+  assign boot_select = boot_select_i;
+  assign execute_from_flash = execute_from_flash_i;
+  assign exit_valid_o = exit_valid;
+
+  // X-HEEP system instance
   x_heep_system #(
       .COREV_PULP(COREV_PULP),
       .FPU(FPU),
@@ -213,16 +242,16 @@ module testharness #(
       .EXT_XBAR_NMASTER(HEEP_EXT_XBAR_NMASTER),
       .AO_SPC_NUM(AO_SPC_NUM)
   ) x_heep_system_i (
-      .clk_i,
-      .rst_ni,
+      .clk_i(clk),
+      .rst_ni(rst_n),
       .jtag_tck_i(mux_jtag_tck),
       .jtag_tms_i(mux_jtag_tms),
       .jtag_trst_ni(mux_jtag_trstn),
       .jtag_tdi_i(mux_jtag_tdi),
       .jtag_tdo_o(mux_jtag_tdo),
-      .boot_select_i,
-      .execute_from_flash_i,
-      .exit_valid_o,
+      .boot_select_i(boot_select),
+      .execute_from_flash_i(execute_from_flash),
+      .exit_valid_o(exit_valid),
       .uart_rx_i(uart_rx),
       .uart_tx_o(uart_tx),
       .gpio_0_io(gpio[0]),
@@ -410,8 +439,6 @@ module testharness #(
 
   assign slow_ram_slave_req[SLOW_MEMORY1_IDX] = ext_slave_req[SLOW_MEMORY1_IDX];
   assign ext_slave_resp[SLOW_MEMORY1_IDX]     = slow_ram_slave_resp[SLOW_MEMORY1_IDX];
-
-
 
 `else
 
