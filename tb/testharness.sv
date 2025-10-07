@@ -21,13 +21,13 @@ module testharness #(
     input  wire         boot_select_i,
     input  wire         execute_from_flash_i,
     output wire         exit_valid_o,
-`else // VERILATOR
+`else  // VERILATOR
     inout  wire         clk_i,
     inout  wire         rst_ni,
     inout  wire         boot_select_i,
     inout  wire         execute_from_flash_i,
     inout  wire         exit_valid_o,
-`endif // VERILATOR
+`endif  // VERILATOR
     output logic [31:0] exit_value_o,
 
 `ifdef SIM_SYSTEMC
