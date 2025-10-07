@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 #include "verilated.h"
-#include <verilated_vcd_sc.h>
+#include <verilated_fst_sc.h>
 #include "Vtestharness.h"
 #include "Vtestharness__Syms.h"
 #include "systemc.h"
@@ -307,10 +307,10 @@ int sc_main (int argc, char * argv[])
   sc_start(1, SC_NS);
 
 
-  VerilatedVcdSc* tfp = nullptr;
-  tfp = new VerilatedVcdSc;
+  VerilatedFstSc* tfp = nullptr;
+  tfp = new VerilatedFstSc;
   dut.trace(tfp, 99);  // Trace 99 levels of hierarchy
-  tfp->open("waveform.vcd");
+  tfp->open("waveform.fst");
 
   // Simulate until $finish
   while (!Verilated::gotFinish() && exit_valid !=1 ) {
