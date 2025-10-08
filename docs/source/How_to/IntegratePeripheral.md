@@ -5,10 +5,9 @@ This guide walks through the end-to-end flow to add a new memory-mapped peripher
 Set up the X-HEEP environment by following the [Getting Started guide](../GettingStarted/Setup.md).
 
 ## 1. Create the IP Structure
-As a good starting point, we suggest duplicating the DLC directory structure: `hw/ip_examples/dlc/{data,rtl,*.core,dlc_gen.sh}`. This is how the folder should look like:
+This is how the folder should look like:
 
 ```  
-new IP root
 └── hw/ip/<peripheral>
     ├── data/
     │   └──<peripheral>.hjson           # register description (for regtool generation)
@@ -104,7 +103,7 @@ This is a crucial step in integrating the new peripheral in X-HEEP's flow:
 
 ## 4. Reserve Address Space in the Configuration
 This is another crucial step in the integration of the peripheral. Please be aware that the address map of X-HEEP might change in the future, so consider this for the addresses of the following examples.
-As said at the beginning of this guide, these steps are the same for any domain you want to integrate the perihperal in, both `peripherals` and `always-on peripherals`.
+As said at the beginning of this guide, these steps are the same for any domain you want to integrate the perihperal in, both `user peripherals` and `base peripherals`.
 
 1. Extend the configuration you built (HJSON or Python) with a new entry in the preferred domain. Example (`configs/general.hjson`):
    ```hjson
