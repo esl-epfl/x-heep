@@ -190,7 +190,7 @@ You may pass additional simulation parameters to the generated simulation execut
   
 - `+max_sim_time=<time>`:
   Runs the simulation for a maximum of `<time>` clock cycles.
-  This is useful in case your application gets stuck in a certain point and never finishes; this parameter will force the simulation to terminate after a certain time so that you can later analyze the generated `waveform.vcd` file.
+  This is useful in case your application gets stuck in a certain point and never finishes; this parameter will force the simulation to terminate after a certain time so that you can later analyze the generated `waveform.fst` (or `waveform.vcd` if using QuestaSim) file.
   In that case, the simulation executable will exit with a return code of 2, indicating premature termination.
   If this parameter is not provided, the simulation will run until the program finishes (the `main()` function ends).
 

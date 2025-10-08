@@ -1,0 +1,44 @@
+diff --git a/rtl/tb/SimJTAG.sv b/rtl/tb/SimJTAG.sv
+index 7c6c1101..0fce7015 100644
+--- a/rtl/tb/SimJTAG.sv
++++ b/rtl/tb/SimJTAG.sv
+@@ -1,5 +1,12 @@
+ // See LICENSE.SiFive for license details.
+ //VCS coverage exclude_file
++
++`ifdef VERILATOR
++`define ASSIGN_DELAY
++`else
++`define ASSIGN_DELAY #0.1
++`endif
++
+ import "DPI-C" function int jtag_tick
+ (
+  input int port,
+@@ -42,7 +49,7 @@ module SimJTAG #(
+ 
+    wire [31:0]  random_bits = $random;
+ 
+-   wire         #0.1 __jtag_TDO = jtag_TDO_driven ?
++   wire         `ASSIGN_DELAY __jtag_TDO = jtag_TDO_driven ?
+                 jtag_TDO_data : random_bits[0];
+ 
+    bit          __jtag_TCK;
+@@ -53,12 +60,12 @@ module SimJTAG #(
+ 
+    reg          init_done_sticky;
+ 
+-   assign #0.1 jtag_TCK   = __jtag_TCK;
+-   assign #0.1 jtag_TMS   = __jtag_TMS;
+-   assign #0.1 jtag_TDI   = __jtag_TDI;
+-   assign #0.1 jtag_TRSTn = __jtag_TRSTn;
++   assign `ASSIGN_DELAY jtag_TCK   = __jtag_TCK;
++   assign `ASSIGN_DELAY jtag_TMS   = __jtag_TMS;
++   assign `ASSIGN_DELAY jtag_TDI   = __jtag_TDI;
++   assign `ASSIGN_DELAY jtag_TRSTn = __jtag_TRSTn;
+ 
+-   assign #0.1 exit = __exit;
++   assign `ASSIGN_DELAY exit = __exit;
+ 
+    always @(posedge clock) begin
+       r_reset <= reset;

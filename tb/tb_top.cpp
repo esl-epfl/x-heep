@@ -41,7 +41,7 @@ int main (int argc, char * argv[])
   Verilated::traceEverOn (true);
   VerilatedFstC *m_trace = new VerilatedFstC;
   dut->trace (m_trace, 99);
-  m_trace->open ("waveform.vcd");
+  m_trace->open ("waveform.fst");
 
   XHEEP_CmdLineOptions* cmd_lines_options = new XHEEP_CmdLineOptions(argc,argv);
 

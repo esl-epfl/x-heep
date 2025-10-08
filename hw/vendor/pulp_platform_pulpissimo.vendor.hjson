@@ -10,6 +10,8 @@
     rev: "4c0f9e754b43cf4aaf0690b2e22c45a4904c3027",
   },
 
+  patch_dir: "patches/pulp_platform_pulpissimo",
+  
   exclude_from_upstream: [
     "Bender.lock",
     "Bender.yml",
