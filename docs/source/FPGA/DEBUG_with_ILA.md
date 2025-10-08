@@ -4,13 +4,15 @@
 
 The **Integrated Logic Analyzer (ILA)** is a built-in debug core in Vivado that allows real-time observation of internal FPGA signals. It works like a digital oscilloscope inside the FPGA, capturing signal transitions based on customizable trigger conditions. This enables you to debug and analyze logic behavior without needing external test equipment or adding temporary output pins.
 
+Vivado has included the Integrated Logic Analyzer (ILA) IP core as a bundled feature since at least the 2013.1 release, and it is available in all Vivado design tool versions, including the most recent 2025.1 version.
+
 ## 🛠️ Debugging X-HEEP on FPGA with ILA
 
 To debug the **X-HEEP** SoC running on an FPGA like the ZCU104 using the ILA tool:
 
 1. **Insert the ILA Core**
 
-   - Open your Vivado project (you need your precompiled bitstream—please refer to the [Bitstream Generation Guide](./../RunOnFPGA.md)).
+   - Open your Vivado project (you need your precompiled bitstream—please refer to the [Bitstream Generation Guide](./RunOnFPGA.md)).
    - Click on **Create Block Design** and name it so that you can easily find it later.
    - Press **+** and search for **System ILA**.
    - Double-click to configure the IP. In **General Options**, choose **Monitor Type** as **Native** to customize your signal probes (interface used for AXI signals). For native probe width propagation, you can leave it as **AUTO**. If you choose **Manual**, you will need to manually specify the bit width of each signal. The **Number of Probes** corresponds to the number of signals you want to monitor. 
