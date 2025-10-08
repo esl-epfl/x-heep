@@ -15,6 +15,8 @@ Make sure the document has one single `# header`, otherwise they will be conside
 
 ![update_docs_preview](../images/update_docs_preview.png)
 
+This should open a preview of the documentation changes in the webpage. The link should be similar to <https://x-heep--753.org.readthedocs.build/en/753/> but with your pull request number instead of `753`.
+
 5. Once the pull request is merged, the documentation will be updated automatically.
 
 ## Build locally the web documentation
