@@ -26,4 +26,4 @@ make verilator-run-helloworld
 
 After a couple of minutes, you should se a "hello world!" output.
 
-All of the detailed documentation for simulating applications with the different tools can be found in the [simulating guide](/How_to/Simulate.md). Furthermore, you are now ready to [run applications on FPGA](/How_to/RunOnFPGA.md) and to follow the rest of the "How to..." guides.
+All of the detailed documentation for simulating applications with the different tools can be found in the [simulating guide](/How_to/Simulate.md). Furthermore, you are now ready to [run applications on FPGA](./../FPGA/RunOnFPGA.md) and to follow the rest of the "How to..." guides.
