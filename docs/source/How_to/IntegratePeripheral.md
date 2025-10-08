@@ -75,7 +75,7 @@ About the additional features:
 
 
 ## 2. Describe and Generate Registers
-In X-HEEP, registers are automatically generated using RegTool by OpenTitan. See [Open Titan IP guide](OpenTitanIP.md) for more details.
+In X-HEEP, registers are automatically generated using RegTool by OpenTitan. Please refer to the official documentation for additional information: https://opentitan.org/book/util/reggen/index.html.
 In anycase, this tool will generate both RTL and SW components starting from an HJSON description. These are the steps needed to set everything up:
 
 1. Populate `data/<peripheral>.hjson` with registers, fields, reset values, and optional interrupts. DLC’s [`dlc.hjson`](../../../hw/ip_examples/dlc/data/dlc.hjson) is a good example, but you could take inspiration from any X-HEEP `.hjson`.
