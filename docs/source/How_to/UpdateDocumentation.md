@@ -9,8 +9,12 @@ Make sure the document has one single `# header`, otherwise they will be conside
 ```
 
 2. If a new folder is added, add it to the `toctree` inside the corresponding index file.
+3. Check the changes to the readthedocs locally (check [Build locally the web documentation](#build-locally-the-web-documentation) below).
 3. Commit and push.
 4. Open a pull request and you can preview the updates to the docs in the CI build.
+
+![update_docs_preview](../images/update_docs_preview.png)
+
 5. Once the pull request is merged, the documentation will be updated automatically.
 
 ## Build locally the web documentation
