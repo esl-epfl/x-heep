@@ -194,8 +194,8 @@ app:
     @echo This target will do something and then call the one inside X-HEEP.
     $(MAKE) -f $(XHEEP_MAKE) $(MAKECMDGOALS) PROJECT=hello_world SOURCE=.
 
-verilator-sim:
-    @echo You will not access the verilator-sim target from X-HEEP.
+verilator-build:
+    @echo You will not access the verilator-build target from X-HEEP.
 
 export HEEP_DIR = hw/vendor/esl_epfl_x_heep/
 XHEEP_MAKE = $(HEEP_DIR)/external.mk
@@ -204,7 +204,7 @@ include $(XHEEP_MAKE)
 
 - The `custom` rule will not use the X-HEEP Makefile in any way. Make the target a prerequisite of `.PHONY` to prevent X-HEEP's Makefile from attempting to run a non-existent target.
 - The `app` rule will perform actions before calling X-HEEP Makefile's `app` rule. In this case, the project and where the source files are to be extracted from is being specified. The `SOURCE=.` argument will set X-HEEP's own `sw/` folder as the directory from which to fetch source files. This is an example of building inner sources from an external directory.
-- The `verilator-sim` rule will override the X-HEEP Makefile's one.
+- The `verilator-build` rule will override the X-HEEP Makefile's one.
 - Any other target will be passed straight to X-HEEP's Makefile. For example
 ```sh
 make mcu-gen CPU=cv32e40px
