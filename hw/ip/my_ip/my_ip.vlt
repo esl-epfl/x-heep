@@ -1,0 +1,21 @@
+// Copyright 2022 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/my_ip_reg_top.sv"
+lint_off -rule WIDTH -file "*/my_ip_reg_top.sv" -match "Operator ASSIGNW expects *"
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Bits of signal are not used: 'reg2hw'*"
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Bits of signal are not used: 'reg2hw'*"
+lint_off -rule PINMISSING -file "*/tb/testharness.sv" -match "Cell has missing pin: 'my_ip_done_o'"
+lint_off -rule PINMISSING -file "*/x_heep_system.sv" -match "Cell has missing pin: 'my_ip_done_o'"
+lint_off -rule IMPLICIT -file "*/peripheral_subsystem.sv" -match "Signal definition not found, creating implicitly: 'my_ip_intr_event'"
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Signal is not used: 'clk_i'"
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Signal is not used: 'rst_ni'"
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Signal is not used: 'reg_req_i'"
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Signal is not used: 'my_ip_master_bus_resp_i'"
+lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Signal is not driven: 'reg_rsp_o'"
+lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Signal is not driven: 'my_ip_done_o'"
+lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Signal is not driven: 'my_ip_interrupt_o'"
+lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Signal is not driven: 'my_ip_master_bus_req_o'"
