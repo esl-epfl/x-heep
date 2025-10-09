@@ -25,474 +25,10 @@ from x_heep_gen.system import BusType
 import x_heep_gen.peripherals.base_peripherals
 import x_heep_gen.peripherals.user_peripherals
 import x_heep_gen.peripherals.abstractions
+from x_heep_gen.pads import Pad,PadMapping
 import math
 import os
 
-
-class Pad:
-
-    def remove_comma_io_interface(self):
-        try:
-            self.x_heep_system_interface = self.x_heep_system_interface.rstrip(
-                self.x_heep_system_interface[-1]
-            )
-        except IndexError:
-            pass
-            ### bypass kind of PADs do not have any comma to be removed as they do not define an interface
-
-    def create_pad_ring(self):
-
-        # Mapping dictionary from string to integer
-        mapping_dict = {
-            "top": "core_v_mini_mcu_pkg::TOP",
-            "right": "core_v_mini_mcu_pkg::RIGHT",
-            "bottom": "core_v_mini_mcu_pkg::BOTTOM",
-            "left": "core_v_mini_mcu_pkg::LEFT",
-        }
-
-        mapping = ""
-        if self.pad_mapping is not None:
-            mapping = ", .SIDE(" + mapping_dict[self.pad_mapping] + ")"
-
-        self.interface = "    inout wire " + self.name + "_io,\n"
-
-        if self.pad_type == "input":
-            self.pad_ring_io_interface = "    inout wire " + self.io_interface + ","
-            self.pad_ring_ctrl_interface += (
-                "    output logic " + self.signal_name + "o,"
-            )
-            self.pad_ring_instance = (
-                "pad_cell_input #(.PADATTR("
-                + str(self.attribute_bits)
-                + ")"
-                + mapping
-                + ") "
-                + self.cell_name
-                + " ( \n"
-                + "   .pad_in_i(1'b0),\n"
-                + "   .pad_oe_i(1'b0),\n"
-                + "   .pad_out_o("
-                + self.signal_name
-                + "o),\n"
-                + "   .pad_io("
-                + self.signal_name
-                + "io),\n"
-            )
-        if self.pad_type == "output":
-            self.pad_ring_io_interface = "    inout wire " + self.io_interface + ","
-            self.pad_ring_ctrl_interface += "    input logic " + self.signal_name + "i,"
-            self.pad_ring_instance = (
-                "pad_cell_output #(.PADATTR("
-                + str(self.attribute_bits)
-                + ")"
-                + mapping
-                + ") "
-                + self.cell_name
-                + " ( \n"
-                + "   .pad_in_i("
-                + self.signal_name
-                + "i),\n"
-                + "   .pad_oe_i(1'b1),\n"
-                + "   .pad_out_o(),\n"
-                + "   .pad_io("
-                + self.signal_name
-                + "io),\n"
-            )
-        if self.pad_type == "inout":
-            self.pad_ring_io_interface = "    inout wire " + self.io_interface + ","
-            self.pad_ring_ctrl_interface += (
-                "    input logic " + self.signal_name + "i,\n"
-            )
-            self.pad_ring_ctrl_interface += (
-                "    output logic " + self.signal_name + "o,\n"
-            )
-            self.pad_ring_ctrl_interface += (
-                "    input logic " + self.signal_name + "oe_i,"
-            )
-            self.pad_ring_instance = (
-                "pad_cell_inout #(.PADATTR("
-                + str(self.attribute_bits)
-                + ")"
-                + mapping
-                + ") "
-                + self.cell_name
-                + " ( \n"
-                + "   .pad_in_i("
-                + self.signal_name
-                + "i),\n"
-                + "   .pad_oe_i("
-                + self.signal_name
-                + "oe_i),\n"
-                + "   .pad_out_o("
-                + self.signal_name
-                + "o),\n"
-                + "   .pad_io("
-                + self.signal_name
-                + "io),\n"
-            )
-
-        if (
-            self.pad_type == "input"
-            or self.pad_type == "output"
-            or self.pad_type == "inout"
-        ):
-            if self.has_attribute:
-                self.pad_ring_instance += (
-                    "   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::"
-                    + self.localparam
-                    + "])\n"
-                    + ");\n\n"
-                )
-            else:
-                self.pad_ring_instance += "   .pad_attributes_i('0)" + ");\n\n"
-
-    def create_core_v_mini_mcu_ctrl(self):
-
-        cnt = len(self.pad_type_drive)
-
-        for i in range(cnt):
-            if self.driven_manually[i] == False:
-                if (
-                    self.pad_type_drive[i] == "input"
-                    or self.pad_type_drive[i] == "bypass_input"
-                ):
-                    self.core_v_mini_mcu_interface += (
-                        "    input logic " + self.signal_name_drive[i] + "i,\n"
-                    )
-                if (
-                    self.pad_type_drive[i] == "output"
-                    or self.pad_type_drive[i] == "bypass_output"
-                ):
-                    self.core_v_mini_mcu_interface += (
-                        "    output logic " + self.signal_name_drive[i] + "o,\n"
-                    )
-                if (
-                    self.pad_type_drive[i] == "inout"
-                    or self.pad_type_drive[i] == "bypass_inout"
-                ):
-                    self.core_v_mini_mcu_interface += (
-                        "    output logic " + self.signal_name_drive[i] + "o,\n"
-                    )
-                    self.core_v_mini_mcu_interface += (
-                        "    input logic " + self.signal_name_drive[i] + "i,\n"
-                    )
-                    self.core_v_mini_mcu_interface += (
-                        "    output logic " + self.signal_name_drive[i] + "oe_o,\n"
-                    )
-
-    def create_internal_signals(self):
-        cnt = len(self.pad_type_drive)
-
-        for i in range(cnt):
-
-            self.in_internal_signals.append(self.signal_name_drive[i] + "in_x")
-            self.out_internal_signals.append(self.signal_name_drive[i] + "out_x")
-            self.oe_internal_signals.append(self.signal_name_drive[i] + "oe_x")
-
-            if self.skip_declaration[i] == False:
-                self.internal_signals += (
-                    "  logic "
-                    + self.in_internal_signals[i]
-                    + ","
-                    + self.out_internal_signals[i]
-                    + ","
-                    + self.oe_internal_signals[i]
-                    + ";\n"
-                )
-
-    def create_multiplexers(self):
-        cnt = len(self.pad_type_drive)
-
-        if cnt > 1:
-            ###muxing
-            pad_in_internal_signals = self.signal_name + "in_x_muxed"
-            pad_out_internal_signals = self.signal_name + "out_x_muxed"
-            pad_oe_internal_signals = self.signal_name + "oe_x_muxed"
-
-            self.internal_signals += (
-                "  logic "
-                + pad_in_internal_signals
-                + ","
-                + pad_out_internal_signals
-                + ","
-                + pad_oe_internal_signals
-                + ";\n"
-            )
-
-            self.mux_process += "  always_comb\n" + "  begin\n"
-
-            for i in range(cnt):
-                self.mux_process += "   " + self.in_internal_signals[i] + "=1'b0;\n"
-
-            self.mux_process += (
-                "   unique case(pad_muxes[core_v_mini_mcu_pkg::"
-                + self.localparam
-                + "])\n"
-            )
-
-            for i in range(cnt):
-                self.mux_process += (
-                    "    "
-                    + str(i)
-                    + ": begin\n"
-                    + "      "
-                    + pad_out_internal_signals
-                    + " = "
-                    + self.out_internal_signals[i]
-                    + ";\n"
-                    + "      "
-                    + pad_oe_internal_signals
-                    + " = "
-                    + self.oe_internal_signals[i]
-                    + ";\n"
-                    + "      "
-                    + self.in_internal_signals[i]
-                    + " = "
-                    + pad_in_internal_signals
-                    + ";\n"
-                    + "    end\n"
-                )
-
-            self.mux_process += (
-                "    default: begin\n"
-                + "      "
-                + pad_out_internal_signals
-                + " = "
-                + self.out_internal_signals[0]
-                + ";\n"
-                + "      "
-                + pad_oe_internal_signals
-                + " = "
-                + self.oe_internal_signals[0]
-                + ";\n"
-                + "      "
-                + self.in_internal_signals[0]
-                + " = "
-                + pad_in_internal_signals
-                + ";\n"
-                + "    end\n"
-            )
-
-            self.mux_process += "   endcase\n" + "  end\n"
-
-    def create_constant_driver_assign(self):
-        cnt = len(self.pad_type_drive)
-
-        for i in range(cnt):
-
-            if self.skip_declaration[i] == False:
-                if (
-                    self.pad_type_drive[i] == "input"
-                    or self.pad_type_drive[i] == "bypass_input"
-                ):
-                    self.constant_driver_assign += (
-                        "  assign " + self.out_internal_signals[i] + " = 1'b0;\n"
-                    )
-                    self.constant_driver_assign += (
-                        "  assign " + self.oe_internal_signals[i] + " = 1'b0;\n"
-                    )
-                if (
-                    self.pad_type_drive[i] == "output"
-                    or self.pad_type_drive[i] == "bypass_output"
-                ):
-                    self.constant_driver_assign += (
-                        "  assign " + self.oe_internal_signals[i] + " = 1'b1;\n"
-                    )
-
-    def create_core_v_mini_mcu_bonding(self):
-
-        cnt = len(self.pad_type_drive)
-
-        for i in range(cnt):
-
-            if self.driven_manually[i] == False:
-                if (
-                    self.pad_type_drive[i] == "input"
-                    or self.pad_type_drive[i] == "bypass_input"
-                ):
-                    self.core_v_mini_mcu_bonding += (
-                        "    ."
-                        + self.signal_name_drive[i]
-                        + "i("
-                        + self.in_internal_signals[i]
-                        + "),\n"
-                    )
-                if (
-                    self.pad_type_drive[i] == "output"
-                    or self.pad_type_drive[i] == "bypass_output"
-                ):
-                    self.core_v_mini_mcu_bonding += (
-                        "    ."
-                        + self.signal_name_drive[i]
-                        + "o("
-                        + self.out_internal_signals[i]
-                        + "),\n"
-                    )
-                if (
-                    self.pad_type_drive[i] == "inout"
-                    or self.pad_type_drive[i] == "bypass_inout"
-                ):
-                    self.core_v_mini_mcu_bonding += (
-                        "    ."
-                        + self.signal_name_drive[i]
-                        + "i("
-                        + self.in_internal_signals[i]
-                        + "),\n"
-                    )
-                    self.core_v_mini_mcu_bonding += (
-                        "    ."
-                        + self.signal_name_drive[i]
-                        + "o("
-                        + self.out_internal_signals[i]
-                        + "),\n"
-                    )
-                    self.core_v_mini_mcu_bonding += (
-                        "    ."
-                        + self.signal_name_drive[i]
-                        + "oe_o("
-                        + self.oe_internal_signals[i]
-                        + "),\n"
-                    )
-
-    def create_pad_ring_bonding(self):
-
-        if self.is_muxed:
-            append_name = "_muxed"
-        else:
-            append_name = ""
-
-        if self.pad_type == "input":
-            in_internal_signals = self.signal_name + "in_x" + append_name
-            self.pad_ring_bonding_bonding = (
-                "    ." + self.io_interface + "(" + self.signal_name + "i),\n"
-            )
-            self.pad_ring_bonding_bonding += (
-                "    ." + self.signal_name + "o(" + in_internal_signals + "),"
-            )
-            self.x_heep_system_interface += "    inout wire " + self.signal_name + "i,"
-        if self.pad_type == "output":
-            out_internal_signals = self.signal_name + "out_x" + append_name
-            self.pad_ring_bonding_bonding = (
-                "    ." + self.io_interface + "(" + self.signal_name + "o),\n"
-            )
-            self.pad_ring_bonding_bonding += (
-                "    ." + self.signal_name + "i(" + out_internal_signals + "),"
-            )
-            self.x_heep_system_interface += "    inout wire " + self.signal_name + "o,"
-        if self.pad_type == "inout":
-            in_internal_signals = self.signal_name + "in_x" + append_name
-            out_internal_signals = self.signal_name + "out_x" + append_name
-            oe_internal_signals = self.signal_name + "oe_x" + append_name
-            self.pad_ring_bonding_bonding = (
-                "    ." + self.io_interface + "(" + self.signal_name + "io),\n"
-            )
-            self.pad_ring_bonding_bonding += (
-                "    ." + self.signal_name + "o(" + in_internal_signals + "),\n"
-            )
-            self.pad_ring_bonding_bonding += (
-                "    ." + self.signal_name + "i(" + out_internal_signals + "),\n"
-            )
-            self.pad_ring_bonding_bonding += (
-                "    ." + self.signal_name + "oe_i(" + oe_internal_signals + "),"
-            )
-            self.x_heep_system_interface += "    inout wire " + self.signal_name + "io,"
-
-    def __init__(
-        self,
-        name,
-        cell_name,
-        pad_type,
-        pad_mapping,
-        index,
-        pad_active,
-        pad_driven_manually,
-        pad_skip_declaration,
-        pad_mux_list,
-        has_attribute,
-        attribute_bits,
-        constant_attribute,
-        pad_layout_index,
-        pad_layout_orient,
-        pad_layout_cell,
-        pad_layout_bondpad,
-        pad_layout_offset,
-        pad_layout_skip,
-    ):
-
-        self.name = name
-        self.cell_name = cell_name
-        self.index = index
-        self.localparam = "PAD_" + name.upper()
-        self.pad_type = pad_type
-        self.pad_mapping = pad_mapping
-        self.pad_mux_list = pad_mux_list
-
-        if pad_active == "low":
-            name_active = "n"
-        else:
-            name_active = ""
-
-        self.signal_name = self.name + "_" + name_active
-
-        self.has_attribute = has_attribute
-        self.attribute_bits = (
-            int(attribute_bits.split(":")[0]) - int(attribute_bits.split(":")[1]) + 1
-        )
-        self.constant_attribute = constant_attribute
-
-        self.signal_name_drive = []
-        self.pad_type_drive = []
-        self.driven_manually = []
-        self.skip_declaration = []
-        self.keep_internal = []
-
-        self.is_muxed = False
-
-        self.is_driven_manually = pad_driven_manually
-        self.do_skip_declaration = pad_skip_declaration
-
-        self.layout_index = pad_layout_index
-        self.layout_orient = pad_layout_orient
-        self.layout_cell = pad_layout_cell
-        self.layout_bondpad = pad_layout_bondpad
-        self.layout_offset = pad_layout_offset
-        self.layout_skip = pad_layout_skip
-
-        if len(pad_mux_list) == 0:
-            self.signal_name_drive.append(self.signal_name)
-            self.pad_type_drive.append(pad_type)
-            self.driven_manually.append(pad_driven_manually)
-            self.skip_declaration.append(pad_skip_declaration)
-        else:
-            for pad_mux in pad_mux_list:
-                self.signal_name_drive.append(pad_mux.signal_name)
-                self.pad_type_drive.append(pad_mux.pad_type)
-                self.driven_manually.append(pad_mux.is_driven_manually)
-                self.skip_declaration.append(pad_mux.do_skip_declaration)
-
-            self.is_muxed = True
-
-        self.in_internal_signals = []
-        self.out_internal_signals = []
-        self.oe_internal_signals = []
-
-        self.io_interface = self.signal_name + "io"
-
-        ### Pad Ring ###
-        self.pad_ring_io_interface = ""
-        self.pad_ring_ctrl_interface = ""
-        self.pad_ring_instance = ""
-
-        ### core v mini mcu ###
-        self.core_v_mini_mcu_interface = ""
-        self.constant_driver_assign = ""
-        self.mux_process = ""
-
-        ### heep systems ###
-        self.internal_signals = ""
-        self.core_v_mini_mcu_bonding = ""
-        self.pad_ring_bonding_bonding = ""
-        self.x_heep_system_interface = ""
 
 
 # Compile a regex to trim trailing whitespaces on lines.
@@ -533,15 +69,22 @@ def prepare_pads_for_layout(total_pad_list, physical_attributes):
     bottom_pad_list = []
     right_pad_list = []
     left_pad_list = []
+    pad_lists ={
+        PadMapping.TOP: top_pad_list,
+        PadMapping.BOTTOM: bottom_pad_list,
+        PadMapping.RIGHT: right_pad_list,
+        PadMapping.LEFT: left_pad_list,
+    }
     for pad in total_pad_list:
-        if pad.pad_mapping == "top":
-            top_pad_list.append(pad)
-        elif pad.pad_mapping == "bottom":
-            bottom_pad_list.append(pad)
-        elif pad.pad_mapping == "right":
-            right_pad_list.append(pad)
-        elif pad.pad_mapping == "left":
-            left_pad_list.append(pad)
+        if pad.pad_mapping in pad_lists:
+            pad_lists[pad.pad_mapping].append(pad)
+        else:
+            print(
+                "ERROR: Pad {0} has an invalid mapping {1}. Please set the mapping to top, bottom, left, or right.".format(
+                    pad.cell_name, pad.pad_mapping
+                )
+            )
+            return
 
     # Order pads according to layout index
     top_pad_list.sort(key=lambda x: x.layout_index)
@@ -699,6 +242,138 @@ def set_pad_positions(pad_list, physical_attributes):
     return pad_list, bp_offset
 
 
+
+
+def as_bool(v, default: bool=False) -> bool:
+    if isinstance(v, bool): return v
+    if isinstance(v, str):
+        s = v.strip().lower()
+        if s in {"true","1","yes","y"}: return True
+        if s in {"false","0","no","n"}: return False
+    return default
+
+def get_nested(d, path, default=None):
+    cur = d
+    for k in path:
+        if not isinstance(cur, dict) or k not in cur: return default
+        cur = cur[k]
+    return cur
+
+def coerce_enum(enum_cls, raw, default=None):
+    if raw is None: return default
+    try:
+        return enum_cls(raw.strip(",")) if isinstance(raw, str) else enum_cls(raw)
+    except Exception:
+        return default  # or raise if you want strict validation
+
+def build_mux_list(block,
+                   pad_mapping,
+                   pads_attributes_present: bool,
+                   pads_attributes_bits: str,
+                   pad_constant_attribute: bool,
+                   pad_layout_index, pad_layout_orient, pad_layout_cell,
+                   pad_layout_bondpad, pad_layout_offset, pad_layout_skip) :
+    mux_list = []
+    for mux_name, entry in (block.get("mux") or {}).items():
+        mux = Pad(
+            mux_name, "",
+            entry["type"],
+            pad_mapping,
+            0,
+            entry.get("active", "high"),
+            as_bool(entry.get("driven_manually"), False),
+            as_bool(entry.get("skip_declaration"), False),
+            [],
+            pads_attributes_present,
+            pads_attributes_bits,
+            pad_constant_attribute,
+            pad_layout_index, pad_layout_orient, pad_layout_cell,
+            pad_layout_bondpad, pad_layout_offset, pad_layout_skip,
+        )
+        mux_list.append(mux)
+    return mux_list
+
+def build_pads_from_block(pads_block,
+                          start_index: int,
+                          pads_attributes_present: bool,
+                          pads_attributes_bits: str,
+                          default_constant_attribute: bool,
+                          always_emit_ring: bool) :
+    pad_list = []
+    pad_muxed_list = []
+    const_assign_parts = []
+    mux_process_parts = []
+    next_index = start_index
+
+    for key, block in pads_block.items():
+        base_name = key
+        pad_num   = int(block["num"])
+        pad_type  = (block["type"].strip(",") if isinstance(block["type"], str)
+                     else block["type"])
+        pad_offset = int(block.get("num_offset", 0))
+        pad_active = block.get("active", "high")
+        pad_mapping = coerce_enum(PadMapping, block.get("mapping"), None)
+
+        pad_driven_manually = as_bool(block.get("driven_manually"), False)
+        pad_skip_declaration = as_bool(block.get("skip_declaration"), False)
+        pad_keep_internal   = as_bool(block.get("keep_internal"), False)
+        pad_constant_attribute = as_bool(block.get("constant_attribute"),
+                                         default_constant_attribute)
+
+        # layout (optional)
+        pad_layout_orient = get_nested(block, ["layout_attributes","orient"])
+        pad_layout_cell   = get_nested(block, ["layout_attributes","cell"])
+        pad_layout_bondpad= get_nested(block, ["layout_attributes","bondpad"])
+        pad_layout_offset = get_nested(block, ["layout_attributes","offset"])
+        pad_layout_skip   = get_nested(block, ["layout_attributes","skip"])
+        pad_layout_index  = get_nested(block, ["layout_attributes","index"])
+
+        # mux list
+        pad_mux_list = build_mux_list(block, pad_mapping,
+                                      pads_attributes_present, pads_attributes_bits,
+                                      pad_constant_attribute,
+                                      pad_layout_index, pad_layout_orient, pad_layout_cell,
+                                      pad_layout_bondpad, pad_layout_offset, pad_layout_skip)
+
+        # unified loop (single/multi)
+        for i in range(pad_num):
+            idx = next_index + i
+            suf = f"_{i + pad_offset}" if pad_num > 1 else ""
+            pad_name = f"{base_name}{suf}"
+            pad_cell_name = f"pad_{base_name}{suf}_i"
+
+            pad_obj = Pad(
+                pad_name, pad_cell_name, pad_type, pad_mapping, idx,
+                pad_active, pad_driven_manually, pad_skip_declaration,
+                pad_mux_list, pads_attributes_present, pads_attributes_bits,
+                pad_constant_attribute,
+                pad_layout_index, pad_layout_orient, pad_layout_cell,
+                pad_layout_bondpad, pad_layout_offset, pad_layout_skip,
+            )
+
+            # build sections (internal can skip ring; external always emits ring)
+            emit_ring = always_emit_ring or not pad_keep_internal
+            if emit_ring:
+                pad_obj.create_pad_ring()
+            pad_obj.create_core_v_mini_mcu_ctrl()
+            if emit_ring:
+                pad_obj.create_pad_ring_bonding()
+            pad_obj.create_internal_signals()
+            pad_obj.create_constant_driver_assign()
+            pad_obj.create_multiplexers()
+            pad_obj.create_core_v_mini_mcu_bonding()
+
+            pad_list.append(pad_obj)
+            const_assign_parts.append(pad_obj.constant_driver_assign)
+            mux_process_parts.append(pad_obj.mux_process)
+            if pad_obj.is_muxed:
+                pad_muxed_list.append(pad_obj)
+
+        next_index += pad_num
+
+    return pad_list, pad_muxed_list, next_index, "".join(const_assign_parts), "".join(mux_process_parts)
+
+
 """
     Ideally, generate the xheep object with the configuration passed in args. After generating the xheep object, serialize it to a file and save it.
 
@@ -834,429 +509,54 @@ def generate_xheep(args):
 
     pad_muxed_list = []
 
-    for key in pads:
+# internal pads
+    pad_list, pad_muxed_internal, next_index, pad_constant_driver_assign, pad_mux_process = \
+        build_pads_from_block(
+            pads_block=pads,
+            start_index=0,
+            pads_attributes_present=(pads_attributes is not None),
+            pads_attributes_bits=pads_attributes_bits,
+            default_constant_attribute=False,
+            always_emit_ring=False,   # respect keep_internal for internal pads
+        )
 
-        pad_name = key
-        pad_num = pads[key]["num"]
-        pad_type = pads[key]["type"].strip(",")
+    # external pads (continue indexing, always emit ring)
+    external_pad_list = []
+    pad_muxed_external = []
+    external_pad_index_counter = 0
 
-        try:
-            pad_offset = int(pads[key]["num_offset"])
-        except KeyError:
-            pad_offset = 0
-
-        try:
-            pad_active = pads[key]["active"]
-        except KeyError:
-            pad_active = "high"
-
-        try:
-            pad_mapping = pads[key]["mapping"].strip(",")
-        except KeyError:
-            pad_mapping = None
-
-        try:
-            pad_mux_list_hjson = pads[key]["mux"]
-        except KeyError:
-            pad_mux_list_hjson = []
-
-        try:
-            if pads[key]["driven_manually"] == "True":
-                pad_driven_manually = True
-            else:
-                pad_driven_manually = False
-        except KeyError:
-            pad_driven_manually = False
-
-        try:
-            if pads[key]["skip_declaration"] == "True":
-                pad_skip_declaration = True
-            else:
-                pad_skip_declaration = False
-        except KeyError:
-            pad_skip_declaration = False
-
-        try:
-            if pads[key]["keep_internal"] == "True":
-                pad_keep_internal = True
-            else:
-                pad_keep_internal = False
-        except KeyError:
-            pad_keep_internal = False
-
-        try:
-            if pads[key]["constant_attribute"] == "True":
-                pad_constant_attribute = True
-            else:
-                pad_constant_attribute = False
-        except KeyError:
-            pad_constant_attribute = False
-
-        try:
-            pad_layout_orient = pads[key]["layout_attributes"]["orient"]
-        except KeyError:
-            pad_layout_orient = None
-
-        try:
-            pad_layout_cell = pads[key]["layout_attributes"]["cell"]
-        except KeyError:
-            pad_layout_cell = None
-
-        try:
-            pad_layout_bondpad = pads[key]["layout_attributes"]["bondpad"]
-        except KeyError:
-            pad_layout_bondpad = None
-
-        try:
-            pad_layout_offset = pads[key]["layout_attributes"]["offset"]
-        except KeyError:
-            pad_layout_offset = None
-
-        try:
-            pad_layout_skip = pads[key]["layout_attributes"]["skip"]
-        except KeyError:
-            pad_layout_skip = None
-
-        try:
-            pad_layout_index = pads[key]["layout_attributes"]["index"]
-        except KeyError:
-            pad_layout_index = None
-
-        pad_mux_list = []
-
-        for pad_mux in pad_mux_list_hjson:
-
-            try:
-                pad_active_mux = pads[key]["mux"][pad_mux]["active"]
-            except KeyError:
-                pad_active_mux = "high"
-
-            try:
-                if pads[key]["mux"][pad_mux]["driven_manually"] == "True":
-                    pad_driven_manually_mux = True
-                else:
-                    pad_driven_manually_mux = False
-            except KeyError:
-                pad_driven_manually_mux = False
-
-            try:
-                if pads[key]["mux"][pad_mux]["skip_declaration"] == "True":
-                    pad_skip_declaration_mux = True
-                else:
-                    pad_skip_declaration_mux = False
-            except KeyError:
-                pad_skip_declaration_mux = False
-
-            p = Pad(
-                pad_mux,
-                "",
-                pads[key]["mux"][pad_mux]["type"],
-                pad_mapping,
-                0,
-                pad_active_mux,
-                pad_driven_manually_mux,
-                pad_skip_declaration_mux,
-                [],
-                pads_attributes != None,
-                pads_attributes_bits,
-                pad_constant_attribute,
-                pad_layout_index,
-                pad_layout_orient,
-                pad_layout_cell,
-                pad_layout_bondpad,
-                pad_layout_offset,
-                pad_layout_skip,
+    if external_pads:
+        external_pad_list, pad_muxed_external, next_index, ext_const, ext_mux = \
+            build_pads_from_block(
+                pads_block=external_pads,
+                start_index=next_index,
+                pads_attributes_present=(pads_attributes is not None),
+                pads_attributes_bits=pads_attributes_bits,
+                default_constant_attribute=False,
+                always_emit_ring=True,   # external pads always generate pad ring
             )
-            pad_mux_list.append(p)
+        pad_constant_driver_assign += ext_const
+        pad_mux_process += ext_mux
+        external_pad_index_counter = len(external_pad_list)
 
-        if pad_num > 1:
-            for p in range(pad_num):
-                pad_cell_name = "pad_" + key + "_" + str(p + pad_offset) + "_i"
-                pad_obj = Pad(
-                    pad_name + "_" + str(p + pad_offset),
-                    pad_cell_name,
-                    pad_type,
-                    pad_mapping,
-                    pad_index_counter,
-                    pad_active,
-                    pad_driven_manually,
-                    pad_skip_declaration,
-                    pad_mux_list,
-                    pads_attributes != None,
-                    pads_attributes_bits,
-                    pad_constant_attribute,
-                    pad_layout_index,
-                    pad_layout_orient,
-                    pad_layout_cell,
-                    pad_layout_bondpad,
-                    pad_layout_offset,
-                    pad_layout_skip,
-                )
-                if not pad_keep_internal:
-                    pad_obj.create_pad_ring()
-                pad_obj.create_core_v_mini_mcu_ctrl()
-                if not pad_keep_internal:
-                    pad_obj.create_pad_ring_bonding()
-                pad_obj.create_internal_signals()
-                pad_obj.create_constant_driver_assign()
-                pad_obj.create_multiplexers()
-                pad_obj.create_core_v_mini_mcu_bonding()
-                pad_index_counter = pad_index_counter + 1
-                pad_list.append(pad_obj)
-                pad_constant_driver_assign += pad_obj.constant_driver_assign
-                pad_mux_process += pad_obj.mux_process
-                if pad_obj.is_muxed:
-                    pad_muxed_list.append(pad_obj)
-
-        else:
-            pad_cell_name = "pad_" + key + "_i"
-            pad_obj = Pad(
-                pad_name,
-                pad_cell_name,
-                pad_type,
-                pad_mapping,
-                pad_index_counter,
-                pad_active,
-                pad_driven_manually,
-                pad_skip_declaration,
-                pad_mux_list,
-                pads_attributes != None,
-                pads_attributes_bits,
-                pad_constant_attribute,
-                pad_layout_index,
-                pad_layout_orient,
-                pad_layout_cell,
-                pad_layout_bondpad,
-                pad_layout_offset,
-                pad_layout_skip,
-            )
-            if not pad_keep_internal:
-                pad_obj.create_pad_ring()
-            pad_obj.create_core_v_mini_mcu_ctrl()
-            if not pad_keep_internal:
-                pad_obj.create_pad_ring_bonding()
-            pad_obj.create_internal_signals()
-            pad_obj.create_constant_driver_assign()
-            pad_obj.create_multiplexers()
-            pad_obj.create_core_v_mini_mcu_bonding()
-            pad_index_counter = pad_index_counter + 1
-            pad_list.append(pad_obj)
-            pad_constant_driver_assign += pad_obj.constant_driver_assign
-            pad_mux_process += pad_obj.mux_process
-            if pad_obj.is_muxed:
-                pad_muxed_list.append(pad_obj)
-
-    if external_pads != None:
-        external_pad_index_counter = 0
-        external_pad_index = pad_index_counter
-        for key in external_pads:
-            pad_name = key
-            pad_num = external_pads[key]["num"]
-            pad_type = external_pads[key]["type"]
-
-            try:
-                pad_offset = int(external_pads[key]["num_offset"])
-            except KeyError:
-                pad_offset = 0
-
-            try:
-                pad_active = external_pads[key]["active"]
-            except KeyError:
-                pad_active = "high"
-
-            try:
-                pad_mapping = external_pads[key]["mapping"]
-            except KeyError:
-                pad_mapping = None
-
-            try:
-                pad_mux_list_hjson = external_pads[key]["mux"]
-            except KeyError:
-                pad_mux_list_hjson = []
-
-            try:
-                if external_pads[key]["driven_manually"] == "True":
-                    pad_driven_manually = True
-                else:
-                    pad_driven_manually = False
-            except KeyError:
-                pad_driven_manually = False
-
-            try:
-                if external_pads[key]["skip_declaration"] == "True":
-                    pad_skip_declaration = True
-                else:
-                    pad_skip_declaration = False
-            except KeyError:
-                pad_skip_declaration = False
-
-            try:
-                pad_layout_orient = external_pads[key]["layout_attributes"]["orient"]
-            except KeyError:
-                pad_layout_orient = None
-
-            try:
-                pad_layout_cell = external_pads[key]["layout_attributes"]["cell"]
-            except KeyError:
-                pad_layout_cell = None
-
-            try:
-                pad_layout_bondpad = external_pads[key]["layout_attributes"]["bondpad"]
-            except KeyError:
-                pad_layout_bondpad = None
-
-            try:
-                pad_layout_offset = external_pads[key]["layout_attributes"]["offset"]
-            except KeyError:
-                pad_layout_offset = None
-
-            try:
-                pad_layout_skip = external_pads[key]["layout_attributes"]["skip"]
-            except KeyError:
-                pad_layout_skip = None
-
-            try:
-                pad_layout_index = external_pads[key]["layout_attributes"]["index"]
-            except KeyError:
-                pad_layout_index = None
-
-            pad_mux_list = []
-
-            for pad_mux in pad_mux_list_hjson:
-
-                try:
-                    pad_active_mux = external_pads[key]["mux"][pad_mux]["active"]
-                except KeyError:
-                    pad_active_mux = "high"
-
-                try:
-                    if external_pads[key]["mux"][pad_mux]["driven_manually"] == "True":
-                        pad_driven_manually_mux = True
-                    else:
-                        pad_driven_manually_mux = False
-                except KeyError:
-                    pad_driven_manually_mux = False
-
-                try:
-                    if external_pads[key]["mux"][pad_mux]["skip_declaration"] == "True":
-                        pad_skip_declaration_mux = True
-                    else:
-                        pad_skip_declaration_mux = False
-                except KeyError:
-                    pad_skip_declaration_mux = False
-
-                p = Pad(
-                    pad_mux,
-                    "",
-                    external_pads[key]["mux"][pad_mux]["type"],
-                    pad_mapping,
-                    0,
-                    pad_active_mux,
-                    pad_driven_manually_mux,
-                    pad_skip_declaration_mux,
-                    [],
-                    pads_attributes != None,
-                    pads_attributes_bits,
-                    pad_constant_attribute,
-                    pad_layout_index,
-                    pad_layout_orient,
-                    pad_layout_cell,
-                    pad_layout_bondpad,
-                    pad_layout_offset,
-                    pad_layout_skip,
-                )
-                pad_mux_list.append(p)
-
-            if pad_num > 1:
-                for p in range(pad_num):
-                    pad_cell_name = "pad_" + key + "_" + str(p + pad_offset) + "_i"
-                    pad_obj = Pad(
-                        pad_name + "_" + str(p + pad_offset),
-                        pad_cell_name,
-                        pad_type,
-                        pad_mapping,
-                        external_pad_index,
-                        pad_active,
-                        pad_driven_manually,
-                        pad_skip_declaration,
-                        pad_mux_list,
-                        pads_attributes != None,
-                        pads_attributes_bits,
-                        pad_constant_attribute,
-                        pad_layout_index,
-                        pad_layout_orient,
-                        pad_layout_cell,
-                        pad_layout_bondpad,
-                        pad_layout_offset,
-                        pad_layout_skip,
-                    )
-                    pad_obj.create_pad_ring()
-                    pad_obj.create_pad_ring_bonding()
-                    pad_obj.create_internal_signals()
-                    pad_obj.create_constant_driver_assign()
-                    pad_obj.create_multiplexers()
-                    external_pad_index_counter = external_pad_index_counter + 1
-                    external_pad_index = external_pad_index + 1
-                    external_pad_list.append(pad_obj)
-                    pad_constant_driver_assign += pad_obj.constant_driver_assign
-                    pad_mux_process += pad_obj.mux_process
-                    if pad_obj.is_muxed:
-                        pad_muxed_list.append(pad_obj)
-
-            else:
-                pad_cell_name = "pad_" + key + "_i"
-                pad_obj = Pad(
-                    pad_name,
-                    pad_cell_name,
-                    pad_type,
-                    pad_mapping,
-                    external_pad_index,
-                    pad_active,
-                    pad_driven_manually,
-                    pad_skip_declaration,
-                    pad_mux_list,
-                    pads_attributes != None,
-                    pads_attributes_bits,
-                    pad_constant_attribute,
-                    pad_layout_index,
-                    pad_layout_orient,
-                    pad_layout_cell,
-                    pad_layout_bondpad,
-                    pad_layout_offset,
-                    pad_layout_skip,
-                )
-                pad_obj.create_pad_ring()
-                pad_obj.create_pad_ring_bonding()
-                pad_obj.create_internal_signals()
-                pad_obj.create_constant_driver_assign()
-                pad_obj.create_multiplexers()
-                external_pad_index_counter = external_pad_index_counter + 1
-                external_pad_index = external_pad_index + 1
-                external_pad_list.append(pad_obj)
-                pad_constant_driver_assign += pad_obj.constant_driver_assign
-                pad_mux_process += pad_obj.mux_process
-                if pad_obj.is_muxed:
-                    pad_muxed_list.append(pad_obj)
-
-    total_pad_list = []
-
+    # merge, totals
     total_pad_list = pad_list + external_pad_list
-
-    max_total_pad_mux_bitlengh = -1
-    for pad in pad_muxed_list:
-        if (len(pad.pad_mux_list) - 1).bit_length() > max_total_pad_mux_bitlengh:
-            max_total_pad_mux_bitlengh = (len(pad.pad_mux_list) - 1).bit_length()
-
-    total_pad = pad_index_counter + external_pad_index_counter
-
+    pad_muxed_list = pad_muxed_internal + pad_muxed_external
+    total_pad = len(total_pad_list)
     total_pad_muxed = len(pad_muxed_list)
 
-    ##remove comma from last PAD io_interface
-    last_pad = total_pad_list.pop()
-    last_pad.remove_comma_io_interface()
-    total_pad_list.append(last_pad)
+    # max mux selector width (0 if none)
+    max_total_pad_mux_bitlengh = 0
+    if pad_muxed_list:
+        max_total_pad_mux_bitlengh = max((len(p.pad_mux_list) - 1).bit_length() for p in pad_muxed_list)
 
-    # If layout parameters exist in the config, compute the pad offset/skip parameters and order the pads on each side
+    # remove trailing comma from last PAD io_interface (kept to preserve behavior)
+    if total_pad_list:
+        last_pad = total_pad_list.pop()
+        last_pad.remove_comma_io_interface()
+        total_pad_list.append(last_pad)
+
+        # If layout parameters exist in the config, compute the pad offset/skip parameters and order the pads on each side
     try:
         physical_attributes = pad_cfg["physical_attributes"]
         (
