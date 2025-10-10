@@ -35,8 +35,9 @@
     }
   </style>
 </head>
+
 <body>
-  <h1> My X-HEEP guide</h1>
+  <h1>My X-HEEP Guide</h1>
 
   <div class="section">
     <h2>1️⃣ Connect to the Server (11 or 13)</h2>
@@ -50,27 +51,36 @@ conda activate core-v-mini-mcu</code></pre>
   </div>
 
   <div class="section">
-    <h2>3️⃣ Build Hardware (see Docu for detail building)</h2>
+    <h2>3️⃣ Build Hardware (see Docu for detailed building)</h2>
     <p>From <code>/x-heep</code> root:</p>
     <pre><code>make mcu-gen
-# Specify RAM on chip with MEMORY_BANKS=X (up to 16 with 2 by default)
-    </code></pre>
+# Specify RAM on chip with MEMORY_BANKS=X (up to 16, default 2)
+</code></pre>
   </div>
 
   <div class="section">
     <h2>4️⃣ Build Software</h2>
     <p>Still in <code>/x-heep</code> root, choose the right project and linker:</p>
     <pre><code>make app PROJECT=replacewithfilename LINKER=on_chip
-# Or use LINKER=flash_load / flash_exec as needed</code></pre>
+# Or use LINKER=flash_load / flash_exec as needed
+</code></pre>
   </div>
 
   <div class="section">
     <h2>5️⃣ Run Simulation (QuestaSim)</h2>
-    <p><strong>⚠️ Building hardware is long! boot_sel=1 for flash_load/flash_exc linker. on_chip=0</strong></p>
+    <p><strong>⚠️ Building hardware takes time, especially with prints — please use moderately.</strong></p>
     <pre><code>make questasim-sim
 cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
 make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=0"
-cat uart0.log</code></pre>
+cat uart0.log
+# boot_sel=1 for flash_load/flash_exec linker, on_chip=0
+</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>5️⃣ Run Simulation (Verilator)</h2>
+    <pre><code>make verilator-build
+</code></pre>
   </div>
 
   <div class="section">
@@ -85,7 +95,8 @@ git checkout thomas
 git add .
 git commit -m "Describe your changes"
 # Push to GitHub
-git push origin thomas</code></pre>
+git push origin thomas
+</code></pre>
 
     <h3>Pull from GitHub on the Server</h3>
     <pre><code>cd ~/x-heep
@@ -93,15 +104,31 @@ git push origin thomas</code></pre>
 git fetch origin
 git checkout thomas
 # Pull the latest changes
-git pull origin thomas</code></pre>
+git pull origin thomas
+</code></pre>
 
     <h3>Verify Changes on the Server</h3>
     <p>Use <code>cat</code> or <code>less</code> to view files and confirm your modifications:</p>
-    <pre><code>cat sw/examples/example_spi_read/main.c</code></pre>
+    <pre><code>cat sw/examples/example_spi_read/main.c
+</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>7️⃣ OBI Protocol</h2>
+    <p>OBI package description: see <code>hw/core-v-mini-mcu/include/obi_pkg.sv</code>.</p>
+    <p>OBI works with a sent request, a received grant, etc. (see Tommaso’s link to OBI protocol explanation).</p>
+  </div>
+
+  <div class="section">
+    <h2>8️⃣ Packages</h2>
+    <p>Find <code>core-v-mini-mcu</code> package at: <code>hw/core-v-mini-mcu/include/</code></p>
+    <p>Find <code>my_ip</code> package at: <code>hw/ip/my_ip/rtl/my_ip_reg_pkg.sv</code></p>
+    <p>Find <code>spi_host</code> in <code>hw/vendor/lowrisc_opentitan_spi_host</code> and its pkg in <code>rtl/spi_host_reg_pkg.sv</code></p>
+    <p>Don't forget to cast offsets for registers (all registers are 32-bit).</p>
   </div>
 
   <p style="text-align:center; font-size:0.9em; color:#555;">
-    Open multiple connections to server as QuestaSim is slow to launch
+    💡 Tip: Open multiple connections to the server.
   </p>
 </body>
 </html>
