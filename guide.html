@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>X-HEEP Quickstart Guide</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      color: #0056b3;
+    }
+    pre {
+      background-color: #272822;
+      color: #f8f8f2;
+      padding: 10px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: monospace;
+    }
+    .section {
+      margin-bottom: 20px;
+      padding: 10px;
+      border-left: 4px solid #0056b3;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1> My X-HEEP guide</h1>
+
+  <div class="section">
+    <h2>1️⃣ Connect to the Server (11 or 13)</h2>
+    <pre><code>ssh lenges@eslsrv13.epfl.ch</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>2️⃣ Navigate to Project & Activate Environment</h2>
+    <pre><code>cd scrap/lenges/x-heep
+conda activate core-v-mini-mcu</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>3️⃣ Build Hardware (see Docu for detail building)</h2>
+    <p>From <code>/x-heep</code> root:</p>
+    <pre><code>make mcu-gen
+# Specify RAM on chip with MEMORY_BANKS=X (up to 16 with 2 by default)
+    </code></pre>
+  </div>
+
+  <div class="section">
+    <h2>4️⃣ Build Software</h2>
+    <p>Still in <code>/x-heep</code> root, choose the right project and linker:</p>
+    <pre><code>make app PROJECT=replacewithfilename LINKER=on_chip
+# Or use LINKER=flash_load / flash_exec as needed</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>5️⃣ Run Simulation (QuestaSim)</h2>
+    <p><strong>⚠️ Building hardware is long! boot_sel=1 for flash_load/flash_exc linker. on_chip=0</strong></p>
+    <pre><code>make questasim-sim
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
+make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=0"
+cat uart0.log</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>6️⃣ Server Usage: Push, Pull & Verify</h2>
+    <p>This section explains how to send code from your local machine to GitHub, pull it on the EPFL server, and verify the changes.</p>
+
+    <h3>Push from Local to GitHub</h3>
+    <pre><code>cd ~/Documents/SemesterProject/x-heep
+# Switch to your branch
+git checkout thomas
+# Stage and commit changes
+git add .
+git commit -m "Describe your changes"
+# Push to GitHub
+git push origin thomas</code></pre>
+
+    <h3>Pull from GitHub on the Server</h3>
+    <pre><code>cd ~/x-heep
+# Fetch and checkout the branch
+git fetch origin
+git checkout thomas
+# Pull the latest changes
+git pull origin thomas</code></pre>
+
+    <h3>Verify Changes on the Server</h3>
+    <p>Use <code>cat</code> or <code>less</code> to view files and confirm your modifications:</p>
+    <pre><code>cat sw/examples/example_spi_read/main.c</code></pre>
+  </div>
+
+  <p style="text-align:center; font-size:0.9em; color:#555;">
+    Open multiple connections to server as QuestaSim is slow to launch
+  </p>
+</body>
+</html>
