@@ -1,0 +1,68 @@
+Bootstrap: docker
+From: ubuntu:20.04
+
+%labels
+    Author Luigi Giuffrida
+
+%environment
+    export RISCV=/tools/riscv
+    export VERILATOR_VERSION=4.210
+    export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
+    export PATH=/tools/verible/verible-${VERIBLE_VERSION}/bin:/tools/verilator/${VERILATOR_VERSION}/bin:/opt/conda/envs/core-v-mini-mcu/bin:/opt/conda/condabin:${RISCV}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+%post
+    # Update and install dependencies
+    apt-get update && apt-get install -y \
+        lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev \
+        libglib2.0-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf \
+        automake autotools-dev libmpc-dev libmpfr-dev libgmp-dev gperf libtool \
+        patchutils bc zlib1g-dev cmake flex bison libexpat-dev gawk tree xterm \
+        python3-venv python3-dev ninja-build git wget python3 build-essential \
+        make coreutils libfindbin-libs-perl g++ curl && \
+        rm -rf /var/lib/apt/lists/*
+
+    # Install GCC-RISC-V toolchain
+    git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain /riscv-gnu-toolchain
+    cd /riscv-gnu-toolchain && ./configure --prefix=/tools/riscv --with-arch=rv32imc --with-abi=ilp32
+    apt-get update && apt-get install -y gcc build-essential make
+    cd /riscv-gnu-toolchain && make -j$(nproc)
+    rm -rf /riscv-gnu-toolchain
+
+    # Install LLVM and Clang
+    git clone https://github.com/llvm/llvm-project.git /llvm-project
+    cd /llvm-project && git checkout llvmorg-14.0.0 && mkdir build
+    cd /llvm-project/build && cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang \
+        -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV \
+        -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
+    cd /llvm-project/build && cmake --build . --target install -j$(nproc)
+    rm -rf /llvm-project
+
+    # Install Verilator
+    git clone https://github.com/verilator/verilator.git && cd verilator && git checkout v$VERILATOR_VERSION
+    cd /verilator && autoconf && ./configure --prefix=/tools/verilator/$VERILATOR_VERSION
+    cd /verilator && make -j$(nproc) && make install
+    rm -rf /verilator
+
+    # Install Verible
+    wget https://github.com/chipsalliance/verible/releases/download/$VERIBLE_VERSION/verible-$VERIBLE_VERSION-Ubuntu-focal-x86_64.tar.gz
+    mkdir -p /tools/verible && tar -xvf verible-$VERIBLE_VERSION-Ubuntu-focal-x86_64.tar.gz -C /tools/verible/
+    rm verible-$VERIBLE_VERSION-Ubuntu-focal-x86_64.tar.gz
+
+    # Install Conda
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda && rm Miniconda3-latest-Linux-x86_64.sh
+    /opt/conda/bin/conda init bash
+    /opt/conda/bin/conda create -y --name core-v-mini-mcu python=3.10
+    /opt/conda/bin/conda clean -a -y
+
+    # Set up bash environment
+    echo "conda activate core-v-mini-mcu" >> /root/.bashrc
+
+    # Custom bashrc greeting (optional)
+    echo "echo 'Welcome to the RISC-V development environment'" >> /root/.bashrc
+
+%files
+    # You can add any required local files here if necessary
+
+%runscript
+    exec /bin/bash
