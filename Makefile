@@ -249,7 +249,7 @@ verilator-run-app: app
 		--run_options="+firmware=../../../sw/build/main.hex $(SIM_ARGS)"
 
 ## Launches the RTL simulation with the compiled firmware (`app` target) using
-## the Verilator model previously built (`verilator-sim` target).
+## the Verilator model previously built (`verilator-build` target).
 verilator-run: 
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --run openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) \
 		--run_options="+firmware=../../../sw/build/main.hex $(SIM_ARGS)"
