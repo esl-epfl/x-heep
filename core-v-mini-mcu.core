@@ -325,7 +325,7 @@ targets:
         - tool_xcelium? (pre_build_uartdpi)
         - tool_xcelium? (pre_build_remote_bitbang)
       post_run:
-        - tool_verilator ? (print_uart_log)
+        - print_uart_log
     parameters:
     - COREV_PULP
     - FPU

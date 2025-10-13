@@ -10,7 +10,7 @@ so that you can extend it with your own accelerator without modifying the MCU, b
 By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`,
 and you can focus on building your special HW supported by the microcontroller.
 
-`X-HEEP` currently supports simulation with Verilator, Questasim, VCS, and Xcelium. Morever, the firmware can be built and linked using `CMake` with either _GCC_ or _CLang_ as backends. It can be implemented on FPGA, and it supports ASIC implementation in silicon, which is its main (but not the only) target for the platform. See below for more details.
+`X-HEEP` currently supports simulation with Verilator, Questasim, VCS, and Xcelium. Morever, the firmware can be built and linked using `CMake` with either _GCC_ or _Clang_ as backends. It can be implemented on FPGA, and it supports ASIC implementation in silicon, which is its main (but not the only) target for the platform. See below for more details.
 
 The block diagram below shows the `X-HEEP` MCU
 

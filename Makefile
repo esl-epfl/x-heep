@@ -238,22 +238,18 @@ xcelium-build:
 
 ## Generates the build output for helloworld application
 ## Uses verilator to simulate the HW model and run the FW
-## UART Dumping in uart0.log to show recollected results
 verilator-run-helloworld: mcu-gen verilator-build
 	$(MAKE) -C sw PROJECT=hello_world TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --run openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) \
 		--run_options="+firmware=../../../sw/build/main.hex $(SIM_ARGS)"
 
-## First builds the app and then uses verilator to simulate the HW model and run the FW
-## UART Dumping in uart0.log to show recollected results
+## First builds the app and then uses Verilator to simulate the HW model and run the FW
 verilator-run-app: app
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --run openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) \
 		--run_options="+firmware=../../../sw/build/main.hex $(SIM_ARGS)"
 
-## First builds the `PROJECT` app and then launches the RTL simulation with the
-## compiled firmware using the Verilator model previously built with the 
-## `verilator-sim` target.
-## UART Dumping in uart0.log to show recollected results
+## Launches the RTL simulation with the compiled firmware (`app` target) using
+## the Verilator model previously built (`verilator-sim` target).
 verilator-run: 
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --run openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) \
 		--run_options="+firmware=../../../sw/build/main.hex $(SIM_ARGS)"
