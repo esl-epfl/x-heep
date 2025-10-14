@@ -39,7 +39,7 @@ RUN rm -rf /llvm-project
 
 # Install Verilator
 RUN git clone https://github.com/verilator/verilator.git && cd verilator && git checkout v$VERILATOR_VERSION
-RUN apt update && apt install -y autoconf automake autotools-dev libmpc-dev libmpfr-dev libgmp-dev gperf help2man
+RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y autoconf automake autotools-dev libmpc-dev libmpfr-dev libgmp-dev gperf help2man
 RUN cd /verilator && autoconf && ./configure --prefix=/tools/verilator/$VERILATOR_VERSION
 RUN cd /verilator && make -j$(nproc) && make install
 RUN rm -rf /verilator
