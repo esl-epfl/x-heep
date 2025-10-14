@@ -31,11 +31,11 @@ RUN mkdir -p $RISCV
 RUN mv /corev/corev-openhw-gcc-ubuntu2204-20240530 $RISCV
 
 # Install clang
-#RUN git clone https://github.com/llvm/llvm-project.git /llvm-project
-#RUN cd /llvm-project && git checkout llvmorg-19.1.4 && mkdir build 
-#RUN cd /llvm-project/build && cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
-#RUN cd /llvm-project/build && cmake --build . --target install -j4
-#RUN rm -rf /llvm-project
+RUN git clone https://github.com/llvm/llvm-project.git /llvm-project
+RUN cd /llvm-project && git checkout llvmorg-19.1.4 && mkdir build 
+RUN cd /llvm-project/build && cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
+RUN cd /llvm-project/build && cmake --build . --target install -j4
+RUN rm -rf /llvm-project
 
 # Install Verilator
 RUN git clone https://github.com/verilator/verilator.git && cd verilator && git checkout v$VERILATOR_VERSION
