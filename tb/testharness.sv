@@ -227,6 +227,11 @@ module testharness #(
   // X-HEEP SYSTEM
   // -------------
   // Inout pins assignments
+  // NOTE: These assignments are needed to avoid a Verilator 5.X error triggered when directly
+  // connecting primary input/output ports to inout ports of internal modules. It should be safe
+  // to remove this workaround once support for Verilator 4.X is dropped and proper handling of
+  // primary inout ports is implemented in the C++ testbench.
+  // See https://verilator.org/guide/latest/languages.html#tri-inout for details.
   assign clk = clk_i;
   assign rst_n = rst_ni;
   assign boot_select = boot_select_i;
