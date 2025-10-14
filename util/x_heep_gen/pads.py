@@ -470,3 +470,11 @@ class Pad:
         self.core_v_mini_mcu_bonding = ""
         self.pad_ring_bonding_bonding = ""
         self.x_heep_system_interface = ""
+        
+    def __eq__(self, value):
+        if not isinstance(value, Pad):
+            return NotImplemented
+        return vars(self) == vars(value)
+            
+        
+        
