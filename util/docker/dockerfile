@@ -1,8 +1,8 @@
 # Author: Luigi Giuffrida
 
 ARG riscv=/tools/riscv
-ARG verilator_version=4.210
-ARG verible_version=v0.0-3858-g660d1664
+ARG verilator_version=5.040
+ARG verible_version=v0.0-1824-ga3b5bedf
 
 # First stage: build the environment
 FROM ubuntu:24.04 as builder
@@ -34,20 +34,20 @@ RUN mv /corev/corev-openhw-gcc-ubuntu2204-20240530 $RISCV
 RUN git clone https://github.com/llvm/llvm-project.git /llvm-project
 RUN cd /llvm-project && git checkout llvmorg-19.1.4 && mkdir build 
 RUN cd /llvm-project/build && cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
-RUN cd /llvm-project/build && cmake --build . --target install -j$(nproc)
+RUN cd /llvm-project/build && cmake --build . --target install -j4
 RUN rm -rf /llvm-project
 
 # Install Verilator
 RUN git clone https://github.com/verilator/verilator.git && cd verilator && git checkout v$VERILATOR_VERSION
 RUN apt update && apt install -y autoconf automake autotools-dev libmpc-dev libmpfr-dev libgmp-dev gperf help2man
 RUN cd /verilator && autoconf && ./configure --prefix=/tools/verilator/$VERILATOR_VERSION
-RUN cd /verilator && sed -i '1i#include <memory>' /verilator/src/V3Const.cpp && make -j$(nproc) && make install
+RUN cd /verilator && make -j$(nproc) && make install
 RUN rm -rf /verilator
 
 # Install Verible
-RUN wget https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
-RUN mkdir -p /tools/verible && tar -xf verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz -C /tools/verible/
-RUN rm verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
+RUN wget https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
+RUN mkdir -p /tools/verible && tar -xf verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz -C /tools/verible/
+RUN rm verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
 
 # Install conda
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
@@ -57,6 +57,7 @@ RUN rm Miniconda3-latest-Linux-x86_64.sh
 
 # Install conda environment
 COPY environment.yml .
+RUN /opt/conda/bin/conda tos accept
 RUN /opt/conda/bin/conda env create -f environment.yml
 RUN rm environment.yml
 
@@ -158,8 +159,8 @@ COPY --from=busybox /bin/find /bin/find
 COPY --from=busybox /bin/tr /bin/tr
 
 LABEL maintainer="Luigi Giuffrida <luigi.giuffrida.98@gmail.com>"
-LABEL version="experimental"
-LABEL description="This is a custom image for the X-HEEP project"
+LABEL version="full"
+LABEL description="Toolchain image for the X-HEEP project"
 
 # Set PATH
 ENV PATH=/tools/verible/verible-${VERIBLE_VERSION}/bin:/tools/verilator/${VERILATOR_VERSION}/bin:/opt/conda/envs/core-v-mini-mcu/bin:/opt/conda/condabin:${RISCV}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin

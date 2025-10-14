@@ -1,46 +1,53 @@
 # x-heep-docker
-This repository contains the dockerfile to build the [X-HEEP](https://github.com/esl-epfl/x-heep) docker (hosted on https://hub.docker.com/r/luigi2898/x-heep)
+This directory contains the dockerfile to build the docker container to run the CI pipeline and to be used as an all-in-one solution to make experiments with X-HEEP.
 
-# Docker content
+## Docker content
 
-- Verilator
-- risc-v-gcc-toolchain
-- clang
-- verible
+- Verilator 5.040 (for RTL simulation)
+- OpenHW RISC-V baremetal toolchain (for software build)
+- Clang (alternative for software build)
+- Verible (SystemVerilog source formatting and static analysis)
 
 
-# Commands to pull and run the docker image
+## Quick Start
 
-Pull the docker image from docker-hub:
+To use the Docker container to build X-HEEP and run applications on it, follow these steps:
 
-```bash
-docker pull luigi2898/x-heep:light
-```
-
-Once that the image is pulled you can clone X-HEEP (if needed) and directly run it:
+1. Pull the docker image from docker-hub:
 
 ```bash
-X_HEEP_PATH=<path/to/x-heep/clone>
-
-git clone https://github.com/esl-epfl/x-heep $X_HEEP_PATH
-
-docker run -it -v $X_HEEP_PATH:/workspace/x-heep luigi2898/x-heep:light
+make docker-pull
 ```
 
-Once that the docker is up and running, activate the virtual environment:
+2. Once that the image is pulled you can mount X-HEEP inside the container and open a shell in it:
 
 ```bash
-conda activate core-v-mini-mcu
+make docker-run
 ```
 
-Follow the [README](https://github.com/esl-epfl/x-heep) of X-HEEP to build hardware and run applications.
+3. Follow X-HEEP [documentation](https://x-heep.readthedocs.io/en/latest/index.html) to generate the RTL of the SoC, build the simulation model, and run applications.
 
-# Build the image (Takes some hours)
+## Modify and build the container (for the Maintainers)
 
-To build the docker image you can execute:
+To upgrade the tools included in the Docker container, edit the [`dockerfile`](./dockerfile). Once you are happy with your changes, you can build the image with:
 
 ```bash
-docker build -t luigi2898/x-heep:latest .
+make docker-build
 ```
 
+The container is automatically built and pushed to the registry by the [`docker-publish.yml`](/.github/workflows/docker-publish.yml) GitHub action, that is executed upon push events to the `main` branch (e.g., when a pull request is merged). In case you need to manually push the updated container, you can do so with:
 
+```
+make docker-push
+```
+
+> [!Note]
+> Manually publishing requires logging in with a [personal access token](https://github.com/settings/tokens) with: `docker login ghcr.io -u USERNAME`.
+
+### Apptainer Version
+
+An Apptainer image (SIF format) can be automatically generated from the Docker layers using the following command:
+
+```bash
+apptainer build x-heep-toolchain.sif docker://ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest
+```

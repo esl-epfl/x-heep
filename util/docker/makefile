@@ -1,17 +1,19 @@
+ROOT_DIR 			:= $(shell git rev-parse --show-toplevel)
+TAG 				:= latest
+GITHUB_REPOSITORY 	:= esl-epfl
+IMAGE_NAME 			:= x-heep-toolchain
+IMAGE_ID 			:= $(GITHUB_REPOSITORY)/$(IMAGE_NAME)
 
-TAG := latest
-GITHUB_REPOSITORY := vlsi-lab/x-heep-toolchain
-PROJECT_ID := ghcr.io/$(GITHUB_REPOSITORY)
-IMAGE_NAME := x-heep-toolchain
+.PHONY: docker-build docker-push docker-run docker-pull
 
 docker-build:
-	docker build -t gcr.io/$(PROJECT_ID)/$(IMAGE_NAME):$(TAG) .
+	docker build -t $(IMAGE_ID):$(TAG) -f ./dockerfile $(ROOT_DIR)
 
 docker-push:
-	docker push gcr.io/$(PROJECT_ID)/$(IMAGE_NAME):$(TAG)
+	docker push $(IMAGE_ID):$(TAG)
 
 docker-run:
-	docker run -it --rm gcr.io/$(PROJECT_ID)/$(IMAGE_NAME):$(TAG)
+	docker run -it --rm -v $(ROOT_DIR):/workspace/x-heep $(IMAGE_ID):$(TAG)
 
 docker-pull:
-	docker pull gcr.io/$(PROJECT_ID)/$(IMAGE_NAME):$(TAG)
+	docker pull ghcr.io/$(IMAGE_ID):$(TAG)
