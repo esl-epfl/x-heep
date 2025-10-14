@@ -59,6 +59,7 @@ RUN rm Miniconda3-latest-Linux-x86_64.sh
 COPY environment.yml .
 RUN /opt/conda/bin/conda tos accept && /opt/conda/bin/conda config --set auto_activate_base false
 RUN /opt/conda/bin/conda env create -f environment.yml && rm environment.yml
+RUN /opt/conda/bin/conda clean -afy
 
 # Pull busybox image
 FROM busybox:1.35.0-uclibc as busybox
