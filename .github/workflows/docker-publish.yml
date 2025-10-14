@@ -26,6 +26,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Generate environment.yml from python-requirements.txt
+        run: |
+          chmod +x util/python-requirements2conda.sh
+          ./util/python-requirements2conda.sh
+
       - name: Log in to the container registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
