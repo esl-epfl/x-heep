@@ -127,6 +127,20 @@ git pull origin thomas
     <p>Don't forget to cast offsets for registers (all registers are 32-bit).</p>
   </div>
 
+  <div class="section">
+    <h2>9️⃣ GTKwave</h2>
+    <p>To inspect waveforms after simulation, open the generated <code>.vcd</code> or <code>.fst</code> file in GTKwave.</p>
+    <p>Signals of interest are located under the following hierarchy:</p>
+    <pre><code>testharness → x_heep_system → peripheral_sub → my_ip</code></pre>
+    <p>Inside this path, you can expand <code>my_ip</code> to find internal registers, control signals, and bus transactions.</p>
+    <p>To save your current signal setup for later use:</p>
+    <ul>
+      <li>Select or highlight the desired signals in the GTKwave interface.</li>
+      <li>Press <strong>G</strong> (or go to <em>File → Write Save File</em>) to generate a <code>.sav</code> file.</li>
+    </ul>
+    <p>This file records the displayed signals and layout, allowing you to reload the correct view easily in future sessions.</p>
+  </div>
+
   <p style="text-align:center; font-size:0.9em; color:#555;">
     💡 Tip: Open multiple connections to the server.
   </p>
