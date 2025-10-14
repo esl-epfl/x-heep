@@ -7,6 +7,7 @@
 lint_off -rule UNUSED -file "*/core_v_mini_mcu.sv" -match "*"
 lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Signal is not used: 'apu*'*"
 lint_off -rule UNDRIVEN -file "*/memory_subsystem.sv" -match "Bits of signal are not driven: 'ram*_resp_o'[32]*"
+lint_off -rule UNOPTFLAT -file "*/core_v_mini_mcu.sv" -match "Signal unoptimizable: *ircular *logic: '*.flash_mem_slave_resp'"
 lint_off -rule UNOPTFLAT -file "*/system_xbar.sv" -match "Signal unoptimizable*"
 lint_off -rule UNOPTFLAT -file "*/ao_peripheral_subsystem.sv" -match "*"
 lint_off -rule UNOPTFLAT -file "*/xbar_varlat_one_to_n.sv" -match "Signal unoptimizable: *ircular *logic: '*.xbar_master_rsp_rvalid'"

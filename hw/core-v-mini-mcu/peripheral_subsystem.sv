@@ -99,8 +99,8 @@ module peripheral_subsystem
   reg_pkg::reg_req_t peripheral_req;
   reg_pkg::reg_rsp_t peripheral_rsp;
 
-  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::PERIPHERALS-1:0] peripheral_slv_req;
-  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::PERIPHERALS-1:0] peripheral_slv_rsp;
+  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::PERIPHERALS_RND-1:0] peripheral_slv_req;
+  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::PERIPHERALS_RND-1:0] peripheral_slv_rsp;
 
   tlul_pkg::tl_h2d_t plic_tl_h2d;
   tlul_pkg::tl_d2h_t plic_tl_d2h;
@@ -246,8 +246,8 @@ module peripheral_subsystem
   );
 
   addr_decode #(
-      .NoIndices(core_v_mini_mcu_pkg::PERIPHERALS),
-      .NoRules(core_v_mini_mcu_pkg::PERIPHERALS),
+      .NoIndices(core_v_mini_mcu_pkg::PERIPHERALS_RND),
+      .NoRules(core_v_mini_mcu_pkg::PERIPHERALS_RND),
       .addr_t(logic [31:0]),
       .rule_t(addr_map_rule_pkg::addr_map_rule_t)
   ) i_addr_decode_soc_regbus_periph_xbar (
@@ -261,7 +261,7 @@ module peripheral_subsystem
   );
 
   reg_demux #(
-      .NoPorts(core_v_mini_mcu_pkg::PERIPHERALS),
+      .NoPorts(core_v_mini_mcu_pkg::PERIPHERALS_RND),
       .req_t  (reg_pkg::reg_req_t),
       .rsp_t  (reg_pkg::reg_rsp_t)
   ) reg_demux_i (
@@ -465,7 +465,6 @@ module peripheral_subsystem
       .intr_i2s_event_o(i2s_intr_event),
       .i2s_rx_valid_o(i2s_rx_valid_o)
   );
-
 
 
 endmodule : peripheral_subsystem
