@@ -79,9 +79,18 @@ cat uart0.log
 
   <div class="section">
     <h2>5️⃣ Run Simulation (Verilator)</h2>
-    <pre><code>make verilator-build
-</code></pre>
+    <pre><code>
+make verilator-sim
+
+# If verilator-sim doesn't work, fix the warnings first.
+# Then verify that you have the correct Python requirements (plus additional).
+
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
+./Vtestharness +firmware=../../../sw/build/main.hex
+cat uart0.log
+    </code></pre>
   </div>
+
 
   <div class="section">
     <h2>6️⃣ Server Usage: Push, Pull & Verify</h2>
@@ -129,17 +138,25 @@ git pull origin thomas
 
   <div class="section">
     <h2>9️⃣ GTKwave</h2>
+
+     <pre><code>cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
+gtkwave waveform.vcd
+</code></pre>
+
     <p>To inspect waveforms after simulation, open the generated <code>.vcd</code> or <code>.fst</code> file in GTKwave.</p>
     <p>Signals of interest are located under the following hierarchy:</p>
-    <pre><code>testharness → x_heep_system → peripheral_sub → my_ip</code></pre>
+    <pre><code>testharness → x_heep_system_i → core_v_mini_mcu_i → peripheral_subsystem_i → my_ip_i</code></pre>
     <p>Inside this path, you can expand <code>my_ip</code> to find internal registers, control signals, and bus transactions.</p>
     <p>To save your current signal setup for later use:</p>
     <ul>
       <li>Select or highlight the desired signals in the GTKwave interface.</li>
-      <li>Press <strong>G</strong> (or go to <em>File → Write Save File</em>) to generate a <code>.sav</code> file.</li>
+      <li>Press <strong>G</strong> to generate a group (first highlight in Signals column)</li>
+      <li>File → Write Save File</em> to generate a <code>.sav</code> file.</li>
     </ul>
     <p>This file records the displayed signals and layout, allowing you to reload the correct view easily in future sessions.</p>
   </div>
+
+  
 
   <p style="text-align:center; font-size:0.9em; color:#555;">
     💡 Tip: Open multiple connections to the server.

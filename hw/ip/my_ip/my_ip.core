@@ -12,6 +12,7 @@ filesets:
   files_rtl:
     depend:
       - x-heep::packages
+      - lowrisc:ip:spi_host:1.0
     files:
     - rtl/my_ip_reg_pkg.sv
     - rtl/my_ip_reg_top.sv

@@ -19,3 +19,8 @@ lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Signal is not driven: 'reg_rs
 lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Signal is not driven: 'my_ip_done_o'"
 lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Signal is not driven: 'my_ip_interrupt_o'"
 lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Signal is not driven: 'my_ip_master_bus_req_o'"
+
+lint_off -rule UNUSED   -file "*/my_ip.sv" -match "Signal is not used: 'reg2hw'"
+lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Signal is not driven: 'hw2reg'"
+lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Bits of signal are not driven: 'hw2*"
+

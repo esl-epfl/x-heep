@@ -31,11 +31,11 @@ extern "C" {
 #define MY_IP_INTR_TEST_REG_OFFSET 0x8
 #define MY_IP_INTR_TEST_MY_IP_EVENT_BIT 0
 
-// Test register for writing
+// Test register for wr
 #define MY_IP_TEST_REG_W_REG_OFFSET 0xc
 
-// Test register for reading
-#define MY_IP_TEST_REG_R_REG_OFFSET 0x10
+// Test register for wr
+#define MY_IP_TEST_REG_W2_REG_OFFSET 0x10
 
 #ifdef __cplusplus
 }  // extern "C"

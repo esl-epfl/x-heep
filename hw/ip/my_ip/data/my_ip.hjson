@@ -10,19 +10,19 @@
   regwidth: "32"
   registers: [
     { name:     "TEST_REG_W"
-      desc:     "Test register for writing"
+      desc:     "Test register for wr"
       swaccess: "rw"
       hwaccess: "hrw"
       fields: [
-        { bits: "31:0", name: "WRITE", desc: "read" },
+        { bits: "31:0", name: "WRITE", desc: "write" },
       ]
     }
-    { name:     "TEST_REG_R"
-      desc:     "Test register for reading"
-      swaccess: "ro"
-      hwaccess: "hro"
+    { name:     "TEST_REG_W2"
+      desc:     "Test register for wr"
+      swaccess: "rw"
+      hwaccess: "hrw"
       fields: [
-        { bits: "31:0", name: "READ", desc: "write" },
+        { bits: "31:0", name: "WRITE", desc: "write" },
       ]
     }
   ]

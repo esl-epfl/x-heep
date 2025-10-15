@@ -146,6 +146,7 @@ module peripheral_subsystem
   logic i2c_intr_host_timeout;
   logic spi2_intr_event;
   logic i2s_intr_event;
+  logic my_ip_intr_event;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -179,6 +180,7 @@ module peripheral_subsystem
   assign intr_vector[${interrupts["intr_host_timeout"]}] = i2c_intr_host_timeout;
   assign intr_vector[${interrupts["spi2_intr_event"]}] = spi2_intr_event;
   assign intr_vector[${interrupts["i2s_intr_event"]}] = i2s_intr_event;
+  assign intr_vector[${interrupts["my_ip_intr_event"]}] = my_ip_intr_event;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin

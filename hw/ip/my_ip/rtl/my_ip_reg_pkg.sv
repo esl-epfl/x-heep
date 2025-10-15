@@ -13,22 +13,30 @@ package my_ip_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {logic q;} my_ip_reg2hw_intr_state_reg_t;
-
-  typedef struct packed {logic q;} my_ip_reg2hw_intr_enable_reg_t;
+  typedef struct packed {
+    logic        q;
+  } my_ip_reg2hw_intr_state_reg_t;
 
   typedef struct packed {
-    logic q;
-    logic qe;
+    logic        q;
+  } my_ip_reg2hw_intr_enable_reg_t;
+
+  typedef struct packed {
+    logic        q;
+    logic        qe;
   } my_ip_reg2hw_intr_test_reg_t;
 
-  typedef struct packed {logic [31:0] q;} my_ip_reg2hw_test_reg_w_reg_t;
-
-  typedef struct packed {logic [31:0] q;} my_ip_reg2hw_test_reg_r_reg_t;
+  typedef struct packed {
+    logic [31:0] q;
+  } my_ip_reg2hw_test_reg_w_reg_t;
 
   typedef struct packed {
-    logic d;
-    logic de;
+    logic [31:0] q;
+  } my_ip_reg2hw_test_reg_w2_reg_t;
+
+  typedef struct packed {
+    logic        d;
+    logic        de;
   } my_ip_hw2reg_intr_state_reg_t;
 
   typedef struct packed {
@@ -36,31 +44,37 @@ package my_ip_reg_pkg;
     logic        de;
   } my_ip_hw2reg_test_reg_w_reg_t;
 
+  typedef struct packed {
+    logic [31:0] d;
+    logic        de;
+  } my_ip_hw2reg_test_reg_w2_reg_t;
+
   // Register -> HW type
   typedef struct packed {
-    my_ip_reg2hw_intr_state_reg_t  intr_state;   // [67:67]
-    my_ip_reg2hw_intr_enable_reg_t intr_enable;  // [66:66]
-    my_ip_reg2hw_intr_test_reg_t   intr_test;    // [65:64]
-    my_ip_reg2hw_test_reg_w_reg_t  test_reg_w;   // [63:32]
-    my_ip_reg2hw_test_reg_r_reg_t  test_reg_r;   // [31:0]
+    my_ip_reg2hw_intr_state_reg_t intr_state; // [67:67]
+    my_ip_reg2hw_intr_enable_reg_t intr_enable; // [66:66]
+    my_ip_reg2hw_intr_test_reg_t intr_test; // [65:64]
+    my_ip_reg2hw_test_reg_w_reg_t test_reg_w; // [63:32]
+    my_ip_reg2hw_test_reg_w2_reg_t test_reg_w2; // [31:0]
   } my_ip_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    my_ip_hw2reg_intr_state_reg_t intr_state;  // [34:33]
-    my_ip_hw2reg_test_reg_w_reg_t test_reg_w;  // [32:0]
+    my_ip_hw2reg_intr_state_reg_t intr_state; // [67:66]
+    my_ip_hw2reg_test_reg_w_reg_t test_reg_w; // [65:33]
+    my_ip_hw2reg_test_reg_w2_reg_t test_reg_w2; // [32:0]
   } my_ip_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] MY_IP_INTR_STATE_OFFSET = 5'h0;
-  parameter logic [BlockAw-1:0] MY_IP_INTR_ENABLE_OFFSET = 5'h4;
-  parameter logic [BlockAw-1:0] MY_IP_INTR_TEST_OFFSET = 5'h8;
-  parameter logic [BlockAw-1:0] MY_IP_TEST_REG_W_OFFSET = 5'hc;
-  parameter logic [BlockAw-1:0] MY_IP_TEST_REG_R_OFFSET = 5'h10;
+  parameter logic [BlockAw-1:0] MY_IP_INTR_STATE_OFFSET = 5'h 0;
+  parameter logic [BlockAw-1:0] MY_IP_INTR_ENABLE_OFFSET = 5'h 4;
+  parameter logic [BlockAw-1:0] MY_IP_INTR_TEST_OFFSET = 5'h 8;
+  parameter logic [BlockAw-1:0] MY_IP_TEST_REG_W_OFFSET = 5'h c;
+  parameter logic [BlockAw-1:0] MY_IP_TEST_REG_W2_OFFSET = 5'h 10;
 
   // Reset values for hwext registers and their fields
-  parameter logic [0:0] MY_IP_INTR_TEST_RESVAL = 1'h0;
-  parameter logic [0:0] MY_IP_INTR_TEST_MY_IP_EVENT_RESVAL = 1'h0;
+  parameter logic [0:0] MY_IP_INTR_TEST_RESVAL = 1'h 0;
+  parameter logic [0:0] MY_IP_INTR_TEST_MY_IP_EVENT_RESVAL = 1'h 0;
 
   // Register index
   typedef enum int {
@@ -68,16 +82,16 @@ package my_ip_reg_pkg;
     MY_IP_INTR_ENABLE,
     MY_IP_INTR_TEST,
     MY_IP_TEST_REG_W,
-    MY_IP_TEST_REG_R
+    MY_IP_TEST_REG_W2
   } my_ip_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] MY_IP_PERMIT[5] = '{
-      4'b0001,  // index[0] MY_IP_INTR_STATE
-      4'b0001,  // index[1] MY_IP_INTR_ENABLE
-      4'b0001,  // index[2] MY_IP_INTR_TEST
-      4'b1111,  // index[3] MY_IP_TEST_REG_W
-      4'b1111  // index[4] MY_IP_TEST_REG_R
+  parameter logic [3:0] MY_IP_PERMIT [5] = '{
+    4'b 0001, // index[0] MY_IP_INTR_STATE
+    4'b 0001, // index[1] MY_IP_INTR_ENABLE
+    4'b 0001, // index[2] MY_IP_INTR_TEST
+    4'b 1111, // index[3] MY_IP_TEST_REG_W
+    4'b 1111  // index[4] MY_IP_TEST_REG_W2
   };
 
 endpackage
