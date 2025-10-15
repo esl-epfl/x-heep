@@ -254,8 +254,8 @@ parameters:
   PRIM_DEFAULT_IMPL:
     datatype: str
     paramtype: vlogdefine
-    description: Primitives implementation to use, e.g. "prim_pkg::ImplGeneric".
-    default: prim_pkg::ImplGeneri
+    description: Primitives implementation to use, e.g. "prim_pkg_xheep::ImplGeneric".
+    default: prim_pkg_xheep::ImplGeneri
 
 scripts:
   post_build_modelsim_scripts:
@@ -484,7 +484,7 @@ targets:
     default_tool: design_compiler
     description: Design Compiler Script
     parameters:
-    - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
+    - PRIM_DEFAULT_IMPL=prim_pkg_xheep::your_target_technology
     - COREV_PULP
     - X_EXT
     - FPU

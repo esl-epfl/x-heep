@@ -65,7 +65,7 @@ module id_queue_tb #(
         .rst_no (rst_n)
     );
 
-    id_queue #(
+    id_queue_xheep #(
         .ID_WIDTH   (ID_WIDTH),
         .CAPACITY   (CAPACITY),
         .data_t     (data_t)

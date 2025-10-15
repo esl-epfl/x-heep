@@ -473,7 +473,7 @@ module ao_peripheral_subsystem
   );
 
   /* UART */
-  uart uart_i (
+  uart_xheep uart_i (
       .clk_i,
       .rst_ni,
       .tl_i(uart_tl_h2d),

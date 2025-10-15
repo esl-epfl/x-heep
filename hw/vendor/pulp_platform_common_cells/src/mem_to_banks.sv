@@ -82,6 +82,11 @@ module mem_to_banks #(
   input  oup_data_t [NumBanks-1:0]  bank_rdata_i
 );
 
+  if (NumBanks == 0)                 $error("NumBanks must be > 0");
+  if (DataWidth < 8 || (DataWidth % 8) != 0) $error("DataWidth must be >=8 and multiple of 8");
+  if ((DataWidth % NumBanks) != 0)   $error("DataWidth %% NumBanks must be 0");
+  if (((DataWidth/NumBanks) % 8) != 0) $error("(DataWidth/NumBanks) must be byte-aligned");
+
   localparam int unsigned DataBytes    = $bits(inp_strb_t);
   localparam int unsigned BitsPerBank  = $bits(oup_data_t);
   localparam int unsigned BytesPerBank = $bits(oup_strb_t);

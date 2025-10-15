@@ -45,7 +45,7 @@
 // Maintainers:
 // - Andreas Kurth <akurth@iis.ee.ethz.ch>
 
-module id_queue #(
+module id_queue_xheep #(
     parameter int ID_WIDTH  = 0,
     parameter int CAPACITY  = 0,
     parameter bit FULL_BW   = 0,

@@ -223,7 +223,7 @@ ${pad_mux_process}
 % endif
   );
 
-  rstgen rstgen_i (
+  rstgen_xheep rstgen_i (
     .clk_i(clk_in_x),
     .rst_ni(rst_nin_x),
     .test_mode_i(1'b0),

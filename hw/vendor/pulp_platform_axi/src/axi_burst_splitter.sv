@@ -515,7 +515,7 @@ module axi_burst_splitter_counters #(
 
   logic idq_inp_req, idq_inp_gnt,
         idq_oup_gnt, idq_oup_valid, idq_oup_pop;
-  id_queue #(
+  id_queue_xheep #(
     .ID_WIDTH ( $bits(id_t) ),
     .CAPACITY ( MaxTxns     ),
     .data_t   ( cnt_idx_t   )

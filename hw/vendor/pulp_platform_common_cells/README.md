@@ -21,8 +21,8 @@ Please note that cells with status *deprecated* are not to be used for new desig
 | `clk_div`               | Clock divider with integer divisor                                                   | *deprecated* | `clk_int_div` |
 | `clock_divider`         | Clock divider with configuration registers                                           | *deprecated* | `clk_int_div` |
 | `clock_divider_counter` | Clock divider using a counter                                                        | *deprecated* | `clk_int_div` |
-| `rstgen`                | Reset synchronizer                                                                   | active       |               |
-| `rstgen_bypass`         | Reset synchronizer with dedicated test reset bypass                                  | active       |               |
+| `rstgen_xheep`                | Reset synchronizer                                                                   | active       |               |
+| `rstgen_bypass_xheep`         | Reset synchronizer with dedicated test reset bypass                                  | active       |               |
 
 ### Clock Domains and Asynchronous Crossings
 

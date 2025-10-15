@@ -13,7 +13,7 @@ module ext_bus #(
     // Dependent parameters: do not override
     localparam int unsigned EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     localparam int unsigned EXT_XBAR_NSLAVE_RND = EXT_XBAR_NSLAVE == 0 ? 1 : EXT_XBAR_NSLAVE,
-    localparam int unsigned IDX_WIDTH = cf_math_pkg::idx_width(EXT_XBAR_NSLAVE)
+    localparam int unsigned IDX_WIDTH = cf_math_pkg_xheep::idx_width(EXT_XBAR_NSLAVE)
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -137,8 +137,9 @@ module ext_bus #(
   // show writes if requested
   always_ff @(posedge clk_i, negedge rst_ni) begin : verbose_writes
     if ($test$plusargs("verbose") != 0 && heep_core_data_req_i.req && heep_core_data_req_i.we)
-      $display("write addr=0x%08x: data=0x%08x", heep_core_data_req_i.addr,
-               heep_core_data_req_i.wdata);
+      $display(
+          "write addr=0x%08x: data=0x%08x", heep_core_data_req_i.addr, heep_core_data_req_i.wdata
+      );
   end
 `endif
 

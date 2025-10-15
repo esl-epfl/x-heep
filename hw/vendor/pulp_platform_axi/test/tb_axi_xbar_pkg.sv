@@ -150,7 +150,7 @@ package tb_axi_xbar_pkg;
 
     // This task monitors a slave ports of the crossbar. Every time an AW beat is seen
     // it populates an id queue at the right master port (if there is no expected decode error),
-    // populates the expected b response in its own id_queue and in case when the atomic bit [5]
+    // populates the expected b response in its own id_queue_xheep and in case when the atomic bit [5]
     // is set it also injects an expected response in the R channel.
     task automatic monitor_mst_aw(input int unsigned i);
       idx_slv_t    to_slave_idx;
