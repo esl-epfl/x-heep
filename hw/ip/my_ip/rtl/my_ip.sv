@@ -24,7 +24,6 @@ module my_ip #(
   import core_v_mini_mcu_pkg::*;
   import spi_host_reg_pkg::*;
 
-  /* Registers */
   my_ip_reg2hw_t reg2hw;
   my_ip_hw2reg_t hw2reg;
 
@@ -42,7 +41,6 @@ module my_ip #(
   always_ff @( posedge clk_i or negedge rst_ni) begin : fsm_one
     if ( !rst_ni ) begin
         my_ip_state <= OBI_IDLE;
-      // reset
     end else begin
         my_ip_state <= my_ip_n_state;
     end
@@ -50,13 +48,12 @@ module my_ip #(
 
   always_comb begin
 
-    my_ip_master_bus_req_o.req = 1'b0;  // No request
+    my_ip_master_bus_req_o.req = 1'b0;
     my_ip_master_bus_req_o.we = 1'b0;
     my_ip_master_bus_req_o.be = 4'b1111;
     my_ip_master_bus_req_o.addr = 32'h0;
     my_ip_master_bus_req_o.wdata = 32'h0;
     
-
     my_ip_n_state = my_ip_state;
 
     case ( my_ip_state )
@@ -89,9 +86,9 @@ module my_ip #(
             my_ip_n_state = OBI_WAIT_RVALID;
         end
       end
-      
+
       OBI_WAIT_RVALID: begin
-        if ( my_ip_master_bus_resp_i.rvalid ) begin
+        if ( valid_q ) begin
             // Do something with the read data
             my_ip_n_state = OBI_STORE_DATA;
         end
@@ -107,13 +104,16 @@ module my_ip #(
   end
 
   logic gnt_q;
+  logic valid_q;
 
   always_ff @( posedge clk_i or negedge rst_ni) begin
     if ( !rst_ni ) begin
         hw2reg.test_reg_w2.d <= 32'h0;
         gnt_q <= 1'b0;
+        valid_q <= 1'b0;
     end else begin
         gnt_q <= my_ip_master_bus_resp_i.gnt;
+        valid_q <= my_ip_master_bus_resp_i.rvalid;
         if ( my_ip_state == OBI_STORE_DATA ) begin
             hw2reg.test_reg_w2.d <= my_ip_master_bus_resp_i.rdata + 32'h6;
         end
