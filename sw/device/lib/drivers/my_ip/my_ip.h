@@ -37,6 +37,9 @@ extern "C" {
 // Test register for wr
 #define MY_IP_TEST_REG_W2_REG_OFFSET 0x10
 
+// Setup SPI signal
+#define MY_IP_SETUP_SPI_REG_OFFSET 0x14
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif

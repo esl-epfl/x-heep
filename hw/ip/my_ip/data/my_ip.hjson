@@ -25,6 +25,14 @@
         { bits: "31:0", name: "WRITE", desc: "write" },
       ]
     }
+    { name:     "SETUP_SPI"
+      desc:     "Setup SPI signal"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "31:0", name: "SETUP_SPI", desc: "spi_setup" },
+      ]
+    }
   ]
   interrupt_list: [
     { name: "my_ip_event"

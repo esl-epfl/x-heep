@@ -82,6 +82,9 @@ module my_ip_reg_top #(
   logic [31:0] test_reg_w2_qs;
   logic [31:0] test_reg_w2_wd;
   logic test_reg_w2_we;
+  logic [31:0] setup_spi_qs;
+  logic [31:0] setup_spi_wd;
+  logic setup_spi_we;
 
   // Register instances
   // R[intr_state]: V(False)
@@ -208,9 +211,36 @@ module my_ip_reg_top #(
   );
 
 
+  // R[setup_spi]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_setup_spi (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (setup_spi_we),
+    .wd     (setup_spi_wd),
+
+    // from internal hardware
+    .de     (hw2reg.setup_spi.de),
+    .d      (hw2reg.setup_spi.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.setup_spi.q ),
+
+    // to register interface (read)
+    .qs     (setup_spi_qs)
+  );
 
 
-  logic [4:0] addr_hit;
+
+
+  logic [5:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == MY_IP_INTR_STATE_OFFSET);
@@ -218,6 +248,7 @@ module my_ip_reg_top #(
     addr_hit[2] = (reg_addr == MY_IP_INTR_TEST_OFFSET);
     addr_hit[3] = (reg_addr == MY_IP_TEST_REG_W_OFFSET);
     addr_hit[4] = (reg_addr == MY_IP_TEST_REG_W2_OFFSET);
+    addr_hit[5] = (reg_addr == MY_IP_SETUP_SPI_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -229,7 +260,8 @@ module my_ip_reg_top #(
                (addr_hit[1] & (|(MY_IP_PERMIT[1] & ~reg_be))) |
                (addr_hit[2] & (|(MY_IP_PERMIT[2] & ~reg_be))) |
                (addr_hit[3] & (|(MY_IP_PERMIT[3] & ~reg_be))) |
-               (addr_hit[4] & (|(MY_IP_PERMIT[4] & ~reg_be)))));
+               (addr_hit[4] & (|(MY_IP_PERMIT[4] & ~reg_be))) |
+               (addr_hit[5] & (|(MY_IP_PERMIT[5] & ~reg_be)))));
   end
 
   assign intr_state_we = addr_hit[0] & reg_we & !reg_error;
@@ -246,6 +278,9 @@ module my_ip_reg_top #(
 
   assign test_reg_w2_we = addr_hit[4] & reg_we & !reg_error;
   assign test_reg_w2_wd = reg_wdata[31:0];
+
+  assign setup_spi_we = addr_hit[5] & reg_we & !reg_error;
+  assign setup_spi_wd = reg_wdata[31:0];
 
   // Read data return
   always_comb begin
@@ -269,6 +304,10 @@ module my_ip_reg_top #(
 
       addr_hit[4]: begin
         reg_rdata_next[31:0] = test_reg_w2_qs;
+      end
+
+      addr_hit[5]: begin
+        reg_rdata_next[31:0] = setup_spi_qs;
       end
 
       default: begin
