@@ -24,3 +24,4 @@ lint_off -rule UNUSED   -file "*/my_ip.sv" -match "Signal is not used: 'reg2hw'"
 lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Signal is not driven: 'hw2reg'"
 lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Bits of signal are not driven: 'hw2*"
 
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Bits of signal are not used: 'my_ip_master_bus_resp_i*"
