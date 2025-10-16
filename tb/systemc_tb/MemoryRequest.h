@@ -137,7 +137,7 @@ SC_MODULE(MemoryRequest)
                 cache->get_data_at_index(i, cache_data);
                 address_to_replace = cache->get_address_at_index(i);
                 //write back
-                memory_copy(address_to_replace, (uint32_t *)cache_data, cache_block_size_word, true, trans, delay);
+                memory_copy(address_to_replace, (int32_t *)cache_data, cache_block_size_word, true, trans, delay);
             }
           }
           heep_mem_transactions<<"Cache Flushed "<< dec << cache_flushed << " entries"<<std::endl;
@@ -157,7 +157,7 @@ SC_MODULE(MemoryRequest)
           heep_mem_transactions << "Cache in bypass state at time " << sc_time_stamp() <<std::endl;
           wait(delay_gnt_miss);
           obi_new_gnt.notify();
-          memory_copy(addr_i, &rwdata_io, 1, we_i == true, trans, delay);
+          memory_copy(addr_i, (int32_t *) &rwdata_io, 1, we_i == true, trans, delay);
           wait(delay_rvalid_miss);
         } else {
           // we use the cache only to read
@@ -209,7 +209,7 @@ SC_MODULE(MemoryRequest)
               heep_mem_transactions << "Index to replace " << hex << index_to_replace << " Tag to replace " << tag_to_replace <<std::endl;
 
               //write back
-              memory_copy(address_to_replace, (uint32_t *)cache_data, cache_block_size_word, true, trans, delay);
+              memory_copy(address_to_replace, (int32_t *)cache_data, cache_block_size_word, true, trans, delay);
             }
 
             //now replace the entry in cache
