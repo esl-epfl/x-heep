@@ -143,7 +143,7 @@ public:
     uint8_t* new_data = new uint8_t[block_size_byte];
     this->get_data(address, new_data);
     data_word = *((int32_t *)&new_data[block_offset]);
-    delete new_data;
+    delete[] new_data;
     return data_word;
   }
 
@@ -154,7 +154,7 @@ public:
     *((int32_t *)&new_data[block_offset]) = data_word;
     for(int i=0;i<block_size_byte;i++)
     this->add_entry(address, new_data);
-    delete new_data;
+    delete[] new_data;
   }
 
   bool is_entry_valid(uint32_t address) {

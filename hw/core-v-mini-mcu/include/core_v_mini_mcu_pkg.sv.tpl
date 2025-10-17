@@ -194,7 +194,8 @@ package core_v_mini_mcu_pkg;
 ######################################################################
   // user peripherals
   // -------------------------
-  localparam PERIPHERALS = ${len(user_peripheral_domain.get_peripherals())};
+  localparam int unsigned PERIPHERALS = ${len(user_peripheral_domain.get_peripherals())};
+  localparam int unsigned PERIPHERALS_RND = (PERIPHERALS > 0) ? PERIPHERALS : 32'd1;
 
 % for peripheral in user_peripheral_domain.get_peripherals():
   localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${hex(peripheral.get_address())[2:]};
@@ -203,11 +204,15 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] ${peripheral.get_name().upper()}_IDX = 32'd${loop.index};
 % endfor
 
-  localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
+% if len(user_peripheral_domain.get_peripherals()) == 0:
+  localparam addr_map_rule_t [PERIPHERALS_RND-1:0] PERIPHERALS_ADDR_RULES = '0;
+% else:
+  localparam addr_map_rule_t [PERIPHERALS_RND-1:0] PERIPHERALS_ADDR_RULES = '{
 % for peripheral in user_peripheral_domain.get_peripherals():
       '{ idx: ${peripheral.get_name().upper()}_IDX, start_addr: ${peripheral.get_name().upper()}_START_ADDRESS, end_addr: ${peripheral.get_name().upper()}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor
   };
+% endif
 
   localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = PERIPHERALS > 1 ? $clog2(PERIPHERALS) : 32'd1;
 

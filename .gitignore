@@ -68,4 +68,5 @@ flow/OpenROAD-flow-scripts
 
 # User-dependent configuration files
 .vscode
+.continue
 private/
