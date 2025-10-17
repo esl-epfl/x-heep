@@ -101,8 +101,8 @@ module peripheral_subsystem
   reg_pkg::reg_req_t peripheral_req;
   reg_pkg::reg_rsp_t peripheral_rsp;
 
-  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::PERIPHERALS-1:0] peripheral_slv_req;
-  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::PERIPHERALS-1:0] peripheral_slv_rsp;
+  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::PERIPHERALS_RND-1:0] peripheral_slv_req;
+  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::PERIPHERALS_RND-1:0] peripheral_slv_rsp;
 
   tlul_pkg::tl_h2d_t plic_tl_h2d;
   tlul_pkg::tl_d2h_t plic_tl_d2h;
@@ -176,7 +176,7 @@ module peripheral_subsystem
   assign intr_vector[${interrupts["i2s_intr_event"]}] = i2s_intr_event;
 
   // External interrupts assignement
-  for (genvar i = 0; i < NEXT_INT; i++) begin
+  for (genvar i = 0; i < NEXT_INT; i++) begin : gen_external_intr_vect
     assign intr_vector[i+PLIC_USED_NINT] = intr_vector_ext_i[i];
   end
 
@@ -248,8 +248,8 @@ module peripheral_subsystem
   );
 
   addr_decode #(
-      .NoIndices(core_v_mini_mcu_pkg::PERIPHERALS),
-      .NoRules(core_v_mini_mcu_pkg::PERIPHERALS),
+      .NoIndices(core_v_mini_mcu_pkg::PERIPHERALS_RND),
+      .NoRules(core_v_mini_mcu_pkg::PERIPHERALS_RND),
       .addr_t(logic [31:0]),
       .rule_t(addr_map_rule_pkg::addr_map_rule_t)
   ) i_addr_decode_soc_regbus_periph_xbar (
@@ -263,7 +263,7 @@ module peripheral_subsystem
   );
 
   reg_demux #(
-      .NoPorts(core_v_mini_mcu_pkg::PERIPHERALS),
+      .NoPorts(core_v_mini_mcu_pkg::PERIPHERALS_RND),
       .req_t  (reg_pkg::reg_req_t),
       .rsp_t  (reg_pkg::reg_rsp_t)
   ) reg_demux_i (
@@ -307,7 +307,7 @@ module peripheral_subsystem
 % else:
   assign msip_o = '0;
 
-  for(genvar i=0; i<rv_plic_reg_pkg::NumTarget; i=i+1) begin
+  for(genvar i=0; i<rv_plic_reg_pkg::NumTarget; i=i+1) begin : gen_plic_irq_id
     assign irq_id[i] = '0;
   end
 
@@ -563,6 +563,9 @@ module peripheral_subsystem
   assign i2s_rx_valid_o   = 1'b0;
 % endif
 
+% if len(user_peripheral_domain.get_peripherals()) == 0:
+  // If no peripherals are selected, tie off the slave response
+  assign peripheral_slv_rsp = '0;
+% endif
 
-  
 endmodule : peripheral_subsystem
