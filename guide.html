@@ -146,6 +146,7 @@ gtkwave waveform.vcd
     <p>To inspect waveforms after simulation, open the generated <code>.vcd</code> or <code>.fst</code> file in GTKwave.</p>
     <p>Signals of interest are located under the following hierarchy:</p>
     <pre><code>testharness → x_heep_system_i → core_v_mini_mcu_i → peripheral_subsystem_i → my_ip_i</code></pre>
+    <pre><code>testharness → x_heep_system_i → core_v_mini_mcu_i → ao_peripheral_subsystem-i → spi_subsystem_i → ot_spi_i </code></pre>
     <p>Inside this path, you can expand <code>my_ip</code> to find internal registers, control signals, and bus transactions.</p>
     <p>To save your current signal setup for later use:</p>
     <ul>

@@ -1,0 +1,88 @@
+[*]
+[*] GTKWave Analyzer v3.3.121 (w)1999-2024 BSI
+[*] Sat Oct 18 19:47:35 2025
+[*]
+[dumpfile] "/home/thomas/Documents/SemPro/x-heep/build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator/waveform.vcd"
+[dumpfile_mtime] "Sat Oct 18 19:42:51 2025"
+[dumpfile_size] 2375022
+[savefile] "/home/thomas/Documents/SemPro/x-heep/debug.gtkw"
+[timestart] 18914400
+[size] 1829 937
+[pos] -1 -1
+*-14.862860 18995000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] TOP.
+[treeopen] TOP.testharness.
+[treeopen] TOP.testharness.x_heep_system_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.hw2reg.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.hw2reg.error_status.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg2hw.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg2hw.command.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg2hw.control.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg2hw.error_status.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.reg2hw.
+[sst_width] 441
+[signals_width] 280
+[sst_expanded] 1
+[sst_vpaned_height] 588
+@28
++{CLK} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.clk_i
+@22
++{START FSM} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.reg2hw.test_reg_w.q[31:0]
+@100000028
++{STATE} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.my_ip_state[2:0]
+@28
++{REQUEST} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.req
++{WRITE_ENABLE} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.we
+@c00022
++{WADDR} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+@28
+(0)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(1)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(2)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(3)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(4)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(5)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(6)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(7)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(8)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(9)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(10)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(11)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(12)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(13)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(14)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(15)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(16)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(17)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(18)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(19)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(20)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(21)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(22)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(23)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(24)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(25)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(26)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(27)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(28)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(29)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(30)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+(31)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.addr[31:0]
+@1401200
+-group_end
+@22
++{WDATA} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_req_o.wdata[31:0]
+@28
++{GNT} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_resp_i.gnt
++{RVALID} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_master_bus_resp_i.rvalid
++{DONE} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.my_ip_done_o
++{HW2REG_UNDERFLOW_SIGNAL} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.hw2reg.error_status.underflow.d
++{REG2HW_UNDERFLOW_SIGNAL} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg2hw.error_status.underflow.q
+[pattern_trace] 1
+[pattern_trace] 0

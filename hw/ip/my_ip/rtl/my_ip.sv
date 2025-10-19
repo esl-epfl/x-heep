@@ -34,27 +34,33 @@ module my_ip #(
     OBI_IDLE,
     OBI_ISSUE_REQ,
     OBI_WAIT_GNT,
-    OBI_WRITE
+    OBI_WAIT_RVALID
   } my_ip_state, my_ip_n_state;
 
   always_ff @( posedge clk_i or negedge rst_ni ) begin
     if ( !rst_ni ) begin
         my_ip_state <= OBI_IDLE;
+        read_value_q <= 32'h00000000;
     end else begin
         my_ip_state <= my_ip_n_state;
+        read_value_q <= read_value_d;
     end
   end
 
+// FIRST LET'S GET READ ONLY
+  logic [31:0] read_value_d, read_value_q;
+
   always_comb begin
     my_ip_master_bus_req_o.req = 1'b0;
-    my_ip_master_bus_req_o.we = 1'b1;
+    my_ip_master_bus_req_o.we = 1'b0;
     my_ip_master_bus_req_o.be = 4'b1111;
-    my_ip_master_bus_req_o.addr = SPI_HOST_START_ADDRESS + {25'h0, SPI_HOST_ERROR_STATUS_OFFSET};;
-    my_ip_master_bus_req_o.wdata = 32'hABCD1234;
+    my_ip_master_bus_req_o.addr = 32'h00000000;
+    my_ip_master_bus_req_o.wdata = 32'h00000000;
 
     my_ip_done_o = 1'b0;
     
     my_ip_n_state = my_ip_state;
+    read_value_d = read_value_q;
 
     case ( my_ip_state )
       OBI_IDLE: begin
@@ -64,25 +70,28 @@ module my_ip #(
       end
 
       OBI_ISSUE_REQ: begin
-        my_ip_master_bus_req_o.req = 1'b1;     
-        if (my_ip_master_bus_resp_i.gnt) begin
-          my_ip_n_state = OBI_WRITE;
+        my_ip_master_bus_req_o.req = 1'b1;  
+        my_ip_master_bus_req_o.addr = SPI_FLASH_START_ADDRESS + {25'h0, SPI_HOST_CONTROL_OFFSET}; 
+
+        if (my_ip_master_bus_resp_i.gnt) begin // In case gnt received same cycle as request
+          my_ip_n_state = OBI_WAIT_RVALID;
         end else begin
           my_ip_n_state = OBI_WAIT_GNT;
         end
       end
       
       OBI_WAIT_GNT: begin
-        my_ip_master_bus_req_o.req = 1'b1; //VERIFY if this is needed
+        my_ip_master_bus_req_o.req = 1'b1; // Keep request as long as no grant has been received
+        my_ip_master_bus_req_o.addr = SPI_FLASH_START_ADDRESS + {25'h0, SPI_HOST_CONTROL_OFFSET};
+
         if (my_ip_master_bus_resp_i.gnt) begin
-            my_ip_n_state = OBI_WRITE;
+            my_ip_n_state = OBI_WAIT_RVALID;
         end
       end
 
-      OBI_WRITE: begin
-        my_ip_master_bus_req_o.addr = SPI_HOST_START_ADDRESS + {25'h0, SPI_HOST_ERROR_STATUS_OFFSET}; // Will be chosen in next FSM (Write to control register of SPI)
-        my_ip_master_bus_req_o.wdata = 32'hABCD1234; // Will be chosen in next FSM (Set up SPIEN bit in control register of SPI)
+      OBI_WAIT_RVALID: begin
         if ( my_ip_master_bus_resp_i.rvalid ) begin
+            read_value_d = my_ip_master_bus_resp_i.rdata;
             my_ip_n_state = OBI_IDLE;
             my_ip_done_o = 1'b1;
         end
@@ -178,5 +187,8 @@ module my_ip #(
 // First fix signal in GTKwave (have wrong one (see actual outputs (terminal vs. GTKwave)))
 // Will try TXDATA: failed hence write probably fails (still should not work for hro right?)
 // Where to get txdata in gtkwave?
+
+// TRY WRITING TO LESS SENSIBLE REG
+// ASK LAB WITH GTKWAVE OUTPUT
 
 endmodule
