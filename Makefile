@@ -342,6 +342,13 @@ test:
 	python3 test/test_x_heep_gen/test_peripherals.py
 	@echo "You can also find the peripheral test outputs in test/test_x_heep_gen/outputs"
 
+.PHONY: test_kwargs
+test_kwargs:
+	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson
+	$(RM) test/*.log
+	python3 util/pickle_to_json.py ../build/xheep_cache.pickle generated
+	python3 test/test_x_heep_gen/pad_test.py
+
 
 ## Builds the specified app, loads it into the programmer's flash and then opens picocom to see the output
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
