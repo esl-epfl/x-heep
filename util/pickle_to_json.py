@@ -128,12 +128,14 @@ def convert(path:str,template_path:str,out_path:str):
         
 if __name__ == "__main__":
     # get path from sys.argv
-    if len(sys.argv) != 2:
-        print("Usage: python pickle_to_json.py <pickle_path>")
+    if len(sys.argv) != 3:
+        print("Usage: python pickle_to_json.py <pickle_path> <prefix>")
         sys.exit(1)
     pickle_path = sys.argv[1]
+    prefix = sys.argv[2].lower()
+    
     template_path = os.path.join(os.path.dirname(__file__), "testing_templates")
-    output_path = os.path.join(os.path.dirname(__file__), "golden_jsons")
+    output_path = os.path.join(os.path.dirname(__file__), prefix+"_jsons")
     convert(pickle_path,template_path,output_path)
     
     
