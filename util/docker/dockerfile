@@ -85,6 +85,8 @@ RUN /opt/conda/bin/conda tos accept && \
 COPY util/docker/env.sh util/docker/motd.sh /etc/profile.d/
 RUN chmod +x /etc/profile.d/env.sh /etc/profile.d/motd.sh
 
+# Mark X-HEEP repo as a safe so new version of git don't complain when running util/git-diff.py
+RUN git config --global --add safe.directory /workspace/x-heep
 WORKDIR /workspace/x-heep
 
 # Copy and set up the entrypoint script
