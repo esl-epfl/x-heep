@@ -9,13 +9,11 @@ class PadMapping(Enum):
 class Pad:
 
     def remove_comma_io_interface(self):
-        try:
-            self.x_heep_system_interface = self.x_heep_system_interface.rstrip(
-                self.x_heep_system_interface[-1]
-            )
-        except IndexError:
-            pass
-            ### bypass kind of PADs do not have any comma to be removed as they do not define an interface
+        s = self.x_heep_system_interface.rstrip()
+        if s.endswith(','):
+            self.x_heep_system_interface = s[:-1]
+        else:
+            self.x_heep_system_interface = s
 
     def create_pad_ring(self):
 
@@ -470,6 +468,15 @@ class Pad:
         self.core_v_mini_mcu_bonding = ""
         self.pad_ring_bonding_bonding = ""
         self.x_heep_system_interface = ""
+        if pad_mapping is None:
+            self.pad_mapping = None
+        elif isinstance(pad_mapping, PadMapping):
+            self.pad_mapping = pad_mapping
+        elif isinstance(pad_mapping, str):
+            # accept "top", "TOP", etc.
+            self.pad_mapping = PadMapping(pad_mapping.lower())
+        else:
+            raise TypeError(f"pad_mapping must be PadMapping | str | None, got {type(pad_mapping)}")
         
     def __eq__(self, value):
         if not isinstance(value, Pad):
