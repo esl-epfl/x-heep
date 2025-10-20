@@ -124,78 +124,53 @@ module my_ip #(
       .devmode_i(1'b1)
   );
 
-  // // FSM to set up SPI for a read
-  // enum logic [1:0] {
-  //   SPI_IDLE,
-  //   SPI_SETUP,
-  //   SPI_START,
-  //   SPI_WAIT_DONE
-  // } spi_state, spi_n_state;
+  // HW emulation of w25q128jw_read_standard
+    // Preparation of command for TXDATA
+  // CHECK FOR SIZE BEFORE
+  function automatic [31:0] bitfield_byteswap32(input [31:0] data);
+    bitfield_byteswap32 = {data[7:0], data[15:8], data[23:16], data[31:24]};
+  endfunction
 
-  // always_ff @( posedge clk_i or negedge rst_ni) begin : spi_fsm
-  //   if ( !rst_ni ) begin
-  //       spi_state <= SPI_IDLE;
-  //   end else begin
-  //       spi_state <= spi_n_state;
-  //       hw2reg.test_reg_w.d <= obi_start;
-  //   end
-  // end
+  logic [31:0] cmd_tx_data;
+  assign cmd_tx_data = (bitfield_byteswap32(reg2hw.address) >> 8) | 32'h03;
 
-  // logic [31:0] obi_start;
+  enum logic [1:0] {
+    SPI_IDLE,
+    SPI_WRITE_WORD,
+    SPI_WAIT_FOR_READY,
+    SPI_SET_CMD
+    // REST FOR LATER
+  } spi_state, spi_n_state;
 
-  // always_comb begin
+  always_ff @( posedge clk_i or negedge rst_ni) begin : spi_fsm
+    if ( !rst_ni ) begin
+        spi_state <= SPI_IDLE;
+    end else begin
+        spi_state <= spi_n_state;
+    end
+  end
 
-  //   obi_start = 32'h0;
+  always_comb begin
 
-  //   my_ip_master_bus_req_o.addr = 32'h0;
+    spi_n_state = spi_state;
 
-  //   spi_n_state = spi_state;
+    case (spi_state)
+      SPI_IDLE: begin
+        if (reg2hw.control.start) begin
+          spi_n_state = SPI_WRITE_WORD;
+        end
+      end
 
-  //   case ( spi_state )
-  //     SPI_IDLE: begin
-  //       if ( reg2hw.setup_spi == 32'b1 ) begin
-  //           spi_n_state = SPI_SETUP;
-  //       end
-  //     end
-  //     SPI_SETUP: begin
-  //       // Configure SPI settings here
-  //       // Configure control register
-  //       obi_start = 32'h1; // See FSM above
-  //       my_ip_master_bus_req_o.addr = SPI_HOST_START_ADDRESS + {25'h0, SPI_HOST_INTR_STATE_OFFSET};
+      SPI_WRITE_WORD: begin
+        // SET OBI WRITE REQ with cmd_tx_data
+        if (my_ip_master_bus_resp_i.rvalid) begin
+          spi_n_state = SPI_WAIT_FOR_READY;
+        end
+      end
 
-  //       if(my_ip_done_o) begin
-  //           obi_start = 32'h0; // Clear start signal
-  //           spi_n_state = SPI_START; // Or next setup step
-  //       end
-  //     end
-  //     SPI_START: begin
-  //       // Start the SPI transaction
-  //       spi_n_state = SPI_WAIT_DONE;
-  //     end
-  //     SPI_WAIT_DONE: begin
-  //       // Wait for the SPI transaction to complete
-  //       // For simulation, we can assume it's done immediately
-  //       spi_n_state = SPI_IDLE;
-  //     end
-  //     default: begin
-  //       spi_n_state = SPI_IDLE;
-  //     end
-  //   endcase
-  // end
+      
+    endcase
+  end
 
-  // Show GTKwave
-
-  // Understand how to set up SPI for a read
-  // spi_read (test_read)
-  // sw/device/bsp/w25q
-  // sw/device/lib/driver/spi_host.h
-  // TXDATA to SPI FIFO
-
-  // First fix signal in GTKwave (have wrong one (see actual outputs (terminal vs. GTKwave)))
-  // Will try TXDATA: failed hence write probably fails (still should not work for hro right?)
-  // Where to get txdata in gtkwave?
-
-  // TRY WRITING TO LESS SENSIBLE REG
-  // ASK LAB WITH GTKWAVE OUTPUT
 
 endmodule
