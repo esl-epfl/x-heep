@@ -104,11 +104,10 @@ jobs:
           sed 's/num_channels:   0x1/num_channels:   0x4/' -i configs/ci.hjson &&
           sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson &&
           make mcu-gen X_HEEP_CFG=configs/ci.hjson &&
-          python3 test/test_apps/test_apps.py \
-            --compilers gcc,clang \
-            --compiler-paths /tools/riscv,/tools/riscv-clang \
-            --compiler-prefixes riscv32-unknown- \
-            --compile-only
+          init_gcc &&
+          python3 test/test_apps/test_apps.py --compilers gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- --compile-only &&
+          init_clang &&
+          python3 test/test_apps/test_apps.py --compilers clang --compiler-paths /tools/riscv-clang --compiler-prefixes riscv32-unknown- --compile-only
           "
 
   simulate-apps:
@@ -133,10 +132,10 @@ jobs:
           sed 's/num_channels:   0x1/num_channels:   0x4/' -i configs/ci.hjson &&
           sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson &&
           make mcu-gen X_HEEP_CFG=configs/ci.hjson &&
-          python3 test/test_apps/test_apps.py \
-            --compilers gcc,clang \
-            --compiler-paths /tools/riscv,/tools/riscv-clang \
-            --compiler-prefixes riscv32-unknown-
+          init_gcc &&
+          python3 test/test_apps/test_apps.py --compilers gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- &&
+          init_clang &&
+          python3 test/test_apps/test_apps.py --compilers clang --compiler-paths /tools/riscv-clang --compiler-prefixes riscv32-unknown-
           "
 
   lint:

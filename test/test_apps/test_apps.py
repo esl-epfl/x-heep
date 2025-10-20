@@ -132,7 +132,7 @@ def compile_app(an_app, compiler_path, compiler_prefix, compiler, linker):
     """
     print(
         BColors.OKBLUE
-        + f"Compiling {an_app.name} with {compiler} and {linker} linker..."
+        + f"Compiling {an_app.name} with {compiler_path}/bin/{compiler_prefix}elf-{compiler} and liner {linker}"
         + BColors.ENDC,
         flush=True,
     )
