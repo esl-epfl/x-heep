@@ -1,0 +1,43 @@
+# This composite action determines which Docker image to use for testing jobs.
+# It either loads an image built in a previous job or pulls the latest from the registry.
+name: 'Get Docker Image'
+description: 'Loads or pulls the correct Docker image and sets the IMAGE_TAG environment variable.'
+
+inputs:
+  image_was_built:
+    description: 'Flag indicating if a new image was built in this workflow run (true/false).'
+    required: true
+  image_tags:
+    description: 'The full tag(s) of the newly built image, if applicable.'
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Download image artifact (if built)
+      if: inputs.image_was_built == 'true'
+      uses: actions/download-artifact@v4
+      with:
+        name: docker-image
+        path: /tmp
+
+    - name: Load image from artifact (if built)
+      if: inputs.image_was_built == 'true'
+      shell: bash
+      run: docker load --input /tmp/image.tar
+
+    - name: Pull image from registry (if not built)
+      if: inputs.image_was_built == 'false'
+      shell: bash
+      run: docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+    - name: Set Image Tag Environment Variable
+      shell: bash
+      run: |
+        if [ "${{ inputs.image_was_built }}" == "true" ]; then
+          IMAGE_TAG=$(echo "${{ inputs.image_tags }}" | head -n 1)
+        else
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+        fi
+        echo "Using image: $IMAGE_TAG"
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
