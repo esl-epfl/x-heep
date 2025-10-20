@@ -1,0 +1,1399 @@
+
+{
+  "pad_list": [
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_clk_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 0,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "clk",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "input"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_rst_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 1,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "rst",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "input"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_boot_select_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 2,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "boot_select",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "input"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_execute_from_flash_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 3,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "execute_from_flash",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "input"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_jtag_tck_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 4,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "jtag_tck",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "input"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_jtag_tms_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 5,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "jtag_tms",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "input"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_jtag_trst_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 6,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "jtag_trst",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "input"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_jtag_tdi_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 7,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "jtag_tdi",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "input"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_jtag_tdo_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 8,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "jtag_tdo",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "output"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_uart_rx_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 9,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "uart_rx",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "input"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_uart_tx_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 10,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "uart_tx",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "output"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_exit_valid_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 11,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "exit_valid",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "output"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_0_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 12,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_0",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_1_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 13,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_1",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_2_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 14,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_2",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_3_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 15,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_3",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_4_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 16,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_4",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_5_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 17,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_5",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_6_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 18,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_6",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_7_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 19,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_7",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_8_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 20,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_8",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_9_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 21,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_9",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_10_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 22,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_10",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_11_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 23,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_11",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_12_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 24,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_12",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_gpio_13_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 25,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "gpio_13",
+      "pad_mapping": "left",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_flash_sck_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 26,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_flash_sck",
+      "pad_mapping": "right",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_flash_cs_0_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 27,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_flash_cs_0",
+      "pad_mapping": "top",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_flash_cs_1_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 28,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_flash_cs_1",
+      "pad_mapping": "top",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_flash_sd_0_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 29,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_flash_sd_0",
+      "pad_mapping": "bottom",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_flash_sd_1_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 30,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_flash_sd_1",
+      "pad_mapping": "bottom",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_flash_sd_2_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 31,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_flash_sd_2",
+      "pad_mapping": "bottom",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_flash_sd_3_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 32,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_flash_sd_3",
+      "pad_mapping": "bottom",
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_sck_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 33,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_sck",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_cs_0_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 34,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_cs_0",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_cs_1_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 35,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_cs_1",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_sd_0_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 36,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_sd_0",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_sd_1_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 37,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_sd_1",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_sd_2_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 38,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_sd_2",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_sd_3_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 39,
+      "is_muxed": false,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_sd_3",
+      "pad_mapping": null,
+      "pad_mux_list": [],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_slave_sck_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 40,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_slave_sck",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "input",
+          "signal_name": "spi_slave_sck_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_14_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_slave_cs_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 41,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_slave_cs",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "input",
+          "signal_name": "spi_slave_cs_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_15_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_slave_miso_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 42,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_slave_miso",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "spi_slave_miso_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_16_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi_slave_mosi_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 43,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi_slave_mosi",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "input",
+          "signal_name": "spi_slave_mosi_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_17_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_pdm2pcm_pdm_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 44,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "pdm2pcm_pdm",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "pdm2pcm_pdm_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_18_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_pdm2pcm_clk_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 45,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "pdm2pcm_clk",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "pdm2pcm_clk_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_19_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_i2s_sck_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 46,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "i2s_sck",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "i2s_sck_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_20_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_i2s_ws_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 47,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "i2s_ws",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "i2s_ws_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_21_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_i2s_sd_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 48,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "i2s_sd",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "i2s_sd_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_22_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi2_cs_0_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 49,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi2_cs_0",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "spi2_cs_0_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_23_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi2_cs_1_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 50,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi2_cs_1",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "spi2_cs_1_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_24_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi2_sck_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 51,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi2_sck",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "spi2_sck_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_25_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi2_sd_0_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 52,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi2_sd_0",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "spi2_sd_0_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_26_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi2_sd_1_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 53,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi2_sd_1",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "spi2_sd_1_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_27_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi2_sd_2_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 54,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi2_sd_2",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "spi2_sd_2_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_28_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_spi2_sd_3_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 55,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "spi2_sd_3",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "spi2_sd_3_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_29_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_i2c_scl_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 56,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "i2c_scl",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "i2c_scl_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_31_"
+        }
+      ],
+      "pad_type": "inout"
+    },
+    {
+      "attribute_bits": 0,
+      "cell_name": "pad_i2c_sda_i",
+      "constant_attribute": false,
+      "has_attribute": false,
+      "index": 57,
+      "is_muxed": true,
+      "layout": {
+        "bondpad": null,
+        "cell": null,
+        "index": null,
+        "offset": null,
+        "orient": null,
+        "skip": null
+      },
+      "name": "i2c_sda",
+      "pad_mapping": null,
+      "pad_mux_list": [
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "i2c_sda_"
+        },
+        {
+          "do_skip_declaration": false,
+          "is_driven_manually": false,
+          "pad_type": "inout",
+          "signal_name": "gpio_30_"
+        }
+      ],
+      "pad_type": "inout"
+    }
+  ]
+}
