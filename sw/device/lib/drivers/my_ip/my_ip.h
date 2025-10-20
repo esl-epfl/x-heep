@@ -31,14 +31,20 @@ extern "C" {
 #define MY_IP_INTR_TEST_REG_OFFSET 0x8
 #define MY_IP_INTR_TEST_MY_IP_EVENT_BIT 0
 
-// Test register for wr
-#define MY_IP_TEST_REG_W_REG_OFFSET 0xc
+// Controls for SPI_FLASH W/R
+#define MY_IP_CONTROL_REG_OFFSET 0xc
+#define MY_IP_CONTROL_START_BIT 0
+#define MY_IP_CONTROL_WRITE_BIT 1
 
-// Test register for wr
-#define MY_IP_TEST_REG_W2_REG_OFFSET 0x10
+// Status for SPI_FLASH W/R
+#define MY_IP_STATUS_REG_OFFSET 0x10
+#define MY_IP_STATUS_READY_BIT 0
 
-// Setup SPI signal
-#define MY_IP_SETUP_SPI_REG_OFFSET 0x14
+// Address to W/R
+#define MY_IP_ADDRESS_REG_OFFSET 0x14
+
+// Data to W
+#define MY_IP_DATA_REG_OFFSET 0x18
 
 #ifdef __cplusplus
 }  // extern "C"

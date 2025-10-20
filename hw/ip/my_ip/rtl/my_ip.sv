@@ -35,19 +35,20 @@ module my_ip #(
     OBI_ISSUE_REQ,
     OBI_WAIT_GNT,
     OBI_WAIT_RVALID
-  } my_ip_state, my_ip_n_state;
+  }
+      my_ip_state, my_ip_n_state;
 
-  always_ff @( posedge clk_i or negedge rst_ni ) begin
-    if ( !rst_ni ) begin
-        my_ip_state <= OBI_IDLE;
-        read_value_q <= 32'h00000000;
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      my_ip_state  <= OBI_IDLE;
+      read_value_q <= 32'h00000000;
     end else begin
-        my_ip_state <= my_ip_n_state;
-        read_value_q <= read_value_d;
+      my_ip_state  <= my_ip_n_state;
+      read_value_q <= read_value_d;
     end
   end
 
-// FIRST LET'S GET READ ONLY
+  // FIRST LET'S GET READ ONLY
   logic [31:0] read_value_d, read_value_q;
 
   always_comb begin
@@ -58,42 +59,48 @@ module my_ip #(
     my_ip_master_bus_req_o.wdata = 32'h00000000;
 
     my_ip_done_o = 1'b0;
-    
+
     my_ip_n_state = my_ip_state;
     read_value_d = read_value_q;
 
-    case ( my_ip_state )
+    hw2reg.status.d = 1'b0;
+
+    case (my_ip_state)
       OBI_IDLE: begin
-        if ( reg2hw.test_reg_w == 32'b1 ) begin
-            my_ip_n_state = OBI_ISSUE_REQ;
+        hw2reg.status.d = 1'b1;
+        if (reg2hw.control.start) begin
+          my_ip_n_state = OBI_ISSUE_REQ;
         end
       end
 
       OBI_ISSUE_REQ: begin
-        my_ip_master_bus_req_o.req = 1'b1;  
-        my_ip_master_bus_req_o.addr = SPI_FLASH_START_ADDRESS + {25'h0, SPI_HOST_CONTROL_OFFSET}; 
+        my_ip_master_bus_req_o.req = 1'b1;
+        my_ip_master_bus_req_o.we = reg2hw.control.write;
+        my_ip_master_bus_req_o.addr = reg2hw.address;
+        my_ip_master_bus_req_o.wdata = reg2hw.data;
 
-        if (my_ip_master_bus_resp_i.gnt) begin // In case gnt received same cycle as request
+        if (my_ip_master_bus_resp_i.gnt) begin  // In case gnt received same cycle as request
           my_ip_n_state = OBI_WAIT_RVALID;
         end else begin
           my_ip_n_state = OBI_WAIT_GNT;
         end
       end
-      
+
       OBI_WAIT_GNT: begin
-        my_ip_master_bus_req_o.req = 1'b1; // Keep request as long as no grant has been received
-        my_ip_master_bus_req_o.addr = SPI_FLASH_START_ADDRESS + {25'h0, SPI_HOST_CONTROL_OFFSET};
+        my_ip_master_bus_req_o.req = 1'b1;  // Keep request as long as no grant has been received
+        my_ip_master_bus_req_o.we = reg2hw.control.write;
+        my_ip_master_bus_req_o.addr = reg2hw.address;
+        my_ip_master_bus_req_o.wdata = reg2hw.data;
 
         if (my_ip_master_bus_resp_i.gnt) begin
-            my_ip_n_state = OBI_WAIT_RVALID;
+          my_ip_n_state = OBI_WAIT_RVALID;
         end
       end
 
       OBI_WAIT_RVALID: begin
-        if ( my_ip_master_bus_resp_i.rvalid ) begin
-            read_value_d = my_ip_master_bus_resp_i.rdata;
-            my_ip_n_state = OBI_IDLE;
-            my_ip_done_o = 1'b1;
+        if (my_ip_master_bus_resp_i.rvalid) begin
+          read_value_d  = my_ip_master_bus_resp_i.rdata;
+          my_ip_n_state = OBI_IDLE;
         end
       end
 
@@ -176,19 +183,19 @@ module my_ip #(
   //   endcase
   // end
 
-// Show GTKwave
+  // Show GTKwave
 
-// Understand how to set up SPI for a read
-// spi_read (test_read)
-// sw/device/bsp/w25q
-// sw/device/lib/driver/spi_host.h
-// TXDATA to SPI FIFO
+  // Understand how to set up SPI for a read
+  // spi_read (test_read)
+  // sw/device/bsp/w25q
+  // sw/device/lib/driver/spi_host.h
+  // TXDATA to SPI FIFO
 
-// First fix signal in GTKwave (have wrong one (see actual outputs (terminal vs. GTKwave)))
-// Will try TXDATA: failed hence write probably fails (still should not work for hro right?)
-// Where to get txdata in gtkwave?
+  // First fix signal in GTKwave (have wrong one (see actual outputs (terminal vs. GTKwave)))
+  // Will try TXDATA: failed hence write probably fails (still should not work for hro right?)
+  // Where to get txdata in gtkwave?
 
-// TRY WRITING TO LESS SENSIBLE REG
-// ASK LAB WITH GTKWAVE OUTPUT
+  // TRY WRITING TO LESS SENSIBLE REG
+  // ASK LAB WITH GTKWAVE OUTPUT
 
 endmodule

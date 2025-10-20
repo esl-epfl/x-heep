@@ -33,15 +33,7 @@ static inline void write_register( uint32_t   p_val,
 }
 
 int main(void) {
-    // How to write to register in my_ip
-    uint32_t wval = 0x00000001; // XXX VERIFY SW WRITES
-    my_ip_peri->TEST_REG_W = wval; // Start OBI FSM
-
-
-
-    // How to write to a register
-    // uint32_t wval = 0x80000000;
-
+    // Setting test conditions (values to write read from)
     write_register( 0xAB,
                     SPI_HOST_CONTROL_REG_OFFSET,
                     SPI_HOST_CONTROL_RX_WATERMARK_MASK,
@@ -55,15 +47,40 @@ int main(void) {
                     SPI_HOST_CONTROL_SPIEN_BIT,
                     SPI_FLASH_START_ADDRESS
                 );
+    
+    // Reading set values
+        // Set address to read from
+    write_register( SPI_FLASH_START_ADDRESS + SPI_HOST_CONTROL_REG_OFFSET,
+                    MY_IP_ADDRESS_REG_OFFSET,
+                    0xffffffff,
+                    0,
+                    MY_IP_START_ADDRESS
+                );
+    
+        // Start read operation
+    write_register( 0x1,
+                    MY_IP_CONTROL_REG_OFFSET,
+                    0x1,
+                    MY_IP_CONTROL_START_BIT,
+                    MY_IP_START_ADDRESS
+                );
 
-    // Alternative to write to a register
-    //spi_host_t* spi = spi_flash;
-    //SPI_HW(spi)->CONTROL = wval;
-
-    // printf("T\n");
+    if ( my_ip_peri->STATUS ) {
+        write_register( SPI_FLASH_START_ADDRESS + SPI_HOST_STATUS_REG_OFFSET,
+            MY_IP_ADDRESS_REG_OFFSET,
+            0xffffffff,
+            0,
+            MY_IP_START_ADDRESS
+        );
+        printf("T\n");
+    }
 
     return EXIT_SUCCESS;
 }
+
+// How to write to register in my_ip
+// uint32_t wval = 0x00000001; // XXX VERIFY SW WRITES
+// my_ip_peri->TEST_REG_W = wval; // Start OBI FSM
 
 // How to write to a sequence of bits in a register (REGISTER MUST BE WRITABLE IN SW!)
     // write_register( 0xAB,
@@ -80,3 +97,9 @@ int main(void) {
     //             SPI_HOST_CONTROL_SPIEN_BIT,
     //             SPI_FLASH_START_ADDRESS
     //         );
+
+// Alternative to write to a register
+//spi_host_t* spi = spi_flash;
+//SPI_HW(spi)->CONTROL = wval;
+
+// printf("T\n");
