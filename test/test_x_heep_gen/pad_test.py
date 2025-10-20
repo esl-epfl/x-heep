@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import os
+from deepdiff import DeepDiff
 
 def compare_json(file_a, file_b):
     with open(os.path.join(os.path.dirname(__file__),file_a)) as fa, open(os.path.join(os.path.dirname(__file__),file_b)) as fb:
@@ -12,8 +13,6 @@ def compare_json(file_a, file_b):
         return True
     else:
         print("❌ JSONs differ")
-        # Optional: print details
-        from deepdiff import DeepDiff
         diff = DeepDiff(a, b, ignore_order=True, significant_digits=6)
         print(diff)
         return False
