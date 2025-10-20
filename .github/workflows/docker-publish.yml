@@ -25,7 +25,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      
+      # This frees up ~9GiB of disk space on the runner, which is needed
+      # to host the builder image
       - name: Free up disk space on the runner
         run: |
           echo "Initial disk space:"

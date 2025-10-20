@@ -54,7 +54,7 @@ XHEEP_CACHE ?= build/xheep_cache.pickle
 
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER ?= gcc
-# Compiler prefix options are 'riscv32-unknown-' (default)
+# Compiler prefix options are 'riscv32-unknown-' (default) and 'riscv32-corev-'
 COMPILER_PREFIX ?= riscv32-unknown-
 # Compiler flags to be passed (for both linking and compiling)
 COMPILER_FLAGS ?=
