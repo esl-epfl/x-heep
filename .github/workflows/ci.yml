@@ -13,7 +13,7 @@ env:
 
 jobs:
   build-image:
-    name: Build Docker Image (if necessary)
+    name: Build Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -62,7 +62,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and (maybe) push Docker Image
+      - name: Build and push (if applicable) Docker Image
         if: steps.check_files.outputs.any_changed == 'true'
         uses: docker/build-push-action@v5
         with:
@@ -81,6 +81,7 @@ jobs:
         with:
           name: docker-image
           path: /tmp/image.tar
+          retention-days: 1
 
   compile-apps:
     name: Compile All Apps
