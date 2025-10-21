@@ -1,0 +1,76 @@
+name: Build and Release LLVM Toolchain
+
+on:
+  workflow_dispatch:
+    inputs:
+      llvm_version:
+        description: 'LLVM version tag to build (e.g., llvmorg-21.1.3)'
+        required: true
+        default: 'llvmorg-21.1.3'
+      release_tag:
+        description: 'Tag for the GitHub release (e.g., llvm-v21.1.3)'
+        required: true
+        default: 'xheep-llvm-v21.1.3'
+
+jobs:
+  build-and-release-llvm:
+    name: Build and Release LLVM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build git
+
+      - name: Build LLVM/Clang
+        id: build
+        run: |
+          set -ex
+          INSTALL_DIR=/tmp/llvm-install
+          mkdir -p ${INSTALL_DIR}
+          git clone https://github.com/llvm/llvm-project.git /tmp/llvm-project
+          cd /tmp/llvm-project
+          git checkout ${{ github.event.inputs.llvm_version }}
+          mkdir build
+          cd build
+          cmake -G "Ninja" \
+                -DLLVM_ENABLE_PROJECTS=clang \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
+                -DLLVM_TARGETS_TO_BUILD="RISCV" \
+                ../llvm
+          cmake --build . --target install -j$(nproc)
+          TARBALL_NAME=riscv-clang-${{ github.event.inputs.release_tag }}.tar.gz
+          echo "TARBALL_NAME=${TARBALL_NAME}" >> $GITHUB_OUTPUT
+          cd ${INSTALL_DIR}
+          tar -czf /tmp/${TARBALL_NAME} .
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          release_name: RISC-V LLVM/Clang Toolchain ${{ github.event.inputs.release_tag }}
+          body: |
+            Pre-built RISC-V LLVM/Clang toolchain (${{ github.event.inputs.llvm_version }}).
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /tmp/${{ steps.build.outputs.TARBALL_NAME }}
+          asset_name: ${{ steps.build.outputs.TARBALL_NAME }}
+          asset_content_type: application/gzip
