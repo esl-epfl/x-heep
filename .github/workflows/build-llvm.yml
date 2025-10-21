@@ -12,6 +12,10 @@ on:
         required: true
         default: 'xheep-llvm-v21.1.3'
 
+  push: # REMOVE once the LLVM release is created
+    branches:
+      - add-docker
+
 jobs:
   build-and-release-llvm:
     name: Build and Release LLVM
