@@ -12,20 +12,14 @@ on:
         required: true
         default: '2022.01.17'
       release_tag:
-        description: 'Tag for the GitHub release (e.g., riscv-xheep-toolchain-gcc11.1.0-llvm19.1.4)'
+        description: 'Tag for the GitHub release (e.g., v1.0.0)'
         required: true
-        default: 'riscv-xheep-toolchain-gcc11.1.0-llvm19.1.4'
-
-  # REMOVE the following triggers once the release is created once
-  push:
-  pull_request:
-    branches:
-      - main
+        default: 'v1.0.0'
 
 jobs:
   build-and-release-toolchain:
     name: Build and Release X-HEEP toolchain
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
 
@@ -45,12 +39,11 @@ jobs:
           set -ex
           INSTALL_DIR=/tmp/riscv
           mkdir -p ${INSTALL_DIR}
-          #git clone --recursive https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain
-          #cd /tmp/riscv-gnu-toolchain
-          #git checkout ${{ github.event.inputs.gcc_version }}
-          #./configure --target=riscv32-unknown-elf --prefix=${INSTALL_DIR} --with-newlib --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
-          #make -j$(nproc)
-          echo "test" > ${INSTALL_DIR}/gcc-placeholder.txt
+          git clone --recursive https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain
+          cd /tmp/riscv-gnu-toolchain
+          git checkout ${{ github.event.inputs.gcc_version }}
+          ./configure --target=riscv32-unknown-elf --prefix=${INSTALL_DIR} --with-newlib --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
+          make -j$(nproc)
 
       - name: Build LLVM/Clang
         id: build-clang
@@ -58,26 +51,25 @@ jobs:
           set -ex
           INSTALL_DIR=/tmp/riscv
           mkdir -p ${INSTALL_DIR}
-          #git clone https://github.com/llvm/llvm-project.git /tmp/llvm-project
-          #cd /tmp/llvm-project
-          #git checkout ${{ github.event.inputs.llvm_version }}
-          #mkdir build
-          #cd build
-          #cmake -G "Ninja" \
-          #      -DLLVM_ENABLE_PROJECTS=clang \
-          #      -DCMAKE_BUILD_TYPE=Release \
-          #      -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-          #      -DLLVM_TARGETS_TO_BUILD="RISCV" \
-          #      ../llvm
-          #cmake --build . --target install -j$(nproc)
-          echo "test" > ${INSTALL_DIR}/clang-placeholder.txt
+          git clone https://github.com/llvm/llvm-project.git /tmp/llvm-project
+          cd /tmp/llvm-project
+          git checkout ${{ github.event.inputs.llvm_version }}
+          mkdir build
+          cd build
+          cmake -G "Ninja" \
+                -DLLVM_ENABLE_PROJECTS=clang \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
+                -DLLVM_TARGETS_TO_BUILD="RISCV" \
+                ../llvm
+          cmake --build . --target install -j$(nproc)
 
       - name: Package Toolchain
         id: package
         run: |
           set -ex
           INSTALL_DIR=/tmp/riscv
-          TARBALL_NAME=${{ github.event.inputs.release_tag }}.tar.gz
+          TARBALL_NAME=x-heep-toolchain-${{ github.event.inputs.release_tag }}-ubuntu2204.tar.gz
           echo "TARBALL_NAME=${TARBALL_NAME}" >> $GITHUB_OUTPUT
           cd ${INSTALL_DIR}
           tar -czf /tmp/${TARBALL_NAME} .
@@ -91,8 +83,7 @@ jobs:
           tag_name: ${{ github.event.inputs.release_tag }}
           release_name: X-HEEP Toolchain ${{ github.event.inputs.release_tag }}
           body: |
-            Pre-built X-HEEP GCC + LLVM/Clang toolchain (${{ github.event.inputs.release_tag }}).
-            This release includes the following components:
+            Pre-built X-HEEP GCC + LLVM/Clang toolchain. This release includes the following components:
             - GCC version: ${{ github.event.inputs.gcc_version }}
             - LLVM/Clang version: ${{ github.event.inputs.llvm_version }}
           draft: false
