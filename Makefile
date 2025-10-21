@@ -44,7 +44,7 @@ LINKER   ?= on_chip
 TARGET   	?= sim
 X_HEEP_CFG  ?= configs/general.hjson
 PADS_CFG ?= configs/pad_cfg.hjson
-PYTHON_X_HEEP_CFG ?= 
+PYTHON_X_HEEP_CFG ?= configs/example.py
 
 # Cached xheep object location
 XHEEP_CACHE ?= build/xheep_cache.pickle

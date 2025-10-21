@@ -80,9 +80,8 @@ def prepare_pads_for_layout(total_pad_list, physical_attributes):
             pad_lists[pad.pad_mapping].append(pad)
         else:
             print(
-                "ERROR: Pad {0} has an invalid mapping {1}. Please set the mapping to top, bottom, left, or right.".format(
-                    pad.cell_name, pad.pad_mapping
-                )
+                "ERROR: Pad {0} has an invalid mapping {1}. Please set mapping to top, bottom, left, or right."
+                .format(pad.cell_name, getattr(pad, "pad_mapping", None))
             )
             return
 
@@ -260,11 +259,21 @@ def get_nested(d, path, default=None):
     return cur
 
 def coerce_enum(enum_cls, raw, default=None):
-    if raw is None: return default
+    if raw is None:
+        return default
+    if isinstance(raw, enum_cls):
+        return raw
     try:
-        return enum_cls(raw.strip(",")) if isinstance(raw, str) else enum_cls(raw)
+        if isinstance(raw, str):
+            s = raw.strip(",").strip()
+            # Try name match (TOP/Right/etc.) then value match ("top"/"right"/…)
+            try:
+                return enum_cls[s.upper()]
+            except KeyError:
+                return enum_cls(s.lower())
+        return enum_cls(raw)
     except Exception:
-        return default  # or raise if you want strict validation
+        return default  # or raise if you prefer strictness
 
 def build_mux_list(block,
                    pad_mapping,
