@@ -1,4 +1,4 @@
-name: X-HEEP CI
+name: CI
 
 on:
   push:
@@ -6,10 +6,13 @@ on:
   pull_request:
     branches: [ "main" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: esl-epfl/x-heep-toolchain
-  IMAGE_TAG: "" # set by the get-docker-image action
 
 jobs:
   build-image:
@@ -19,69 +22,38 @@ jobs:
       contents: read
       packages: write
     outputs:
-      image_was_built: ${{ steps.check_files.outputs.any_changed }}
-      image_tags: ${{ steps.meta.outputs.tags }}
-
+      tags: ${{ steps.meta.outputs.tags }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check for changes in Docker utility files
-        id: check_files
-        uses: tj-actions/changed-files@v44
-        with:
-          files: |
-            util/docker/**
-            !util/docker/README.md
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Free up disk space on the runner
-        if: steps.check_files.outputs.any_changed == 'true'
-        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
-
-      - name: Generate environment.yml from requirements
-        if: steps.check_files.outputs.any_changed == 'true'
-        run: |
-          chmod +x util/python-requirements2conda.sh
-          ./util/python-requirements2conda.sh
-
-      - name: Set up Docker Buildx
-        if: steps.check_files.outputs.any_changed == 'true'
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to the Container Registry
-        if: steps.check_files.outputs.any_changed == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push (if applicable) Docker Image
-        if: steps.check_files.outputs.any_changed == 'true'
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
+          tags: |
+            type=ref,event=pr
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+            type=sha,format=short
+
+      - name: Build and push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./util/docker/dockerfile
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          outputs: type=docker,dest=/tmp/image.tar
-
-      - name: Upload image artifact for subsequent jobs
-        if: steps.check_files.outputs.any_changed == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-image
-          path: /tmp/image.tar
-          retention-days: 1
 
   compile-apps:
     name: Compile All Apps
@@ -91,22 +63,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Get Docker image
+        id: get_image
         uses: ./.github/actions/get-docker-image
         with:
-          image_was_built: ${{ needs.build-image.outputs.image_was_built }}
-          image_tags: ${{ needs.build-image.outputs.image_tags }}
+          image-tags: ${{ needs.build-image.outputs.tags }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run compilation tests
         run: |
-          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ env.IMAGE_TAG }} \
-          /bin/bash -l -c "
-          make clean-all &&
-          sed 's/is_included: \"no\"/is_included: \"yes\"/' -i configs/ci.hjson &&
-          sed 's/num_channels:   0x1/num_channels:   0x4/' -i configs/ci.hjson &&
-          sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson &&
-          make mcu-gen X_HEEP_CFG=configs/ci.hjson &&
-          init_gcc &&
-          python3 test/test_apps/test_apps.py --compilers gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- --compile-only &&
-          init_clang &&
+          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ steps.get_image.outputs.image-ref }} \
+          /bin/bash -l -c " \
+          make clean-all && \
+          sed 's/is_included: \"no\"/is_included: \"yes\"/' -i configs/ci.hjson && \
+          sed 's/num_channels:   0x1/num_channels:   0x4/' -i configs/ci.hjson && \
+          sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson && \
+          make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
+          init_gcc && \
+          python3 test/test_apps/test_apps.py --compilers gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- --compile-only && \
+          init_clang && \
           python3 test/test_apps/test_apps.py --compilers clang --compiler-paths /tools/riscv-clang --compiler-prefixes riscv32-unknown- --compile-only
           "
 
@@ -119,22 +92,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Get Docker image
+        id: get_image
         uses: ./.github/actions/get-docker-image
         with:
-          image_was_built: ${{ needs.build-image.outputs.image_was_built }}
-          image_tags: ${{ needs.build-image.outputs.image_tags }}
+          image-tags: ${{ needs.build-image.outputs.tags }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run simulation tests
         run: |
-          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ env.IMAGE_TAG }} \
-          /bin/bash -l -c "
-          make clean-all &&
-          sed 's/is_included: \"no\"/is_included: \"yes\"/' -i configs/ci.hjson &&
-          sed 's/num_channels:   0x1/num_channels:   0x4/' -i configs/ci.hjson &&
-          sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson &&
-          make mcu-gen X_HEEP_CFG=configs/ci.hjson &&
-          init_gcc &&
-          python3 test/test_apps/test_apps.py --compilers gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- &&
-          init_clang &&
+          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ steps.get_image.outputs.image-ref }} \
+          /bin/bash -l -c " \
+          make clean-all && \
+          sed 's/is_included: \"no\"/is_included: \"yes\"/' -i configs/ci.hjson && \
+          sed 's/num_channels:   0x1/num_channels:   0x4/' -i configs/ci.hjson && \
+          sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson && \
+          make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
+          init_gcc && \
+          python3 test/test_apps/test_apps.py --compilers gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- && \
+          init_clang && \
           python3 test/test_apps/test_apps.py --compilers clang --compiler-paths /tools/riscv-clang --compiler-prefixes riscv32-unknown-
           "
 
@@ -146,15 +120,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Get Docker image
+        id: get_image
         uses: ./.github/actions/get-docker-image
         with:
-          image_was_built: ${{ needs.build-image.outputs.image_was_built }}
-          image_tags: ${{ needs.build-image.outputs.image_tags }}
+          image-tags: ${{ needs.build-image.outputs.tags }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Check generated file consistency
         run: |
-          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ env.IMAGE_TAG }} \
+          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ steps.get_image.outputs.image-ref }} \
           /bin/bash -l -c "
-          make mcu-gen &&
+          make mcu-gen && \
           util/git-diff.py --error-msg '::error ::Found differences in generated SystemVerilog files.'
           "
 
