@@ -33,17 +33,24 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential cmake ninja-build git
 
+      - name: Clean Up Runner
+        run: |
+          docker rmi `docker images -q`
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php apt/sources.list.d
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Build GCC
         id: build-gcc
         run: |
           set -ex
           INSTALL_DIR=/tmp/riscv
           mkdir -p ${INSTALL_DIR}
-          git clone --recursive https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain
+          git clone https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain
           cd /tmp/riscv-gnu-toolchain
           git checkout ${{ github.event.inputs.gcc_version }}
           ./configure --target=riscv32-unknown-elf --prefix=${INSTALL_DIR} --with-newlib --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
           make -j$(nproc)
+          rm -rf /tmp/riscv-gnu-toolchain
 
       - name: Build LLVM/Clang
         id: build-clang
@@ -63,6 +70,7 @@ jobs:
                 -DLLVM_TARGETS_TO_BUILD="RISCV" \
                 ../llvm
           cmake --build . --target install -j$(nproc)
+          rm -rf /tmp/llvm-project
 
       - name: Package Toolchain
         id: package
