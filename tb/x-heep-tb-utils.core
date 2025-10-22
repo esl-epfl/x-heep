@@ -60,6 +60,13 @@ filesets:
     depend:
     - pulp-platform.org::pulpissimo_remote_bitbang
 
+generate:
+  waivers-v5:
+    generator: waiver-v5-gen
+    parameters:
+      waivers_v5:
+      - tb_v5.vlt
+
 targets:
   default: &default_target
     filesets:
@@ -74,3 +81,5 @@ targets:
     - tool_modelsim? (systemverilog_only_simjtag)
     - tool_vcs? (systemverilog_only_simjtag)
     - tool_xcelium? (systemverilog_only_simjtag)
+    generate:
+    - tool_verilator ? (waivers-v5)
