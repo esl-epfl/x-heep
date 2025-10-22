@@ -1,4 +1,4 @@
-name: Build and Release Combined GCC/LLVM Toolchain
+name: Build and Release Toolchain
 
 on:
   workflow_dispatch:
