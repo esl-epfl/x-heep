@@ -10,7 +10,7 @@ This will create the executable file to be loaded in your target system (ASIC, F
 X-HEEP is using CMake to compile and link. Thus, the generated files after having compiled and linked are under `sw\build`.
 
 ```{warning}
-Don't forget to set the `RISCV` env variable to the compiler folder (without the `/bin` included).
+Don't forget to set the `RISCV_XHEEP` env variable to the compiler folder (without the `/bin` included).
 ```
 
 You can select the application to run, the target, compiler, etc. by modifying the parameters. The compiler flags explicitely specified by the user will override those already existing (e.g. the default optimization level is `-O2`, passing `COMPILER_FLAGS=-Os` will override the `-O2`). This can be used to pass preprocessor definitions (e.g. pasing `make app COMPILER_FLAGS=-DENABLE_PRINTF` is equivalent to adding `#define ENABLE_PRINTF` on all included files). 
@@ -39,7 +39,7 @@ make app PROJECT=hello_world TARGET=pynq-z2 COMPILER=clang
 
 ## Using the OpenHW Group compiler
 
-If you want to use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-chain-downloads/#corev) compiler with CORE_PULP extensions, make sure to point the `RISCV` env variable to the OpenHW Group compiler, then just run:
+If you want to use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-chain-downloads/#corev) compiler with CORE_PULP extensions, make sure to point the `RISCV_XHEEP` env variable to the OpenHW Group compiler, then just run:
 
 ```
 make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp_xcvmem_xcvmac_xcvbi_xcvalu_xcvsimd_xcvbitmanip

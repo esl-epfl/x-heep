@@ -94,21 +94,21 @@ cd riscv-gnu-toolchain
 ./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
 make
 ```
-You need to set the `RISCV` environment variable like this:
+You need to set the `RISCV_XHEEP` environment variable like this:
 
 ```
-export RISCV=/home/$USER/tools/riscv
+export RISCV_XHEEP=/home/$USER/tools/riscv
 ```
 Also consider adding it to your `~/.bashrc` or equivalent so that it's set automatically in the future. 
 
-Optionally you can also compile with clang/LLVM instead of gcc. For that you must install the clang compiler into the same `RISCV` path. The binaries of gcc and clang do not collide so you can have both residing in the same `RISCV` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV` when building LLVM. This can be accomplished by doing the following:
+Optionally you can also compile with clang/LLVM instead of gcc. For that you must install the clang compiler into the same `RISCV_XHEEP` path. The binaries of gcc and clang do not collide so you can have both residing in the same `RISCV_XHEEP` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV_XHEEP` when building LLVM. This can be accomplished by doing the following:
 
 ```
 git clone https://github.com/llvm/llvm-project.git
 cd llvm-project
 git checkout llvmorg-14.0.0
 mkdir build && cd build
-cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
+cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV_XHEEP -DLLVM_TARGETS_TO_BUILD="RISCV_XHEEP" ../llvm
 cmake --build . --target install
 ```
 
