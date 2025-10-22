@@ -1,4 +1,4 @@
-name: Build and Release Combined GCC/LLVM Toolchain
+name: Build and Release Toolchain
 
 on:
   workflow_dispatch:
@@ -11,6 +11,10 @@ on:
         description: 'GCC version tag to build (e.g., 2022.01.17)'
         required: true
         default: '2022.01.17'
+      corev_version:
+        description: 'CORE-V GCC version to download (e.g., 20240530)'
+        required: true
+        default: '20240530'
       release_tag:
         description: 'Tag for the GitHub release (e.g., v1.0.0)'
         required: true
@@ -72,6 +76,14 @@ jobs:
           cmake --build . --target install -j$(nproc)
           rm -rf /tmp/llvm-project
 
+      - name: Install CORE-V GCC
+        id: install-corev
+        run: |
+          set -ex
+          INSTALL_DIR=/tmp/riscv
+          mkdir -p ${INSTALL_DIR}
+          wget -qO- https://buildbot.embecosm.com/job/corev-gcc-ubuntu2204/47/artifact/corev-openhw-gcc-ubuntu2204-${{ github.event.inputs.corev_version }}.tar.gz | tar -xz -C ${INSTALL_DIR} --strip-components=1
+
       - name: Package Toolchain
         id: package
         run: |
@@ -94,6 +106,7 @@ jobs:
             Pre-built X-HEEP GCC + LLVM/Clang toolchain. This release includes the following components:
             - GCC version: ${{ github.event.inputs.gcc_version }}
             - LLVM/Clang version: ${{ github.event.inputs.llvm_version }}
+            - Embecosm CORE-V GCC version: ${{ github.event.inputs.corev_version }}
           draft: false
           prerelease: false
 
