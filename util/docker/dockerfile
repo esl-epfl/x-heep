@@ -1,8 +1,4 @@
-# Author: Luigi Giuffrida
-
-ARG riscv=/tools/riscv
-ARG verilator_version=5.040
-ARG verible_version=v0.0-1824-ga3b5bedf
+# Authors: Luigi Giuffrida, Michele Caon
 
 FROM debian:12-slim
 
@@ -10,13 +6,15 @@ FROM debian:12-slim
 SHELL ["/bin/bash", "-c"]
 
 # Set ARGs and ENVs
-ARG riscv
-ARG verilator_version
-ARG verible_version
+ARG riscv=/tools/riscv
+ARG toolchain_version=v0.2.0
+ARG verilator_version=5.040
+ARG verible_version=v0.0-1824-ga3b5bedf
 ENV RISCV=${riscv}
 ENV VERILATOR_VERSION=${verilator_version}
 ENV VERIBLE_VERSION=${verible_version}
 ENV DEBIAN_FRONTEND=noninteractive
+ENV TOOLCHAIN_VERSION=${toolchain_version}
 
 # Update PATH to include installed tools
 # NOTE: use a dedicated variable here and append it to path in env.sh to prevent
@@ -34,16 +32,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     autoconf autotools-dev libmpc-dev libmpfr-dev libgmp-dev gperf libtool patchutils \
     cmake flex bison libexpat-dev gawk ninja-build help2man libfl-dev
 
-# Install standard GCC RISC-V toolchain
-#RUN mkdir -p ${RISCV} && \
-#    wget -qO- https://buildbot.embecosm.com/job/riscv32-gcc-ubuntu2204-release/10/artifact/riscv32-embecosm-ubuntu2204-gcc13.2.0.tar.gz | tar -xz -C ${RISCV} --strip-components=1
-    
-# Install pre-built Clang RISC-V toolchain
-#RUN wget -qO- https://github.com/esl-epfl/x-heep/releases/download/llvm-v21.1.3/riscv-clang-llvmorg-21.1.3.tar.gz | tar -xz -C /tools/riscv-clang
+# Install X-HEEP GCC/LLVM RISC-V toolchain
+RUN mkdir -p ${RISCV} && \
+    wget -qO- https://github.com/esl-epfl/x-heep/releases/download/${TOOLCHAIN_VERSION}/x-heep-toolchain-${TOOLCHAIN_VERSION}-ubuntu2204.tar.gz | tar -xz -C ${RISCV} --strip-components=1
 
 # Install CORE-V GCC RISC-V toolchain
-#RUN mkdir -p ${RISCV} && \
-#    wget -qO- https://buildbot.embecosm.com/job/corev-gcc-ubuntu2204/47/artifact/corev-openhw-gcc-ubuntu2204-20240530.tar.gz | tar -xz -C ${RISCV} --strip-components=1
+RUN mkdir -p ${RISCV} && \
+    wget -qO- https://buildbot.embecosm.com/job/corev-gcc-ubuntu2204/47/artifact/corev-openhw-gcc-ubuntu2204-20240530.tar.gz | tar -xz -C ${RISCV} --strip-components=1
 
 # Install Verilator
 RUN git clone https://github.com/verilator/verilator.git /tmp/verilator && \

@@ -1,4 +1,4 @@
-name: Build and Release Toolchain
+name: Create X-HEEP Release
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
       gcc_version:
         description: 'GCC version tag to build (e.g., 2022.01.17)'
         required: true
-        default: '2022.01.17'
+        default: '2023.01.03'
       release_tag:
         description: 'Tag for the GitHub release (e.g., v1.0.0)'
         required: true
@@ -38,6 +38,18 @@ jobs:
           docker rmi `docker images -q`
           sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php apt/sources.list.d
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Set Version Number
+        id: set_version
+        run: |
+          VERSION=${{ github.event.inputs.release_tag }}
+          VERSION=${VERSION#v}
+          sed -i "s/name: openhwgroup.org:systems:core-v-mini-mcu:.*/name: openhwgroup.org:systems:core-v-mini-mcu:${VERSION}/" core-v-mini-mcu.core
+          sed -i "s/ARG toolchain_version=v.*/ARG toolchain_version=v${VERSION}/" util/docker/dockerfile
+          git config --global user.name "actions@github.com"
+          git config --global user.email "GitHub Actions"
+          git commit -am "Set core-v-mini-mcu version to ${VERSION}"
+          git push
 
       - name: Build GCC
         id: build-gcc
@@ -89,11 +101,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.event.inputs.release_tag }}
-          release_name: X-HEEP Toolchain ${{ github.event.inputs.release_tag }}
+          release_name: X-HEEP ${{ github.event.inputs.release_tag }}
           body: |
-            Pre-built X-HEEP GCC + LLVM/Clang toolchain. This release includes the following components:
-            - GCC version: ${{ github.event.inputs.gcc_version }}
-            - LLVM/Clang version: ${{ github.event.inputs.llvm_version }}
+            This release includes the X-HEEP code and the following components:
+            - GCC toolchain, version ${{ github.event.inputs.gcc_version }}
+            - LLVM/Clang toolchain, version ${{ github.event.inputs.llvm_version }}
           draft: false
           prerelease: false
 
