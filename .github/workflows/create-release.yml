@@ -22,13 +22,11 @@ env:
 
 jobs:
   build-and-release-toolchain:
-    name: Build and Create Draft Release
+    name: Build and Release X-HEEP toolchain
     runs-on: ubuntu-22.04
     permissions:
       contents: write
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      tarball_name: ${{ steps.package.outputs.TARBALL_NAME }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,9 +39,21 @@ jobs:
 
       - name: Clean Up Runner
         run: |
-          docker rmi `docker images -q` || true
+          docker rmi `docker images -q`
           sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php apt/sources.list.d
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Set Version Number
+        id: set_version
+        run: |
+          VERSION=${{ github.event.inputs.release_tag }}
+          VERSION=${VERSION#v}
+          sed -i "s/name: openhwgroup.org:systems:core-v-mini-mcu:.*/name: openhwgroup.org:systems:core-v-mini-mcu:${VERSION}/" core-v-mini-mcu.core
+          sed -i "s/ARG toolchain_version=v.*/ARG toolchain_version=v${VERSION}/" util/docker/dockerfile
+          git config --global user.name "actions@github.com"
+          git config --global user.email "GitHub Actions"
+          git commit -am "Set core-v-mini-mcu version to ${VERSION}"
+          git push
 
       - name: Build GCC
         id: build-gcc
@@ -51,13 +61,12 @@ jobs:
           set -ex
           INSTALL_DIR=/tmp/riscv
           mkdir -p ${INSTALL_DIR}
-          #git clone https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain
-          #cd /tmp/riscv-gnu-toolchain
-          #git checkout ${{ github.event.inputs.gcc_version }}
-          #./configure --target=riscv32-unknown-elf --prefix=${INSTALL_DIR} --with-newlib --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
-          #make -j$(nproc)
-          #rm -rf /tmp/riscv-gnu-toolchain
-          echo "test" > $INSTALL_DIR/gcc_placeholder.txt
+          git clone https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain
+          cd /tmp/riscv-gnu-toolchain
+          git checkout ${{ github.event.inputs.gcc_version }}
+          ./configure --target=riscv32-unknown-elf --prefix=${INSTALL_DIR} --with-newlib --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
+          make -j$(nproc)
+          rm -rf /tmp/riscv-gnu-toolchain
 
       - name: Build LLVM/Clang
         id: build-clang
@@ -90,7 +99,7 @@ jobs:
           cd ${INSTALL_DIR}
           tar -czf /tmp/${TARBALL_NAME} .
 
-      - name: Create GitHub Draft Release
+      - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:

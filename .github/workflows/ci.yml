@@ -22,16 +22,29 @@ jobs:
       contents: read
       packages: write
     outputs:
-      tags: ${{ steps.meta.outputs.tags }}
+      tags: ${{ steps.determine-tags.outputs.tags }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for relevant file changes
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            util/docker/**
+            !util/docker/README.md
+            python-requirements.txt
 
       - name: Generate requirements.yml
+        if: steps.changed-files.outputs.any_changed == 'true'
         run: |
           util/python-requirements2conda.sh
 
       - name: Log in to GitHub Container Registry
+        if: steps.changed-files.outputs.any_changed == 'true'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -40,6 +53,7 @@ jobs:
 
       - name: Extract Docker metadata
         id: meta
+        if: steps.changed-files.outputs.any_changed == 'true'
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}
@@ -49,6 +63,7 @@ jobs:
             type=sha,format=short
 
       - name: Build and push Docker Image
+        if: steps.changed-files.outputs.any_changed == 'true'
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -56,6 +71,24 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ github.workflow }}
+          cache-to: type=gha,scope=${{ github.workflow }},mode=max
+          build-args: |
+            toolchain_version=v0.2.0
+            verilator_version=5.040
+            verible_version=v0.0-1824-ga3b5bedf
+
+      - name: Determine image tags
+        id: determine-tags
+        shell: bash
+        run: |
+          if [[ "${{ steps.changed-files.outputs.any_changed }}" == "true" ]]; then
+            echo "Image was rebuilt. Using new tags."
+            echo "tags=${{ steps.meta.outputs.tags }}" >> $GITHUB_OUTPUT
+          else
+            echo "No relevant file changes. Using latest image."
+            echo "tags=${{ env.REGISTRY }}/${{ github.repository }}:latest" >> $GITHUB_OUTPUT
+          fi
 
   compile-apps:
     name: Compile All Apps
