@@ -6,3 +6,4 @@ dependencies:
   - pip
   - pip:
     - -r python-requirements.txt
+    - -r ../docs/python-requirements.txt

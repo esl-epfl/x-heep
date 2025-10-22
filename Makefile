@@ -16,7 +16,7 @@ help:
 
 # Setup to autogenerate python virtual environment
 VENVDIR?=$(WORKDIR)/.venv
-REQUIREMENTS_TXT?=util/python-requirements.txt
+REQUIREMENTS_TXT ?= util/python-requirements.txt docs/python-requirements.txt
 include Makefile.venv
 
 # FUSESOC and Python values (default)
