@@ -27,18 +27,6 @@
         }
       ]
     }
-    { name:     "STATUS"
-      desc:     "Status for SPI_FLASH W/R"
-      swaccess: "rw"
-      hwaccess: "hrw"
-      fields: [
-        { bits: "0", 
-          name: "READY", 
-          desc: "Ready status",
-          resval: "0x1"
-        }
-      ]
-    }
     { name:     "ADDRESS"
       desc:     "Address to W/R"
       swaccess: "rw"
@@ -53,6 +41,14 @@
       hwaccess: "hrw"
       fields: [
         { bits: "31:0", name: "DATA", desc: "Data to W" },
+      ]
+    }
+    { name:     "LENGTH"
+      desc:     "Length of data to W/R"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "31:0", name: "LENGTH", desc: "Length of data to W/R" },
       ]
     }
   ]

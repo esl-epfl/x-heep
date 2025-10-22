@@ -13,46 +13,55 @@ package my_ip_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {logic q;} my_ip_reg2hw_intr_state_reg_t;
-
-  typedef struct packed {logic q;} my_ip_reg2hw_intr_enable_reg_t;
+  typedef struct packed {
+    logic        q;
+  } my_ip_reg2hw_intr_state_reg_t;
 
   typedef struct packed {
-    logic q;
-    logic qe;
+    logic        q;
+  } my_ip_reg2hw_intr_enable_reg_t;
+
+  typedef struct packed {
+    logic        q;
+    logic        qe;
   } my_ip_reg2hw_intr_test_reg_t;
 
   typedef struct packed {
-    struct packed {logic q;} start;
-    struct packed {logic q;} write;
+    struct packed {
+      logic        q;
+    } start;
+    struct packed {
+      logic        q;
+    } write;
   } my_ip_reg2hw_control_reg_t;
 
-  typedef struct packed {logic q;} my_ip_reg2hw_status_reg_t;
-
-  typedef struct packed {logic [31:0] q;} my_ip_reg2hw_address_reg_t;
-
-  typedef struct packed {logic [31:0] q;} my_ip_reg2hw_data_reg_t;
+  typedef struct packed {
+    logic [31:0] q;
+  } my_ip_reg2hw_address_reg_t;
 
   typedef struct packed {
-    logic d;
-    logic de;
+    logic [31:0] q;
+  } my_ip_reg2hw_data_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } my_ip_reg2hw_length_reg_t;
+
+  typedef struct packed {
+    logic        d;
+    logic        de;
   } my_ip_hw2reg_intr_state_reg_t;
 
   typedef struct packed {
     struct packed {
-      logic d;
-      logic de;
+      logic        d;
+      logic        de;
     } start;
     struct packed {
-      logic d;
-      logic de;
+      logic        d;
+      logic        de;
     } write;
   } my_ip_hw2reg_control_reg_t;
-
-  typedef struct packed {
-    logic d;
-    logic de;
-  } my_ip_hw2reg_status_reg_t;
 
   typedef struct packed {
     logic [31:0] d;
@@ -64,38 +73,43 @@ package my_ip_reg_pkg;
     logic        de;
   } my_ip_hw2reg_data_reg_t;
 
+  typedef struct packed {
+    logic [31:0] d;
+    logic        de;
+  } my_ip_hw2reg_length_reg_t;
+
   // Register -> HW type
   typedef struct packed {
-    my_ip_reg2hw_intr_state_reg_t intr_state;  // [70:70]
-    my_ip_reg2hw_intr_enable_reg_t intr_enable;  // [69:69]
-    my_ip_reg2hw_intr_test_reg_t intr_test;  // [68:67]
-    my_ip_reg2hw_control_reg_t control;  // [66:65]
-    my_ip_reg2hw_status_reg_t status;  // [64:64]
-    my_ip_reg2hw_address_reg_t address;  // [63:32]
-    my_ip_reg2hw_data_reg_t data;  // [31:0]
+    my_ip_reg2hw_intr_state_reg_t intr_state; // [101:101]
+    my_ip_reg2hw_intr_enable_reg_t intr_enable; // [100:100]
+    my_ip_reg2hw_intr_test_reg_t intr_test; // [99:98]
+    my_ip_reg2hw_control_reg_t control; // [97:96]
+    my_ip_reg2hw_address_reg_t address; // [95:64]
+    my_ip_reg2hw_data_reg_t data; // [63:32]
+    my_ip_reg2hw_length_reg_t length; // [31:0]
   } my_ip_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    my_ip_hw2reg_intr_state_reg_t intr_state;  // [73:72]
-    my_ip_hw2reg_control_reg_t control;  // [71:68]
-    my_ip_hw2reg_status_reg_t status;  // [67:66]
-    my_ip_hw2reg_address_reg_t address;  // [65:33]
-    my_ip_hw2reg_data_reg_t data;  // [32:0]
+    my_ip_hw2reg_intr_state_reg_t intr_state; // [104:103]
+    my_ip_hw2reg_control_reg_t control; // [102:99]
+    my_ip_hw2reg_address_reg_t address; // [98:66]
+    my_ip_hw2reg_data_reg_t data; // [65:33]
+    my_ip_hw2reg_length_reg_t length; // [32:0]
   } my_ip_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] MY_IP_INTR_STATE_OFFSET = 5'h0;
-  parameter logic [BlockAw-1:0] MY_IP_INTR_ENABLE_OFFSET = 5'h4;
-  parameter logic [BlockAw-1:0] MY_IP_INTR_TEST_OFFSET = 5'h8;
-  parameter logic [BlockAw-1:0] MY_IP_CONTROL_OFFSET = 5'hc;
-  parameter logic [BlockAw-1:0] MY_IP_STATUS_OFFSET = 5'h10;
-  parameter logic [BlockAw-1:0] MY_IP_ADDRESS_OFFSET = 5'h14;
-  parameter logic [BlockAw-1:0] MY_IP_DATA_OFFSET = 5'h18;
+  parameter logic [BlockAw-1:0] MY_IP_INTR_STATE_OFFSET = 5'h 0;
+  parameter logic [BlockAw-1:0] MY_IP_INTR_ENABLE_OFFSET = 5'h 4;
+  parameter logic [BlockAw-1:0] MY_IP_INTR_TEST_OFFSET = 5'h 8;
+  parameter logic [BlockAw-1:0] MY_IP_CONTROL_OFFSET = 5'h c;
+  parameter logic [BlockAw-1:0] MY_IP_ADDRESS_OFFSET = 5'h 10;
+  parameter logic [BlockAw-1:0] MY_IP_DATA_OFFSET = 5'h 14;
+  parameter logic [BlockAw-1:0] MY_IP_LENGTH_OFFSET = 5'h 18;
 
   // Reset values for hwext registers and their fields
-  parameter logic [0:0] MY_IP_INTR_TEST_RESVAL = 1'h0;
-  parameter logic [0:0] MY_IP_INTR_TEST_MY_IP_EVENT_RESVAL = 1'h0;
+  parameter logic [0:0] MY_IP_INTR_TEST_RESVAL = 1'h 0;
+  parameter logic [0:0] MY_IP_INTR_TEST_MY_IP_EVENT_RESVAL = 1'h 0;
 
   // Register index
   typedef enum int {
@@ -103,20 +117,20 @@ package my_ip_reg_pkg;
     MY_IP_INTR_ENABLE,
     MY_IP_INTR_TEST,
     MY_IP_CONTROL,
-    MY_IP_STATUS,
     MY_IP_ADDRESS,
-    MY_IP_DATA
+    MY_IP_DATA,
+    MY_IP_LENGTH
   } my_ip_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] MY_IP_PERMIT[7] = '{
-      4'b0001,  // index[0] MY_IP_INTR_STATE
-      4'b0001,  // index[1] MY_IP_INTR_ENABLE
-      4'b0001,  // index[2] MY_IP_INTR_TEST
-      4'b0001,  // index[3] MY_IP_CONTROL
-      4'b0001,  // index[4] MY_IP_STATUS
-      4'b1111,  // index[5] MY_IP_ADDRESS
-      4'b1111  // index[6] MY_IP_DATA
+  parameter logic [3:0] MY_IP_PERMIT [7] = '{
+    4'b 0001, // index[0] MY_IP_INTR_STATE
+    4'b 0001, // index[1] MY_IP_INTR_ENABLE
+    4'b 0001, // index[2] MY_IP_INTR_TEST
+    4'b 0001, // index[3] MY_IP_CONTROL
+    4'b 1111, // index[4] MY_IP_ADDRESS
+    4'b 1111, // index[5] MY_IP_DATA
+    4'b 1111  // index[6] MY_IP_LENGTH
   };
 
 endpackage

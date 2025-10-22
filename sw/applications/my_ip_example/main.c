@@ -32,7 +32,7 @@ static inline void write_register( uint32_t   p_val,
 
 }
 
-int main(void) {
+__attribute__((optmitize("O0"))) void my_ip_run(){
     // Setting test conditions (values to write read from)
     write_register( 0xAB,
                     SPI_HOST_CONTROL_REG_OFFSET,
@@ -78,9 +78,9 @@ int main(void) {
     //     MY_IP_START_ADDRESS
     // );
 
-    while ((my_ip_peri->STATUS & 0x1) == 0) {
-        // While not finished with a transaction
-    }
+    // while ((my_ip_peri->STATUS & 0x1) == 0) {
+    //     // While not finished with a transaction
+    // }
 
     // TRY WRITING
         // Set write enable
@@ -97,14 +97,17 @@ int main(void) {
                     0,
                     MY_IP_START_ADDRESS
                 );
+}
 
+int main(void) {
+    my_ip_run();
 
     return EXIT_SUCCESS;
 }
 
 // Issues:
-// Compile reorders? Produces erros see screenshot
-// Trying to limit write/read to once (not keep going as long as start set to 1)
+// Compile reorders? Produces erros see screenshot (USE ATTRIBUTE (try inline also?))
+// Trying to limit write/read to once (not keep going as long as start set to 1) (explore hwqe and hwre in hjson file)
 // Failed to do so in HW hence was exploring hw/sw solutions (ready bit)
 // However came across the fact that my if fails and that write_registers which follow each other, overwrite each other
 

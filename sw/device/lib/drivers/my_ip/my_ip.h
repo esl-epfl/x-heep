@@ -36,15 +36,14 @@ extern "C" {
 #define MY_IP_CONTROL_START_BIT 0
 #define MY_IP_CONTROL_WRITE_BIT 1
 
-// Status for SPI_FLASH W/R
-#define MY_IP_STATUS_REG_OFFSET 0x10
-#define MY_IP_STATUS_READY_BIT 0
-
 // Address to W/R
-#define MY_IP_ADDRESS_REG_OFFSET 0x14
+#define MY_IP_ADDRESS_REG_OFFSET 0x10
 
 // Data to W
-#define MY_IP_DATA_REG_OFFSET 0x18
+#define MY_IP_DATA_REG_OFFSET 0x14
+
+// Length of data to W/R
+#define MY_IP_LENGTH_REG_OFFSET 0x18
 
 #ifdef __cplusplus
 }  // extern "C"
