@@ -1,0 +1,17 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+local_repository(
+    name = "lowrisc_misc_linters",
+    path = "..",
+)
+
+load("@lowrisc_misc_linters//rules:repos.bzl", "lowrisc_misc_linters_repos")
+lowrisc_misc_linters_repos()
+load("@lowrisc_misc_linters//rules:deps.bzl", "lowrisc_misc_linters_dependencies")
+lowrisc_misc_linters_dependencies()
+load("@lowrisc_misc_linters//rules:pip.bzl", "lowrisc_misc_linters_pip_dependencies")
+lowrisc_misc_linters_pip_dependencies()
+load("@lowrisc_misc_linters_pip//:requirements.bzl", "install_deps")
+install_deps()
