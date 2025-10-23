@@ -1,0 +1,88 @@
+# Authors: Luigi Giuffrida, Michele Caon
+
+FROM debian:12-slim
+
+# Set the build-time shell to bash
+SHELL ["/bin/bash", "-c"]
+
+# Set ARGs and ENVs
+ARG riscv=/tools/riscv
+ARG toolchain_version=v0.2.0
+ARG verilator_version=5.040
+ARG verible_version=v0.0-4023-gc1271a00
+ENV RISCV=${riscv}
+# ENV XHEEP_RISCV=${riscv}
+ENV VERILATOR_VERSION=${verilator_version}
+ENV VERIBLE_VERSION=${verible_version}
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TOOLCHAIN_VERSION=${toolchain_version}
+
+# Update PATH to include installed tools
+# NOTE: use a dedicated variable here and append it to path in env.sh to prevent
+#       conda from overriding the PATH at runtime
+ENV TOOL_PATH=/tools/verible/verible-${VERIBLE_VERSION}/bin:/tools/verilator/${VERILATOR_VERSION}/bin:${RISCV}/bin
+
+# Install build dependencies, build tools, then remove build-only dependencies
+# to keep the final image smaller
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Runtime dependencies
+    lcov libelf1 libelf-dev libftdi1-2 libssl-dev libglib2.0-dev libudev-dev libusb-1.0-0 \
+    lsb-release texinfo bc zlib1g-dev picocom python3-venv python3-dev git \
+    wget python3 build-essential make coreutils libfindbin-libs-perl g++ curl \
+    # Build-time dependencies for tools
+    autoconf autotools-dev libmpc-dev libmpfr-dev libgmp-dev gperf libtool patchutils \
+    cmake flex bison libexpat-dev gawk ninja-build help2man libfl-dev
+
+# Install X-HEEP GCC/LLVM RISC-V toolchain
+RUN mkdir -p ${RISCV} && \
+    wget -qO- https://github.com/esl-epfl/x-heep/releases/download/${TOOLCHAIN_VERSION}/x-heep-toolchain-${TOOLCHAIN_VERSION}-ubuntu2204.tar.gz | tar -xz -C ${RISCV} --strip-components=1
+
+# Install CORE-V GCC RISC-V toolchain
+RUN mkdir -p ${RISCV} && \
+    wget -qO- https://buildbot.embecosm.com/job/corev-gcc-ubuntu2204/47/artifact/corev-openhw-gcc-ubuntu2204-20240530.tar.gz | tar -xz -C ${RISCV} --strip-components=1
+
+# Install Verilator
+RUN git clone https://github.com/verilator/verilator.git /tmp/verilator && \
+    cd /tmp/verilator && git checkout v${VERILATOR_VERSION} && \
+    autoconf && ./configure --prefix=/tools/verilator/${VERILATOR_VERSION} && \
+    make -j$(nproc) && make install && \
+    rm -rf /tmp/verilator
+
+# Install Verible
+RUN wget -q https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz -O /tmp/verible.tar.gz && \
+    mkdir -p /tools/verible && tar -xf /tmp/verible.tar.gz -C /tools/verible/ && \
+    rm /tmp/verible.tar.gz
+
+# Clean up build-time dependencies and apt cache
+RUN apt-get purge -y --auto-remove autoconf autotools-dev build-essential libfl-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install conda
+RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh && \
+    bash /tmp/miniconda.sh -b -p /opt/conda && \
+    rm /tmp/miniconda.sh
+
+# Install conda environment
+COPY util/conda_environment.yml util/python-requirements.txt .
+COPY docs/python-requirements.txt docs/
+RUN /opt/conda/bin/conda tos accept && \
+    /opt/conda/bin/conda config --set auto_activate_base false && \
+    /opt/conda/bin/conda env create -f conda_environment.yml && \
+    rm conda_environment.yml python-requirements.txt
+
+# Copy profile scripts (conda initialization and welcome message)
+COPY util/docker/env.sh util/docker/motd.sh /etc/profile.d/
+RUN chmod +x /etc/profile.d/env.sh /etc/profile.d/motd.sh
+
+# Mark X-HEEP repo as a safe so new version of git don't complain when running util/git-diff.py
+RUN git config --global --add safe.directory /workspace/x-heep
+WORKDIR /workspace/x-heep
+
+# Copy and set up the entrypoint script
+COPY util/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Default command to run when no other command is specified
+CMD ["/bin/bash", "-l"]

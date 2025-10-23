@@ -24,16 +24,10 @@ This should open a preview of the documentation changes in the webpage. The link
 If you want to build the web documentation locally to see your updates to the docs or to debug the build:
 
 1. Open a terminal in the `docs` folder and make sure the conda environment is activated.
-2. The first time you do this, run:
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Run:
+2. Run:
 
 ```bash
 make clean html
 ```
 
-4. Open `docs/build/html/index.html` using a web browser.
+3. Open `docs/build/html/index.html` using a web browser.

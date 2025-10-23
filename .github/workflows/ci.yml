@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: esl-epfl/x-heep-toolchain
+
+jobs:
+  compile-apps:
+    name: Compile All Apps
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Compile all apps with GCC and Clang
+        run: |
+          make clean-all && \
+          make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
+          python3 test/test_apps/test_apps.py --compilers gcc,clang --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- --compile-only
+          "
+
+  simulate-apps:
+    name: Simulate All Apps
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Compile and simulate all apps
+        run: |
+          make clean-all && \
+          make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
+          python3 test/test_apps/test_apps.py --compilers gcc,clang --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown-
+          "
+
+  lint:
+    name: Lint Generated Files
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check generated file consistency
+        run: |
+          make mcu-gen && \
+          util/git-diff.py --error-msg '::error ::Found differences in generated SystemVerilog files.'
+          "
+
+  gen-peripherals:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+    name: Test peripherals (Same output between hjson and python configuration).
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Configure the job container and simulate all apps
+        run: |
+          make clean-all
+          # Run the test script
+          python3 test/test_x_heep_gen/test_peripherals.py
+
+  check-vendor:
+    name: Vendor up-to-date
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - name: Install requirements
+        run: pip install -r util/python-requirements.txt
+      - name: Re-vendor and diff
+        run: |
+          find . -name '*.vendor.hjson' | xargs -n1 util/vendor.py --verbose &&
+          util/git-diff.py --error-msg "::error ::Found differences, please re-vendor."
+
+  black-formatter:
+    name: Check Python code formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: psf/black@stable
+        with:
+          options: "--check --verbose"
+          src: >
+            util/x_heep_gen
+            util/mcu_gen.py
+            util/structs_periph_gen.py
+            util/waiver-gen.py
+            util/c_gen.py
+            test/test_x_heep_gen/test_peripherals.py
+          version: "~= 24.8.0"

@@ -6,7 +6,7 @@ There are two ways of setting up X-HEEP. You can either use the provided docker 
 
 A docker image containing all the required software dependencies is available on [github-packages](https://github.com/orgs/esl-epfl/packages/container/package/x-heep-toolchain).
 
-It is only required to install docker and pull the image.
+It is only required to [install Docker](https://docs.docker.com/engine/install/) and pull the image.
 
 ```bash
 docker pull ghcr.io/esl-epfl/x-heep-toolchain:latest
@@ -19,10 +19,16 @@ docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep ghcr.io/esl-epfl/x-heep-toolch
 ```
 
 ```{warning}
-Take care to indicate the absolute path to the local clone of X-HEEP, otherwise docker will not be able to properly mount the local folder in the container.
+Take care to indicate the absolute path to the local clone of X-HEEP, otherwise Docker will not be able to properly mount the local folder in the container.
 ```
 
-The docker setup has certain limitations. For example, the following are not supported:
+The two steps above are also wrapped in a dedicated `makefile`:
+```bash
+make -C util/docker docker-pull # pull the latest available X-HEEP image
+make -C util/docker docker-run #  mount the current X-HEEP clone to '/workspace/x-heep'
+```
+
+The Docker setup has certain limitations. For example, the following are not supported:
 
 - Simulation with Questasim and VCS, synthesis with Design Compiler. Licenses are required to use these tools, so they are not installed in the container.
 
@@ -71,6 +77,10 @@ or put the command directly in the `~/.bashrc` file.
 
 #### 2.b Virtual Environment
 
+```{note}
+The python environment has only been tested on Python 3.8.
+```
+
 Install the python virtual environment just as:
 
 ```bash
@@ -89,10 +99,11 @@ The RISC-V compiler requires the [following packages](https://github.com/riscv-c
 
 Then the installation can proceed with the following commands :
 ```
-git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
+git clone https://github.com/riscv/riscv-gnu-toolchain
 cd riscv-gnu-toolchain
+git checkout 2023.01.03
 ./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
-make
+make -j $(nproc)
 ```
 You need to set the `RISCV` environment variable like this:
 
@@ -152,23 +163,23 @@ sudo apt-get install -y gtkwave
 
 ### 5. Install Verible
 
-Files are formatted with Verible. We use version v0.0-1824-ga3b5bedf
+Files are formatted with Verible. We use version v0.0-4023-gc1271a00
 
 ```
-export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
-wget https:wget https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
-tar -xf verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
+export VERIBLE_VERSION=v0.0-4023-gc1271a00
+wget https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
+tar -xf verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
 mkdir -p /home/$USER/tools/verible/${VERIBLE_VERSION}/
 mv verible-${VERIBLE_VERSION}/* /home/$USER/tools/verible/${VERIBLE_VERSION}/
-rm verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
+rm verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
 rm -r verible-${VERIBLE_VERSION}
 ```
 
 After installation you need to add `/home/$USER/tools/verible/${VERIBLE_VERSION}/bin` to your `PATH` environment variable. Also consider adding it to your `~/.bashrc` or equivalent so that it's on the `PATH` in the future, like this:
 
 ```
-export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
+export VERIBLE_VERSION=v0.0-4023-gc1271a00
 export PATH=/home/$USER/tools/verible/${VERIBLE_VERSION}/bin:$PATH
 ```
 
-In general, have a look at the [Install Verible](https://opentitan.org/book/doc/getting_started/index.html#step-7a-install-verible-optional) section of the OpenTitan documentation.
+In general, have a look at the [Install Verible](https://opentitan.org/book/doc/getting_started/index.html#step-7a-install-verible-optional) section of the OpenTitan documentation (the version referenced there is _not_ the one we use in X-HEEP).
