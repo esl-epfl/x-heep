@@ -97,10 +97,11 @@ The RISC-V compiler requires the [following packages](https://github.com/riscv-c
 
 Then the installation can proceed with the following commands :
 ```
-git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
+git clone https://github.com/riscv/riscv-gnu-toolchain
 cd riscv-gnu-toolchain
+git checkout 2023.01.03
 ./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
-make
+make -j $(nproc)
 ```
 You need to set the `RISCV_XHEEP` environment variable like this:
 
@@ -160,23 +161,23 @@ sudo apt-get install -y gtkwave
 
 ### 5. Install Verible
 
-Files are formatted with Verible. We use version v0.0-1824-ga3b5bedf
+Files are formatted with Verible. We use version v0.0-4023-gc1271a00
 
 ```
-export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
-wget https:wget https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
-tar -xf verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
+export VERIBLE_VERSION=v0.0-4023-gc1271a00
+wget https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
+tar -xf verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
 mkdir -p /home/$USER/tools/verible/${VERIBLE_VERSION}/
 mv verible-${VERIBLE_VERSION}/* /home/$USER/tools/verible/${VERIBLE_VERSION}/
-rm verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
+rm verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
 rm -r verible-${VERIBLE_VERSION}
 ```
 
 After installation you need to add `/home/$USER/tools/verible/${VERIBLE_VERSION}/bin` to your `PATH` environment variable. Also consider adding it to your `~/.bashrc` or equivalent so that it's on the `PATH` in the future, like this:
 
 ```
-export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
+export VERIBLE_VERSION=v0.0-4023-gc1271a00
 export PATH=/home/$USER/tools/verible/${VERIBLE_VERSION}/bin:$PATH
 ```
 
-In general, have a look at the [Install Verible](https://opentitan.org/book/doc/getting_started/index.html#step-7a-install-verible-optional) section of the OpenTitan documentation.
+In general, have a look at the [Install Verible](https://opentitan.org/book/doc/getting_started/index.html#step-7a-install-verible-optional) section of the OpenTitan documentation (the version referenced there is _not_ the one we use in X-HEEP).
