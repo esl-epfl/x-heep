@@ -229,6 +229,8 @@ uint32_t test_read(uint32_t *test_buffer, uint32_t len) {
 #ifndef ON_CHIP
 uint32_t test_read_flash_only(uint32_t *test_buffer, uint32_t len) {
 
+    // Gives the address offset how where the test_buffer is stored in the flash
+    // Doesn't make any sense/supported if load test_buffer directly on_chip
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
 
     // Read from flash memory at the same address
