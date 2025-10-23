@@ -22,11 +22,13 @@ env:
 
 jobs:
   build-and-release-toolchain:
-    name: Build and Release X-HEEP toolchain
+    name: Build and Create Draft Release
     runs-on: ubuntu-22.04
     permissions:
       contents: write
-
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      tarball_name: ${{ steps.package.outputs.TARBALL_NAME }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,7 +41,7 @@ jobs:
 
       - name: Clean Up Runner
         run: |
-          docker rmi `docker images -q`
+          docker rmi `docker images -q` || true
           sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php apt/sources.list.d
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
@@ -99,7 +101,7 @@ jobs:
           cd ${INSTALL_DIR}
           tar -czf /tmp/${TARBALL_NAME} .
 
-      - name: Create GitHub Release
+      - name: Create GitHub Draft Release
         id: create_release
         uses: actions/create-release@v1
         env:
