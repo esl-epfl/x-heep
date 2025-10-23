@@ -12,6 +12,7 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: esl-epfl/x-heep-toolchain
 
 jobs:
   compile-apps:
@@ -24,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Run compilation tests
         run: |
-          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ steps.get_image.outputs.image-ref }} \
+          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ env.IMAGE_NAME }} \
           /bin/bash -l -c " \
           make clean-all && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
@@ -42,7 +43,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Run simulation tests
         run: |
-          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ steps.get_image.outputs.image-ref }} \
+          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ env.IMAGE_NAME }} \
           /bin/bash -l -c " \
           make clean-all && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
@@ -60,7 +61,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Check generated file consistency
         run: |
-          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ steps.get_image.outputs.image-ref }} \
+          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ env.IMAGE_NAME }} \
           /bin/bash -l -c "
           make mcu-gen && \
           util/git-diff.py --error-msg '::error ::Found differences in generated SystemVerilog files.'
