@@ -108,7 +108,7 @@ git clone https://github.com/llvm/llvm-project.git
 cd llvm-project
 git checkout llvmorg-14.0.0
 mkdir build && cd build
-cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV_XHEEP -DLLVM_TARGETS_TO_BUILD="RISCV_XHEEP" ../llvm
+cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV_XHEEP -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
 cmake --build . --target install
 ```
 
