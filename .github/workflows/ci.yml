@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Run compilation tests
+      - name: Compile all apps with GCC and Clang
         run: |
           make clean-all && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
@@ -39,7 +39,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Run simulation tests
+      - name: Compile and simulate all apps
         run: |
           make clean-all && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
