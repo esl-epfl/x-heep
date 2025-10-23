@@ -34,8 +34,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake flex bison libexpat-dev gawk ninja-build help2man libfl-dev
 
 # Install X-HEEP GCC/LLVM RISC-V toolchain
+COPY toolchain.tar.gz /tmp/
 RUN mkdir -p ${RISCV} && \
-    wget -qO- https://github.com/esl-epfl/x-heep/releases/download/${TOOLCHAIN_VERSION}/x-heep-toolchain-${TOOLCHAIN_VERSION}-ubuntu2204.tar.gz | tar -xz -C ${RISCV} --strip-components=1
+    tar -xz -C ${RISCV} --strip-components=1 -f /tmp/toolchain.tar.gz && \
+    rm /tmp/toolchain.tar.gz
 
 # Install CORE-V GCC RISC-V toolchain
 RUN mkdir -p ${RISCV} && \
