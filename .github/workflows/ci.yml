@@ -17,23 +17,16 @@ jobs:
   compile-apps:
     name: Compile All Apps
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Get Docker image
-        id: get_image
-        uses: ./.github/actions/get-docker-image
-        with:
-          image-tags: ${{ env.REGISTRY }}/${{ github.repository }}:latest
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run compilation tests
         run: |
           docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ steps.get_image.outputs.image-ref }} \
           /bin/bash -l -c " \
           make clean-all && \
-          sed 's/is_included: \"no\"/is_included: \"yes\"/' -i configs/ci.hjson && \
-          sed 's/num_channels:   0x1/num_channels:   0x4/' -i configs/ci.hjson && \
-          sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
           python3 test/test_apps/test_apps.py --compilers gcc,clang --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- --compile-only
           "
@@ -41,24 +34,17 @@ jobs:
   simulate-apps:
     name: Simulate All Apps
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Get Docker image
-        id: get_image
-        uses: ./.github/actions/get-docker-image
-        with:
-          image-tags: ${{ env.REGISTRY }}/${{ github.repository }}:latest
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run simulation tests
         run: |
           docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ steps.get_image.outputs.image-ref }} \
           /bin/bash -l -c " \
           make clean-all && \
-          sed 's/is_included: \"no\"/is_included: \"yes\"/' -i configs/ci.hjson && \
-          sed 's/num_channels:   0x1/num_channels:   0x4/' -i configs/ci.hjson && \
-          sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
           init_gcc && \
           python3 test/test_apps/test_apps.py --compilers gcc,clang --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown-
@@ -67,15 +53,11 @@ jobs:
   lint:
     name: Lint Generated Files
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Get Docker image
-        id: get_image
-        uses: ./.github/actions/get-docker-image
-        with:
-          image-tags: ${{ needs.build-image.outputs.tags }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Check generated file consistency
         run: |
           docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ steps.get_image.outputs.image-ref }} \
@@ -83,6 +65,25 @@ jobs:
           make mcu-gen && \
           util/git-diff.py --error-msg '::error ::Found differences in generated SystemVerilog files.'
           "
+  
+  peripherals-gen:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+    name: Test peripherals (Same output between hjson and python configuration).
+    steps:
+      - name: Checkout the pushed code. 
+        uses: actions/checkout@v3
+      - name: Configure the job container and simulate all apps
+        run: |
+          # Create the virtual environment and install the requirements. 
+          conda init bash
+          source /root/.bashrc
+          conda activate core-v-mini-mcu
+          make clean-all
+
+          # Run the test script
+          python3 test/test_x_heep_gen/test_peripherals.py
 
   check-vendor:
     name: Vendor up-to-date
@@ -115,4 +116,3 @@ jobs:
             util/c_gen.py
             test/test_x_heep_gen/test_peripherals.py
           version: "~= 24.8.0"
-

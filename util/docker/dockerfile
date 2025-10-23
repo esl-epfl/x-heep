@@ -62,7 +62,7 @@ RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.s
     rm /tmp/miniconda.sh
 
 # Install conda environment
-COPY environment.yml .
+COPY util/environment.yml .
 RUN /opt/conda/bin/conda tos accept && \
     /opt/conda/bin/conda config --set auto_activate_base false && \
     /opt/conda/bin/conda env create -f environment.yml && \
