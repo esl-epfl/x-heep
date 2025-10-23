@@ -10,6 +10,14 @@ jobs:
     steps:
       - name: Checkout the pushed code. 
         uses: actions/checkout@v3
+      - name: Detect RISCV toolchain and export
+        shell: bash
+        run: |
+          tool=$(command -v riscv32-unknown-elf-gcc || true)
+          if [ -z "$tool" ]; then echo "RISC-V toolchain not found"; exit 1; fi
+          root=$(dirname "$(dirname "$tool")")
+          echo "RISCV_XHEEP=$root" >> $GITHUB_ENV
+          echo "PATH=$root/bin:$PATH" >> $GITHUB_ENV
       - name: Configure the job container and simulate all apps
         run: |
           # Create the virtual environment and install the requirements. 

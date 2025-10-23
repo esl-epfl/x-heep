@@ -103,12 +103,12 @@ Check the waveform of the JTAG on Modelsim if you like.
 In a 3rd shell, conenct gdb as:
 
 ```
-$RISCV/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
+$RISCV_XHEEP/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
 ```
 
 In case gdb is started in python mode (due to initialisation conditions set in the ~/.gdbinit) - then run the command as:
 ```
-$RISCV/bin/riscv32-unknown-elf-gdb -nx ./sw/build/main.elf
+$RISCV_XHEEP/bin/riscv32-unknown-elf-gdb -nx ./sw/build/main.elf
 ```
 
 

@@ -10,6 +10,15 @@ jobs:
     steps:
       - name: Checkout the pushed code. 
         uses: actions/checkout@v3        
+
+      - name: Detect RISCV toolchain and export
+        run: |
+          tool=$(command -v riscv32-unknown-elf-gcc || true)
+          if [ -z "$tool" ]; then echo "RISC-V toolchain not found"; exit 1; fi
+          root=$(dirname "$(dirname "$tool")")
+          echo "RISCV_XHEEP=$root" >> $GITHUB_ENV
+          echo "PATH=$root/bin:$PATH" >> $GITHUB_ENV
+
       - name: Configure the job container and compile all apps.
         run: |
           # Create the virtual environment and install the requirements. 
@@ -20,5 +29,4 @@ jobs:
 
           # The MCU is generated with various memory banks to avoid example code not fitting.
           make mcu-gen X_HEEP_CFG=configs/ci.hjson
-
           python3 test/test_apps/test_apps.py --compile-only

@@ -51,6 +51,13 @@ endif()
 # set the project name
 project(${PROJECT} ASM C CXX)
 
+# environment check
+if(DEFINED ENV{RISCV_XHEEP})
+  set(RISCV_XHEEP "$ENV{RISCV_XHEEP}")
+else()
+  message(WARNING "RISCV_XHEEP not set in the environment. Using the one passed from Makefile: ${RISCV_XHEEP}")
+endif()
+
 # set the required CMake standard
 set(CMAKE_CXX_STANDARD 14)
 
@@ -112,8 +119,8 @@ LIST(REMOVE_DUPLICATES h_dir_list_)
 # Add list to the directories to be included
 
 # Get all the folders to include when linking
-SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
-                     -I ${RISCV}/${COMPILER_PREFIX}elf/include/ \
+SET(INCLUDE_FOLDERS "-I ${RISCV_XHEEP}/${COMPILER_PREFIX}elf/include \
+                     -I ${RISCV_XHEEP}/${COMPILER_PREFIX}elf/include/ \
                      -I ${ROOT_PROJECT} \
                      -I ${SOURCE_PATH} \
 					           ${dir_list_str}")                                      
@@ -387,8 +394,8 @@ message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
 
 if (${COMPILER} MATCHES "clang")
      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
-                                          --gcc-toolchain=${RISCV} \
-                                          --sysroot=${RISCV}/${COMPILER_PREFIX}elf \
+                                          --gcc-toolchain=${RISCV_XHEEP} \
+                                          --sysroot=${RISCV_XHEEP}/${COMPILER_PREFIX}elf \
                                           -static \
                                           -mcmodel=medany \
                                           -fvisibility=hidden \
@@ -445,11 +452,12 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                              -static ${LINKED_FILES} \
                              -Wl,-Map=${MAINFILE}.map \
                              -Wl,--gc-sections \
-                             -L ${RISCV}/${COMPILER_PREFIX}elf/lib \
+                             -L ${RISCV_XHEEP}/${COMPILER_PREFIX}elf/lib \
                              -lc -lm -lgcc -flto \
                              -fpermissive -fno-rtti -fno-exceptions -fno-threadsafe-statics \
                             -ffunction-sections -fdata-sections -specs=nano.specs")
-message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/${COMPILER_PREFIX}elf/lib${ColourReset}")
+message( "${Green}RISCV_XHEEP env variable: ${RISCV_XHEEP}")
+message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV_XHEEP}/${COMPILER_PREFIX}elf/lib${ColourReset}")
 
 if (${VERBOSE} MATCHES "true")
  SET(CMAKE_VERBOSE_MAKEFILE ON)
@@ -487,7 +495,7 @@ endif()
 #######################################################################
 
 # Set CMAKE_OBJDUMP to the GCC objdump since we always link with GCC
-set(CMAKE_OBJDUMP "${RISCV}/bin/${COMPILER_PREFIX}elf-objdump")
+set(CMAKE_OBJDUMP "${RISCV_XHEEP}/bin/${COMPILER_PREFIX}elf-objdump")
 
 # Post processing command to create a disassembly file
 add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
