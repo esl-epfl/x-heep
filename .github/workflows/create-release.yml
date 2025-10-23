@@ -49,6 +49,7 @@ jobs:
           VERSION=${{ github.event.inputs.release_tag }}
           VERSION=${VERSION#v}
           sed -i "s/name: openhwgroup.org:systems:core-v-mini-mcu:.*/name: openhwgroup.org:systems:core-v-mini-mcu:${VERSION}/" core-v-mini-mcu.core
+          sed -i "s/ARG toolchain_version=.*/ARG toolchain_version=v${VERSION}/" util/docker/dockerfile
           git config --global user.name "actions@github.com"
           git config --global user.email "GitHub Actions"
           git commit -am "Set core-v-mini-mcu version to ${VERSION}"
@@ -172,4 +173,4 @@ jobs:
           build-args: |
             toolchain_version=${{ github.event.inputs.release_tag }}
             verilator_version=5.040
-            verible_version=v0.0-1824-ga3b5bedf
+            verible_version=v0.0-4023-gc1271a00

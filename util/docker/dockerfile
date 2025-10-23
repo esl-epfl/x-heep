@@ -9,7 +9,7 @@ SHELL ["/bin/bash", "-c"]
 ARG riscv=/tools/riscv
 ARG toolchain_version=v0.2.0
 ARG verilator_version=5.040
-ARG verible_version=v0.0-1824-ga3b5bedf
+ARG verible_version=v0.0-4023-gc1271a00
 ENV RISCV=${riscv}
 ENV VERILATOR_VERSION=${verilator_version}
 ENV VERIBLE_VERSION=${verible_version}
