@@ -43,7 +43,6 @@ jobs:
         run: |
           make clean-all && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
-          init_gcc && \
           python3 test/test_apps/test_apps.py --compilers gcc,clang --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown-
           "
 
