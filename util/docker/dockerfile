@@ -48,7 +48,7 @@ RUN git clone https://github.com/verilator/verilator.git /tmp/verilator && \
     rm -rf /tmp/verilator
 
 # Install Verible
-RUN wget -q https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz -O /tmp/verible.tar.gz && \
+RUN wget -q https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz -O /tmp/verible.tar.gz && \
     mkdir -p /tools/verible && tar -xf /tmp/verible.tar.gz -C /tools/verible/ && \
     rm /tmp/verible.tar.gz
 
@@ -62,11 +62,12 @@ RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.s
     rm /tmp/miniconda.sh
 
 # Install conda environment
-COPY util/environment.yml .
+COPY util/conda_environment.yml util/python-requirements.txt .
+COPY docs/python-requirements.txt docs/
 RUN /opt/conda/bin/conda tos accept && \
     /opt/conda/bin/conda config --set auto_activate_base false && \
-    /opt/conda/bin/conda env create -f environment.yml && \
-    rm environment.yml
+    /opt/conda/bin/conda env create -f conda_environment.yml && \
+    rm conda_environment.yml python-requirements.txt
 
 # Copy profile scripts (conda initialization and welcome message)
 COPY util/docker/env.sh util/docker/motd.sh /etc/profile.d/
