@@ -85,6 +85,10 @@ source .venv/bin/activate
 
 ### 3. Install the RISC-V Compiler:
 
+```{warning}
+The RISC-V toolchain environment variable name has changed. Use `RISCV_XHEEP` instead of `RISCV` to avoid conflicts with other projects. If you previously exported `RISCV` for X-HEEP, update your shell initialization files (e.g., `~/.bashrc`, `~/.zshrc`) or environment modules to export `RISCV_XHEEP` and remove or adjust any old `RISCV` definitions accordingly.
+```
+
 The RISC-V compiler requires the [following packages](https://github.com/riscv-collab/riscv-gnu-toolchain) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The GitHub page contains instructions for other linux distributions.
 
 Then the installation can proceed with the following commands :

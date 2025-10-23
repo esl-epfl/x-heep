@@ -1,5 +1,9 @@
 # Compile applications
 
+```{warning}
+The RISC-V toolchain environment variable name has changed. Use `RISCV_XHEEP` instead of `RISCV` to avoid conflicts with other projects. If you previously exported `RISCV` for X-HEEP, update your shell initialization files (e.g., `~/.bashrc`, `~/.zshrc`) or environment modules to export `RISCV_XHEEP` and remove or adjust any old `RISCV` definitions accordingly.
+```
+
 All software applications can be found in `sw/applications`. These can be compiled with the `app` target of the top-level makefile of X-HEEP. To compile the `hello world` application with default parameters, just type:
 
 ```
