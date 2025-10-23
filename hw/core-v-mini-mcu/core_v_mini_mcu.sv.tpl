@@ -253,16 +253,6 @@ ${pad.core_v_mini_mcu_interface}
   logic [7:0] gpio_ao_oe;
   logic [7:0] gpio_ao_intr;
 
-  // UART PLIC interrupts
-  logic uart_intr_tx_watermark;
-  logic uart_intr_rx_watermark;
-  logic uart_intr_tx_empty;
-  logic uart_intr_rx_overflow;
-  logic uart_intr_rx_frame_err;
-  logic uart_intr_rx_break_err;
-  logic uart_intr_rx_timeout;
-  logic uart_intr_rx_parity_err;
-
   // I2s
   logic i2s_rx_valid;
 
@@ -447,16 +437,6 @@ ${pad.core_v_mini_mcu_interface}
       .cio_gpio_o(gpio_ao_out),
       .cio_gpio_en_o(gpio_ao_oe),
       .intr_gpio_o(gpio_ao_intr),
-      .uart_rx_i,
-      .uart_tx_o,
-      .uart_intr_tx_watermark_o(uart_intr_tx_watermark),
-      .uart_intr_rx_watermark_o(uart_intr_rx_watermark),
-      .uart_intr_tx_empty_o(uart_intr_tx_empty),
-      .uart_intr_rx_overflow_o(uart_intr_rx_overflow),
-      .uart_intr_rx_frame_err_o(uart_intr_rx_frame_err),
-      .uart_intr_rx_break_err_o(uart_intr_rx_break_err),
-      .uart_intr_rx_timeout_o(uart_intr_rx_timeout),
-      .uart_intr_rx_parity_err_o(uart_intr_rx_parity_err),
       .spi_rx_valid_i(spi_rx_valid),
       .spi_tx_ready_i(spi_tx_ready),
       .i2s_rx_valid_i(i2s_rx_valid),
@@ -478,14 +458,6 @@ ${pad.core_v_mini_mcu_interface}
       .intr_vector_ext_i,
       .irq_plic_o(irq_external),
       .msip_o(irq_software),
-      .uart_intr_tx_watermark_i(uart_intr_tx_watermark),
-      .uart_intr_rx_watermark_i(uart_intr_rx_watermark),
-      .uart_intr_tx_empty_i(uart_intr_tx_empty),
-      .uart_intr_rx_overflow_i(uart_intr_rx_overflow),
-      .uart_intr_rx_frame_err_i(uart_intr_rx_frame_err),
-      .uart_intr_rx_break_err_i(uart_intr_rx_break_err),
-      .uart_intr_rx_timeout_i(uart_intr_rx_timeout),
-      .uart_intr_rx_parity_err_i(uart_intr_rx_parity_err),
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),
@@ -526,7 +498,9 @@ ${pad.core_v_mini_mcu_interface}
       .i2s_sd_o(i2s_sd_o),
       .i2s_sd_oe_o(i2s_sd_oe_o),
       .i2s_sd_i(i2s_sd_i),
-      .i2s_rx_valid_o(i2s_rx_valid)
+      .i2s_rx_valid_o(i2s_rx_valid),
+      .uart_rx_i,
+      .uart_tx_o
   );
 
   // Debug_req assign

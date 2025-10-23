@@ -72,10 +72,12 @@
         spi_flash: {
             offset:  0x00020000
             length:  0x00008000
+            is_included: "yes"
         }
         spi_memio: {
             offset:  0x00028000
             length:  0x00008000
+            is_included: "yes"
         }
         dma: {
             offset:  0x00030000
@@ -89,6 +91,7 @@
             subaddr_mode_en: "yes"
             hw_fifo_mode_en: "yes"
             zero_padding_en: "yes"
+            is_included: "yes"
             path:    "./hw/ip/dma/data/dma.hjson"
         }
         power_manager: {
@@ -112,15 +115,12 @@
         pad_control: {
             offset:  0x00080000
             length:  0x00010000
+            is_included: "yes"
         }
         gpio_ao: {
             offset:  0x00090000
             length:  0x00010000
-        }
-        uart: {
-            offset:  0x000A0000
-            length:  0x00010000
-            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
+            is_included: "yes"
         }
     }
 
@@ -174,6 +174,12 @@
             length:  0x00010000
             is_included: "yes"
             path:    "./hw/ip/i2s/data/i2s.hjson"
+        }
+        uart: {
+            offset:  0x00080000
+            length:  0x00010000
+            is_included: "yes"
+            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
         }
 
     }

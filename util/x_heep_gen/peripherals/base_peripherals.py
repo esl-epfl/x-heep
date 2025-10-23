@@ -364,16 +364,6 @@ class GPIO_ao(BasePeripheral):
     _name = "gpio_ao"
 
 
-class UART(BasePeripheral, DataConfiguration):
-    """
-    Universal Asynchronous Receiver/Transmitter for serial communication.
-
-    Default configuration file: ./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson
-    """
-
-    _name = "uart"
-    _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
-
 
 # Domain Class
 
@@ -399,7 +389,6 @@ class BasePeripheralDomain(PeripheralDomain):
         Ext_peripheral(),
         Pad_control(),
         GPIO_ao(),
-        UART(),
     ]
 
     def __init__(self, start_address: int = 0x20000000, length: int = 0x00100000):

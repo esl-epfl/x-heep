@@ -19,7 +19,6 @@ from .peripherals.base_peripherals import (
     Ext_peripheral,
     Pad_control,
     GPIO_ao,
-    UART,
 )
 from .peripherals.user_peripherals import (
     UserPeripheralDomain,
@@ -31,6 +30,7 @@ from .peripherals.user_peripherals import (
     SPI2,
     PDM2PCM,
     I2S,
+    UART,
 )
 from .linker_section import LinkerSection
 from .system import BusType, Override, XHeep
@@ -310,9 +310,6 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral = Pad_control(offset, length)
                     elif peripheral_name == "gpio_ao":
                         peripheral = GPIO_ao(offset, length)
-                    elif peripheral_name == "uart":
-                        peripheral = UART(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     else:
                         raise ValueError(
                             f"Peripheral {peripheral_name} does not exist."
@@ -373,6 +370,9 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "i2s":
                         peripheral = I2S(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "uart":
+                        peripheral = UART(offset, length)
                         peripheral.custom_configuration(peripheral_config["path"])
                     else:
                         raise ValueError(
