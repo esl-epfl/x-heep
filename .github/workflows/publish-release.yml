@@ -1,0 +1,30 @@
+name: Publish Release
+
+on:
+  # Run when a (specific, see "if" below) PR is merged
+  pull_request:
+    types: [closed]
+
+jobs:
+  publish-release:
+    # Only run for merged PRs from "release/" branches
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head_ref, 'release/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Get Tag from Branch
+        id: get_tag
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head_ref }}"
+          TAG_NAME="${BRANCH_NAME#release/}"
+          echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Publish Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # fallback for gh CLI
+          TAG: ${{ steps.get_tag.outputs.tag }}
+        run: |
+          echo "Publishing release for tag: $TAG"
+          gh release edit $TAG --draft=false
