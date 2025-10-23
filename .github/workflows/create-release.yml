@@ -132,6 +132,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download toolchain asset from draft release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # fallback for gh CLI
+        run: |
+          gh release download ${{ github.event.inputs.release_tag }} \
+            --pattern "${{ needs.build-and-release-toolchain.outputs.tarball_name }}" \
+            --output toolchain.tar.gz
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -183,7 +192,8 @@ jobs:
           git checkout -b ${BRANCH_NAME} ${{ github.ref }}
           sed -i "s/name: openhwgroup.org:systems:core-v-mini-mcu:.*/name: openhwgroup.org:systems:core-v-mini-mcu:${VERSION_NUM}/" core-v-mini-mcu.core
           sed -i "s/ARG toolchain_version=.*/ARG toolchain_version=${VERSION}/" util/docker/dockerfile
-          git add core-v-mini-mcu.core util/docker/dockerfile
+          sed -i "s/version = \".*\"/version = \"${VERSION}\"/" docs/source/conf.py
+          git add core-v-mini-mcu.core util/docker/dockerfile docs/source/conf.py
           git commit -m "Release: Bump version to ${VERSION}"
           git push --set-upstream origin ${BRANCH_NAME}
 
