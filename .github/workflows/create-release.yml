@@ -49,7 +49,6 @@ jobs:
           VERSION=${{ github.event.inputs.release_tag }}
           VERSION=${VERSION#v}
           sed -i "s/name: openhwgroup.org:systems:core-v-mini-mcu:.*/name: openhwgroup.org:systems:core-v-mini-mcu:${VERSION}/" core-v-mini-mcu.core
-          sed -i "s/ARG toolchain_version=v.*/ARG toolchain_version=v${VERSION}/" util/docker/dockerfile
           git config --global user.name "actions@github.com"
           git config --global user.email "GitHub Actions"
           git commit -am "Set core-v-mini-mcu version to ${VERSION}"
