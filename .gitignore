@@ -71,7 +71,7 @@ flow/OpenROAD-flow-scripts
 private/
 
 # Verilator
-verilator/
+/verilator/
 
 # RISC_V toolchain
 riscv-gnu-toolchain/
