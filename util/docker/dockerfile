@@ -11,6 +11,7 @@ ARG toolchain_version=v0.2.0
 ARG verilator_version=5.040
 ARG verible_version=v0.0-4023-gc1271a00
 ENV RISCV=${riscv}
+# ENV XHEEP_RISCV=${riscv}
 ENV VERILATOR_VERSION=${verilator_version}
 ENV VERIBLE_VERSION=${verible_version}
 ENV DEBIAN_FRONTEND=noninteractive
