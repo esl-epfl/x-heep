@@ -43,9 +43,9 @@ SOURCE 	 ?= $(".")
 VERBOSE ?= false
 
 # riscv toolchain install path
-RISCV_XHEEP                      ?= ~/.riscv
-RISCV_EXE_PREFIX           = $(RISCV_XHEEP)/bin/${COMPILER_PREFIX}elf-
-RISCV_GDB_PATH             = $(RISCV_EXE_PREFIX)gdb
+RISCV_XHEEP			?= ~/.riscv
+RISCV_EXE_PREFIX	= $(RISCV_XHEEP)/bin/${COMPILER_PREFIX}elf-
+RISCV_GDB_PATH		= $(RISCV_EXE_PREFIX)gdb
 
 ifneq ($(filter environment command line override, $(origin RISCV_XHEEP)),)
   $(shell printf '\033[1;32mINFO: Using RISCV_XHEEP from environment or command line: %s\033[0m\n' '$(RISCV_XHEEP)' >&2)
