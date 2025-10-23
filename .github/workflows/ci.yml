@@ -12,85 +12,11 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: esl-epfl/x-heep-toolchain
 
 jobs:
-  build-image:
-    name: Build Docker Image
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    outputs:
-      tags: ${{ steps.determine-tags.outputs.tags }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Check for relevant file changes
-        id: changed-files
-        uses: tj-actions/changed-files@v44
-        with:
-          files: |
-            util/docker/**
-            !util/docker/README.md
-            python-requirements.txt
-
-      - name: Generate requirements.yml
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: |
-          util/python-requirements2conda.sh
-
-      - name: Log in to GitHub Container Registry
-        if: steps.changed-files.outputs.any_changed == 'true'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        id: meta
-        if: steps.changed-files.outputs.any_changed == 'true'
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}
-          tags: |
-            type=ref,event=pr
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
-            type=sha,format=short
-
-      - name: Build and push Docker Image
-        if: steps.changed-files.outputs.any_changed == 'true'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./util/docker/dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            verilator_version=5.040
-            verible_version=v0.0-1824-ga3b5bedf
-
-      - name: Determine image tags
-        id: determine-tags
-        shell: bash
-        run: |
-          if [[ "${{ steps.changed-files.outputs.any_changed }}" == "true" ]]; then
-            echo "Image was rebuilt. Using new tags."
-            echo "tags=${{ steps.meta.outputs.tags }}" >> $GITHUB_OUTPUT
-          else
-            echo "No relevant file changes. Using latest image."
-            echo "tags=${{ env.REGISTRY }}/${{ github.repository }}:latest" >> $GITHUB_OUTPUT
-          fi
-
   compile-apps:
     name: Compile All Apps
     runs-on: ubuntu-latest
-    needs: build-image
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -98,7 +24,7 @@ jobs:
         id: get_image
         uses: ./.github/actions/get-docker-image
         with:
-          image-tags: ${{ needs.build-image.outputs.tags }}
+          image-tags: ${{ env.REGISTRY }}/${{ github.repository }}:latest
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run compilation tests
         run: |
@@ -109,16 +35,12 @@ jobs:
           sed 's/num_channels:   0x1/num_channels:   0x4/' -i configs/ci.hjson && \
           sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
-          init_gcc && \
-          python3 test/test_apps/test_apps.py --compilers gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- --compile-only && \
-          init_clang && \
-          python3 test/test_apps/test_apps.py --compilers clang --compiler-paths /tools/riscv-clang --compiler-prefixes riscv32-unknown- --compile-only
+          python3 test/test_apps/test_apps.py --compilers gcc,clang --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- --compile-only
           "
 
   simulate-apps:
     name: Simulate All Apps
     runs-on: ubuntu-latest
-    needs: build-image
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout repository
@@ -127,7 +49,7 @@ jobs:
         id: get_image
         uses: ./.github/actions/get-docker-image
         with:
-          image-tags: ${{ needs.build-image.outputs.tags }}
+          image-tags: ${{ env.REGISTRY }}/${{ github.repository }}:latest
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run simulation tests
         run: |
@@ -139,15 +61,12 @@ jobs:
           sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
           init_gcc && \
-          python3 test/test_apps/test_apps.py --compilers gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- && \
-          init_clang && \
-          python3 test/test_apps/test_apps.py --compilers clang --compiler-paths /tools/riscv-clang --compiler-prefixes riscv32-unknown-
+          python3 test/test_apps/test_apps.py --compilers gcc,clang --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown-
           "
 
   lint:
     name: Lint Generated Files
     runs-on: ubuntu-latest
-    needs: build-image
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
