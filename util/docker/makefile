@@ -7,14 +7,16 @@ IMAGE_ID 			:= $(GITHUB_REPOSITORY)/$(IMAGE_NAME)
 
 .PHONY: docker-build docker-push docker-run docker-pull
 
-docker-build:
-	docker build -t $(IMAGE_ID):$(TAG) -f ./dockerfile $(ROOT_DIR)
-
-docker-push:
-	docker push $(IMAGE_ID):$(TAG)
+# User targets
+docker-pull:
+	docker pull ghcr.io/$(IMAGE_ID):latest
 
 docker-run:
 	docker run -it --rm -v $(ROOT_DIR):/workspace/x-heep $(IMAGE_ID):$(TAG)
 
-docker-pull:
-	docker pull ghcr.io/$(IMAGE_ID):$(GIT_SHA) || docker pull ghcr.io/$(IMAGE_ID):latest
+# Test targets
+docker-build:
+	docker build -t $(IMAGE_ID):$(TAG) -f ./dockerfile $(ROOT_DIR)
+
+# To build and publish the container to the registry, launch the "Create X-HEEP
+# Release" workflow from GitHub Action tab.

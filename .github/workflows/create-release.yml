@@ -110,6 +110,13 @@ jobs:
             This release includes the X-HEEP code and the following components:
             - GCC toolchain, version ${{ github.event.inputs.gcc_version }}
             - LLVM/Clang toolchain, version ${{ github.event.inputs.llvm_version }}
+
+            You can pull and use the latest Docker container integrating the above components with the following commands:
+            ```bash
+            cd util/docker
+            make docker-pull
+            make docker-run
+            ```
           draft: false
           prerelease: false
 
