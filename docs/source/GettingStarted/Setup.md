@@ -6,7 +6,7 @@ There are two ways of setting up X-HEEP. You can either use the provided docker 
 
 A docker image containing all the required software dependencies is available on [github-packages](https://github.com/orgs/esl-epfl/packages/container/package/x-heep-toolchain).
 
-It is only required to install docker and pull the image.
+It is only required to [install Docker](https://docs.docker.com/engine/install/) and pull the image.
 
 ```bash
 docker pull ghcr.io/esl-epfl/x-heep-toolchain:latest
@@ -18,11 +18,16 @@ Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\fol
 docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep ghcr.io/esl-epfl/x-heep-toolchain
 ```
 
-```{warning}
-Take care to indicate the absolute path to the local clone of X-HEEP, otherwise docker will not be able to properly mount the local folder in the container.
+> [!Warning]
+> Take care to indicate the absolute path to the local clone of X-HEEP, otherwise Docker will not be able to properly mount the local folder in the container.
+
+The two steps above are also wrapped in a dedicated `makefile`:
+```bash
+make -C util/docker docker-pull # pull the latest available X-HEEP image
+make -C util/docker docker-run #  mount the current X-HEEP clone to '/workspace/x-heep'
 ```
 
-The docker setup has certain limitations. For example, the following are not supported:
+The Docker setup has certain limitations. For example, the following are not supported:
 
 - Simulation with Questasim and VCS, synthesis with Design Compiler. Licenses are required to use these tools, so they are not installed in the container.
 
