@@ -16,7 +16,7 @@ help:
 
 # Setup to autogenerate python virtual environment
 VENVDIR?=$(WORKDIR)/.venv
-REQUIREMENTS_TXT?=$(wildcard python-requirements.txt)
+REQUIREMENTS_TXT ?= util/python-requirements.txt docs/python-requirements.txt
 include Makefile.venv
 
 # FUSESOC and Python values (default)
@@ -102,11 +102,8 @@ AREA_PLOT_TOP 		?=# top level module to consider for the area plot (automaticall
 export
 
 ## @section Conda
-conda: environment.yml
-	conda env create -f environment.yml
-
-environment.yml: python-requirements.txt
-	util/python-requirements2conda.sh
+conda:
+	conda env create -f util/conda_environment.yml
 
 ## @section Installation
 
