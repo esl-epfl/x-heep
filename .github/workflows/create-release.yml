@@ -16,6 +16,10 @@ on:
         required: true
         default: 'v1.0.0'
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: esl-epfl/x-heep-toolchain
+
 jobs:
   build-and-release-toolchain:
     name: Build and Release X-HEEP toolchain
@@ -118,3 +122,48 @@ jobs:
           asset_path: /tmp/${{ steps.package.outputs.TARBALL_NAME }}
           asset_name: ${{ steps.package.outputs.TARBALL_NAME }}
           asset_content_type: application/gzip
+
+  build-docker:
+    runs-on: ubuntu-latest
+    needs: build-and-release-toolchain
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate requirements.yml
+        run: |
+          util/python-requirements2conda.sh
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=pr
+            type=raw,value=${{ github.event.inputs.release_tag }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+            type=sha,format=short
+
+      - name: Build and push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./util/docker/dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            toolchain_version=${{ github.event.inputs.release_tag }}
+            verilator_version=5.040
+            verible_version=v0.0-1824-ga3b5bedf
