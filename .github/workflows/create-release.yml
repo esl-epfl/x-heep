@@ -49,8 +49,8 @@ jobs:
           VERSION=${{ github.event.inputs.release_tag }}
           VERSION=${VERSION#v}
           sed -i "s/name: openhwgroup.org:systems:core-v-mini-mcu:.*/name: openhwgroup.org:systems:core-v-mini-mcu:${VERSION}/" core-v-mini-mcu.core
-          git config --global user.name "actions@github.com"
-          git config --global user.email "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
           git commit -am "Set core-v-mini-mcu version to ${VERSION}"
           git push
 
