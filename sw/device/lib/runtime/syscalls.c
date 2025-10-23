@@ -253,6 +253,7 @@ int _write(int file, const void *ptr, int len)
         return -1;
     }
 
+#ifdef UART_IS_INCLUDED
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
@@ -271,6 +272,11 @@ int _write(int file, const void *ptr, int len)
         return -1;
     }
     return uart_write(&uart,(uint8_t *)ptr,len);
+#else
+    #warning("UART NOT INCLUDED")
+    return -1;
+#endif
+
 }
 
 
