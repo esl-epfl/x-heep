@@ -25,8 +25,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Run compilation tests
         run: |
-          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ env.IMAGE_NAME }} \
-          /bin/bash -l -c " \
           make clean-all && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
           python3 test/test_apps/test_apps.py --compilers gcc,clang --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- --compile-only
@@ -43,8 +41,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Run simulation tests
         run: |
-          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ env.IMAGE_NAME }} \
-          /bin/bash -l -c " \
           make clean-all && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
           init_gcc && \
@@ -61,28 +57,21 @@ jobs:
         uses: actions/checkout@v4
       - name: Check generated file consistency
         run: |
-          docker run --rm --workdir /workspace/x-heep -v ${{ github.workspace }}:/workspace/x-heep ${{ env.IMAGE_NAME }} \
-          /bin/bash -l -c "
           make mcu-gen && \
           util/git-diff.py --error-msg '::error ::Found differences in generated SystemVerilog files.'
           "
-  
-  peripherals-gen:
+
+  gen-peripherals:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/esl-epfl/x-heep-toolchain:latest
     name: Test peripherals (Same output between hjson and python configuration).
     steps:
-      - name: Checkout the pushed code. 
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Configure the job container and simulate all apps
         run: |
-          # Create the virtual environment and install the requirements. 
-          conda init bash
-          source /root/.bashrc
-          conda activate core-v-mini-mcu
           make clean-all
-
           # Run the test script
           python3 test/test_x_heep_gen/test_peripherals.py
 
@@ -90,12 +79,13 @@ jobs:
     name: Vendor up-to-date
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.8
       - name: Install requirements
-        run: pip install -r python-requirements.txt
+        run: pip install -r util/python-requirements.txt
       - name: Re-vendor and diff
         run: |
           find . -name '*.vendor.hjson' | xargs -n1 util/vendor.py --verbose &&
