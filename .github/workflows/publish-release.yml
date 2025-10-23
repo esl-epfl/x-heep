@@ -28,3 +28,7 @@ jobs:
         run: |
           echo "Publishing release for tag: $TAG"
           gh release edit $TAG --draft=false
+
+      - name: Delete Source Branch
+        run: |
+          git push -d origin $BRANCH_NAME
