@@ -14,9 +14,13 @@ docker-pull:
 docker-run:
 	docker run -it --rm -v $(ROOT_DIR):/workspace/x-heep $(IMAGE_ID):$(TAG)
 
-# Test targets
-docker-build:
-	docker build -t $(IMAGE_ID):$(TAG) -f ./dockerfile $(ROOT_DIR)
+# Build the image locally
+docker-build: toolchain.tar.gz
+	docker build -t $(IMAGE_ID):$(TAG) -f ./dockerfile $(ROOT_DIR) --build-arg toolchain_path=util/docker/$<
+	$(RM) $<
+
+toolchain.tar.gz:
+	wget -qO $@ $$(curl -s https://api.github.com/repos/esl-epfl/x-heep/releases/latest | grep -o 'https://[^"]*ubuntu2204.tar.gz' | head -n 1)
 
 # To build and publish the container to the registry, launch the "Create X-HEEP
 # Release" workflow from GitHub Action tab.

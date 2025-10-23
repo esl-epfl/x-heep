@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-c"]
 
 # Set ARGs and ENVs
 ARG riscv=/tools/riscv
-ARG toolchain_version=v0.2.0
+ARG toolchain_path=toolchain.tar.gz
 ARG verilator_version=5.040
 ARG verible_version=v0.0-4023-gc1271a00
 ENV RISCV=${riscv}
@@ -15,7 +15,7 @@ ENV RISCV=${riscv}
 ENV VERILATOR_VERSION=${verilator_version}
 ENV VERIBLE_VERSION=${verible_version}
 ENV DEBIAN_FRONTEND=noninteractive
-ENV TOOLCHAIN_VERSION=${toolchain_version}
+ENV TOOLCHAIN_PATH=${toolchain_path}
 
 # Update PATH to include installed tools
 # NOTE: use a dedicated variable here and append it to path in env.sh to prevent
@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake flex bison libexpat-dev gawk ninja-build help2man libfl-dev
 
 # Install X-HEEP GCC/LLVM RISC-V toolchain
-COPY toolchain.tar.gz /tmp/
+COPY ${TOOLCHAIN_PATH} /tmp/
 RUN mkdir -p ${RISCV} && \
     tar -xz -C ${RISCV} --strip-components=1 -f /tmp/toolchain.tar.gz && \
     rm /tmp/toolchain.tar.gz
