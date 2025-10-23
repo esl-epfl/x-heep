@@ -14,7 +14,7 @@ copyright = "2023, EPFL"
 author = "ESL"
 
 release = "1.0"
-version = "1.0.0"
+version = "v0.4.0"
 
 extensions = [
     "sphinx.ext.duration",
