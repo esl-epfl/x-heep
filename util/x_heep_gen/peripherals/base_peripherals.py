@@ -268,7 +268,6 @@ class DMA(BasePeripheral, DataConfiguration):
             if sum(array_xbar_gen) != self.get_num_channels() or 0 in array_xbar_gen:
                 exit("Error in the DMA xbar generation: wrong parameters")
 
-            print(", ".join(map(str, array_xbar_gen)))
             return ", ".join(map(str, array_xbar_gen))
         else:
             if self.get_num_channels_per_master_port() != self.get_num_channels():
