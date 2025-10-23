@@ -71,6 +71,10 @@ or put the command directly in the `~/.bashrc` file.
 
 #### 2.b Virtual Environment
 
+```{note}
+The python environment has only been tested on Python 3.8.
+```
+
 Install the python virtual environment just as:
 
 ```bash
