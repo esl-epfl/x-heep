@@ -7,7 +7,7 @@
 package soc_ctrl_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 5;
+  parameter int BlockAw = 6;
 
   ////////////////////////////
   // Typedefs for registers //
@@ -61,14 +61,15 @@ package soc_ctrl_reg_pkg;
   } soc_ctrl_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALID_OFFSET = 5'h0;
-  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALUE_OFFSET = 5'h4;
-  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_SELECT_OFFSET = 5'h8;
-  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_EXIT_LOOP_OFFSET = 5'hc;
-  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_ADDRESS_OFFSET = 5'h10;
-  parameter logic [BlockAw-1:0] SOC_CTRL_USE_SPIMEMIO_OFFSET = 5'h14;
-  parameter logic [BlockAw-1:0] SOC_CTRL_ENABLE_SPI_SEL_OFFSET = 5'h18;
-  parameter logic [BlockAw-1:0] SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET = 5'h1c;
+  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALID_OFFSET = 6'h0;
+  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALUE_OFFSET = 6'h4;
+  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_SELECT_OFFSET = 6'h8;
+  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_EXIT_LOOP_OFFSET = 6'hc;
+  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_ADDRESS_OFFSET = 6'h10;
+  parameter logic [BlockAw-1:0] SOC_CTRL_USE_SPIMEMIO_OFFSET = 6'h14;
+  parameter logic [BlockAw-1:0] SOC_CTRL_ENABLE_SPI_SEL_OFFSET = 6'h18;
+  parameter logic [BlockAw-1:0] SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET = 6'h1c;
+  parameter logic [BlockAw-1:0] SOC_CTRL_XHEEP_ID_OFFSET = 6'h20;
 
   // Register index
   typedef enum int {
@@ -79,11 +80,12 @@ package soc_ctrl_reg_pkg;
     SOC_CTRL_BOOT_ADDRESS,
     SOC_CTRL_USE_SPIMEMIO,
     SOC_CTRL_ENABLE_SPI_SEL,
-    SOC_CTRL_SYSTEM_FREQUENCY_HZ
+    SOC_CTRL_SYSTEM_FREQUENCY_HZ,
+    SOC_CTRL_XHEEP_ID
   } soc_ctrl_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SOC_CTRL_PERMIT[8] = '{
+  parameter logic [3:0] SOC_CTRL_PERMIT[9] = '{
       4'b0001,  // index[0] SOC_CTRL_EXIT_VALID
       4'b1111,  // index[1] SOC_CTRL_EXIT_VALUE
       4'b0001,  // index[2] SOC_CTRL_BOOT_SELECT
@@ -91,7 +93,8 @@ package soc_ctrl_reg_pkg;
       4'b1111,  // index[4] SOC_CTRL_BOOT_ADDRESS
       4'b0001,  // index[5] SOC_CTRL_USE_SPIMEMIO
       4'b0001,  // index[6] SOC_CTRL_ENABLE_SPI_SEL
-      4'b1111  // index[7] SOC_CTRL_SYSTEM_FREQUENCY_HZ
+      4'b1111,  // index[7] SOC_CTRL_SYSTEM_FREQUENCY_HZ
+      4'b1111  // index[8] SOC_CTRL_XHEEP_ID
   };
 
 endpackage

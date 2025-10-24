@@ -7,6 +7,7 @@ module x_heep_system
   import reg_pkg::*;
   import fifo_pkg::*;
 #(
+    parameter logic [31:0] XHEEP_INSTANCE_ID = 0,
     parameter COREV_PULP = 0,
     parameter FPU = 0,
     parameter ZFINX = 0,
@@ -116,6 +117,7 @@ ${pad.internal_signals}
 % endfor
 
   core_v_mini_mcu #(
+    .XHEEP_INSTANCE_ID(XHEEP_INSTANCE_ID),
     .COREV_PULP(COREV_PULP),
     .FPU(FPU),
     .ZFINX(ZFINX),

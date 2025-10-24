@@ -18,10 +18,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "soc_ctrl.h"
+#include "core_v_mini_mcu.h"
 
 int main(int argc, char *argv[])
 {
+
+    soc_ctrl_t soc_ctrl;
+    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+
     /* write something to stdout */
-    printf("hello world!\n");
+    printf("Hello from X-HEEP %d\n", get_xheep_instance_id(&soc_ctrl));
     return EXIT_SUCCESS;
 }

@@ -66,6 +66,13 @@ void soc_ctrl_select_spi_host(const soc_ctrl_t *soc_ctrl);
 
 uint32_t get_spi_flash_mode(const soc_ctrl_t *soc_ctrl);
 
+/**
+ * Get the X-HEEP Instance ID
+ * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
+ */
+
+uint32_t get_xheep_instance_id(const soc_ctrl_t *soc_ctrl);
+
 #ifdef __cplusplus
 }
 #endif

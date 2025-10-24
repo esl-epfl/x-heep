@@ -48,6 +48,9 @@ extern "C" {
 // system is running (in Hz)
 #define SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET 0x1c
 
+// In case of multiple X-HEEP instances, it tells you the X-HEEP instance id
+#define SOC_CTRL_XHEEP_ID_REG_OFFSET 0x20
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif

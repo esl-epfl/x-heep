@@ -76,6 +76,13 @@
         { bits: "31:0", name: "SYSTEM_FREQUENCY_HZ", desc: "Contains the value in Hz of the frequency the system is running" }
       ]
     }
-
+    { name:     "XHEEP_ID"
+      desc:     "In case of multiple X-HEEP instances, it tells you the X-HEEP instance id"
+      swaccess: "ro"
+      hwaccess: "none"
+      fields: [
+        { bits: "31:0", name: "XHEEP_ID", desc: "X-HEEP instance id" }
+      ]
+    }
    ]
 }

@@ -10,7 +10,7 @@
 module soc_ctrl_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 5
+    parameter int AW = 6
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -90,6 +90,7 @@ module soc_ctrl_reg_top #(
   logic [31:0] system_frequency_hz_qs;
   logic [31:0] system_frequency_hz_wd;
   logic system_frequency_hz_we;
+  logic [31:0] xheep_id_qs;
 
   // Register instances
   // R[exit_valid]: V(False)
@@ -307,9 +308,15 @@ module soc_ctrl_reg_top #(
   );
 
 
+  // R[xheep_id]: V(False)
+
+  // constant-only read
+  assign xheep_id_qs = 32'h0;
 
 
-  logic [7:0] addr_hit;
+
+
+  logic [8:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == SOC_CTRL_EXIT_VALID_OFFSET);
@@ -320,6 +327,7 @@ module soc_ctrl_reg_top #(
     addr_hit[5] = (reg_addr == SOC_CTRL_USE_SPIMEMIO_OFFSET);
     addr_hit[6] = (reg_addr == SOC_CTRL_ENABLE_SPI_SEL_OFFSET);
     addr_hit[7] = (reg_addr == SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET);
+    addr_hit[8] = (reg_addr == SOC_CTRL_XHEEP_ID_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -334,7 +342,8 @@ module soc_ctrl_reg_top #(
                (addr_hit[4] & (|(SOC_CTRL_PERMIT[4] & ~reg_be))) |
                (addr_hit[5] & (|(SOC_CTRL_PERMIT[5] & ~reg_be))) |
                (addr_hit[6] & (|(SOC_CTRL_PERMIT[6] & ~reg_be))) |
-               (addr_hit[7] & (|(SOC_CTRL_PERMIT[7] & ~reg_be)))));
+               (addr_hit[7] & (|(SOC_CTRL_PERMIT[7] & ~reg_be))) |
+               (addr_hit[8] & (|(SOC_CTRL_PERMIT[8] & ~reg_be)))));
   end
 
   assign exit_valid_we = addr_hit[0] & reg_we & !reg_error;
@@ -394,6 +403,10 @@ module soc_ctrl_reg_top #(
         reg_rdata_next[31:0] = system_frequency_hz_qs;
       end
 
+      addr_hit[8]: begin
+        reg_rdata_next[31:0] = xheep_id_qs;
+      end
+
       default: begin
         reg_rdata_next = '1;
       end
@@ -415,7 +428,7 @@ module soc_ctrl_reg_top #(
 endmodule
 
 module soc_ctrl_reg_top_intf #(
-    parameter  int AW = 5,
+    parameter  int AW = 6,
     localparam int DW = 32
 ) (
     input logic clk_i,
