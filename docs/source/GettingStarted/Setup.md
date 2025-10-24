@@ -4,18 +4,18 @@ There are two ways of setting up X-HEEP. You can either use the provided docker 
 
 ## Docker setup
 
-A docker image containing all the required software dependencies is available on [github-packages](https://github.com/orgs/esl-epfl/packages/container/package/x-heep-toolchain).
+A docker image containing all the required software dependencies is available on [github-packages](https://ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest).
 
 It is only required to [install Docker](https://docs.docker.com/engine/install/) and pull the image.
 
 ```bash
-docker pull ghcr.io/esl-epfl/x-heep-toolchain:latest
+docker pull ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest
 ```
 
 Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\folder`, it is possible to directly run the docker mounting `X-HEEP-DIR` to the path `\workspace\x-heep` in the docker.
 
 ```bash
-docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep ghcr.io/esl-epfl/x-heep-toolchain
+docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep esl-epfl/x-heep/x-heep-toolchain:latest
 ```
 
 ```{warning}
