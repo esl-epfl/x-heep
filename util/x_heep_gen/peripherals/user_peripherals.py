@@ -109,6 +109,7 @@ class I2S(UserPeripheral, DataConfiguration):
     _name = "i2s"
     _config_path = "./hw/ip/i2s/data/i2s.hjson"
 
+
 class UART(UserPeripheral, DataConfiguration):
     """
     Universal Asynchronous Receiver/Transmitter for serial communication.
@@ -118,7 +119,6 @@ class UART(UserPeripheral, DataConfiguration):
 
     _name = "uart"
     _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
-
 
 
 # Domain Class

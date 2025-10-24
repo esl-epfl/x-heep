@@ -372,7 +372,6 @@ class GPIO_ao(BasePeripheral):
     _name = "gpio_ao"
 
 
-
 # Domain Class
 
 

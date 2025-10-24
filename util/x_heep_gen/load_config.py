@@ -257,7 +257,10 @@ def load_peripherals_config(system: XHeep, config_path: str):
                     offset = int(peripheral_config["offset"], 16)
                     length = int(peripheral_config["length"], 16)
                     try:
-                        if peripheral_config["is_included"] == "no" and peripheral_name != "dma":
+                        if (
+                            peripheral_config["is_included"] == "no"
+                            and peripheral_name != "dma"
+                        ):
                             continue
                     except KeyError:
                         pass
@@ -285,30 +288,26 @@ def load_peripherals_config(system: XHeep, config_path: str):
                                 raise ValueError("hw_fifo_mode_en should be no or yes")
                             if zero_padding_en != "no" and zero_padding_en != "yes":
                                 raise ValueError("zero_padding_en should be no or yes")
-                            ch_length=int(peripheral_config["ch_length"], 16)
-                            num_channels=int(peripheral_config["num_channels"], 16)
-                            num_master_ports=int(
+                            ch_length = int(peripheral_config["ch_length"], 16)
+                            num_channels = int(peripheral_config["num_channels"], 16)
+                            num_master_ports = int(
                                 peripheral_config["num_master_ports"], 16
                             )
-                            num_channels_per_master_port=int(
+                            num_channels_per_master_port = int(
                                 peripheral_config["num_channels_per_master_port"], 16
                             )
-                            fifo_depth=int(peripheral_config["fifo_depth"], 16)
+                            fifo_depth = int(peripheral_config["fifo_depth"], 16)
                         else:
                             dma_is_included = "no"
                             addr_mode_en = "no"
                             subaddr_mode_en = "no"
                             hw_fifo_mode_en = "no"
                             zero_padding_en = "no"
-                            ch_length=int("0x100", 16)
-                            num_channels=int("0x1", 16)
-                            num_master_ports=int(
-                                "0x1", 16
-                            )
-                            num_channels_per_master_port=int(
-                                "0x1", 16
-                            )
-                            fifo_depth=int("0x4", 16)
+                            ch_length = int("0x100", 16)
+                            num_channels = int("0x1", 16)
+                            num_master_ports = int("0x1", 16)
+                            num_channels_per_master_port = int("0x1", 16)
+                            fifo_depth = int("0x4", 16)
 
                         peripheral = DMA(
                             is_included=dma_is_included,
