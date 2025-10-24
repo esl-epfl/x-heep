@@ -70,6 +70,8 @@ package soc_ctrl_reg_pkg;
   parameter logic [BlockAw-1:0] SOC_CTRL_ENABLE_SPI_SEL_OFFSET = 6'h18;
   parameter logic [BlockAw-1:0] SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET = 6'h1c;
   parameter logic [BlockAw-1:0] SOC_CTRL_XHEEP_ID_OFFSET = 6'h20;
+  parameter logic [BlockAw-1:0] SOC_CTRL_XHEEP_AO_PERIPHERAL_CONFIG_OFFSET = 6'h24;
+  parameter logic [BlockAw-1:0] SOC_CTRL_XHEEP_PERIPHERAL_CONFIG_OFFSET = 6'h28;
 
   // Register index
   typedef enum int {
@@ -81,20 +83,24 @@ package soc_ctrl_reg_pkg;
     SOC_CTRL_USE_SPIMEMIO,
     SOC_CTRL_ENABLE_SPI_SEL,
     SOC_CTRL_SYSTEM_FREQUENCY_HZ,
-    SOC_CTRL_XHEEP_ID
+    SOC_CTRL_XHEEP_ID,
+    SOC_CTRL_XHEEP_AO_PERIPHERAL_CONFIG,
+    SOC_CTRL_XHEEP_PERIPHERAL_CONFIG
   } soc_ctrl_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SOC_CTRL_PERMIT[9] = '{
-      4'b0001,  // index[0] SOC_CTRL_EXIT_VALID
-      4'b1111,  // index[1] SOC_CTRL_EXIT_VALUE
-      4'b0001,  // index[2] SOC_CTRL_BOOT_SELECT
-      4'b0001,  // index[3] SOC_CTRL_BOOT_EXIT_LOOP
-      4'b1111,  // index[4] SOC_CTRL_BOOT_ADDRESS
-      4'b0001,  // index[5] SOC_CTRL_USE_SPIMEMIO
-      4'b0001,  // index[6] SOC_CTRL_ENABLE_SPI_SEL
-      4'b1111,  // index[7] SOC_CTRL_SYSTEM_FREQUENCY_HZ
-      4'b1111  // index[8] SOC_CTRL_XHEEP_ID
+  parameter logic [3:0] SOC_CTRL_PERMIT[11] = '{
+      4'b0001,  // index[ 0] SOC_CTRL_EXIT_VALID
+      4'b1111,  // index[ 1] SOC_CTRL_EXIT_VALUE
+      4'b0001,  // index[ 2] SOC_CTRL_BOOT_SELECT
+      4'b0001,  // index[ 3] SOC_CTRL_BOOT_EXIT_LOOP
+      4'b1111,  // index[ 4] SOC_CTRL_BOOT_ADDRESS
+      4'b0001,  // index[ 5] SOC_CTRL_USE_SPIMEMIO
+      4'b0001,  // index[ 6] SOC_CTRL_ENABLE_SPI_SEL
+      4'b1111,  // index[ 7] SOC_CTRL_SYSTEM_FREQUENCY_HZ
+      4'b1111,  // index[ 8] SOC_CTRL_XHEEP_ID
+      4'b0001,  // index[ 9] SOC_CTRL_XHEEP_AO_PERIPHERAL_CONFIG
+      4'b0011  // index[10] SOC_CTRL_XHEEP_PERIPHERAL_CONFIG
   };
 
 endpackage

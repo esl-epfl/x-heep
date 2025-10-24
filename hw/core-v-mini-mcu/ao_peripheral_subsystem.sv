@@ -2,6 +2,9 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+
+
+
 module ao_peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
@@ -24,6 +27,7 @@ module ao_peripheral_subsystem
     output reg_rsp_t [AO_SPC_NUM_RND:0] ao2spc_resp_o,
 
     // SOC CTRL
+    input  logic [31:0] xheep_istance_id_i,
     input  logic        boot_select_i,
     input  logic        execute_from_flash_i,
     output logic        exit_valid_o,
@@ -159,6 +163,8 @@ module ao_peripheral_subsystem
   /* Peripheral demuxed register interface */
   assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX] = ext_peripheral_slave_resp_i;
+
+
   assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_CONTROL_IDX] = pad_resp_i;
 
@@ -297,6 +303,7 @@ module ao_peripheral_subsystem
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .boot_select_i,
       .execute_from_flash_i,
+      .xheep_istance_id_i,
       .use_spimemio_o(use_spimemio),
       .exit_valid_o,
       .exit_value_o
@@ -381,6 +388,7 @@ module ao_peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
 
+
   dma_subsystem #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t),
@@ -410,6 +418,7 @@ module ao_peripheral_subsystem
       .dma_window_intr_o(dma_window_intr_o),
       .dma_done_o(dma_done_o)
   );
+
 
   fast_intr_ctrl #(
       .reg_req_t(reg_pkg::reg_req_t),

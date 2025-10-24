@@ -132,6 +132,8 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl $(LINK_FOLDER)/link.ld.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl scripts/pnr/core-v-mini-mcu.upf.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl scripts/pnr/core-v-mini-mcu.dc.upf.tpl
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/soc_ctrl/data/soc_ctrl.hjson.tpl
+	bash -c "cd hw/ip/soc_ctrl; source soc_ctrl_gen.sh; cd ../../../"
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/power_manager/rtl/power_manager.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/power_manager/data/power_manager.hjson.tpl
 	bash -c "cd hw/ip/power_manager; source power_manager_gen.sh; cd ../../../"

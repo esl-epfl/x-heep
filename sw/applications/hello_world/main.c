@@ -28,7 +28,31 @@ int main(int argc, char *argv[])
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
-    /* write something to stdout */
     printf("Hello from X-HEEP %d\n", get_xheep_instance_id(&soc_ctrl));
+
+    soc_ctrl_xheep_ao_peripheral_config_t ao_peri = get_xheep_ao_peripheral_config(&soc_ctrl);
+    soc_ctrl_xheep_peripheral_config_t    peri = get_xheep_peripheral_config(&soc_ctrl);
+
+    printf("AO Peripheral: \n"
+        "SPI Flash: %d\n"
+        "DMA: %d\n"
+        "PAD CONTROL: %d\n"
+        "GPIO AO: %d\n", ao_peri.has_spi_flash, ao_peri.has_dma, ao_peri.has_pad_control, ao_peri.has_gpio_ao
+    );
+
+    printf("Peripheral: \n"
+        "RV PLIC: %d\n"
+        "SPI HOST: %d\n"
+        "GPIO: %d\n"
+        "I2C: %d\n"
+        "RV_TIMER: %d\n"
+        "SPI2: %d\n"
+        "PDM2PCM: %d\n"
+        "I2S: %d\n"
+        "UART: %d\n", peri.has_rv_plic, peri.has_spi_host, peri.has_gpio, peri.has_i2c,
+                     peri.has_rv_timer, peri.has_spi2, peri.has_pdm2pcm, peri.has_i2s,
+                     peri.has_uart
+    );
+
     return EXIT_SUCCESS;
 }

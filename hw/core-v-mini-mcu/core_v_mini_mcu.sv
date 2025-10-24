@@ -9,6 +9,7 @@ module core_v_mini_mcu
   import reg_pkg::*;
   import fifo_pkg::*;
 #(
+    parameter logic [31:0] XHEEP_INSTANCE_ID = 0,
     parameter COREV_PULP = 0,
     parameter FPU = 0,
     parameter ZFINX = 0,
@@ -642,6 +643,7 @@ module core_v_mini_mcu
       .slave_resp_o(ao_peripheral_slave_resp),
       .spc2ao_req_i(ext_ao_peripheral_slave_req_i),
       .ao2spc_resp_o(ext_ao_peripheral_slave_resp_o),
+      .xheep_istance_id_i(XHEEP_INSTANCE_ID),
       .boot_select_i,
       .execute_from_flash_i,
       .exit_valid_o,

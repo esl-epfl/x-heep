@@ -1,6 +1,14 @@
 // Copyright lowRISC contributors.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
+
+
+<%
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
+  base_peripheral_domain = xheep.get_base_peripheral_domain()
+  dma = base_peripheral_domain.get_dma()
+%>
+
 { name: "soc_ctrl"
   clock_primary: "clk_i"
   bus_interfaces: [
@@ -82,6 +90,33 @@
       hwaccess: "none"
       fields: [
         { bits: "31:0", name: "XHEEP_ID", desc: "X-HEEP instance id" }
+      ]
+    }
+    { name:     "XHEEP_AO_PERIPHERAL_CONFIG"
+      desc:     "Tells you about the ao_peripheral config"
+      swaccess: "ro"
+      hwaccess: "none"
+      fields: [
+        { bits: "0", name: "SPI_FLASH", desc: "X-HEEP has SPI_FLASH", resval: "${'0x1' if base_peripheral_domain.contains_peripheral("spi_flash") else '0x0'}" }
+        { bits: "1", name: "DMA", desc: "X-HEEP has DMA", resval: "${'0x1' if dma.get_is_included() else '0x0'}" }
+        { bits: "2", name: "PAD_CONTROL", desc: "X-HEEP has PAD_CONTROL", resval: "${'0x1' if base_peripheral_domain.contains_peripheral("pad_control") else '0x0'}" }
+        { bits: "3", name: "GPIO_AO", desc: "X-HEEP has GPIO_AO", resval: "${'0x1' if base_peripheral_domain.contains_peripheral("gpio_ao") else '0x0'}" }
+      ]
+    }
+    { name:     "XHEEP_PERIPHERAL_CONFIG"
+      desc:     "Tells you about the peripheral config"
+      swaccess: "ro"
+      hwaccess: "none"
+      fields: [
+        { bits: "0", name: "RV_PLIC", desc: "X-HEEP has RV_PLIC", resval: "${'0x1' if user_peripheral_domain.contains_peripheral("rv_plic") else '0x0'}" }
+        { bits: "1", name: "SPI_HOST", desc: "X-HEEP has SPI_HOST", resval: "${'0x1' if user_peripheral_domain.contains_peripheral("spi_host") else '0x0'}" }
+        { bits: "2", name: "GPIO", desc: "X-HEEP has GPIO", resval: "${'0x1' if user_peripheral_domain.contains_peripheral("gpio") else '0x0'}" }
+        { bits: "3", name: "I2C", desc: "X-HEEP has I2C", resval: "${'0x1' if user_peripheral_domain.contains_peripheral("i2c") else '0x0'}" }
+        { bits: "4", name: "RV_TIMER", desc: "X-HEEP has RV_TIMER", resval: "${'0x1' if user_peripheral_domain.contains_peripheral("rv_timer") else '0x0'}" }
+        { bits: "5", name: "SPI2", desc: "X-HEEP has SPI2", resval: "${'0x1' if user_peripheral_domain.contains_peripheral("spi2") else '0x0'}" }
+        { bits: "6", name: "PDM2PCM", desc: "X-HEEP has PDM2PCM", resval: "${'0x1' if user_peripheral_domain.contains_peripheral("pdm2pcm") else '0x0'}" }
+        { bits: "7", name: "I2S", desc: "X-HEEP has I2S", resval: "${'0x1' if user_peripheral_domain.contains_peripheral("i2s") else '0x0'}" }
+        { bits: "8", name: "UART", desc: "X-HEEP has UART", resval: "${'0x1' if user_peripheral_domain.contains_peripheral("uart") else '0x0'}" }
       ]
     }
    ]
