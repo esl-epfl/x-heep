@@ -95,11 +95,6 @@
             offset:  0x00090000
             length:  0x00010000
         }
-        uart: {
-            offset:  0x000A0000
-            length:  0x00010000
-            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
-        }
     }
 
     peripherals: {
@@ -152,7 +147,12 @@
             is_included: "no"
             path:    "./hw/ip/i2s/data/i2s.hjson"
         }
-
+        uart: {
+            offset:  0x00080000
+            length:  0x00010000
+            is_included: "no"
+            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
+        }
     }
 
     flash_mem: {

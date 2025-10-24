@@ -274,8 +274,15 @@ def load_peripherals_config(system: XHeep, config_path: str):
                     elif peripheral_name == "spi_memio":
                         peripheral = SPI_memio(offset, length)
                     elif peripheral_name == "dma":
-                        if peripheral_config["is_included"] == "yes":
+                        try:
+                            if peripheral_config["is_included"] == "yes":
+                                dma_is_included = "yes"
+                            else:
+                                dma_is_included = "no"
+                        except KeyError:
                             dma_is_included = "yes"
+
+                        if dma_is_included == "yes":
                             addr_mode_en = peripheral_config["addr_mode_en"]
                             subaddr_mode_en = peripheral_config["subaddr_mode_en"]
                             hw_fifo_mode_en = peripheral_config["hw_fifo_mode_en"]
@@ -298,7 +305,6 @@ def load_peripherals_config(system: XHeep, config_path: str):
                             )
                             fifo_depth = int(peripheral_config["fifo_depth"], 16)
                         else:
-                            dma_is_included = "no"
                             addr_mode_en = "no"
                             subaddr_mode_en = "no"
                             hw_fifo_mode_en = "no"
