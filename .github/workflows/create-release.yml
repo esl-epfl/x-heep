@@ -51,13 +51,12 @@ jobs:
           set -ex
           INSTALL_DIR=/tmp/riscv
           mkdir -p ${INSTALL_DIR}
-          #git clone https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain
-          #cd /tmp/riscv-gnu-toolchain
-          #git checkout ${{ github.event.inputs.gcc_version }}
-          #./configure --target=riscv32-unknown-elf --prefix=${INSTALL_DIR} --with-newlib --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
-          #make -j$(nproc)
-          #rm -rf /tmp/riscv-gnu-toolchain
-          echo "test" > $INSTALL_DIR/gcc_placeholder.txt
+          git clone https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain
+          cd /tmp/riscv-gnu-toolchain
+          git checkout ${{ github.event.inputs.gcc_version }}
+          ./configure --target=riscv32-unknown-elf --prefix=${INSTALL_DIR} --with-newlib --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
+          make -j$(nproc)
+          rm -rf /tmp/riscv-gnu-toolchain
 
       - name: Build LLVM/Clang
         id: build-clang
@@ -65,20 +64,19 @@ jobs:
           set -ex
           INSTALL_DIR=/tmp/riscv
           mkdir -p ${INSTALL_DIR}
-          #git clone https://github.com/llvm/llvm-project.git /tmp/llvm-project
-          #cd /tmp/llvm-project
-          #git checkout ${{ github.event.inputs.llvm_version }}
-          #mkdir build
-          #cd build
-          #cmake -G "Ninja" \
-          #      -DLLVM_ENABLE_PROJECTS=clang \
-          #      -DCMAKE_BUILD_TYPE=Release \
-          #      -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-          #      -DLLVM_TARGETS_TO_BUILD="RISCV" \
-          #      ../llvm
-          #cmake --build . --target install -j$(nproc)
-          #rm -rf /tmp/llvm-project
-          echo "test" > $INSTALL_DIR/clang_placeholder.txt
+          git clone https://github.com/llvm/llvm-project.git /tmp/llvm-project
+          cd /tmp/llvm-project
+          git checkout ${{ github.event.inputs.llvm_version }}
+          mkdir build
+          cd build
+          cmake -G "Ninja" \
+                -DLLVM_ENABLE_PROJECTS=clang \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
+                -DLLVM_TARGETS_TO_BUILD="RISCV" \
+                ../llvm
+          cmake --build . --target install -j$(nproc)
+          rm -rf /tmp/llvm-project
           
       - name: Package Toolchain
         id: package
@@ -193,7 +191,7 @@ jobs:
           git checkout -b ${BRANCH_NAME} ${{ github.ref }}
           sed -i "s/name: openhwgroup.org:systems:core-v-mini-mcu:.*/name: openhwgroup.org:systems:core-v-mini-mcu:${VERSION_NUM}/" core-v-mini-mcu.core
           sed -i "s/ARG toolchain_version=.*/ARG toolchain_version=${VERSION}/" util/docker/dockerfile
-          sed -i "s/version = \".*\"/version = \"${VERSION}\"/" docs/source/conf.py
+          #sed -i "s/version = \".*\"/version = \"${VERSION}\"/" docs/source/conf.py
           git add core-v-mini-mcu.core util/docker/dockerfile docs/source/conf.py
           git commit -m "Release: Bump version to ${VERSION}"
           git push --set-upstream origin ${BRANCH_NAME}
