@@ -10,7 +10,7 @@ ARG riscv=/tools/riscv
 ARG toolchain_path=toolchain.tar.gz
 ARG verilator_version=5.040
 ARG verible_version=v0.0-4023-gc1271a00
-ENV XHEEP_RISCV=${riscv}
+ENV RISCV_XHEEP=${riscv}
 ENV VERILATOR_VERSION=${verilator_version}
 ENV VERIBLE_VERSION=${verible_version}
 ENV DEBIAN_FRONTEND=noninteractive
@@ -19,7 +19,7 @@ ENV TOOLCHAIN_PATH=${toolchain_path}
 # Update PATH to include installed tools
 # NOTE: use a dedicated variable here and append it to path in env.sh to prevent
 #       conda from overriding the PATH at runtime
-ENV TOOL_PATH=/tools/verible/verible-${VERIBLE_VERSION}/bin:/tools/verilator/${VERILATOR_VERSION}/bin:${RISCV}/bin
+ENV TOOL_PATH=/tools/verible/verible-${VERIBLE_VERSION}/bin:/tools/verilator/${VERILATOR_VERSION}/bin:${RISCV_XHEEP}/bin
 
 # Install build dependencies, build tools, then remove build-only dependencies
 # to keep the final image smaller
@@ -34,13 +34,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install X-HEEP GCC/LLVM RISC-V toolchain
 COPY ${TOOLCHAIN_PATH} /tmp/
-RUN mkdir -p ${RISCV} && \
-    tar -xz -C ${RISCV} --strip-components=1 -f /tmp/toolchain.tar.gz && \
+RUN mkdir -p ${RISCV_XHEEP} && \
+    tar -xz -C ${RISCV_XHEEP} --strip-components=1 -f /tmp/toolchain.tar.gz && \
     rm /tmp/toolchain.tar.gz
 
 # Install CORE-V GCC RISC-V toolchain
-RUN mkdir -p ${RISCV} && \
-    wget -qO- https://buildbot.embecosm.com/job/corev-gcc-ubuntu2204/47/artifact/corev-openhw-gcc-ubuntu2204-20240530.tar.gz | tar -xz -C ${RISCV} --strip-components=1
+RUN mkdir -p ${RISCV_XHEEP} && \
+    wget -qO- https://buildbot.embecosm.com/job/corev-gcc-ubuntu2204/47/artifact/corev-openhw-gcc-ubuntu2204-20240530.tar.gz | tar -xz -C ${RISCV_XHEEP} --strip-components=1
 
 # Install Verilator
 RUN git clone https://github.com/verilator/verilator.git /tmp/verilator && \
