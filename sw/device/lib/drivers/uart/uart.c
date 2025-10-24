@@ -18,8 +18,6 @@ extern "C" {
 
 #include "uart_regs.h"  // Generated.
 
-#ifdef UART_IS_INCLUDED
-
 //#ifdef __cplusplus
 static_assert((1UL << NCO_WIDTH) - 1 == UART_CTRL_NCO_MASK, "Bad value for NCO_WIDTH");
 //#else
@@ -149,8 +147,6 @@ __attribute__((weak, optimize("O0"))) void handler_irq_uart(uint32_t id)
 {
  // Replace this function with a non-weak implementation
 }
-
-#endif
 
 #ifdef __cplusplus
 }

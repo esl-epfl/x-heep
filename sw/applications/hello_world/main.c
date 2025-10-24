@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  * Author: Robert Balas <balasr@iis.ee.ethz.ch>
+           Davide Schiavone <davide.schiavone@epfl.ch>
  */
 
 #include <stdio.h>

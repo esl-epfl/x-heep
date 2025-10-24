@@ -20,8 +20,6 @@
 extern "C" {
 #endif
 
-#ifdef UART_IS_INCLUDED
-
 #define NCO_WIDTH 16
 
 
@@ -99,10 +97,6 @@ size_t uart_sink(void *uart, const char *data, size_t len);
  * @brief Attends the plic interrupt.
  */
 __attribute__((weak, optimize("O0"))) void handler_irq_uart(uint32_t id);
-
-#else
-  #warning("UART NOT INCLUDED")
-#endif
 
 #ifdef __cplusplus
 }

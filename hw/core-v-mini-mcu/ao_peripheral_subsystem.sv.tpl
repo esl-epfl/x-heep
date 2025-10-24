@@ -321,6 +321,7 @@ module ao_peripheral_subsystem
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::BOOTROM_IDX])
   );
 
+% if base_peripheral_domain.contains_peripheral('spi_flash'):
   /* SPI subsystem */
   spi_subsystem spi_subsystem_i (
       .clk_i,
@@ -344,6 +345,18 @@ module ao_peripheral_subsystem
       .spi_flash_rx_valid_o(spi_flash_rx_valid),
       .spi_flash_tx_ready_o(spi_flash_tx_ready)
   );
+% else:
+  assign spimemio_resp_o        = '0;
+  assign spi_flash_sck_o        = '0;
+  assign spi_flash_sck_en_o     = '0;
+  assign spi_flash_csb_o        = '0;
+  assign spi_flash_csb_en_o     = '0;
+  assign spi_flash_sd_o         = '0;
+  assign spi_flash_sd_en_o      = '0;
+  assign spi_flash_intr_event_o = '0;
+  assign spi_flash_rx_valid     = '0;
+  assign spi_flash_tx_ready     = '0;
+% endif
 
   /* Power manager */
   power_manager #(
@@ -427,13 +440,13 @@ module ao_peripheral_subsystem
   );
 
 % else:
-    assign dma_read_req_o                                      = '0;
-    assign dma_write_req_o                                     = '0;
-    assign dma_addr_req_o                                      = '0;
-    assign hw_fifo_req_o                                       = '0;
-    assign dma_done_intr_o                                     = '0;
-    assign dma_window_intr_o                                   = '0;
-    assign dma_done_o                                          = '0;
+  assign dma_read_req_o                                      = '0;
+  assign dma_write_req_o                                     = '0;
+  assign dma_addr_req_o                                      = '0;
+  assign hw_fifo_req_o                                       = '0;
+  assign dma_done_intr_o                                     = '0;
+  assign dma_window_intr_o                                   = '0;
+  assign dma_done_o                                          = '0;
 % endif
 
   fast_intr_ctrl #(
@@ -466,9 +479,9 @@ module ao_peripheral_subsystem
       .global_interrupt_o()
   );
 % else:
-    assign cio_gpio_o = '0;
-    assign cio_gpio_en_o = '0;
-    assign intr_gpio_o = '0;
+  assign cio_gpio_o    = '0;
+  assign cio_gpio_en_o = '0;
+  assign intr_gpio_o   = '0;
 % endif
 
 endmodule : ao_peripheral_subsystem

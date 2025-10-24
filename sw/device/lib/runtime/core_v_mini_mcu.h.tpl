@@ -42,8 +42,24 @@ extern "C" {
 #define ${peripheral.get_name().upper()}_SIZE ${hex(peripheral.get_length())}
 #define ${peripheral.get_name().upper()}_END_ADDRESS (${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE)
 #define ${peripheral.get_name().upper()}_IDX ${loop.index}
-
+% if peripheral.get_name() == "dma" and dma.get_is_included():
+#define ${peripheral.get_name().upper()}_IS_INCLUDED
+% endif
 %endfor
+
+// This section is here to have default values for the peripherals that are not included in the user peripheral domain. Their are used in their respective structs.h files.
+// Some other files, like applications main c file, use also some peripheral attributes but the file is not generated if the peripheral is not included in the user peripheral domain.
+% if not base_peripheral_domain.contains_peripheral('spi_flash'):
+#define SPI_FLASH_START_ADDRESS 0
+% endif
+% if not base_peripheral_domain.contains_peripheral('gpio_ao'):
+#define GPIO_AO_START_ADDRESS 0
+% endif
+% if not base_peripheral_domain.contains_peripheral('pad_control'):
+#define PAD_CONTROL_START_ADDRESS 0
+% endif
+// End of the section
+
 
 #define DMA_CH_NUM ${hex(dma.get_num_channels())[2:]}
 #define DMA_CH_SIZE 0x${hex(dma.get_ch_length())[2:]}
