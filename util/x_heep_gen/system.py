@@ -1,13 +1,11 @@
 from copy import deepcopy
-from dataclasses import dataclass
 from typing import Generator, Iterable, List, Optional, Set, Union
 from enum import Enum
 from .ram_bank import Bank, is_pow2, ILRamGroup
 from .linker_section import LinkerSection
 from .peripherals.abstractions import PeripheralDomain
-from .peripherals.base_peripherals import BasePeripheralDomain, DMA
+from .peripherals.base_peripherals import BasePeripheralDomain
 from .peripherals.user_peripherals import UserPeripheralDomain
-import os
 
 
 class BusType(Enum):
@@ -15,17 +13,6 @@ class BusType(Enum):
 
     onetoM = "onetoM"
     NtoM = "NtoM"
-
-
-@dataclass
-class Override:
-    """
-    Bundles information that can be overriden in the XHeep class.
-    """
-
-    bus_type: Optional[BusType]
-    numbanks: Optional[int]
-    numbanks_il: Optional[int]
 
 
 class XHeep:
@@ -36,7 +23,6 @@ class XHeep:
 
     :param BusType bus_type: The bus type chosen for this mcu.
     :param int ram_start_address: The address of the first ram bank. For now only 0 is tested. Defaults to 0.
-    :param Optional[Override] override: configs to be overriden
     :raise TypeError: when parameters are of incorrect type.
     """
 
@@ -47,7 +33,6 @@ class XHeep:
         self,
         bus_type: BusType,
         ram_start_address: int = 0,
-        override: Optional[Override] = None,
     ):
         if not type(bus_type) is BusType:
             raise TypeError(
@@ -62,8 +47,6 @@ class XHeep:
             )
 
         self._bus_type: BusType = bus_type
-        if override is not None and override.bus_type is not None:
-            self._bus_type = override.bus_type
 
         self._ram_start_address: int = ram_start_address
         self._ram_banks: List[Bank] = []
@@ -77,13 +60,6 @@ class XHeep:
 
         self._ignore_ram_continous: bool = False
         self._ignore_ram_interleaved: bool = False
-
-        if override is not None and override.numbanks is not None:
-            self.add_ram_banks([32] * override.numbanks)
-            self._ignore_ram_continous = True
-        if override is not None and override.numbanks_il is not None:
-            self._ignore_ram_interleaved = True
-            self._override_numbanks_il = override.numbanks_il
 
         self._base_peripheral_domain = None
         self._user_peripheral_domain = None
@@ -145,10 +121,6 @@ class XHeep:
         if self._ignore_ram_interleaved and not ignore_ignore:
             return
 
-        if not self._bus_type in self.IL_COMPATIBLE_BUS_TYPES:
-            raise RuntimeError(
-                f"This system has a {self._bus_type} bus, one of {self.IL_COMPATIBLE_BUS_TYPES} is required for interleaved memory"
-            )
         if not type(num) == int:
             raise TypeError("num should be of type int")
         if not is_pow2(num):
@@ -192,6 +164,32 @@ class XHeep:
         )
         self._il_banks_present = True
 
+    def override_ram_banks(self, numbanks: int):
+        """
+        Overrides the ram banks configuration.
+        Removes all previously added RAM banks and linker sections and adds 32kB numbanks RAM banks.
+        :param int numbanks: number of 32kB banks to add.
+        """
+        self._ram_next_addr = self._ram_start_address
+        self._ram_next_idx = 1
+        self._ram_banks = []
+
+        self.add_ram_banks([32] * numbanks)
+        self._ignore_ram_continous = True
+
+    def override_ram_banks_il(self, numbanks_il: int):
+        """
+        Overrides the interleaved ram banks configuration.
+        Removes all previously added RAM banks and linker sections and adds 32kB numbanks_il interleaved RAM banks.
+        :param int numbanks_il: number of 32kB interleaved banks to add.
+        """
+        self._ram_next_addr = self._ram_start_address
+        self._ram_next_idx = 1
+        self._ram_banks = []
+
+        self._ignore_ram_interleaved = True
+        self._override_numbanks_il = numbanks_il
+
     def add_linker_section_for_banks(self, banks: "List[Bank]", name: str):
         """
         Function to add linker sections coupled to some banks.
@@ -225,6 +223,19 @@ class XHeep:
 
         self._used_section_names.add(section.name)
         self._linker_sections.append(deepcopy(section))
+
+    def set_bus_type(self, bus_type: BusType):
+        """
+        Sets the bus type of the system.
+
+        :param BusType bus_type: The bus type to set.
+        :raise TypeError: when bus_type is of incorrect type.
+        """
+        if not type(bus_type) is BusType:
+            raise TypeError(
+                f"XHeep.bus_type should be of type BusType not {type(self._bus_type)}"
+            )
+        self._bus_type = bus_type
 
     def bus_type(self) -> BusType:
         """
@@ -343,6 +354,13 @@ class XHeep:
         ):
             print("The code and data sections are needed")
             return False
+
+        if self._il_banks_present and (
+            self._bus_type not in self.IL_COMPATIBLE_BUS_TYPES
+        ):
+            raise RuntimeError(
+                f"This system has a {self._bus_type} bus, one of {self.IL_COMPATIBLE_BUS_TYPES} is required for interleaved memory"
+            )
 
         for l in self._linker_sections:
             l.check()

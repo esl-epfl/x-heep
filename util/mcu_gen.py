@@ -727,8 +727,6 @@ def generate_xheep(args):
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
-    config_override = x_heep_gen.system.Override(None, None, None)
-
     if args.cpu != None and args.cpu != "":
         cpu_type = args.cpu
     else:
@@ -743,15 +741,6 @@ def generate_xheep(args):
         cve2_rv32m = config["cve2_rv32m"]
     else:
         cve2_rv32m = None
-
-    if args.bus != None and args.bus != "":
-        config_override.bus_type = BusType(args.bus)
-
-    if args.memorybanks != None and args.memorybanks != "":
-        config_override.numbanks = int(args.memorybanks)
-
-    if args.memorybanks_il != None and args.memorybanks_il != "":
-        config_override.numbanks_il = int(args.memorybanks_il)
 
     if args.external_domains != None and args.external_domains != "":
         external_domains = int(args.external_domains)
@@ -770,15 +759,22 @@ def generate_xheep(args):
 
     if args.python_x_heep_cfg != None and args.python_x_heep_cfg != "":
         xheep = x_heep_gen.load_config.load_cfg_file(
-            pathlib.PurePath(str(args.python_x_heep_cfg)), config_override
+            pathlib.PurePath(str(args.python_x_heep_cfg))
         )
     else:
-        xheep = x_heep_gen.load_config.load_cfg_file(
-            pathlib.PurePath(str(args.config)), config_override
-        )
+        xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)))
 
     # config is used as the base config for peripherals (if a domain is not defined in the config, it will be added to xheep using informations in config)
     load_peripherals_config(xheep, args.config)
+
+    if args.bus != None and args.bus != "":
+        xheep.set_bus_type(BusType(args.bus))
+
+    if args.memorybanks != None and args.memorybanks != "":
+        xheep.override_ram_banks(int(args.memorybanks))
+
+    if args.memorybanks_il != None and args.memorybanks_il != "":
+        xheep.override_ram_banks_il(int(args.memorybanks_il))
 
     debug_start_address = string2int(config["debug"]["address"])
     if int(debug_start_address, 16) < int("10000", 16):
@@ -1273,6 +1269,12 @@ def generate_xheep(args):
         left_pad_list = None
         right_pad_list = None
         bondpad_offsets = None
+
+    # Here the xheep system is built,
+    # The missing gaps are filled, like the missing end address of the data section.
+    xheep.build()
+    if not xheep.validate():
+        raise RuntimeError("There are errors when configuring X-HEEP")
 
     kwargs = {
         "xheep": xheep,

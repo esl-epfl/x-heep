@@ -1,6 +1,6 @@
 import importlib
 from pathlib import PurePath
-from typing import List, Optional, Union
+from typing import List, Union
 import hjson
 import os
 import sys
@@ -33,7 +33,7 @@ from .peripherals.user_peripherals import (
     UART,
 )
 from .linker_section import LinkerSection
-from .system import BusType, Override, XHeep
+from .system import BusType, XHeep
 
 
 def to_int(input) -> Union[int, None]:
@@ -418,12 +418,11 @@ def load_peripherals_config(system: XHeep, config_path: str):
                 system.add_peripheral_domain(user_peripherals)
 
 
-def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
+def load_cfg_hjson(src: str) -> XHeep:
     """
     Loads the configuration passed as a hjson string and creates an object representing the mcu.
 
     :param str src: configuration content
-    :param Optional[Override] override: configs to be overriden
     :return: the object representing the mcu configuration
     :rtype: XHeep
     :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
@@ -452,18 +451,15 @@ def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
     ram_start = 0
     if ram_address_config is not None:
         if type(ram_address_config) is not int:
-            RuntimeError("The ram_address should be an intger")
+            RuntimeError("The ram_address should be an integer")
         ram_start = ram_address_config
 
-    system = XHeep(BusType(bus_config), ram_start, override=override)
+    system = XHeep(BusType(bus_config), ram_start)
     load_ram_configuration(system, mem_config)
 
     if linker_config is not None:
         load_linker_config(system, linker_config)
 
-    system.build()
-    if not system.validate():
-        raise RuntimeError("Could not validate system configuration")
     return system
 
 
@@ -478,12 +474,11 @@ def _chk_purep(f):
         raise TypeError("parameter should be of type PurePath")
 
 
-def load_cfg_hjson_file(f: PurePath, override: Optional[Override] = None) -> XHeep:
+def load_cfg_hjson_file(f: PurePath) -> XHeep:
     """
     Loads the configuration passed in the path as hjson and creates an object representing the mcu.
 
     :param PurePath f: path of the configuration
-    :param Optional[Override] override: configs to be overriden
     :return: the object representing the mcu configuration
     :rtype: XHeep
     :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
@@ -491,7 +486,7 @@ def load_cfg_hjson_file(f: PurePath, override: Optional[Override] = None) -> XHe
     _chk_purep(f)
 
     with open(f, "r") as file:
-        return load_cfg_hjson(file.read(), override)
+        return load_cfg_hjson(file.read())
 
 
 def load_cfg_script_file(f: PurePath) -> XHeep:
@@ -516,12 +511,11 @@ def load_cfg_script_file(f: PurePath) -> XHeep:
     return mod.config()
 
 
-def load_cfg_file(f: PurePath, override: Optional[Override] = None) -> XHeep:
+def load_cfg_file(f: PurePath) -> XHeep:
     """
     Load the Configuration by extension type. It currently supports .hjson and .py
 
     :param PurePath f: path of the configuration
-    :param Optional[Override] override: configs to be overriden
     :return: the object representing the mcu configuration
     :rtype: XHeep
     :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
@@ -529,7 +523,7 @@ def load_cfg_file(f: PurePath, override: Optional[Override] = None) -> XHeep:
     _chk_purep(f)
 
     if f.suffix == ".hjson":
-        return load_cfg_hjson_file(f, override)
+        return load_cfg_hjson_file(f)
 
     if f.suffix == ".py":
         return load_cfg_script_file(f)

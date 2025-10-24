@@ -48,7 +48,6 @@ A more complex configuration can be done using a python script. The default conf
 
 The script should include a config function that returns a {py:class}`x_heep_gen.system.XHeep` instance.
 The configuration is similar to the hjson one. The order in which sections are added is also the one used in hardware.
-The script writer is responsible to call {py:meth}`x_heep_gen.system.XHeep.build` to make the system ready to be used, {py:meth}`x_heep_gen.system.XHeep.validate` to check for errors in the configuration, and to raise an error in case of failure.
 
 To run `mcu-gen` with a specific python configuration script, use the following command:
 
