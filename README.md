@@ -22,15 +22,14 @@ You can access an editable version of this diagram for your use in presentations
 
 ## Reference
 
-If you use X-HEEP in your academic work you can cite us: [X-HEEP Paper](https://arxiv.org/abs/2401.05548)
+If you use X-HEEP in your academic work you can cite us: [X-HEEP Paper](https://doi.org/10.1109/ISVLSI65124.2025.11130281).
 
 ```
-@misc{machetti2024xheep,
-      title={X-HEEP: An Open-Source, Configurable and Extendible RISC-V Microcontroller for the Exploration of Ultra-Low-Power Edge Accelerators},
-      author={Simone Machetti and Pasquale Davide Schiavone and Thomas Christoph Müller and Miguel Peón-Quirós and David Atienza},
-      year={2024},
-      eprint={2401.05548},
-      archivePrefix={arXiv},
-      primaryClass={cs.AR}
+@INPROCEEDINGS{machetti2025xheep,
+  author={Machetti, Simone and Schiavone, Pasquale Davide and Ansaloni, Giovanni and Peón-Quirós, Miguel and Atienza, David},
+  booktitle={2025 IEEE Computer Society Annual Symposium on VLSI (ISVLSI)}, 
+  title={X-HEEP: An Open-Source, Configurable and Extendible RISC-V Platform for TinyAI Applications}, 
+  year={2025},
+  doi={10.1109/ISVLSI65124.2025.11130281}
 }
 ```

@@ -124,7 +124,7 @@ class VerifHeep:
     def setUpDeb(self):
         gdb_cmd = f"""
         cd {self.xheep_dir}
-        $RISCV/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
+        $RISCV_XHEEP/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
         """
         self.gdb = pexpect.spawn(f"/bin/bash -c '{gdb_cmd}'")
         self.gdb.expect('(gdb)')
