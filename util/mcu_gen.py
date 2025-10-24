@@ -21,7 +21,7 @@ import collections
 from math import log2
 import x_heep_gen.load_config
 from x_heep_gen.load_config import load_peripherals_config
-from x_heep_gen.system import BusType
+from x_heep_gen.xheep import BusType
 import x_heep_gen.peripherals.base_peripherals
 import x_heep_gen.peripherals.user_peripherals
 import x_heep_gen.peripherals.abstractions

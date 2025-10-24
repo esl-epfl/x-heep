@@ -1,19 +1,11 @@
 from copy import deepcopy
 from typing import Generator, Iterable, List, Optional, Set, Union
-from enum import Enum
+from .bus_type import BusType
 from .ram_bank import Bank, is_pow2, ILRamGroup
 from .linker_section import LinkerSection
 from .peripherals.abstractions import PeripheralDomain
 from .peripherals.base_peripherals import BasePeripheralDomain
 from .peripherals.user_peripherals import UserPeripheralDomain
-
-
-class BusType(Enum):
-    """Enumeration of all supported bus types"""
-
-    onetoM = "onetoM"
-    NtoM = "NtoM"
-
 
 class XHeep:
     """
