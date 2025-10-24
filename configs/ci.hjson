@@ -60,7 +60,6 @@
         spi_memio: {
             offset:  0x00028000
             length:  0x00008000
-            is_included: "yes"
         }
         dma: {
             offset:  0x00030000
