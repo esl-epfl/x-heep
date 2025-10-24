@@ -7,6 +7,7 @@ from .peripherals.abstractions import PeripheralDomain
 from .peripherals.base_peripherals import BasePeripheralDomain
 from .peripherals.user_peripherals import UserPeripheralDomain
 
+
 class XHeep:
     """
     This object represents the whole mcu.
@@ -410,7 +411,7 @@ class XHeep:
             if b.size() not in sizes:
                 sizes.add(b.size())
                 yield b.size() // 4
-    
+
     def add_extension(self, name, extension):
         """
         Register an external extension or configuration (object, dict, etc.).

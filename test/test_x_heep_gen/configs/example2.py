@@ -1,5 +1,6 @@
 from x_heep_gen.linker_section import LinkerSection
-from x_heep_gen.system import XHeep, BusType
+from x_heep_gen.xheep import XHeep
+from x_heep_gen.bus_type import BusType
 from x_heep_gen.peripherals.base_peripherals import (
     BasePeripheralDomain,
     SOC_ctrl,
