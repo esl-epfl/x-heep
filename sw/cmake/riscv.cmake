@@ -45,7 +45,7 @@ get_filename_component(RISCV_TOOLCHAIN_BIN_EXT ${RISCV_GCC_COMPILER} EXT)
 
 STRING(REGEX REPLACE "\-gcc$" "-" GCC_CROSS_COMPILE ${RISCV_GCC_COMPILER})
 if ($ENV{COMPILER} MATCHES "clang")
-     STRING(REGEX REPLACE "clang" "" CLANG_CROSS_COMPILE ${RISCV_CLANG_COMPILER})
+     STRING(REGEX REPLACE "clang$" "" CLANG_CROSS_COMPILE ${RISCV_CLANG_COMPILER})
 endif()
 #message( "RISC-V Cross Compile: ${CROSS_COMPILE}" )
 
@@ -113,4 +113,3 @@ set( CMAKE_LINKER ${RISCV_GCC_COMPILER})  # We always link with GCC
 
 # Set by deafult Linker flags if needed
 #set( CMAKE_EXE_LINKER_FLAGS   "${CMAKE_EXE_LINKER_FLAGS}  -march=${CMAKE_SYSTEM_PROCESSOR}    -nostartfiles   " )
-
