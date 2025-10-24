@@ -56,6 +56,8 @@ class XHeep:
         self._base_peripheral_domain = None
         self._user_peripheral_domain = None
 
+        self.extensions = {}
+
     def add_ram_banks(self, bank_sizes: "List[int]", section_name: str = ""):
         """
         Add ram banks in continuous address mode to the system.
@@ -326,6 +328,148 @@ class XHeep:
         """
         return deepcopy(self._base_peripheral_domain)
 
+    def ram_size_address(self) -> int:
+        """
+        :return: the size of the addressable ram memory.
+        :rtype: int
+        """
+        size = 0
+        for bank in self._ram_banks:
+            size += bank.size()
+        return size
+
+    def ram_il_size(self) -> int:
+        """
+        :return: the memory size of the interleaved sizes.
+        :rtype: int
+        """
+        size = 0
+        for i in self._ram_banks_il_idx:
+            size += self._ram_banks[i].size()
+        return size
+
+    def iter_ram_banks(self) -> Iterable[Bank]:
+        """
+        :return: an iterator over all banks.
+        :rtype: Iterable[Bank]
+        """
+        return iter(self._ram_banks)
+
+    def iter_cont_ram_banks(self) -> Iterable[Bank]:
+        """
+        :return: an iterator over all continuous banks.
+        :rtype: Iterable[Bank]
+        """
+        m = map(
+            (lambda b: None if b[0] in self._ram_banks_il_idx else b[1]),
+            enumerate(self._ram_banks),
+        )
+        return filter(None, m)
+
+    def iter_il_ram_banks(self) -> Iterable[Bank]:
+        """
+        :return: an iterator over all interleaved banks.
+        :rtype: Iterable[Bank]
+        """
+        m = map(
+            (lambda b: None if not b[0] in self._ram_banks_il_idx else b[1]),
+            enumerate(self._ram_banks),
+        )
+        return filter(None, m)
+
+    def has_il_ram(self) -> bool:
+        """
+        :return: `True` if the system has interleaved ram.
+        :rtype: bool
+        """
+        return self._il_banks_present
+
+    def iter_il_groups(self) -> Iterable[ILRamGroup]:
+        """
+        :return: an iterator over the interleaved ram bank groups.
+        :rtype: Iterable[ILRamGroup]
+        """
+        return iter(self._ram_banks_il_groups)
+
+    def iter_linker_sections(self) -> Iterable[LinkerSection]:
+        """
+        :return: an iterator over the linker sections
+        :rtype: Iterable[LinkerSection]
+        """
+        return iter(self._linker_sections)
+
+    def iter_bank_numwords(self) -> Generator[int, None, None]:
+        """
+        Iterates over the size of the ram banks in number of words.
+
+        :return: Generator over the sizes
+        :rtype: Generator[int, None, None]
+        """
+        sizes = set()
+        for b in self._ram_banks:
+            if b.size() not in sizes:
+                sizes.add(b.size())
+                yield b.size() // 4
+    
+    def add_extension(self, name, extension):
+        """
+        Register an external extension or configuration (object, dict, etc.).
+
+        :param str name: Name of the extension.
+        :param Any extension: The extension object.
+        """
+        self.extensions[name] = extension
+
+    def get_extension(self, name):
+        """
+        Retrieve a previously registered extension.
+
+        :param str name: Name of the extension.
+        :return: The extension object.
+        :rtype: Any
+        """
+        return self.extensions.get(name, None)
+
+    def build(self):
+        """
+        Makes the system ready to be used.
+
+        - Aplies the overrides for the interleaved memory as the normal memory needs to be configured first.
+        - Sorts the linker sections by starting address.
+        - Inferes the missing linker section ends with the start of the next section if present. If not it uses the end of the last memory bank.
+        - Builds the peripheral domains (computes the offsets of the peripherals that have none).
+        """
+        if self._ignore_ram_interleaved:
+            sec_name = ""
+            if self.ram_numbanks() > 1:
+                sec_name = "data_interleaved"
+            self.add_ram_banks_il(
+                self._override_numbanks_il, 32, sec_name, ignore_ignore=True
+            )  # Add automatically a section for compatibility purposes.
+
+        self._linker_sections.sort(key=lambda l: l.start)
+
+        old_sec: Optional[LinkerSection] = None
+        for sec in self._linker_sections:
+            if old_sec is not None:
+                old_sec.end = sec.start
+
+            if sec.end is None:
+                old_sec = sec
+            else:
+                old_sec = None
+        if old_sec is not None:
+            if len(self._ram_banks) == 0:
+                raise RuntimeError(
+                    "There is no ram bank to infere the end of a section"
+                )
+            old_sec.end = self._ram_banks[-1].end_address()
+
+        if self.are_base_peripherals_configured():
+            self._base_peripheral_domain.build()
+        if self.are_user_peripherals_configured():
+            self._user_peripheral_domain.build()
+
     def validate(self) -> bool:
         """
         Does some basics checks on the configuration
@@ -455,126 +599,3 @@ class XHeep:
             )
             ret = False
         return ret
-
-    def ram_size_address(self) -> int:
-        """
-        :return: the size of the addressable ram memory.
-        :rtype: int
-        """
-        size = 0
-        for bank in self._ram_banks:
-            size += bank.size()
-        return size
-
-    def ram_il_size(self) -> int:
-        """
-        :return: the memory size of the interleaved sizes.
-        :rtype: int
-        """
-        size = 0
-        for i in self._ram_banks_il_idx:
-            size += self._ram_banks[i].size()
-        return size
-
-    def iter_ram_banks(self) -> Iterable[Bank]:
-        """
-        :return: an iterator over all banks.
-        :rtype: Iterable[Bank]
-        """
-        return iter(self._ram_banks)
-
-    def iter_cont_ram_banks(self) -> Iterable[Bank]:
-        """
-        :return: an iterator over all continuous banks.
-        :rtype: Iterable[Bank]
-        """
-        m = map(
-            (lambda b: None if b[0] in self._ram_banks_il_idx else b[1]),
-            enumerate(self._ram_banks),
-        )
-        return filter(None, m)
-
-    def iter_il_ram_banks(self) -> Iterable[Bank]:
-        """
-        :return: an iterator over all interleaved banks.
-        :rtype: Iterable[Bank]
-        """
-        m = map(
-            (lambda b: None if not b[0] in self._ram_banks_il_idx else b[1]),
-            enumerate(self._ram_banks),
-        )
-        return filter(None, m)
-
-    def has_il_ram(self) -> bool:
-        """
-        :return: `True` if the system has interleaved ram.
-        :rtype: bool
-        """
-        return self._il_banks_present
-
-    def iter_il_groups(self) -> Iterable[ILRamGroup]:
-        """
-        :return: an iterator over the interleaved ram bank groups.
-        :rtype: Iterable[ILRamGroup]
-        """
-        return iter(self._ram_banks_il_groups)
-
-    def iter_linker_sections(self) -> Iterable[LinkerSection]:
-        """
-        :return: an iterator over the linker sections
-        :rtype: Iterable[LinkerSection]
-        """
-        return iter(self._linker_sections)
-
-    def iter_bank_numwords(self) -> Generator[int, None, None]:
-        """
-        Iterates over the size of the ram banks in number of words.
-
-        :return: Generator over the sizes
-        :rtype: Generator[int, None, None]
-        """
-        sizes = set()
-        for b in self._ram_banks:
-            if b.size() not in sizes:
-                sizes.add(b.size())
-                yield b.size() // 4
-
-    def build(self):
-        """
-        Makes the system ready to be used.
-
-        - Aplies the overrides for the interleaved memory as the normal memory needs to be configured first.
-        - Sorts the linker sections by starting address.
-        - Inferes the missing linker section ends with the start of the next section if present. If not it uses the end of the last memory bank.
-        - Builds the peripheral domains (computes the offsets of the peripherals that have none).
-        """
-        if self._ignore_ram_interleaved:
-            sec_name = ""
-            if self.ram_numbanks() > 1:
-                sec_name = "data_interleaved"
-            self.add_ram_banks_il(
-                self._override_numbanks_il, 32, sec_name, ignore_ignore=True
-            )  # Add automatically a section for compatibility purposes.
-
-        self._linker_sections.sort(key=lambda l: l.start)
-
-        old_sec: Optional[LinkerSection] = None
-        for sec in self._linker_sections:
-            if old_sec is not None:
-                old_sec.end = sec.start
-
-            if sec.end is None:
-                old_sec = sec
-            else:
-                old_sec = None
-        if old_sec is not None:
-            if len(self._ram_banks) == 0:
-                raise RuntimeError(
-                    "There is no ram bank to infere the end of a section"
-                )
-            old_sec.end = self._ram_banks[-1].end_address()
-
-        if self.are_base_peripherals_configured():
-            self._base_peripheral_domain.build()
-        if self.are_user_peripherals_configured():
-            self._user_peripheral_domain.build()
