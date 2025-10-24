@@ -206,7 +206,6 @@ jobs:
           VERSION=${{ github.event.inputs.release_tag }}
           BRANCH_NAME="release/${VERSION}"
           gh pr create \
-            --assignee @me \
             --base main \
             --head ${BRANCH_NAME} \
             --title "Release: ${VERSION}" \
