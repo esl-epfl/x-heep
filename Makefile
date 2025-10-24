@@ -94,7 +94,7 @@ else
 endif
 
 # Area plot default configuration
-AREA_PLOT_RPT 		?= $(word 1, $(shell find build -type f -name "*area*.rpt")) # path to the area report file
+AREA_PLOT_RPT 		?= $(word 1, $(shell [ -d build ] && find build -type f -name "*area*.rpt" 2>/dev/null)) # path to the area report file
 AREA_PLOT_OUTDIR 	?= build/area-plot/ # output directory for the area plot
 AREA_PLOT_TOP 		?=# top level module to consider for the area plot (automatically infer)
 
