@@ -16,7 +16,7 @@ SIM_TIMEOUT_S = 180
 
 # Available compilers
 COMPILERS = ["gcc", "clang"]
-COMPILER_PATH = [os.environ.get("RISCV") for _ in COMPILERS]
+COMPILER_PATH = [os.environ.get("XHEEP_RISCV") for _ in COMPILERS]
 COMPILER_PREFIXES = ["riscv32-unknown-" for _ in COMPILERS]
 
 # Available simulators
@@ -138,7 +138,7 @@ def compile_app(an_app, compiler_path, compiler_prefix, compiler, linker):
     )
     try:
         compile_command = ["make", "app", f"PROJECT={an_app.name}"]
-        os.environ["RISCV"] = compiler_path
+        os.environ["XHEEP_RISCV"] = compiler_path
         if compiler_prefix:
             compile_command.append(f"COMPILER_PREFIX={compiler_prefix}")
         if compiler:
