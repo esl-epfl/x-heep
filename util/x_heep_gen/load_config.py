@@ -463,54 +463,6 @@ def load_cfg_hjson(src: str) -> XHeep:
     return system
 
 
-def _chk_purep(f):
-    """
-    Helper to check the type is `PurePath`
-
-    :param f: object to check
-    :raise TypeError: when object is of wrong type.
-    """
-    if not isinstance(f, PurePath):
-        raise TypeError("parameter should be of type PurePath")
-
-
-def load_cfg_hjson_file(f: PurePath) -> XHeep:
-    """
-    Loads the configuration passed in the path as hjson and creates an object representing the mcu.
-
-    :param PurePath f: path of the configuration
-    :return: the object representing the mcu configuration
-    :rtype: XHeep
-    :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
-    """
-    _chk_purep(f)
-
-    with open(f, "r") as file:
-        return load_cfg_hjson(file.read())
-
-
-def load_cfg_script_file(f: PurePath) -> XHeep:
-    """
-    Executes the python file passed as argument to cinfigure the system.
-
-    This file should have a function config that takes no parameters and returns an instance (or subclass) of the XHeep type.
-    The script can import modules from the util directory.
-    The script should not have side effects as it is called multiple time in the current makefile.
-
-    :param PurePath f: path of the configuration
-    :return: the object representing the mcu configuration
-    :rtype: XHeep
-    :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
-    """
-    _chk_purep(f)
-
-    spec = importlib.util.spec_from_file_location("configs._config", f)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-
-    return mod.config()
-
-
 def load_cfg_file(f: PurePath) -> XHeep:
     """
     Load the Configuration by extension type. It currently supports .hjson and .py
@@ -520,12 +472,20 @@ def load_cfg_file(f: PurePath) -> XHeep:
     :rtype: XHeep
     :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
     """
-    _chk_purep(f)
+    if not isinstance(f, PurePath):
+        raise TypeError("parameter should be of type PurePath")
 
     if f.suffix == ".hjson":
-        return load_cfg_hjson_file(f)
+        with open(f, "r") as file:
+            return load_cfg_hjson(file.read())
 
-    if f.suffix == ".py":
-        return load_cfg_script_file(f)
+    elif f.suffix == ".py":
+        # The python script should have a function config() that takes no parameters and
+        # returns an instance of the XHeep type.
+        spec = importlib.util.spec_from_file_location("configs._config", f)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod.config()
 
-    raise RuntimeError(f"unsupported file extension {f.suffix}")
+    else:
+        raise RuntimeError(f"unsupported file extension {f.suffix}")
