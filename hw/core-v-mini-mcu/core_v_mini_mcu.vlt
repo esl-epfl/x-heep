@@ -39,3 +39,5 @@ lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not
 lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not used: 'hw_fifo*"
 lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not used: 'ext_dma_stop*"
 lint_off -rule UNOPTFLAT -file "*/xbar_varlat_n_to_one.sv" -match "Signal unoptimizable*"
+lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not used: 'pad_resp_i'*"
+lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not used: 'cio_gpio_i'*"

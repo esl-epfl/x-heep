@@ -164,8 +164,14 @@ module ao_peripheral_subsystem
   /* Peripheral demuxed register interface */
   assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX] = ext_peripheral_slave_resp_i;
+
+
+% if base_peripheral_domain.contains_peripheral('pad_control'):
   assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_CONTROL_IDX] = pad_resp_i;
+% else:
+  assign pad_req_o = '0;
+% endif
 
   assign dma_global_trigger_slots[0] = spi_rx_valid_i;
   assign dma_global_trigger_slots[1] = spi_tx_ready_i;
@@ -440,6 +446,7 @@ module ao_peripheral_subsystem
       .fast_intr_o
   );
 
+% if base_peripheral_domain.contains_peripheral('gpio_ao'):
   /* GPIO subsystem */
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
@@ -456,5 +463,10 @@ module ao_peripheral_subsystem
       .pin_level_interrupts_o({intr_gpio_unused, intr_gpio_o}),
       .global_interrupt_o()
   );
+% else:
+    assign cio_gpio_o = '0;
+    assign cio_gpio_en_o = '0;
+    assign intr_gpio_o = '0;
+% endif
 
 endmodule : ao_peripheral_subsystem
