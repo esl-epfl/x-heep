@@ -61,10 +61,10 @@ jobs:
           "
 
   gen-peripherals:
+    name: Test Peripherals Generation
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/esl-epfl/x-heep-toolchain:latest
-    name: Test peripherals (Same output between hjson and python configuration).
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
