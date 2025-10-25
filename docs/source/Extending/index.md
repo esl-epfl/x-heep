@@ -14,8 +14,7 @@ If you want to try the FPU-like coprocessor with a CV-X-IF compatible CPU as the
 make mcu-gen CPU=cv32e40px
 make verilator-build FUSESOC_PARAM="--X_EXT=1"
 make app PROJECT=example_matfadd ARCH=rv32imfc
-cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
-./Vtestharness +firmware=../../../sw/build/main.hex
+make verilator-run
 ```
 
 The program should terminate with value 0.

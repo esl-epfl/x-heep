@@ -48,16 +48,10 @@ To simulate your application with Verilator using the remote_bitbang server, you
 make verilator-build FUSESOC_PARAM="--JTAG_DPI=1"
 ```
 
-then, go to your target system built folder
-
-```
-cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
-```
-
 and type to run your compiled software:
 
 ```
-./Vtestharness +firmware=../../../sw/build/main.hex +openOCD=true
+make verilator-run SIM_ARGS="+openOCD=true"
 ```
 
 ### Questasim

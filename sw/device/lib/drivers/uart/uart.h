@@ -14,11 +14,14 @@
 #include "mmio.h"
 #include "error.h"
 
+#include "core_v_mini_mcu.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define NCO_WIDTH 16
+
 
 /**
  * Initialization parameters for UART.

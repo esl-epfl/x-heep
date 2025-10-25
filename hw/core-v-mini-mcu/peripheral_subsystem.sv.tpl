@@ -27,15 +27,9 @@ module peripheral_subsystem
     output logic                irq_plic_o,
     output logic                msip_o,
 
-    //UART PLIC interrupts
-    input logic uart_intr_tx_watermark_i,
-    input logic uart_intr_rx_watermark_i,
-    input logic uart_intr_tx_empty_i,
-    input logic uart_intr_rx_overflow_i,
-    input logic uart_intr_rx_frame_err_i,
-    input logic uart_intr_rx_break_err_i,
-    input logic uart_intr_rx_timeout_i,
-    input logic uart_intr_rx_parity_err_i,
+    // UART
+    input  logic uart_rx_i,
+    output logic uart_tx_o,
 
     //GPIO
     input  logic [31:8] cio_gpio_i,
@@ -113,6 +107,9 @@ module peripheral_subsystem
   tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
   tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
 
+  tlul_pkg::tl_h2d_t uart_tl_h2d;
+  tlul_pkg::tl_d2h_t uart_tl_d2h;
+
   logic [rv_plic_reg_pkg::NumTarget-1:0] irq_plic;
   logic [rv_plic_reg_pkg::NumSrc-1:0] intr_vector;
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id[rv_plic_reg_pkg::NumTarget];
@@ -141,20 +138,28 @@ module peripheral_subsystem
   logic i2c_intr_host_timeout;
   logic spi2_intr_event;
   logic i2s_intr_event;
+  logic uart_intr_tx_watermark;
+  logic uart_intr_rx_watermark;
+  logic uart_intr_tx_empty;
+  logic uart_intr_rx_overflow;
+  logic uart_intr_rx_frame_err;
+  logic uart_intr_rx_break_err;
+  logic uart_intr_rx_timeout;
+  logic uart_intr_rx_parity_err;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
 
   // Assign internal interrupts
   assign intr_vector[${interrupts["null_intr"]}] = 1'b0;  // ID [0] is a special case and must be tied to zero.
-  assign intr_vector[${interrupts["uart_intr_tx_watermark"]}] = uart_intr_tx_watermark_i;
-  assign intr_vector[${interrupts["uart_intr_rx_watermark"]}] = uart_intr_rx_watermark_i;
-  assign intr_vector[${interrupts["uart_intr_tx_empty"]}] = uart_intr_tx_empty_i;
-  assign intr_vector[${interrupts["uart_intr_rx_overflow"]}] = uart_intr_rx_overflow_i;
-  assign intr_vector[${interrupts["uart_intr_rx_frame_err"]}] = uart_intr_rx_frame_err_i;
-  assign intr_vector[${interrupts["uart_intr_rx_break_err"]}] = uart_intr_rx_break_err_i;
-  assign intr_vector[${interrupts["uart_intr_rx_timeout"]}] = uart_intr_rx_timeout_i;
-  assign intr_vector[${interrupts["uart_intr_rx_parity_err"]}] = uart_intr_rx_parity_err_i;
+  assign intr_vector[${interrupts["uart_intr_tx_watermark"]}] = uart_intr_tx_watermark;
+  assign intr_vector[${interrupts["uart_intr_rx_watermark"]}] = uart_intr_rx_watermark;
+  assign intr_vector[${interrupts["uart_intr_tx_empty"]}] = uart_intr_tx_empty;
+  assign intr_vector[${interrupts["uart_intr_rx_overflow"]}] = uart_intr_rx_overflow;
+  assign intr_vector[${interrupts["uart_intr_rx_frame_err"]}] = uart_intr_rx_frame_err;
+  assign intr_vector[${interrupts["uart_intr_rx_break_err"]}] = uart_intr_rx_break_err;
+  assign intr_vector[${interrupts["uart_intr_rx_timeout"]}] = uart_intr_rx_timeout;
+  assign intr_vector[${interrupts["uart_intr_rx_parity_err"]}] = uart_intr_rx_parity_err;
   assign intr_vector[${interrupts["gpio_intr_31"]}:${interrupts["gpio_intr_8"]}] = gpio_intr;
   assign intr_vector[${interrupts["intr_fmt_watermark"]}] = i2c_intr_fmt_watermark;
   assign intr_vector[${interrupts["intr_rx_watermark"]}] = i2c_intr_rx_watermark;
@@ -562,6 +567,59 @@ module peripheral_subsystem
   assign i2s_intr_event   = 1'b0;
   assign i2s_rx_valid_o   = 1'b0;
 % endif
+
+% if user_peripheral_domain.contains_peripheral('uart'):
+
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) reg_to_tlul_uart_i (
+      .tl_o(uart_tl_h2d),
+      .tl_i(uart_tl_d2h),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::UART_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::UART_IDX])
+  );
+
+  uart uart_i (
+      .clk_i(clk_cg),
+      .rst_ni,
+      .tl_i(uart_tl_h2d),
+      .tl_o(uart_tl_d2h),
+      .cio_rx_i(uart_rx_i),
+      .cio_tx_o(uart_tx_o),
+      .cio_tx_en_o(),
+      .intr_tx_watermark_o(uart_intr_tx_watermark),
+      .intr_rx_watermark_o(uart_intr_rx_watermark),
+      .intr_tx_empty_o(uart_intr_tx_empty),
+      .intr_rx_overflow_o(uart_intr_rx_overflow),
+      .intr_rx_frame_err_o(uart_intr_rx_frame_err),
+      .intr_rx_break_err_o(uart_intr_rx_break_err),
+      .intr_rx_timeout_o(uart_intr_rx_timeout),
+      .intr_rx_parity_err_o(uart_intr_rx_parity_err)
+  );
+
+% else:
+
+  assign uart_tl_d2h             = '0;
+  assign uart_intr_tx_watermark  = 1'b0;
+  assign uart_intr_rx_watermark  = 1'b0;
+  assign uart_intr_tx_empty      = 1'b0;
+  assign uart_intr_rx_overflow   = 1'b0;
+  assign uart_intr_rx_frame_err  = 1'b0;
+  assign uart_intr_rx_break_err  = 1'b0;
+  assign uart_intr_rx_timeout    = 1'b0;
+  assign uart_intr_rx_parity_err = 1'b0;
+  assign uart_tx_o               = 1'b0;
+
+% endif
+
 
 % if len(user_peripheral_domain.get_peripherals()) == 0:
   // If no peripherals are selected, tie off the slave response

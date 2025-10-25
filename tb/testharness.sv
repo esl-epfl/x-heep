@@ -249,6 +249,8 @@ module testharness #(
   ) x_heep_system_i (
       .clk_i(clk),
       .rst_ni(rst_n),
+      .hart_id_i('0),
+      .xheep_istance_id_i('0),
       .jtag_tck_i(mux_jtag_tck),
       .jtag_tms_i(mux_jtag_tms),
       .jtag_trst_ni(mux_jtag_trstn),
