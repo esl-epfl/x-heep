@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ETH Zurich
+ * Copyright 2025 EPFL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: Robert Balas <balasr@iis.ee.ethz.ch>
-           Davide Schiavone <davide.schiavone@epfl.ch>
+ * Author: Davide Schiavone <davide.schiavone@epfl.ch>, EPFL, STI-SEL (2025)
+ *
  */
 
 #include <stdio.h>
