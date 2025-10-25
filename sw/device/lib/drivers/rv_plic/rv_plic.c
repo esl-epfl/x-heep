@@ -388,11 +388,7 @@ void plic_reset_handlers_list(void)
   {
     if ( i <= UART_ID_END)
     {
-#ifdef UART_IS_INCLUDED
       handlers[i] = &handler_irq_uart;
-#else
-      handlers[i] = &handler_irq_dummy;
-#endif
     }
     else if ( i <= GPIO_ID_END)
     {

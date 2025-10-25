@@ -108,6 +108,9 @@ extern "C" {
 % if not user_peripheral_domain.contains_peripheral('i2s'):
 #define I2S_START_ADDRESS 0
 % endif
+% if not user_peripheral_domain.contains_peripheral('uart'):
+#define UART_START_ADDRESS 0
+% endif
 // End of the section
 
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
