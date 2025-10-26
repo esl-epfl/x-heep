@@ -19,7 +19,6 @@ from .peripherals.base_peripherals import (
     Ext_peripheral,
     Pad_control,
     GPIO_ao,
-    UART,
 )
 from .peripherals.user_peripherals import (
     UserPeripheralDomain,
@@ -31,6 +30,7 @@ from .peripherals.user_peripherals import (
     SPI2,
     PDM2PCM,
     I2S,
+    UART,
 )
 from .linker_section import LinkerSection
 from .system import BusType, Override, XHeep
@@ -256,6 +256,14 @@ def load_peripherals_config(system: XHeep, config_path: str):
 
                     offset = int(peripheral_config["offset"], 16)
                     length = int(peripheral_config["length"], 16)
+                    try:
+                        if (
+                            peripheral_config["is_included"] == "no"
+                            and peripheral_name != "dma"
+                        ):
+                            continue
+                    except KeyError:
+                        pass
                     if peripheral_name == "soc_ctrl":
                         peripheral = SOC_ctrl(offset, length)
                         peripheral.custom_configuration(peripheral_config["path"])
@@ -266,30 +274,56 @@ def load_peripherals_config(system: XHeep, config_path: str):
                     elif peripheral_name == "spi_memio":
                         peripheral = SPI_memio(offset, length)
                     elif peripheral_name == "dma":
-                        addr_mode_en = peripheral_config["addr_mode_en"]
-                        subaddr_mode_en = peripheral_config["subaddr_mode_en"]
-                        hw_fifo_mode_en = peripheral_config["hw_fifo_mode_en"]
-                        zero_padding_en = peripheral_config["zero_padding_en"]
-                        if addr_mode_en != "no" and addr_mode_en != "yes":
-                            raise ValueError("addr_mode_en should be no or yes")
-                        if subaddr_mode_en != "no" and subaddr_mode_en != "yes":
-                            raise ValueError("subaddr_mode_en should be no or yes")
-                        if hw_fifo_mode_en != "no" and hw_fifo_mode_en != "yes":
-                            raise ValueError("hw_fifo_mode_en should be no or yes")
-                        if zero_padding_en != "no" and zero_padding_en != "yes":
-                            raise ValueError("zero_padding_en should be no or yes")
+                        try:
+                            if peripheral_config["is_included"] == "yes":
+                                dma_is_included = "yes"
+                            else:
+                                dma_is_included = "no"
+                        except KeyError:
+                            dma_is_included = "yes"
+
+                        if dma_is_included == "yes":
+                            addr_mode_en = peripheral_config["addr_mode_en"]
+                            subaddr_mode_en = peripheral_config["subaddr_mode_en"]
+                            hw_fifo_mode_en = peripheral_config["hw_fifo_mode_en"]
+                            zero_padding_en = peripheral_config["zero_padding_en"]
+                            if addr_mode_en != "no" and addr_mode_en != "yes":
+                                raise ValueError("addr_mode_en should be no or yes")
+                            if subaddr_mode_en != "no" and subaddr_mode_en != "yes":
+                                raise ValueError("subaddr_mode_en should be no or yes")
+                            if hw_fifo_mode_en != "no" and hw_fifo_mode_en != "yes":
+                                raise ValueError("hw_fifo_mode_en should be no or yes")
+                            if zero_padding_en != "no" and zero_padding_en != "yes":
+                                raise ValueError("zero_padding_en should be no or yes")
+                            ch_length = int(peripheral_config["ch_length"], 16)
+                            num_channels = int(peripheral_config["num_channels"], 16)
+                            num_master_ports = int(
+                                peripheral_config["num_master_ports"], 16
+                            )
+                            num_channels_per_master_port = int(
+                                peripheral_config["num_channels_per_master_port"], 16
+                            )
+                            fifo_depth = int(peripheral_config["fifo_depth"], 16)
+                        else:
+                            addr_mode_en = "no"
+                            subaddr_mode_en = "no"
+                            hw_fifo_mode_en = "no"
+                            zero_padding_en = "no"
+                            ch_length = int("0x100", 16)
+                            num_channels = int("0x1", 16)
+                            num_master_ports = int("0x1", 16)
+                            num_channels_per_master_port = int("0x1", 16)
+                            fifo_depth = int("0x4", 16)
+
                         peripheral = DMA(
+                            is_included=dma_is_included,
                             address=offset,
                             length=length,
-                            ch_length=int(peripheral_config["ch_length"], 16),
-                            num_channels=int(peripheral_config["num_channels"], 16),
-                            num_master_ports=int(
-                                peripheral_config["num_master_ports"], 16
-                            ),
-                            num_channels_per_master_port=int(
-                                peripheral_config["num_channels_per_master_port"], 16
-                            ),
-                            fifo_depth=int(peripheral_config["fifo_depth"], 16),
+                            ch_length=ch_length,
+                            num_channels=num_channels,
+                            num_master_ports=num_master_ports,
+                            num_channels_per_master_port=num_channels_per_master_port,
+                            fifo_depth=fifo_depth,
                             addr_mode=addr_mode_en,
                             subaddr_mode=subaddr_mode_en,
                             hw_fifo_mode=hw_fifo_mode_en,
@@ -310,9 +344,6 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral = Pad_control(offset, length)
                     elif peripheral_name == "gpio_ao":
                         peripheral = GPIO_ao(offset, length)
-                    elif peripheral_name == "uart":
-                        peripheral = UART(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     else:
                         raise ValueError(
                             f"Peripheral {peripheral_name} does not exist."
@@ -373,6 +404,9 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "i2s":
                         peripheral = I2S(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "uart":
+                        peripheral = UART(offset, length)
                         peripheral.custom_configuration(peripheral_config["path"])
                     else:
                         raise ValueError(

@@ -7,6 +7,7 @@ module x_heep_system
   import reg_pkg::*;
   import fifo_pkg::*;
 #(
+    parameter logic [31:0] XHEEP_INSTANCE_ID = 0,
     parameter COREV_PULP = 0,
     parameter FPU = 0,
     parameter ZFINX = 0,
@@ -20,6 +21,10 @@ module x_heep_system
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 
 ) (
+    // IDs
+    input logic [31:0] hart_id_i,
+    input logic [31:0] xheep_instance_id_i,
+
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     input logic intr_ext_peripheral_i,
 
@@ -129,6 +134,9 @@ ${pad.internal_signals}
 % for pad in pad_list:
 ${pad.core_v_mini_mcu_bonding}
 % endfor
+
+    .hart_id_i,
+    .xheep_instance_id_i,
     .intr_vector_ext_i,
     .intr_ext_peripheral_i,
     .xif_compressed_if,

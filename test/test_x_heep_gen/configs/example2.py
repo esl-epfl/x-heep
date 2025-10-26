@@ -13,7 +13,6 @@ from x_heep_gen.peripherals.base_peripherals import (
     Ext_peripheral,
     Pad_control,
     GPIO_ao,
-    UART,
 )
 from x_heep_gen.peripherals.user_peripherals import (
     UserPeripheralDomain,
@@ -25,6 +24,7 @@ from x_heep_gen.peripherals.user_peripherals import (
     SPI2,
     PDM2PCM,
     I2S,
+    UART,
 )
 
 
