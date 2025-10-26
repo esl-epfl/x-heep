@@ -18,7 +18,7 @@ module soc_ctrl #(
     input logic boot_select_i,
     input logic execute_from_flash_i,
     output logic use_spimemio_o,
-    input logic [31:0] xheep_istance_id_i,
+    input logic [31:0] xheep_instance_id_i,
 
     output logic        exit_valid_o,
     output logic [31:0] exit_value_o
@@ -76,6 +76,6 @@ module soc_ctrl #(
   always_comb begin
     reg_rsp_o = reg_rsp_int;
     if(reg_req_i.addr[soc_ctrl_reg_pkg::BlockAw-1:0] == soc_ctrl_reg_pkg::SOC_CTRL_XHEEP_ID_OFFSET && reg_req_i.valid && ~reg_req_i.write)
-      reg_rsp_o.rdata = xheep_istance_id_i;
+      reg_rsp_o.rdata = xheep_instance_id_i;
   end
 endmodule : soc_ctrl

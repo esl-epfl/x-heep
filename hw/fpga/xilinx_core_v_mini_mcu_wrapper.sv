@@ -124,7 +124,7 @@ module xilinx_core_v_mini_mcu_wrapper
       .ZFINX(ZFINX)
   ) x_heep_system_i (
       .hart_id_i('0),
-      .xheep_istance_id_i('0),
+      .xheep_instance_id_i('0),
       .intr_vector_ext_i('0),
       .xif_compressed_if(ext_if),
       .xif_issue_if(ext_if),

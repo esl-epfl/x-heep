@@ -34,7 +34,7 @@ ${pad.core_v_mini_mcu_interface}
 
     // IDs
     input logic [31:0] hart_id_i,
-    input logic [31:0] xheep_istance_id_i,
+    input logic [31:0] xheep_instance_id_i,
 
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
@@ -397,7 +397,7 @@ ${pad.core_v_mini_mcu_interface}
       .slave_resp_o(ao_peripheral_slave_resp),
       .spc2ao_req_i(ext_ao_peripheral_slave_req_i),
       .ao2spc_resp_o(ext_ao_peripheral_slave_resp_o),
-      .xheep_istance_id_i,
+      .xheep_instance_id_i,
       .boot_select_i,
       .execute_from_flash_i,
       .exit_valid_o,

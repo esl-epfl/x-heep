@@ -23,7 +23,7 @@ module x_heep_system
 ) (
     // IDs
     input logic [31:0] hart_id_i,
-    input logic [31:0] xheep_istance_id_i,
+    input logic [31:0] xheep_instance_id_i,
 
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     input logic intr_ext_peripheral_i,
@@ -136,7 +136,7 @@ ${pad.core_v_mini_mcu_bonding}
 % endfor
 
     .hart_id_i,
-    .xheep_istance_id_i,
+    .xheep_instance_id_i,
     .intr_vector_ext_i,
     .intr_ext_peripheral_i,
     .xif_compressed_if,

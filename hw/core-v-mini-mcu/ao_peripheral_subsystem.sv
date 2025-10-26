@@ -27,7 +27,7 @@ module ao_peripheral_subsystem
     output reg_rsp_t [AO_SPC_NUM_RND:0] ao2spc_resp_o,
 
     // SOC CTRL
-    input  logic [31:0] xheep_istance_id_i,
+    input  logic [31:0] xheep_instance_id_i,
     input  logic        boot_select_i,
     input  logic        execute_from_flash_i,
     output logic        exit_valid_o,
@@ -303,7 +303,7 @@ module ao_peripheral_subsystem
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .boot_select_i,
       .execute_from_flash_i,
-      .xheep_istance_id_i,
+      .xheep_instance_id_i,
       .use_spimemio_o(use_spimemio),
       .exit_valid_o,
       .exit_value_o
