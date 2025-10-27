@@ -1,7 +1,7 @@
 ROOT_DIR 			:= $(shell git rev-parse --show-toplevel)
 GIT_SHA				:= $(shell git rev-parse --short HEAD)
 TAG 				?= latest
-GITHUB_REPOSITORY 	:= esl-epfl/x-heep
+GITHUB_REPOSITORY 	:= ghcr.io/esl-epfl/x-heep
 IMAGE_NAME 			:= x-heep-toolchain
 IMAGE_ID 			:= $(GITHUB_REPOSITORY)/$(IMAGE_NAME)
 
@@ -9,7 +9,7 @@ IMAGE_ID 			:= $(GITHUB_REPOSITORY)/$(IMAGE_NAME)
 
 # User targets
 docker-pull:
-	docker pull ghcr.io/$(IMAGE_ID):latest
+	docker pull $(IMAGE_ID):$(TAG)
 
 docker-run:
 	docker run -it --rm -v $(ROOT_DIR):/workspace/x-heep $(IMAGE_ID):$(TAG)
