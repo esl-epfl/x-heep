@@ -8,7 +8,7 @@ on:
         required: true
         default: 'llvmorg-19.1.4'
       gcc_version:
-        description: 'GCC version tag to build (e.g., 2022.01.17)'
+        description: 'GCC version tag to build (e.g., 2023.01.03)'
         required: true
         default: '2023.01.03'
       release_tag:
