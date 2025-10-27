@@ -54,12 +54,11 @@ jobs:
 
       - name: Install crane
         run: |
-          sudo curl -L -o /usr/local/bin/crane "https://github.com/google/go-containerregistry/releases/download/v0.19.1/crane_Linux_x86_64"
-          sudo chmod +x /usr/local/bin/crane
+          bash -c "`curl -sL https://raw.githubusercontent.com/michaelsauter/crane/v3.6.0/download.sh`" && \
+          mv crane /usr/local/bin/crane
 
       - name: Authenticate crane to GHCR
         env:
-          # The GITHUB_TOKEN is used by crane to authenticate
           CRANE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           crane auth login ghcr.io -u ${{ github.actor }} --token "$CRANE_AUTH_TOKEN"
