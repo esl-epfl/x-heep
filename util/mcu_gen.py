@@ -704,6 +704,18 @@ def generate_xheep(args):
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
+    # Load general configuration file.
+    # This can be either the Python or HJSON config file.
+    # If using the Python config file, the HJSON parameters that are supported by Python will be ignored
+    # except for the peripherals. Any peripheral not configured in Python will be added from the HJSON config.
+    if args.python_config != None and args.python_config != "":
+        xheep = x_heep_gen.load_config.load_cfg_file(
+            pathlib.PurePath(str(args.python_config))
+        )
+    else:
+        xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)))
+
+    # We still need to load from the HJSON config the configuration options that are not yet supported in the Python model of X-HEEP
     with open(args.config, "r") as file:
         try:
             srcfull = file.read()
@@ -712,6 +724,7 @@ def generate_xheep(args):
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
+    # Load pads HJSON configuration file
     with open(args.pads_cfg, "r") as file:
         try:
             srcfull = file.read()
@@ -734,13 +747,6 @@ def generate_xheep(args):
         has_spi_slave = 1 if config["debug"]["has_spi_slave"] == "yes" else 0
     except KeyError:
         has_spi_slave = 0
-
-    if args.python_x_heep_cfg != None and args.python_x_heep_cfg != "":
-        xheep = x_heep_gen.load_config.load_cfg_file(
-            pathlib.PurePath(str(args.python_x_heep_cfg))
-        )
-    else:
-        xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)))
 
     # config is used as the base config for peripherals (if a domain is not defined in the config, it will be added to xheep using informations in config)
     load_peripherals_config(xheep, args.config)
@@ -1353,17 +1359,17 @@ def main():
             metavar="file",
             type=str,
             required=True,
-            help="X-Heep general configuration",
+            help="X-HEEP general HJSON configuration",
         )
 
         parser.add_argument(
-            "--python_x_heep_cfg",
+            "--python_config",
             metavar="file",
             type=str,
             required=False,
             nargs="?",
             default="",
-            help="X-Heep custom configuration",
+            help="X-HEEP general Python configuration",
         )
 
         parser.add_argument(
@@ -1372,7 +1378,7 @@ def main():
             metavar="file",
             type=str,
             required=True,
-            help="Pads configuration",
+            help="Pads HJSON configuration",
         )
 
         parser.add_argument(

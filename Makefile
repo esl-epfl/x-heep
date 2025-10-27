@@ -112,10 +112,10 @@ conda:
 ## @param BUS=[onetoM(default),NtoM]
 ## @param MEMORY_BANKS=[2(default)to(16-MEMORY_BANKS_IL)]
 ## @param MEMORY_BANKS_IL=[0(default),2,4,8]
-## @param X_HEEP_CFG=[configs/general.hjson(default),<path-to-config-file> ]
-## @param MCU_CFG_PERIPHERALS=[mcu_cfg.hjson(default),<path-to-config-file>]
+## @param X_HEEP_CFG=[configs/general.hjson(default),<path-to-config-file>]
+## @param PYTHON_X_HEEP_CFG=[configs/general.py(default),<path-to-config-file>]
 mcu-gen:
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --config $(X_HEEP_CFG) --python_x_heep_cfg $(PYTHON_X_HEEP_CFG) --pads_cfg $(PADS_CFG) --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS)
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --config $(X_HEEP_CFG) --python_config $(PYTHON_X_HEEP_CFG) --pads_cfg $(PADS_CFG) --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS)
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/core-v-mini-mcu/system_bus.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/core-v-mini-mcu/system_xbar.sv.tpl
