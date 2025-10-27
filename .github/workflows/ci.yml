@@ -37,6 +37,7 @@ jobs:
             echo "No tags found, defaulting to `latest`"
             TAG_NAME="latest"
           fi
+          echo "Detected tag: $TAG_NAME"
           echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
 
   compile-apps:
