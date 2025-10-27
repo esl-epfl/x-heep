@@ -23,7 +23,7 @@ make verilator-run
 Alternatively, you can run the application manually by going to your target system build folder
 
 ```bash
-cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_<version>/sim-verilator
 ```
 
 and type to run your compiled application:
@@ -183,10 +183,14 @@ You may pass additional simulation parameters to the generated simulation execut
   This allows you to run a compiled executable directly, as if it were already written in memory since the beginning of the simulation.
   For example, `./Vtestharness +firmware=../../../sw/build/main.hex` will launch the Verilator simulation and instruct it to load the compiled application executable into memory and run it.
 
+  When launching the simulation through the dedicated `make` target, like `make verilator-run`, the `+firmware` parameter is automatically propagated to the simulation executable.
+
 - `+boot_sel=<val>`:
   Runs the simulation booting from testbench/jtag (`val=0`) or loading the firmware from the external flash (`val=1`).
   When `0` (by default), you can run a compiled executable directly, as if it were already written in memory since the beginning of the simulation. While if it is `1`, the code is loaded from the external flash via SPI.
   For example, `./Vtestharness +firmware=../../../sw/build/main.hex +boot_sel=1` will launch the Verilator simulation and instruct the bootrom to copy the firmware from the external flash to the main memory, then, the CPU will jump to SRAM and execute the code.
+
+  When launching the simulation through the dedicated `make` target, like `make verilator-run`, the `+boot_sel` parameter can be be passed to the simulation executable via the `SIM_ARGS` command-line argument, e.g. `make verilator-run SIM_ARGS="+boot_sel=1"`.
   
 - `+max_sim_time=<time>`:
   Runs the simulation for a maximum of `<time>` clock cycles.
@@ -198,18 +202,10 @@ You may pass additional simulation parameters to the generated simulation execut
   This is, `+max_sim_time=750us` is the same as `+max_sim_time=75000`.
   (Note that there's no space between the number and the unit, and that fractional values are not supported.)
 
-  If you're launching the Verilator simulation via `make`, you may pass this parameter via the `MAX_SIM_TIME=` command line argument, e.g. `make verilator-run-helloworld MAX_SIM_TIME=750us`.
+  If you're launching the Verilator simulation via `make`, you may pass this parameter via the `MAX_SIM_TIME=` command-line argument, e.g. `make verilator-run MAX_SIM_TIME=750us`.
 
 ## Simulating the UART DPI
 
 To simulate the UART, we use the LowRISC OpenTitan [UART DPI](https://github.com/lowRISC/opentitan/tree/master/hw/dv/dpi/uartdpi).
 Read how to interact with it in the Section "Running Software on a Verilator Simulation with Bazel" [here](https://opentitan.org/guides/getting_started/setup_verilator.html#running-software-on-a-verilator-simulation-with-bazel).
-The output of the UART DPI module is printed in the `uart0.log` file in the simulation folder.
-
-For example, to see the "hello world!" output of the Verilator simulation:
-
-```bash
-cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
-./Vtestharness +firmware=../../../sw/build/main.hex
-cat uart0.log
-```
+The output of the UART DPI module is printed in the `uart0.log` file in the simulation folder. The content of this file is automatically printed on the console once the simulation successfully completes.

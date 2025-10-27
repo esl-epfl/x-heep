@@ -180,8 +180,7 @@ def run_app(an_app, simulator):
     )
     try:
         run_output = subprocess.run(
-            ["./Vtestharness", "+firmware=../../../sw/build/main.hex"],
-            cwd="build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator",
+            ["make", f"{simulator}-run"],
             capture_output=True,
             timeout=SIM_TIMEOUT_S,
             check=False,
@@ -213,17 +212,6 @@ def run_app(an_app, simulator):
                 + BColors.ENDC
             )
             print(BColors.FAIL + str(run_output.stdout.decode("utf-8")) + BColors.ENDC)
-
-            # For questasim the build folder is sim-modelsim instead of sim-questasim
-            simulator_build_name = simulator if simulator != "questasim" else "modelsim"
-            uart_output = open(
-                f"build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-{simulator_build_name}/uart0.log",
-                "r",
-                encoding="utf-8",
-            )
-            print(BColors.FAIL + "UART output:" + BColors.ENDC)
-            print(BColors.FAIL + uart_output.read() + BColors.ENDC, flush=True)
-            uart_output.close()
             return SimResult.FAILED
 
 

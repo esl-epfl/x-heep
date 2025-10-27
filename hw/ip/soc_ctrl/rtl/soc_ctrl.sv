@@ -15,9 +15,10 @@ module soc_ctrl #(
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    input  logic boot_select_i,
-    input  logic execute_from_flash_i,
+    input logic boot_select_i,
+    input logic execute_from_flash_i,
     output logic use_spimemio_o,
+    input logic [31:0] xheep_instance_id_i,
 
     output logic        exit_valid_o,
     output logic [31:0] exit_value_o
@@ -29,6 +30,7 @@ module soc_ctrl #(
 
   soc_ctrl_reg2hw_t reg2hw;
   soc_ctrl_hw2reg_t hw2reg;
+  reg_rsp_t reg_rsp_int;
 
 `ifndef SYNTHESIS
   logic testbench_set_exit_loop[1];
@@ -60,7 +62,7 @@ module soc_ctrl #(
       .clk_i,
       .rst_ni,
       .reg_req_i,
-      .reg_rsp_o,
+      .reg_rsp_o(reg_rsp_int),
       .reg2hw,
       .hw2reg,
       .devmode_i(1'b1)
@@ -71,4 +73,9 @@ module soc_ctrl #(
   assign use_spimemio_o = reg2hw.use_spimemio.q;
   assign enable_spi_sel = reg2hw.enable_spi_sel.q;
 
+  always_comb begin
+    reg_rsp_o = reg_rsp_int;
+    if(reg_req_i.addr[soc_ctrl_reg_pkg::BlockAw-1:0] == soc_ctrl_reg_pkg::SOC_CTRL_XHEEP_ID_OFFSET && reg_req_i.valid && ~reg_req_i.write)
+      reg_rsp_o.rdata = xheep_instance_id_i;
+  end
 endmodule : soc_ctrl
