@@ -5,6 +5,10 @@ on:
   pull_request:
     types: [closed]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: esl-epfl/x-heep/x-heep-toolchain
+
 jobs:
   publish-release:
     # Only run for merged PRs from "release/" branches
@@ -32,3 +36,34 @@ jobs:
       - name: Delete Source Branch
         run: |
           git push -d origin $BRANCH_NAME
+
+  tag-latest:
+    name: Tag 'Latest' Docker Image
+    needs: publish-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Get Tag from Branch
+        id: get-tag
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head_ref }}"
+          TAG_NAME="${BRANCH_NAME#release/}"
+          echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull, Re-tag, and Push 'latest' image
+        env:
+          IMAGE_ID: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          VERSION_TAG: ${{ steps.get-tag.outputs.tag }}
+        run: |
+          docker pull $IMAGE_ID
+          docker tag  $IMAGE_ID:$VERSION_TAG $IMAGE_ID:latest
+          docker push $IMAGE_ID:latest
