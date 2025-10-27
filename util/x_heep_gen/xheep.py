@@ -68,10 +68,9 @@ class XHeep:
         The bank size should be a power of two and at least 1kiB.
 
         :param List[int] bank_sizes: list of bank sizes in kiB that should be added to the system
-        :param str section_name: If not empty adds automatically a linker section for this banks. The names must be unique and not be used by the linker for other purposes.
+        :param str section_name: If not empty adds automatically a linker section for these banks. The names must be unique and not be used by the linker for other purposes.
         :raise TypeError: when arguments are of wrong type
-        :raise ValueError: when banks have an incorrect size.
-        :raise ValueError: if the name was allready used for another section or the first and second are not code and data.
+        :raise ValueError: when banks have an incorrect size
         :raise ValueError: if bank_sizes list is empty
         """
 
@@ -110,11 +109,10 @@ class XHeep:
 
         :param int num: number of banks to add
         :param int bank_size: size of the banks in kiB
-        :param str section_name: If not empty adds automatically a linker section for this banks. The names must be unique and not be used by the linker for other purposes.
+        :param str section_name: If not empty adds automatically a linker section for these banks. The names must be unique and not be used by the linker for other purposes.
         :param bool ignore_ignore: Ignores the fact that an override was set. For internal uses to apply this override.
         :raise TypeError: when arguments are of wrong type
         :raise ValueError: when banks have an incorrect size or their number is not a power of two.
-        :raise ValueError: if the name was allready used for another section or the first and second are not code and data.
         """
         if self._ignore_ram_interleaved and not ignore_ignore:
             return
@@ -532,10 +530,10 @@ class XHeep:
 
         for i, sec in enumerate(self._linker_sections):
             if i == 0 and sec.name != "code":
-                print("The first linker section sould be called code.")
+                print("The first linker section should be called code.")
                 ret = False
             elif i == 1 and sec.name != "data":
-                print("The second linker section sould be called data.")
+                print("The second linker section should be called data.")
                 ret = False
 
             if old_sec is not None:
