@@ -52,19 +52,22 @@ jobs:
           TAG_NAME="${BRANCH_NAME#release/}"
           echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install crane
+        run: |
+          sudo curl -L -o /usr/local/bin/crane "https://github.com/google/go-containerregistry/releases/download/v0.19.1/crane_Linux_x86_64"
+          sudo chmod +x /usr/local/bin/crane
 
-      - name: Pull, Re-tag, and Push 'latest' image
+      - name: Authenticate crane to GHCR
+        env:
+          # The GITHUB_TOKEN is used by crane to authenticate
+          CRANE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          crane auth login ghcr.io -u ${{ github.actor }} --token "$CRANE_AUTH_TOKEN"
+          
+      - name: Remotely tag 'latest' image
         env:
           IMAGE_ID: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           VERSION_TAG: ${{ steps.get-tag.outputs.tag }}
         run: |
-          run: |
-            docker pull $IMAGE_ID:$VERSION_TAG
-            docker tag  $IMAGE_ID:$VERSION_TAG $IMAGE_ID:latest
-            docker push $IMAGE_ID:latest
+          echo "Tagging $IMAGE_ID:$VERSION_TAG as latest..."
+          crane tag "$IMAGE_ID:$VERSION_TAG" latest
