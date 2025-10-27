@@ -2,6 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%
+  cpu = xheep.cpu()
+%>
+
 module cpu_subsystem
   import obi_pkg::*;
   import core_v_mini_mcu_pkg::*;
@@ -63,11 +67,11 @@ module cpu_subsystem
   if (CPU_TYPE == cv32e20) begin : gen_cv32e20
 
     cve2_top #(
-% if cve2_rv32e:
-        .RV32E(${cve2_rv32e}),
+% if cpu.is_defined("rv32e"):
+        .RV32E(${cpu.get_sv_str("rv32e")}),
 % endif
-% if cve2_rv32m:
-        .RV32M(${cve2_rv32m}),
+% if cpu.is_defined("rv32m"):
+        .RV32M(${cpu.get_sv_str("rv32m")}),
 % endif
         .MHPMCounterNum('0)
     ) cv32e20_i (

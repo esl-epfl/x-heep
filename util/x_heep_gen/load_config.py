@@ -32,6 +32,8 @@ from .peripherals.user_peripherals import (
     I2S,
     UART,
 )
+from .cpu.cpu import CPU
+from .cpu.cv32e20 import cv32e20
 from .linker_section import LinkerSection
 from .xheep import BusType, XHeep
 
@@ -433,6 +435,10 @@ def load_cfg_hjson(src: str) -> XHeep:
     ram_address_config = None
     linker_config = None
 
+    cpu_config = None
+    cve2_rv32e_config = None
+    cve2_rv32m_config = None
+
     for key, value in config.items():
         if key == "ram_banks":
             mem_config = value
@@ -442,6 +448,12 @@ def load_cfg_hjson(src: str) -> XHeep:
             ram_address_config = value
         elif key == "linker_sections":
             linker_config = value
+        elif key == "cpu_type":
+            cpu_config = value
+        elif key == "cve2_rv32e":
+            cve2_rv32e_config = value
+        elif key == "cve2_rv32m":
+            cve2_rv32m_config = value
 
     if mem_config is None:
         raise RuntimeError("No memory configuration found")
@@ -459,6 +471,13 @@ def load_cfg_hjson(src: str) -> XHeep:
 
     if linker_config is not None:
         load_linker_config(system, linker_config)
+
+    if cpu_config is not None:
+        if cpu_config == "cv32e20":
+            cpu = cv32e20(cve2_rv32e_config, cve2_rv32m_config)
+        else:
+            cpu = CPU(cpu_config)
+        system.set_cpu(cpu)
 
     return system
 

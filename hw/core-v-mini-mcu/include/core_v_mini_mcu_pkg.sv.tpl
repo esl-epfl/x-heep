@@ -31,7 +31,7 @@ package core_v_mini_mcu_pkg;
     cv32e40px
   } cpu_type_e;
 
-  localparam cpu_type_e CpuType = ${cpu_type};
+  localparam cpu_type_e CpuType = ${xheep.cpu().get_name()};
 
   typedef enum logic {
     NtoM,

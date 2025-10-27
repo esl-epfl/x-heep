@@ -3,6 +3,7 @@ from typing import Generator, Iterable, List, Optional, Set, Union
 from .bus_type import BusType
 from .ram_bank import Bank, is_pow2, ILRamGroup
 from .linker_section import LinkerSection
+from .cpu.cpu import CPU
 from .peripherals.abstractions import PeripheralDomain
 from .peripherals.base_peripherals import BasePeripheralDomain
 from .peripherals.user_peripherals import UserPeripheralDomain
@@ -39,6 +40,8 @@ class XHeep:
                 f"ram start address must be 0 instead of {ram_start_address}"
             )
 
+        self._cpu = None
+
         self._bus_type: BusType = bus_type
 
         self._ram_start_address: int = ram_start_address
@@ -57,7 +60,7 @@ class XHeep:
         self._base_peripheral_domain = None
         self._user_peripheral_domain = None
 
-        self.extensions = {}
+        self._extensions = {}
 
     def add_ram_banks(self, bank_sizes: "List[int]", section_name: str = ""):
         """
@@ -218,6 +221,24 @@ class XHeep:
 
         self._used_section_names.add(section.name)
         self._linker_sections.append(deepcopy(section))
+
+    def set_cpu(self, cpu: CPU):
+        """
+        Sets the CPU of the system.
+
+        :param CPU cpu: The CPU to set.
+        :raise TypeError: when cpu is of incorrect type.
+        """
+        if not isinstance(cpu, CPU):
+            raise TypeError(f"XHeep.cpu should be of type CPU not {type(self._cpu)}")
+        self._cpu = cpu
+
+    def cpu(self) -> CPU:
+        """
+        :return: the configured CPU
+        :rtype: CPU
+        """
+        return self._cpu
 
     def set_bus_type(self, bus_type: BusType):
         """
@@ -480,6 +501,10 @@ class XHeep:
         :return: the validity of the configuration
         :rtype: bool
         """
+        if not self.cpu():
+            print("A CPU must be configured")
+            return False
+
         if not self.ram_numbanks() in range(1, 17):
             print(
                 f"The number of banks should be between 1 and 16 instead of {self.ram_numbanks()}"

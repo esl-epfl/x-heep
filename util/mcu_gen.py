@@ -13,19 +13,12 @@ import sys
 import re
 import logging
 import pickle
-from subprocess import run
-import csv
 from jsonref import JsonRef
 from mako.template import Template
-import collections
-from math import log2
 import x_heep_gen.load_config
 from x_heep_gen.load_config import load_peripherals_config
 from x_heep_gen.xheep import BusType
-import x_heep_gen.peripherals.base_peripherals
-import x_heep_gen.peripherals.user_peripherals
-import x_heep_gen.peripherals.abstractions
-import math
+from x_heep_gen.cpu.cpu import CPU
 import os
 
 
@@ -727,21 +720,6 @@ def generate_xheep(args):
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
-    if args.cpu != None and args.cpu != "":
-        cpu_type = args.cpu
-    else:
-        cpu_type = config["cpu_type"]
-
-    if "cve2_rv32e" in config:
-        cve2_rv32e = config["cve2_rv32e"]
-    else:
-        cve2_rv32e = None
-
-    if "cve2_rv32m" in config:
-        cve2_rv32m = config["cve2_rv32m"]
-    else:
-        cve2_rv32m = None
-
     if args.external_domains != None and args.external_domains != "":
         external_domains = int(args.external_domains)
     else:
@@ -775,6 +753,10 @@ def generate_xheep(args):
 
     if args.memorybanks_il != None and args.memorybanks_il != "":
         xheep.override_ram_banks_il(int(args.memorybanks_il))
+
+    # Override CPU setting if specified in the make arguments
+    if args.cpu != None and args.cpu != "":
+        xheep.set_cpu(CPU(args.cpu))
 
     debug_start_address = string2int(config["debug"]["address"])
     if int(debug_start_address, 16) < int("10000", 16):
@@ -1278,9 +1260,6 @@ def generate_xheep(args):
 
     kwargs = {
         "xheep": xheep,
-        "cpu_type": cpu_type,
-        "cve2_rv32e": cve2_rv32e,
-        "cve2_rv32m": cve2_rv32m,
         "external_domains": external_domains,
         "debug_start_address": debug_start_address,
         "debug_size_address": debug_size_address,

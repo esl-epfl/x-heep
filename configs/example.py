@@ -1,5 +1,6 @@
 from x_heep_gen.linker_section import LinkerSection
 from x_heep_gen.xheep import XHeep
+from x_heep_gen.cpu.cpu import CPU
 from x_heep_gen.bus_type import BusType
 from x_heep_gen.peripherals.base_peripherals import (
     BasePeripheralDomain,
@@ -31,6 +32,7 @@ from x_heep_gen.peripherals.user_peripherals import (
 
 def config():
     system = XHeep(BusType.NtoM)
+    system.set_cpu(CPU("cv32e20"))
     system.add_ram_banks([32] * 2)
     system.add_ram_banks_il(2, 64, "data_interleaved")
 
