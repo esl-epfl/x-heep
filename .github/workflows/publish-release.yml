@@ -64,6 +64,7 @@ jobs:
           IMAGE_ID: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           VERSION_TAG: ${{ steps.get-tag.outputs.tag }}
         run: |
-          docker pull $IMAGE_ID
-          docker tag  $IMAGE_ID:$VERSION_TAG $IMAGE_ID:latest
-          docker push $IMAGE_ID:latest
+          run: |
+            docker pull $IMAGE_ID:$VERSION_TAG
+            docker tag  $IMAGE_ID:$VERSION_TAG $IMAGE_ID:latest
+            docker push $IMAGE_ID:latest
