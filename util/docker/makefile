@@ -20,4 +20,4 @@ docker-build: toolchain.tar.gz
 	$(RM) $<
 
 toolchain.tar.gz:
-	wget -q $$(curl -s https://api.github.com/repos/esl-epfl/x-heep/releases/latest | grep -o 'https://[^"]*ubuntu2204.tar.gz' | head -n 1) -O $@
+	wget $$(curl -s https://api.github.com/repos/esl-epfl/x-heep/releases/latest | grep -o 'https://[^"]*ubuntu2204.tar.gz' | head -n 1) -O $@
