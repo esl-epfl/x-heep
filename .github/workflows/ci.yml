@@ -10,16 +10,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: esl-epfl/x-heep-toolchain
-
 jobs:
   compile-apps:
     name: Compile All Apps
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+      image: ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,13 +24,12 @@ jobs:
           make clean-all && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
           python3 test/test_apps/test_apps.py --compilers gcc,clang --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown- --compile-only
-          "
 
   simulate-apps:
     name: Simulate All Apps
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+      image: ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout repository
@@ -44,13 +39,12 @@ jobs:
           make clean-all && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
           python3 test/test_apps/test_apps.py --compilers gcc,clang --compiler-paths /tools/riscv --compiler-prefixes riscv32-unknown-
-          "
 
   lint:
     name: Lint Generated Files
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+      image: ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -58,13 +52,12 @@ jobs:
         run: |
           make mcu-gen && \
           util/git-diff.py --error-msg '::error ::Found differences in generated SystemVerilog files.'
-          "
 
   gen-peripherals:
     name: Test Peripherals Generation
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+      image: ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -88,7 +81,7 @@ jobs:
       - name: Re-vendor and diff
         run: |
           find . -name '*.vendor.hjson' | xargs -n1 util/vendor.py --verbose &&
-          util/git-diff.py --error-msg "::error ::Found differences, please re-vendor."
+          util/git-diff.py --error-msg '::error ::Found differences, please re-vendor.'
 
   black-formatter:
     name: Check Python code formatting
