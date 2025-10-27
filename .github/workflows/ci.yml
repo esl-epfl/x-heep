@@ -13,6 +13,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash -l {0}
+    working-directory: /workspace/x-heep
+
 jobs:
   determine-image-tag:
     name: Determine Image Tag
@@ -50,7 +55,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Compile all apps with GCC and Clang
-        shell: bash -l {0}
         run: |
           make clean-all && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
@@ -67,7 +71,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Compile and simulate all apps
-        shell: bash -l {0}
         run: |
           make clean-all && \
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
@@ -83,7 +86,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Check generated file consistency
-        shell: bash -l {0}
         run: |
           make mcu-gen && \
           util/git-diff.py --error-msg '::error ::Found differences in generated SystemVerilog files.'
@@ -98,7 +100,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Configure the job container and simulate all apps
-        shell: bash -l {0}
         run: |
           make clean-all
           # Run the test script
