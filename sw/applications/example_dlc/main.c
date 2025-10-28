@@ -52,13 +52,13 @@ int16_t dlc_results_buffer[DLC_BUFFER_SIZE];
 int16_t dlc_circular_mode_results_buffer[DLC_WINDOWS][DLC_BUFFER_SIZE];
     
 // dLC programming registers
-uint32_t* dlvl_log_level_width    = DLC_START_ADDRESS + DLC_DLVL_LOG_LEVEL_WIDTH_REG_OFFSET;
-uint32_t* dlvl_discard_bits       = DLC_START_ADDRESS + DLC_DISCARD_BITS_REG_OFFSET;
-uint32_t* dlvl_n_bits             = DLC_START_ADDRESS + DLC_DLVL_N_BITS_REG_OFFSET;
-uint32_t* dlvl_format             = DLC_START_ADDRESS + DLC_DLVL_FORMAT_REG_OFFSET;
-uint32_t* dlvl_mask               = DLC_START_ADDRESS + DLC_DLVL_MASK_REG_OFFSET;
-uint32_t* dt_mask                 = DLC_START_ADDRESS + DLC_DT_MASK_REG_OFFSET;
-uint32_t* dlc_size                = DLC_START_ADDRESS + DLC_TRANS_SIZE_REG_OFFSET;
+uint32_t* dlvl_log_level_width    = (uint32_t *) DLC_START_ADDRESS + DLC_DLVL_LOG_LEVEL_WIDTH_REG_OFFSET;
+uint32_t* dlvl_discard_bits       = (uint32_t *) DLC_START_ADDRESS + DLC_DISCARD_BITS_REG_OFFSET;
+uint32_t* dlvl_n_bits             = (uint32_t *) DLC_START_ADDRESS + DLC_DLVL_N_BITS_REG_OFFSET;
+uint32_t* dlvl_format             = (uint32_t *) DLC_START_ADDRESS + DLC_DLVL_FORMAT_REG_OFFSET;
+uint32_t* dlvl_mask               = (uint32_t *) DLC_START_ADDRESS + DLC_DLVL_MASK_REG_OFFSET;
+uint32_t* dt_mask                 = (uint32_t *) DLC_START_ADDRESS + DLC_DT_MASK_REG_OFFSET;
+uint32_t* dlc_size                = (uint32_t *) DLC_START_ADDRESS + DLC_TRANS_SIZE_REG_OFFSET;
 
 dma_target_t tgt_src;
 dma_target_t tgt_dst;
