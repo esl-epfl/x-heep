@@ -7,7 +7,7 @@ X-HEEP
 The cool thing about X-HEEP is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc. so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design.
 By doing so, you inherit an IP capable of booting RTOS (such as FreeRTOS) with the whole FW stack, including HAL drivers and SDK, and you can focus on building your special HW or APP supported by the microcontroller.
 
-X-HEEP supports simulation with Verilator, Questasim, etc. Morever, FW can be built and linked by using CMake either with gcc or with clang and/or SEGGER Embedded Studio using gcc. It can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target.
+X-HEEP supports simulation with Verilator, Questasim, etc. Moreover, FW can be built and linked by using CMake either with GCC or with Clang and/or SEGGER Embedded Studio using gcc. It can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target.
 You are welcome to explore our `X-HEEP repository <https://github.com/esl-epfl/x-heep>`_ or our `X-HEEP paper <https://infoscience.epfl.ch/record/302127>`_ for a deeper description of the platform.
 
 Architecture

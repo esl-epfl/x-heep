@@ -8,7 +8,7 @@ CI tests that check the code.
 Upon push, tests are run on GitHub runners. These include:
 * The generated files have not been manually modified
 * Vendored repositories have not been manually modified
-* All applications can be built successfully using both gcc and clang
+* All applications can be built successfully using both GCC and Clang
 * All applications are successfully simulated using verilator
 
 For an exhaustive list, check the `.github/workflows` folder. All tests must be successful before PRs can be merged.
