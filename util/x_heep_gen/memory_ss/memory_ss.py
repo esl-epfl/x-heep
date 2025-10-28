@@ -24,6 +24,19 @@ class MemorySS:
         self._ignore_ram_continous: bool = False
         self._ignore_ram_interleaved: bool = False
 
+    def __str__(self) -> str:
+        repr_str = "MemorySS:\n"
+        repr_str += f"  RAM Banks ({self.ram_numbanks()}):\n"
+        for bank in self._ram_banks:
+            repr_str += f"    {bank}\n"
+        repr_str += f"  Interleaved RAM Banks ({self.ram_numbanks_il()}):\n"
+        for group in self._ram_banks_il_groups:
+            repr_str += f"    {group}\n"
+        repr_str += f"  Linker Sections ({len(self._linker_sections)}):\n"
+        for section in self._linker_sections:
+            repr_str += f"    {section}\n"
+        return repr_str
+
     def add_ram_banks(self, bank_sizes: "List[int]", section_name: str = ""):
         """
         Add ram banks in continuous address mode to the system.

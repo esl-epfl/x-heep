@@ -72,6 +72,9 @@ class Bank:
             self._start_address + self._size_k * 1024 * 2**self._il_level
         )
 
+    def __str__(self) -> str:
+        return f"Bank(size_k={self._size_k}, start_address=0x{self._start_address:08X}, end_address=0x{self._end_address:08X}, map_idx={self._map_idx}, il_level={self._il_level}, il_offset={self._il_offset})"
+
     def size(self) -> int:
         """
         :return: the bank size in Bytes
