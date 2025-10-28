@@ -1,6 +1,5 @@
 ROOT_DIR 			:= $(shell git rev-parse --show-toplevel)
-GIT_SHA				:= $(shell git rev-parse --short HEAD)
-TAG 				?= latest
+TAG 				?= $(shell git describe --tags --abbrev=0)
 GITHUB_REPOSITORY 	:= ghcr.io/esl-epfl/x-heep
 IMAGE_NAME 			:= x-heep-toolchain
 IMAGE_ID 			:= $(GITHUB_REPOSITORY)/$(IMAGE_NAME)
@@ -8,8 +7,10 @@ IMAGE_ID 			:= $(GITHUB_REPOSITORY)/$(IMAGE_NAME)
 .PHONY: docker-build docker-push docker-run docker-pull
 
 # User targets
+
+# Try to download the image corresponding to the current revision, else default to 'latest'
 docker-pull:
-	docker pull $(IMAGE_ID):$(TAG)
+	docker pull $(IMAGE_ID):$(TAG) || docker pull $(IMAGE_ID):latest
 
 docker-run:
 	docker run -it --rm -v $(ROOT_DIR):/workspace/x-heep $(IMAGE_ID):$(TAG)
