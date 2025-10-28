@@ -24,6 +24,8 @@ class Pad:
             PadMapping.BOTTOM: "core_v_mini_mcu_pkg::BOTTOM",
             PadMapping.LEFT: "core_v_mini_mcu_pkg::LEFT",
         }
+        
+        
 
         mapping = ""
         if self.pad_mapping is not None:

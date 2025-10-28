@@ -44,7 +44,6 @@ LINKER   ?= on_chip
 TARGET   	?= sim
 X_HEEP_CFG  ?= configs/general.hjson
 PADS_CFG ?= configs/pad_cfg.hjson
-PYTHON_X_HEEP_CFG ?= configs/example.py
 
 # Cached xheep object location
 XHEEP_CACHE ?= build/xheep_cache.pickle
@@ -120,7 +119,7 @@ environment.yml: python-requirements.txt
 ## @param X_HEEP_CFG=[configs/general.hjson(default),<path-to-config-file> ]
 ## @param MCU_CFG_PERIPHERALS=[mcu_cfg.hjson(default),<path-to-config-file>]
 mcu-gen:
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --config $(X_HEEP_CFG) --python_x_heep_cfg $(PYTHON_X_HEEP_CFG) --pads_cfg $(PADS_CFG) --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS)
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --config $(X_HEEP_CFG) --pads_cfg $(PADS_CFG) --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS)
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/core-v-mini-mcu/system_bus.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/core-v-mini-mcu/system_xbar.sv.tpl
@@ -346,7 +345,7 @@ test:
 test_kwargs:
 	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson
 	$(RM) test/*.log
-	python3 util/pickle_to_json.py ../build/xheep_cache.pickle generated
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl test/test_x_heep_gen/kwargs_output.json.tpl
 	python3 test/test_x_heep_gen/pad_test.py
 
 
