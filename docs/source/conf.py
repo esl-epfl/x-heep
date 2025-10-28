@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.abspath("../../util"))
 
 project = "X-HEEP"
-copyright = "2023, EPFL"
+copyright = "2025, EPFL"
 author = "ESL"
 
 release = "1.0"

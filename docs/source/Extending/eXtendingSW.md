@@ -218,7 +218,7 @@ export HEEP_DIR = <path_to_x_heep_relative_to_this_directory>
 
 ## Excluding files from compilation
 
-If you have files that need to be excluded from the gcc compilation flow, you can add them to a directory containing the keyword `exclude`, and/or rename the file to include the keyword `exclude`. 
+If you have files that need to be excluded from the GCC compilation flow, you can add them to a directory containing the keyword `exclude`, and/or rename the file to include the keyword `exclude`. 
 In the following example, the files marked with ✅ will be compiled, and the ones marked with ❌ will not.
 
     BASE
