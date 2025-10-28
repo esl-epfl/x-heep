@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
     // The DMA is initialized (i.e. Any current transaction is cleaned.)
 
-    volatile static dma *peri =  EXT_PERIPHERAL_START_ADDRESS;
+    volatile static dma *peri = (dma *) EXT_PERIPHERAL_START_ADDRESS;
 
     dma_init(peri);
 

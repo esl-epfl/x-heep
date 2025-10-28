@@ -3,6 +3,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 import argparse
+import sys
 from git import Repo
 
 
@@ -17,7 +18,17 @@ def main():
                         help='custom exit code string')
     args = parser.parse_args()
 
-    diff_to_head = repo.head.commit.diff(None)
+    try:
+        diff_to_head = repo.head.commit.diff(None)
+    except ValueError as e:
+        if "SHA could not be resolved" in str(e):
+            print("::error ::git-diff.py: Failed to read repository.", file=sys.stderr)
+            print("::error ::This can happen if the repository is mounted in a Docker container with a different owner.", file=sys.stderr)
+            print("::error ::To fix this, run 'git config --global --add safe.directory {}' inside the container.".format(
+                repo.working_dir), file=sys.stderr)
+            exit(1)
+        else:
+            raise e
 
     # diff tree against working tree
     for diff in diff_to_head:

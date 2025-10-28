@@ -1,0 +1,23 @@
+ROOT_DIR 			:= $(shell git rev-parse --show-toplevel)
+GIT_SHA				:= $(shell git rev-parse --short HEAD)
+TAG 				?= latest
+GITHUB_REPOSITORY 	:= ghcr.io/esl-epfl/x-heep
+IMAGE_NAME 			:= x-heep-toolchain
+IMAGE_ID 			:= $(GITHUB_REPOSITORY)/$(IMAGE_NAME)
+
+.PHONY: docker-build docker-push docker-run docker-pull
+
+# User targets
+docker-pull:
+	docker pull $(IMAGE_ID):$(TAG)
+
+docker-run:
+	docker run -it --rm -v $(ROOT_DIR):/workspace/x-heep $(IMAGE_ID):$(TAG)
+
+# Build the image locally
+docker-build: toolchain.tar.gz
+	docker build -t $(IMAGE_ID):$(TAG) -f ./dockerfile $(ROOT_DIR) --build-arg toolchain_path=util/docker/$<
+	$(RM) $<
+
+toolchain.tar.gz:
+	wget $$(curl -s https://api.github.com/repos/esl-epfl/x-heep/releases/latest | grep -o 'https://[^"]*ubuntu2204.tar.gz' | head -n 1) -O $@

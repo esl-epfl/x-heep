@@ -13,6 +13,7 @@
 #include "pad_control.h"
 #include "pad_control_regs.h"  // Generated.
 #include "x-heep.h"
+#include "fast_intr_ctrl.h"
 #include <limits.h> //todo: remove
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */

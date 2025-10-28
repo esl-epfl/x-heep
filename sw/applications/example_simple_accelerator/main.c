@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
@@ -46,15 +47,15 @@ int main(int argc, char *argv[])
     static uint32_t source_data[TEST_DATA_SIZE] __attribute__ ((aligned (4)));
     static uint32_t copied_data[TEST_DATA_SIZE] __attribute__ ((aligned (4)));
     uint32_t threshold_value = 20;
-    volatile static uint32_t *simple_acc =  SIMPLE_ACC_START_ADDRESS;
+    volatile static uint32_t *simple_acc = (uint32_t *) SIMPLE_ACC_START_ADDRESS;
 
 
     for(int i=0;i<TEST_DATA_SIZE;i++)
         source_data[i] = i & 0x1 ? i*3 : i*2;
 
 
-    simple_acc[SIMPLE_ACC_READ_OFFSET] = &source_data[0];
-    simple_acc[SIMPLE_ACC_WRITE_OFFSET] = &copied_data[0];
+    simple_acc[SIMPLE_ACC_READ_OFFSET] = (uintptr_t) &source_data[0];
+    simple_acc[SIMPLE_ACC_WRITE_OFFSET] = (uintptr_t) &copied_data[0];
     simple_acc[SIMPLE_ACC_THRESHOLD_OFFSET] = threshold_value;
     simple_acc[SIMPLE_ACC_SIZE_OFFSET] = TEST_DATA_SIZE;
 
