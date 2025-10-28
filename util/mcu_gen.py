@@ -778,7 +778,9 @@ def generate_xheep(args):
     stack_size = string2int(config["linker_script"]["stack_size"])
     heap_size = string2int(config["linker_script"]["heap_size"])
 
-    if (int(stack_size, 16) + int(heap_size, 16)) > xheep.memory_ss().ram_size_address():
+    if (
+        int(stack_size, 16) + int(heap_size, 16)
+    ) > xheep.memory_ss().ram_size_address():
         exit(
             "The stack and heap section must fit in the RAM size, instead they takes "
             + str(stack_size + heap_size)

@@ -146,7 +146,9 @@ def load_ram_configuration(memory_ss: MemorySS, mem: hjson.OrderedDict):
                     "The size field is required for interleaved ram section and should be an integer"
                 )
 
-            memory_ss.add_ram_banks_il(int(value["num"]), int(value["size"]), section_name)
+            memory_ss.add_ram_banks_il(
+                int(value["num"]), int(value["size"]), section_name
+            )
 
         elif t == "continuous":
             banks: List[int] = []
