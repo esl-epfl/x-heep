@@ -18,4 +18,4 @@ def compare_json(file_a, file_b):
         return False
 
 if __name__ == "__main__":
-    compare_json("./pads/golden_pads/kwargs_outout.json", "./pads/output/kwargs_outout.json")
+    compare_json("./pads/golden_pads/kwargs_output.json", "./pads/output/kwargs_output.json")

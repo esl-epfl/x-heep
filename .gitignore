@@ -65,7 +65,7 @@ sw/device/lib/drivers/**/*_structs.h
 # openroad
 flow/OpenROAD-flow-scripts
 #testing outputs for pads
-#test/test_x_heep_gen/pads/output/kwargs_output.json
+test/test_x_heep_gen/pads/output/kwargs_output.json
 
 # automatically generated docs
 /docs/source/Configuration/x_heep_gen
