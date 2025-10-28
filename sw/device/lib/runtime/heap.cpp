@@ -19,7 +19,7 @@
 #include <cstdlib>
 #include <new>
 
-void* operator new(size_t size) noexcept
+void* operator new(size_t size)
 {
     return malloc(size);
 }
@@ -29,7 +29,7 @@ void operator delete(void *p) noexcept
     free(p);
 }
 
-void* operator new[](size_t size) noexcept
+void* operator new[](size_t size)
 {
     return operator new(size); // Same as regular new
 }

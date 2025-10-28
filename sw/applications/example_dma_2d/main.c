@@ -21,6 +21,7 @@
 #include "csr.h"
 #include "rv_plic.h"
 #include "test_data.h"
+#include "timer_sdk.h"
 
 /*  
  *  This code contains four different tests that can be run by defining the corresponding TEST_ID_* macro.
