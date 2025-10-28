@@ -27,6 +27,8 @@ make -C util/docker docker-pull # pull the latest available X-HEEP image
 make -C util/docker docker-run #  mount the current X-HEEP clone to '/workspace/x-heep'
 ```
 
+In particular, the `docker-pull` target tries to infer your X-HEEP revision using `git describe` and pull the corresponding image. If it fails, it defaults to the `latest` image available, that is the one used by the upstream `main` branch.
+
 The Docker setup has certain limitations. For example, the following are not supported:
 
 - Simulation with Questasim and VCS, synthesis with Design Compiler. Licenses are required to use these tools, so they are not installed in the container.
