@@ -35,7 +35,7 @@ Params:
 You can run `make help` or `make` to see the most up-to-date documentation for the makefile. This includes the parameters available for this command, as well as the documentation for all other commands.
 ```
 
-For instance, to compile the `hello world` app with clang for the pynq-z2 FPGA, just run:
+For instance, to compile the `hello world` app with Clang for the pynq-z2 FPGA, just run:
 
 ```
 make app PROJECT=hello_world TARGET=pynq-z2 COMPILER=clang
