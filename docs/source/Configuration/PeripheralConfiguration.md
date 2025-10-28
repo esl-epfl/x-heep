@@ -1,6 +1,6 @@
 # Peripheral Configuration
 
-The default configuration of the peripherals can be found in either [configs/general.hjson](https://github.com/esl-epfl/x-heep/blob/main/configs/general.hjson) or [configs/general.py](https://github.com/esl-epfl/x-heep/blob/main/configs/general.py). A custom configuration can be created through python configuration.
+The default configuration of the peripherals can be found in either [configs/general.hjson](https://github.com/esl-epfl/x-heep/blob/main/configs/general.hjson) or [configs/general.py](https://github.com/esl-epfl/x-heep/blob/main/configs/general.py). A custom configuration can be created through Python configuration.
 
 ## Overall structure
 
@@ -14,7 +14,7 @@ Each domain has its corresponding peripherals :
  - Base peripherals (Mandatory peripherals)
  - User peripherals (Optional peripherals)
 
-Every peripheral has at least an offset and a length, which represent its position in the corresponding domain. Some peripherals have their own registers, and thus have a linked `hjson` configuration file. Each peripheral must be stored in the corresponding domain. Every peripheral is represented as a python class, more information about each peripheral can be found [here](https://x-heep.readthedocs.io/en/latest/Configuration/x_heep_gen/index.html)
+Every peripheral has at least an offset and a length, which represent its position in the corresponding domain. Some peripherals have their own registers, and thus have a linked `hjson` configuration file. Each peripheral must be stored in the corresponding domain. Every peripheral is represented as a Python class, more information about each peripheral can be found [here](https://x-heep.readthedocs.io/en/latest/Configuration/x_heep_gen/index.html)
 
 ## Adding a custom configuration
 
