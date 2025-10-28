@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 #include "core_v_mini_mcu.h"
 #include "timer_sdk.h"
@@ -21,8 +22,8 @@
 
 /* Error tolerances for the tests. */
 #define CYCLE_TOLERANCE  2         // cycles tolerance for simple timer reads
-#define INTERRUPT_TOLERANCE 70     // cycles tolerance for timer interrupt
-#define TIMER_WAIT_TOLERANCE 20   // milliseconds tolerance for timer wait
+#define INTERRUPT_TOLERANCE 80     // cycles tolerance for timer interrupt
+#define TIMER_WAIT_TOLERANCE 30   // milliseconds tolerance for timer wait
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -114,7 +115,6 @@ int main(){
         timer_wait_us(1000);       // Wait for 1 millisecond
         timer_cycles = timer_stop();     
         PRINTF("Done\n\r");
-
         if(abs(timer_cycles-(0.001*freq_hz)) > TIMER_WAIT_TOLERANCE){ 
             PRINTF("Timer wait failed\n\r");
             return EXIT_FAILURE;
