@@ -66,6 +66,7 @@ SOURCE 	 ?= $(".")
 # Simulation engines options are verilator (default) and questasim
 SIMULATOR ?= verilator
 
+
 # SIM_ARGS: Additional simulation arguments for run-app-verilator based on input parameters:
 # - MAX_SIM_TIME: Maximum simulation time in clock cycles (unlimited if not provided)
 SIM_ARGS += $(if $(MAX_SIM_TIME),+max_sim_time=$(MAX_SIM_TIME))
@@ -345,7 +346,7 @@ test:
 test_kwargs:
 	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson
 	$(RM) test/*.log
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl test/test_x_heep_gen/kwargs_output.json.tpl
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl test/test_x_heep_gen/pads/output/kwargs_output.json.tpl
 	python3 test/test_x_heep_gen/pad_test.py
 
 
