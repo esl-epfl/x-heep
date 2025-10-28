@@ -6,6 +6,11 @@ import os
 import sys
 from jsonref import JsonRef
 
+from .cpu.cpu import CPU
+from .cpu.cv32e20 import cv32e20
+from .memory_ss.memory_ss import MemorySS
+from .memory_ss.linker_section import LinkerSection
+from .xheep import BusType, XHeep
 from .peripherals.base_peripherals import (
     BasePeripheralDomain,
     SOC_ctrl,
@@ -32,10 +37,6 @@ from .peripherals.user_peripherals import (
     I2S,
     UART,
 )
-from .cpu.cpu import CPU
-from .cpu.cv32e20 import cv32e20
-from .linker_section import LinkerSection
-from .xheep import BusType, XHeep
 
 
 def to_int(input) -> Union[int, None]:
@@ -102,17 +103,17 @@ def ram_list(l: "List[int]", entry):
     )
 
 
-def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
+def load_ram_configuration(memory_ss: MemorySS, mem: hjson.OrderedDict):
     """
     Reads the whole ram configuration.
 
-    :param XHeep system: the system object where the ram should be added.
+    :param MemorySS memory_ss: the memory_ss object where the ram should be added.
     :param hjson.OrderedDict mem: The configuration part with the ram informations.
     :raise TypeError: when arguments do not have the right type
     :raise RuntimeError: when an invalid configuration is processed.
     """
-    if not isinstance(system, XHeep):
-        raise TypeError("system should be an instance of XHeep object")
+    if not isinstance(memory_ss, MemorySS):
+        raise TypeError("memory_ss should be an instance of MemorySS")
     if type(mem) is not hjson.OrderedDict:
         raise TypeError("mem should be of type hjson.OrderedDict")
 
@@ -128,7 +129,7 @@ def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
         if "type" in value:
             t = value["type"]
             if type(t) is not str:
-                raise RuntimeError("ram type should be a string")
+                raise TypeError("ram type should be a string")
             if t != "continuous" and t != "interleaved":
                 raise RuntimeError(
                     f"ram type should be continuous or interleaved not {t}"
@@ -145,29 +146,29 @@ def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
                     "The size field is required for interleaved ram section and should be an integer"
                 )
 
-            system.add_ram_banks_il(int(value["num"]), int(value["size"]), section_name)
+            memory_ss.add_ram_banks_il(int(value["num"]), int(value["size"]), section_name)
 
         elif t == "continuous":
             banks: List[int] = []
             ram_list(banks, value)
-            system.add_ram_banks(banks, section_name)
+            memory_ss.add_ram_banks(banks, section_name)
 
 
-def load_linker_config(system: XHeep, config: list):
+def load_linker_config(memory_ss: MemorySS, config: list):
     """
     Reads the whole linker section configuration.
 
-    :param XHeep system: the system object where the sections should be added.
+    :param MemorySS memory_ss: the memory_ss object where the sections should be added.
     :param hjson.OrderedDict mem: The configuration part with the section informations.
     :raise TypeError: when arguments do not have the right type
     :raise RuntimeError: when an invalid configuration is processed.
     """
     if type(config) is not list:
-        raise RuntimeError("Linker Section configuraiton should be a list.")
+        raise TypeError("Linker Section configuraiton should be a list.")
 
     for l in config:
         if type(l) is not hjson.OrderedDict:
-            raise RuntimeError("Sections should be represented as Dictionaries")
+            raise TypeError("Sections should be represented as Dictionaries")
         if "name" not in l:
             raise RuntimeError("All sections should have names")
 
@@ -178,13 +179,13 @@ def load_linker_config(system: XHeep, config: list):
         start = to_int(l["start"])
 
         if type(name) is not str:
-            raise RuntimeError("Section names should be strings")
+            raise TypeError("Section names should be strings")
 
         if name == "":
             raise RuntimeError("Section names should not be empty")
 
         if type(start) is not int:
-            raise RuntimeError("The start of a section should be an integer")
+            raise TypeError("The start of a section should be an integer")
 
         if "size" in l and "end" in l:
             raise RuntimeError("Each section should only specify end or size.")
@@ -207,7 +208,7 @@ def load_linker_config(system: XHeep, config: list):
         else:
             end = None
 
-        system.add_linker_section(LinkerSection(name, start, end))
+        memory_ss.add_linker_section(LinkerSection(name, start, end))
 
 
 def load_peripherals_config(system: XHeep, config_path: str):
@@ -432,7 +433,6 @@ def load_cfg_hjson(src: str) -> XHeep:
     config = hjson.loads(src, parse_int=int, object_pairs_hook=hjson.OrderedDict)
     mem_config = None
     bus_config = None
-    ram_address_config = None
     linker_config = None
 
     cpu_config = None
@@ -444,8 +444,6 @@ def load_cfg_hjson(src: str) -> XHeep:
             mem_config = value
         elif key == "bus_type":
             bus_config = value
-        elif key == "ram_address":
-            ram_address_config = value
         elif key == "linker_sections":
             linker_config = value
         elif key == "cpu_type":
@@ -460,17 +458,15 @@ def load_cfg_hjson(src: str) -> XHeep:
     if bus_config is None:
         raise RuntimeError("No bus type configuration found")
 
-    ram_start = 0
-    if ram_address_config is not None:
-        if type(ram_address_config) is not int:
-            RuntimeError("The ram_address should be an integer")
-        ram_start = ram_address_config
+    system = XHeep(BusType(bus_config))
+    memory_ss = MemorySS()
 
-    system = XHeep(BusType(bus_config), ram_start)
-    load_ram_configuration(system, mem_config)
+    load_ram_configuration(memory_ss, mem_config)
 
     if linker_config is not None:
-        load_linker_config(system, linker_config)
+        load_linker_config(memory_ss, linker_config)
+
+    system.set_memory_ss(memory_ss)
 
     if cpu_config is not None:
         if cpu_config == "cv32e20":

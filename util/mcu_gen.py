@@ -755,10 +755,10 @@ def generate_xheep(args):
         xheep.set_bus_type(BusType(args.bus))
 
     if args.memorybanks != None and args.memorybanks != "":
-        xheep.override_ram_banks(int(args.memorybanks))
+        xheep.memory_ss().override_ram_banks(int(args.memorybanks))
 
     if args.memorybanks_il != None and args.memorybanks_il != "":
-        xheep.override_ram_banks_il(int(args.memorybanks_il))
+        xheep.memory_ss().override_ram_banks_il(int(args.memorybanks_il))
 
     # Override CPU setting if specified in the make arguments
     if args.cpu != None and args.cpu != "":
@@ -778,7 +778,7 @@ def generate_xheep(args):
     stack_size = string2int(config["linker_script"]["stack_size"])
     heap_size = string2int(config["linker_script"]["heap_size"])
 
-    if (int(stack_size, 16) + int(heap_size, 16)) > xheep.ram_size_address():
+    if (int(stack_size, 16) + int(heap_size, 16)) > xheep.memory_ss().ram_size_address():
         exit(
             "The stack and heap section must fit in the RAM size, instead they takes "
             + str(stack_size + heap_size)
