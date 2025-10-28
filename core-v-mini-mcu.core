@@ -4,7 +4,7 @@ CAPI=2:
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-name: openhwgroup.org:systems:core-v-mini-mcu
+name: openhwgroup.org:systems:core-v-mini-mcu:0.3.0
 description: CORE-V MINI-MCU Top.
 
 filesets:
@@ -258,6 +258,7 @@ parameters:
     default: prim_pkg_xheep::ImplGeneri
 
 scripts:
+  # Build utils
   post_build_modelsim_scripts:
     cmd:
     - sh
@@ -274,11 +275,14 @@ scripts:
     cmd:
     - python
     - ../../../scripts/sim/modelsim/patch_modelsim_Makefile.py
-
   pre_patch_vcs_ams_Makefile:
     cmd:
     - python
     - ../../../scripts/sim/vcs/patch_vcs_ams_Makefile.py
+
+  # Simulation utils
+  print_uart_log:
+    cmd: [sh, -c, cat uart0.log]
 
 targets:
   default: &default_target
@@ -320,6 +324,8 @@ targets:
         - ams_sim? (pre_patch_vcs_ams_Makefile)
         - tool_xcelium? (pre_build_uartdpi)
         - tool_xcelium? (pre_build_remote_bitbang)
+      post_run:
+        - print_uart_log
     parameters:
     - COREV_PULP
     - FPU
@@ -377,13 +383,13 @@ targets:
           - '--x-assign unique'
           - '--x-initial unique'
           - '--exe tb_top.cpp'
-          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
+          - '-CFLAGS "-Wall -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
 
   sim_sc:
     <<: *default_target
-    default_tool: modelsim
+    default_tool: verilator
     filesets_append:
     - tb-utils
     - tool_verilator? (tb-sc-verilator)
@@ -399,20 +405,24 @@ targets:
     - USE_UPF
     - REMOVE_OBI_FIFO
     - SIM_SYSTEMC=true
+    hooks:
+      post_run:
+        - print_uart_log
     tools:
       verilator:
         mode: sc
         verilator_options:
           - '--sc'
           - '--trace'
+          - '--trace-fst'
           - '--trace-structs'
           - '--trace-params'
           - '--trace-max-array 1024'
           - '--x-assign unique'
           - '--x-initial unique'
           - '--exe tb_sc_top.cpp'
-          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
-          - '-LDFLAGS "-pthread -lutil -lelf $(SYSTEMC_LIBDIR)/libsystemc.a"'
+          - '-CFLAGS "-Wall -fpermissive"'
+          - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
 
   nexys-a7-100t:
@@ -525,3 +535,12 @@ targets:
         flow_path: flow/OpenROAD-flow-scripts/flow
         make_target: synth
 
+# Generators
+generators:
+  # Waivers generator for Verilator 5.XXX
+  waiver-v5-gen:
+    interpreter: python
+    command: util/waiver-gen.py
+    cache_type: input
+    file_input_parameters:
+    - waivers_v5 # list of .vlt files only required for Verilator 5.XXX

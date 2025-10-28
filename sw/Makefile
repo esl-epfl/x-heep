@@ -43,9 +43,15 @@ SOURCE 	 ?= $(".")
 VERBOSE ?= false
 
 # riscv toolchain install path
-RISCV                      ?= ~/.riscv
-RISCV_EXE_PREFIX           = $(RISCV)/bin/${COMPILER_PREFIX}elf-
-RISCV_GDB_PATH             = $(RISCV_EXE_PREFIX)gdb
+RISCV_XHEEP			?= ~/.riscv
+RISCV_EXE_PREFIX	= $(RISCV_XHEEP)/bin/${COMPILER_PREFIX}elf-
+RISCV_GDB_PATH		= $(RISCV_EXE_PREFIX)gdb
+
+ifneq ($(filter environment command line override, $(origin RISCV_XHEEP)),)
+  $(shell printf '\033[1;32mINFO: Using RISCV_XHEEP from environment or command line: %s\033[0m\n' '$(RISCV_XHEEP)' >&2)
+else
+  $(shell printf '\033[1;33mWARNING: RISCV_XHEEP not set in environment or command line. Using default: %s\033[0m\n' '$(RISCV_XHEEP)' >&2)
+endif
 
 # Get the absolute path
 mkfile_path := $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")

@@ -7,6 +7,7 @@ module x_heep_system
   import reg_pkg::*;
   import fifo_pkg::*;
 #(
+    parameter logic [31:0] XHEEP_INSTANCE_ID = 0,
     parameter COREV_PULP = 0,
     parameter FPU = 0,
     parameter ZFINX = 0,
@@ -20,6 +21,10 @@ module x_heep_system
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 
 ) (
+    // IDs
+    input logic [31:0] hart_id_i,
+    input logic [31:0] xheep_instance_id_i,
+
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     input logic intr_ext_peripheral_i,
 
@@ -48,6 +53,12 @@ module x_heep_system
     
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
+    
+    // PM signals
+    output logic cpu_subsystem_powergate_switch_no,
+    input  logic cpu_subsystem_powergate_switch_ack_ni,
+    output logic peripheral_subsystem_powergate_switch_no,
+    input  logic peripheral_subsystem_powergate_switch_ack_ni,
 
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_no,
     input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_ni,
@@ -92,12 +103,6 @@ ${pad.x_heep_system_interface}
   logic ext_cpu_subsystem_rst_n;
   logic ext_debug_reset_n;
 
-  // PM signals
-  logic cpu_subsystem_powergate_switch_n;
-  logic cpu_subsystem_powergate_switch_ack_n;
-  logic peripheral_subsystem_powergate_switch_n;
-  logic peripheral_subsystem_powergate_switch_ack_n;
-
   // PAD controller
   reg_req_t pad_req;
   reg_rsp_t pad_resp;
@@ -115,11 +120,6 @@ ${pad.x_heep_system_interface}
 ${pad.internal_signals}
 % endfor
 
-`ifdef FPGA_SYNTHESIS
-  assign cpu_subsystem_powergate_switch_ack_n = cpu_subsystem_powergate_switch_n;
-  assign peripheral_subsystem_powergate_switch_ack_n = peripheral_subsystem_powergate_switch_n;
-`endif
-
   core_v_mini_mcu #(
     .COREV_PULP(COREV_PULP),
     .FPU(FPU),
@@ -134,6 +134,9 @@ ${pad.internal_signals}
 % for pad in pad_list:
 ${pad.core_v_mini_mcu_bonding}
 % endfor
+
+    .hart_id_i,
+    .xheep_instance_id_i,
     .intr_vector_ext_i,
     .intr_ext_peripheral_i,
     .xif_compressed_if,
@@ -168,10 +171,10 @@ ${pad.core_v_mini_mcu_bonding}
     .ext_peripheral_slave_resp_i,
     .ext_debug_req_o(ext_debug_req),
     .ext_debug_reset_no(ext_debug_reset_n),
-    .cpu_subsystem_powergate_switch_no(cpu_subsystem_powergate_switch_n),
-    .cpu_subsystem_powergate_switch_ack_ni(cpu_subsystem_powergate_switch_ack_n),
-    .peripheral_subsystem_powergate_switch_no(peripheral_subsystem_powergate_switch_n),
-    .peripheral_subsystem_powergate_switch_ack_ni(peripheral_subsystem_powergate_switch_ack_n),
+    .cpu_subsystem_powergate_switch_no,
+    .cpu_subsystem_powergate_switch_ack_ni,
+    .peripheral_subsystem_powergate_switch_no,
+    .peripheral_subsystem_powergate_switch_ack_ni,
     .external_subsystem_powergate_switch_no,
     .external_subsystem_powergate_switch_ack_ni,
     .external_subsystem_powergate_iso_no,

@@ -40,6 +40,7 @@ filesets:
     - pulp-platform.org:ip:fpu_ss
     files:
     - tb_util.svh: {is_include_file: true}
+    - yosys_spiflash.sv
     - testharness_pkg.sv
     - testharness.sv
     - ext_xbar.sv
@@ -59,9 +60,12 @@ filesets:
     depend:
     - pulp-platform.org::pulpissimo_remote_bitbang
 
-  cypress_flash:
-    depend:
-    - ::spiflash:0
+generate:
+  waivers-v5:
+    generator: waiver-v5-gen
+    parameters:
+      waivers_v5:
+      - tb_v5.vlt
 
 targets:
   default: &default_target
@@ -77,6 +81,5 @@ targets:
     - tool_modelsim? (systemverilog_only_simjtag)
     - tool_vcs? (systemverilog_only_simjtag)
     - tool_xcelium? (systemverilog_only_simjtag)
-    - tool_modelsim? (cypress_flash)
-    - tool_vcs? (cypress_flash)
-    - tool_xcelium? (cypress_flash)
+    generate:
+    - tool_verilator ? (waivers-v5)

@@ -3,12 +3,13 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 #include "verilated.h"
-#include <verilated_vcd_sc.h>
+#include <verilated_fst_sc.h>
 #include "Vtestharness.h"
 #include "Vtestharness__Syms.h"
 #include "systemc.h"
 #include <stdlib.h>
 #include <iostream>
+#include <sys/stat.h>
 #include "XHEEP_CmdLineOptions.hh"
 
 sc_event reset_done_event;
@@ -133,7 +134,13 @@ SC_MODULE(testbench)
 
 
   void load_firmware () {
+    struct stat buffer;
     wait();
+    // Check if the firmware file exists
+    if (stat(firmware->c_str(), &buffer) != 0) {
+      std::cerr << "[TESTBENCH]: ERROR: Firmware file " << firmware << " does not exist." << std::endl;
+      exit(EXIT_FAILURE);
+    }
     dut->tb_loadHEX(firmware->c_str());
   }
 
@@ -307,10 +314,10 @@ int sc_main (int argc, char * argv[])
   sc_start(1, SC_NS);
 
 
-  VerilatedVcdSc* tfp = nullptr;
-  tfp = new VerilatedVcdSc;
+  VerilatedFstSc* tfp = nullptr;
+  tfp = new VerilatedFstSc;
   dut.trace(tfp, 99);  // Trace 99 levels of hierarchy
-  tfp->open("waveform.vcd");
+  tfp->open("waveform.fst");
 
   // Simulate until $finish
   while (!Verilated::gotFinish() && exit_valid !=1 ) {

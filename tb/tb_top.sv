@@ -114,6 +114,8 @@ module tb_top #(
       end
     end
 
+    testharness_i.load_flash_hex(firmware);
+
     wait (rst_n == 1'b1);
 
     // wait a few cycles

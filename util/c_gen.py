@@ -304,4 +304,3 @@ if __name__ == "__main__":
     # Write header file
     print(f"Writing header file '{os.path.join(out_dir, header_file)}'...")
     header_gen.write_header(out_dir, header_file)
-

@@ -207,17 +207,19 @@
         }
       ]
     }
-    % if dma_hw_fifo_mode:
     { name:     "HW_FIFO_EN"
       desc:     '''Enable the HW FIFO mode'''
+    % if dma_hw_fifo_mode:
       swaccess: "rw"
+    % else:
+      swaccess: "ro"
+    % endif
       hwaccess: "hro"
       resval:   0
       fields: [
         { bits: "0", name: "HW_FIFO_MODE", desc: "Mode for exploting external stream accelerators"}
       ]
     }
-    % endif
     { name:     "DIM_CONFIG"
       desc:     '''Set the dimensionality of the DMA'''
       swaccess: "rw"

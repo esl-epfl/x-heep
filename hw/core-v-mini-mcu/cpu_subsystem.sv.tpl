@@ -19,6 +19,9 @@ module cpu_subsystem
     input logic clk_i,
     input logic rst_ni,
 
+    // Core ID
+    input logic [31:0] hart_id_i,
+
     // Instruction memory interface
     output obi_req_t  core_instr_req_o,
     input  obi_resp_t core_instr_resp_i,
@@ -74,7 +77,7 @@ module cpu_subsystem
         .test_en_i(1'b0),
         .ram_cfg_i('0),
 
-        .hart_id_i  (32'h0),
+        .hart_id_i,
         .boot_addr_i(BOOT_ADDR),
 
         .instr_addr_o  (core_instr_req_o.addr),
@@ -230,7 +233,7 @@ module cpu_subsystem
         .boot_addr_i        (BOOT_ADDR),
         .mtvec_addr_i       (32'h0),
         .dm_halt_addr_i     (DM_HALTADDRESS),
-        .hart_id_i          (32'h0),
+        .hart_id_i,
         .dm_exception_addr_i(32'h0),
 
         .instr_addr_o  (core_instr_req_o.addr),
@@ -313,7 +316,7 @@ module cpu_subsystem
         .boot_addr_i        (BOOT_ADDR),
         .mtvec_addr_i       (32'h0),
         .dm_halt_addr_i     (DM_HALTADDRESS),
-        .hart_id_i          (32'h0),
+        .hart_id_i,
         .dm_exception_addr_i(32'h0),
 
         .instr_addr_o  (core_instr_req_o.addr),

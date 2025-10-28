@@ -71,6 +71,10 @@ or put the command directly in the `~/.bashrc` file.
 
 #### 2.b Virtual Environment
 
+```{note}
+The python environment has only been tested on Python 3.8.
+```
+
 Install the python virtual environment just as:
 
 ```bash
@@ -85,6 +89,10 @@ source .venv/bin/activate
 
 ### 3. Install the RISC-V Compiler:
 
+```{warning}
+The RISC-V toolchain environment variable name has changed. Use `RISCV_XHEEP` instead of `RISCV` to avoid conflicts with other projects. If you previously exported `RISCV` for X-HEEP, update your shell initialization files (e.g., `~/.bashrc`, `~/.zshrc`) or environment modules to export `RISCV_XHEEP` and remove or adjust any old `RISCV` definitions accordingly.
+```
+
 The RISC-V compiler requires the [following packages](https://github.com/riscv-collab/riscv-gnu-toolchain) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The GitHub page contains instructions for other linux distributions.
 
 Then the installation can proceed with the following commands :
@@ -94,36 +102,35 @@ cd riscv-gnu-toolchain
 ./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
 make
 ```
-You need to set the `RISCV` environment variable like this:
+You need to set the `RISCV_XHEEP` environment variable like this:
 
 ```
-export RISCV=/home/$USER/tools/riscv
+export RISCV_XHEEP=/home/$USER/tools/riscv
 ```
 Also consider adding it to your `~/.bashrc` or equivalent so that it's set automatically in the future. 
 
-Optionally you can also compile with clang/LLVM instead of gcc. For that you must install the clang compiler into the same `RISCV` path. The binaries of gcc and clang do not collide so you can have both residing in the same `RISCV` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV` when building LLVM. This can be accomplished by doing the following:
+Optionally you can also compile with clang/LLVM instead of gcc. For that you must install the clang compiler into the same `RISCV_XHEEP` path. The binaries of gcc and clang do not collide so you can have both residing in the same `RISCV_XHEEP` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV_XHEEP` when building LLVM. This can be accomplished by doing the following:
 
 ```
 git clone https://github.com/llvm/llvm-project.git
 cd llvm-project
 git checkout llvmorg-14.0.0
 mkdir build && cd build
-cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
+cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV_XHEEP -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
 cmake --build . --target install
 ```
 
 ### 4. Install Verilator:
 
-Verilator requires the [following packages](https://verilator.org/guide/latest/install.html) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The [documentation](https://verilator.org/guide/latest/install.html) page contains instructions for other linux distributions. 
+X-HEEP supports Verilator version 5.040, which requires the [following packages](https://verilator.org/guide/latest/install.html) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The [documentation](https://verilator.org/guide/latest/install.html) page contains instructions for other linux distributions. 
 
-```{note}
-Verilator 4.210 will not build with GCC 12.0 or later, so it will need to be built with an older toolchain.
-```
+> [!Note]
+> Backward compatibility with Verilator 4.210 is currently maintained, yet _this is very likely to change_ in future releases, so we strongly suggest against using it. Also, Verilator 4.210 _requires GCC older than 12.0_, so make sure to configure your environment accordingly if you choose to use it anyway.
 
 To proceed with the installation, use the following command:
 
 ```bash
-export VERILATOR_VERSION=4.210
+export VERILATOR_VERSION=5.040
 
 git clone https://github.com/verilator/verilator.git
 cd verilator
@@ -135,16 +142,16 @@ make
 make install
 ```
 
-After installation you need to add `/home/$USER/tools/verilator/$VERILATOR_VERSION/bin` to your `PATH` environment variable. Also consider adding it to your `~/.bashrc` or equivalent so that it's on the `PATH` in the future, like this:
+After installation you need to add `/home/$USER/tools/verilator/$VERILATOR_VERSION/bin` to your `PATH` environment variable. Also consider adding it to your `~/.bashrc` or equivalent environment initialization script so that it's on the `PATH` in the future, like this:
 
 ```
-export VERILATOR_VERSION=4.210
+export VERILATOR_VERSION=5.040
 export PATH=/home/$USER/tools/verilator/$VERILATOR_VERSION/bin:$PATH
 ```
 
 In general, have a look at the [Install Verilator](https://opentitan.org/book/doc/getting_started/setup_verilator.html) section of the OpenTitan documentation.
 
-If you want to see the vcd waveforms generated by the Verilator simulation, install GTKWAVE:
+If you want to see the waveforms generated by the Verilator simulation (FST format), install GTKWAVE:
 
 ```
 sudo apt install libcanberra-gtk-module libcanberra-gtk3-module

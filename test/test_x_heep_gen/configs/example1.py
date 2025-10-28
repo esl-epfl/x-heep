@@ -13,7 +13,6 @@ from x_heep_gen.peripherals.base_peripherals import (
     Ext_peripheral,
     Pad_control,
     GPIO_ao,
-    UART,
 )
 from x_heep_gen.peripherals.user_peripherals import (
     UserPeripheralDomain,
@@ -25,6 +24,7 @@ from x_heep_gen.peripherals.user_peripherals import (
     SPI2,
     PDM2PCM,
     I2S,
+    UART,
 )
 
 
@@ -52,6 +52,7 @@ def config():
     user_peripheral_domain.add_peripheral(I2C(0x00030000))
     user_peripheral_domain.add_peripheral(RV_timer(0x00040000))
     user_peripheral_domain.add_peripheral(SPI2(0x00050000))
+    user_peripheral_domain.add_peripheral(UART(0x00080000))
     user_peripheral_domain.add_peripheral(
         I2S()
     )  # If no address is provided, the peripheral will be automatically added where there is space.
