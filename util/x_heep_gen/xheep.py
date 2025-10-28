@@ -182,7 +182,7 @@ class XHeep:
         :param str name: Name of the extension.
         :param Any extension: The extension object.
         """
-        self.extensions[name] = extension
+        self._extensions[name] = extension
 
     def get_extension(self, name):
         """
@@ -192,7 +192,7 @@ class XHeep:
         :return: The extension object.
         :rtype: Any
         """
-        return self.extensions.get(name, None)
+        return self._extensions.get(name, None)
 
     # ------------------------------------------------------------
     # Build and Validate
