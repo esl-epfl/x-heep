@@ -48,10 +48,7 @@ BLACKLIST = [
 VERILATOR_BLACKLIST = []
 
 # Blacklist of apps to skip with clang
-CLANG_BLACKLIST = [
-    "example_cpp",
-]
-
+CLANG_BLACKLIST = []
 
 def in_list(name, item_list):
     """
@@ -132,7 +129,7 @@ def compile_app(an_app, compiler_path, compiler_prefix, compiler, linker):
     """
     print(
         BColors.OKBLUE
-        + f"Compiling {an_app.name} with {compiler_path}/bin/{compiler_prefix}elf-{compiler} and liner {linker}"
+        + f"Compiling {an_app.name} with {compiler} and linker {linker}"
         + BColors.ENDC,
         flush=True,
     )
