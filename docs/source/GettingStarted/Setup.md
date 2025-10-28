@@ -4,18 +4,18 @@ There are two ways of setting up X-HEEP. You can either use the provided docker 
 
 ## Docker setup
 
-A docker image containing all the required software dependencies is available on [github-packages](https://github.com/orgs/esl-epfl/packages/container/package/x-heep-toolchain).
+A docker image containing all the required software dependencies is available on [github-packages](https://ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest).
 
 It is only required to [install Docker](https://docs.docker.com/engine/install/) and pull the image.
 
 ```bash
-docker pull ghcr.io/esl-epfl/x-heep-toolchain:latest
+docker pull ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest
 ```
 
 Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\folder`, it is possible to directly run the docker mounting `X-HEEP-DIR` to the path `\workspace\x-heep` in the docker.
 
 ```bash
-docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep ghcr.io/esl-epfl/x-heep-toolchain
+docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep esl-epfl/x-heep/x-heep-toolchain:latest
 ```
 
 ```{warning}
@@ -95,6 +95,10 @@ source .venv/bin/activate
 
 ### 3. Install the RISC-V Compiler:
 
+```{warning}
+The RISC-V toolchain environment variable name has changed. Use `RISCV_XHEEP` instead of `RISCV` to avoid conflicts with other projects. If you previously exported `RISCV` for X-HEEP, update your shell initialization files (e.g., `~/.bashrc`, `~/.zshrc`) or environment modules to export `RISCV_XHEEP` and remove or adjust any old `RISCV` definitions accordingly.
+```
+
 The RISC-V compiler requires the [following packages](https://github.com/riscv-collab/riscv-gnu-toolchain) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The GitHub page contains instructions for other linux distributions.
 
 Then the installation can proceed with the following commands :
@@ -105,21 +109,21 @@ git checkout 2023.01.03
 ./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
 make -j $(nproc)
 ```
-You need to set the `RISCV` environment variable like this:
+You need to set the `RISCV_XHEEP` environment variable like this:
 
 ```
-export RISCV=/home/$USER/tools/riscv
+export RISCV_XHEEP=/home/$USER/tools/riscv
 ```
 Also consider adding it to your `~/.bashrc` or equivalent so that it's set automatically in the future. 
 
-Optionally you can also compile with clang/LLVM instead of gcc. For that you must install the clang compiler into the same `RISCV` path. The binaries of gcc and clang do not collide so you can have both residing in the same `RISCV` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV` when building LLVM. This can be accomplished by doing the following:
+Optionally you can also compile with clang/LLVM instead of gcc. For that you must install the clang compiler into the same `RISCV_XHEEP` path. The binaries of gcc and clang do not collide so you can have both residing in the same `RISCV_XHEEP` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV_XHEEP` when building LLVM. This can be accomplished by doing the following:
 
 ```
 git clone https://github.com/llvm/llvm-project.git
 cd llvm-project
 git checkout llvmorg-14.0.0
 mkdir build && cd build
-cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
+cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV_XHEEP -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
 cmake --build . --target install
 ```
 

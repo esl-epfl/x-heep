@@ -8,7 +8,7 @@ on:
         required: true
         default: 'llvmorg-19.1.4'
       gcc_version:
-        description: 'GCC version tag to build (e.g., 2022.01.17)'
+        description: 'GCC version tag to build (e.g., 2023.01.03)'
         required: true
         default: '2023.01.03'
       release_tag:
@@ -37,7 +37,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential cmake ninja-build git
+            build-essential cmake ninja-build git lld
 
       - name: Clean Up Runner
         run: |
@@ -67,15 +67,13 @@ jobs:
           git clone https://github.com/llvm/llvm-project.git /tmp/llvm-project
           cd /tmp/llvm-project
           git checkout ${{ github.event.inputs.llvm_version }}
-          mkdir build
-          cd build
-          cmake -G "Ninja" \
-                -DLLVM_ENABLE_PROJECTS=clang \
+          cmake -S llvm -B build -G "Ninja" \
+                -DLLVM_ENABLE_PROJECTS="clang;lld" \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
                 -DLLVM_TARGETS_TO_BUILD="RISCV" \
-                ../llvm
-          cmake --build . --target install -j$(nproc)
+                -DLLVM_USE_LINKER=lld
+          ninja -C build install
           rm -rf /tmp/llvm-project
           
       - name: Package Toolchain
@@ -154,7 +152,6 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ github.event.inputs.release_tag }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build and push Docker Image
         uses: docker/build-push-action@v5

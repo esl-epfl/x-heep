@@ -48,16 +48,10 @@ To simulate your application with Verilator using the remote_bitbang server, you
 make verilator-build FUSESOC_PARAM="--JTAG_DPI=1"
 ```
 
-then, go to your target system built folder
-
-```
-cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
-```
-
 and type to run your compiled software:
 
 ```
-./Vtestharness +firmware=../../../sw/build/main.hex +openOCD=true
+make verilator-run SIM_ARGS="+openOCD=true"
 ```
 
 ### Questasim
@@ -103,12 +97,12 @@ Check the waveform of the JTAG on Modelsim if you like.
 In a 3rd shell, conenct gdb as:
 
 ```
-$RISCV/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
+$RISCV_XHEEP/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
 ```
 
 In case gdb is started in python mode (due to initialisation conditions set in the ~/.gdbinit) - then run the command as:
 ```
-$RISCV/bin/riscv32-unknown-elf-gdb -nx ./sw/build/main.elf
+$RISCV_XHEEP/bin/riscv32-unknown-elf-gdb -nx ./sw/build/main.elf
 ```
 
 

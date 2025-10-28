@@ -282,6 +282,10 @@ module core_v_mini_mcu
     output logic gpio_30_oe_o,
 
 
+    // IDs
+    input logic [31:0] hart_id_i,
+    input logic [31:0] xheep_instance_id_i,
+
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
     if_xif.cpu_issue      xif_issue_if,
@@ -505,16 +509,6 @@ module core_v_mini_mcu
   logic [7:0] gpio_ao_oe;
   logic [7:0] gpio_ao_intr;
 
-  // UART PLIC interrupts
-  logic uart_intr_tx_watermark;
-  logic uart_intr_rx_watermark;
-  logic uart_intr_tx_empty;
-  logic uart_intr_rx_overflow;
-  logic uart_intr_rx_frame_err;
-  logic uart_intr_rx_break_err;
-  logic uart_intr_rx_timeout;
-  logic uart_intr_rx_parity_err;
-
   // I2s
   logic i2s_rx_valid;
 
@@ -544,6 +538,7 @@ module core_v_mini_mcu
       // Clock and Reset
       .clk_i,
       .rst_ni(cpu_subsystem_rst_n && debug_reset_n),
+      .hart_id_i,
       .core_instr_req_o(core_instr_req),
       .core_instr_resp_i(core_instr_resp),
       .core_data_req_o(core_data_req),
@@ -652,6 +647,7 @@ module core_v_mini_mcu
       .slave_resp_o(ao_peripheral_slave_resp),
       .spc2ao_req_i(ext_ao_peripheral_slave_req_i),
       .ao2spc_resp_o(ext_ao_peripheral_slave_resp_o),
+      .xheep_instance_id_i,
       .boot_select_i,
       .execute_from_flash_i,
       .exit_valid_o,
@@ -699,16 +695,6 @@ module core_v_mini_mcu
       .cio_gpio_o(gpio_ao_out),
       .cio_gpio_en_o(gpio_ao_oe),
       .intr_gpio_o(gpio_ao_intr),
-      .uart_rx_i,
-      .uart_tx_o,
-      .uart_intr_tx_watermark_o(uart_intr_tx_watermark),
-      .uart_intr_rx_watermark_o(uart_intr_rx_watermark),
-      .uart_intr_tx_empty_o(uart_intr_tx_empty),
-      .uart_intr_rx_overflow_o(uart_intr_rx_overflow),
-      .uart_intr_rx_frame_err_o(uart_intr_rx_frame_err),
-      .uart_intr_rx_break_err_o(uart_intr_rx_break_err),
-      .uart_intr_rx_timeout_o(uart_intr_rx_timeout),
-      .uart_intr_rx_parity_err_o(uart_intr_rx_parity_err),
       .spi_rx_valid_i(spi_rx_valid),
       .spi_tx_ready_i(spi_tx_ready),
       .i2s_rx_valid_i(i2s_rx_valid),
@@ -730,14 +716,6 @@ module core_v_mini_mcu
       .intr_vector_ext_i,
       .irq_plic_o(irq_external),
       .msip_o(irq_software),
-      .uart_intr_tx_watermark_i(uart_intr_tx_watermark),
-      .uart_intr_rx_watermark_i(uart_intr_rx_watermark),
-      .uart_intr_tx_empty_i(uart_intr_tx_empty),
-      .uart_intr_rx_overflow_i(uart_intr_rx_overflow),
-      .uart_intr_rx_frame_err_i(uart_intr_rx_frame_err),
-      .uart_intr_rx_break_err_i(uart_intr_rx_break_err),
-      .uart_intr_rx_timeout_i(uart_intr_rx_timeout),
-      .uart_intr_rx_parity_err_i(uart_intr_rx_parity_err),
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),
@@ -778,7 +756,9 @@ module core_v_mini_mcu
       .i2s_sd_o(i2s_sd_o),
       .i2s_sd_oe_o(i2s_sd_oe_o),
       .i2s_sd_i(i2s_sd_i),
-      .i2s_rx_valid_o(i2s_rx_valid)
+      .i2s_rx_valid_o(i2s_rx_valid),
+      .uart_rx_i,
+      .uart_tx_o
   );
 
   // Debug_req assign
