@@ -19,12 +19,21 @@ declare -A hide=( \
 # Map each author name to an email address.
 declare -A emails=( \
     ["Andreas Kurth"]="akurth@iis.ee.ethz.ch" \
+    ["Cyril Koenig"]="cykoenig@iis.ee.ethz.ch" \
     ["Fabian Schuiki"]="fschuiki@iis.ee.ethz.ch" \
     ["Florian Zaruba"]="zarubaf@iis.ee.ethz.ch" \
     ["Matheus Cavalcante"]="matheusd@iis.ee.ethz.ch" \
     ["Samuel Riedel"]="sriedel@iis.ee.ethz.ch" \
     ["Stefan Mach"]="smach@iis.ee.ethz.ch" \
     ["Wolfgang Rönninger"]="wroennin@iis.ee.ethz.ch" \
+    ["Thomas Benz"]="tbenz@iis.ee.ethz.ch" \
+    ["Michael Rogenmoser"]="michaero@iis.ee.ethz.ch" \
+    ["Luca Valente"]="luca.valente@unibo.it" \
+    ["Noah Huetter"]="huettern@ethz.ch" \
+    ["Nils Wistoff"]="nwistoff@iis.ee.ethz.ch" \
+    ["Nicole Narr"]="narrn@ethz.ch" \
+    ["Paul Scheffler"]="paulsc@iis.ee.ethz.ch" \
+    ["Tim Fischer"]="fischeti@iis.ee.ethz.ch" \
 )
 
 # Iterate over source files (see `done` line for which files are included).

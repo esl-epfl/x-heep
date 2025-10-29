@@ -13,7 +13,6 @@
 // - Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
 // - Andreas Kurth <akurth@iis.ee.ethz.ch>
 // - Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
-// - Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
 /// An AXI4+ATOP to AXI4-Lite converter with atomic transaction and burst support.
 module axi_to_axi_lite #(
@@ -23,6 +22,7 @@ module axi_to_axi_lite #(
   parameter int unsigned AxiUserWidth    = 32'd0,
   parameter int unsigned AxiMaxWriteTxns = 32'd0,
   parameter int unsigned AxiMaxReadTxns  = 32'd0,
+  parameter bit          FullBW          = 0,     // ID Queue in Full BW mode in axi_burst_splitter
   parameter bit          FallThrough     = 1'b1,  // FIFOs in Fall through mode in ID reflect
   parameter type         full_req_t      = logic,
   parameter type         full_resp_t     = logic,
@@ -47,8 +47,8 @@ module axi_to_axi_lite #(
   axi_atop_filter #(
     .AxiIdWidth      ( AxiIdWidth      ),
     .AxiMaxWriteTxns ( AxiMaxWriteTxns ),
-    .req_t           ( full_req_t      ),
-    .resp_t          ( full_resp_t     )
+    .axi_req_t       ( full_req_t      ),
+    .axi_resp_t      ( full_resp_t     )
   ) i_axi_atop_filter(
     .clk_i      ( clk_i         ),
     .rst_ni     ( rst_ni        ),
@@ -62,12 +62,13 @@ module axi_to_axi_lite #(
   axi_burst_splitter #(
     .MaxReadTxns  ( AxiMaxReadTxns  ),
     .MaxWriteTxns ( AxiMaxWriteTxns ),
+    .FullBW       ( FullBW          ),
     .AddrWidth    ( AxiAddrWidth    ),
     .DataWidth    ( AxiDataWidth    ),
     .IdWidth      ( AxiIdWidth      ),
     .UserWidth    ( AxiUserWidth    ),
-    .req_t        ( full_req_t      ),
-    .resp_t       ( full_resp_t     )
+    .axi_req_t    ( full_req_t      ),
+    .axi_resp_t   ( full_resp_t     )
   ) i_axi_burst_splitter (
     .clk_i      ( clk_i         ),
     .rst_ni     ( rst_ni        ),
@@ -256,7 +257,8 @@ module axi_to_axi_lite_intf #(
   parameter int unsigned AXI_MAX_WRITE_TXNS = 32'd1,
   /// Maximum number of outstanding reads.
   parameter int unsigned AXI_MAX_READ_TXNS  = 32'd1,
-  parameter bit          FALL_THROUGH       = 1'b1
+  parameter bit          FALL_THROUGH       = 1'b1,
+  parameter bit          FULL_BW            = 0
 ) (
   input logic     clk_i,
   input logic     rst_ni,
@@ -305,6 +307,7 @@ module axi_to_axi_lite_intf #(
     .AxiMaxWriteTxns ( AXI_MAX_WRITE_TXNS ),
     .AxiMaxReadTxns  ( AXI_MAX_READ_TXNS  ),
     .FallThrough     ( FALL_THROUGH       ),  // FIFOs in Fall through mode in ID reflect
+    .FullBW          ( FULL_BW            ),
     .full_req_t      ( full_req_t         ),
     .full_resp_t     ( full_resp_t        ),
     .lite_req_t      ( lite_req_t         ),
