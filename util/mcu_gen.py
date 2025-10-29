@@ -1268,6 +1268,7 @@ def generate_xheep(args):
 
     kwargs = {
         "xheep": xheep,
+        "config_path": args.config,  # Store the original config path
         "external_domains": external_domains,
         "debug_start_address": debug_start_address,
         "debug_size_address": debug_size_address,

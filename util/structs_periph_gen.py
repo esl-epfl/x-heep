@@ -117,13 +117,27 @@ if __name__ == "__main__":
         with open(mcu_cfg_file, "rb") as f:
             kwargs = pickle.load(f)
 
-        x_heep = kwargs["xheep"]
-
-        base_peripherals = x_heep.get_base_peripheral_domain().get_peripherals()
-        user_peripherals = x_heep.get_user_peripheral_domain().get_peripherals()
-
-        scan_peripherals_python(base_peripherals)
-        scan_peripherals_python(user_peripherals)
+        # Get the original config path from the cached kwargs
+        if "config_path" in kwargs and os.path.exists(kwargs["config_path"]):
+            hjson_config_path = kwargs["config_path"]
+            
+            # Load from the original HJSON to get ALL peripherals with "path" field
+            with open(hjson_config_path) as f:
+                data = hjson.load(f)
+            
+            base_peripherals = data["ao_peripherals"]
+            user_peripherals = data["peripherals"]
+            
+            # Scan ALL peripherals that have a "path" field, ignoring is_included
+            scan_peripherals_hjson(base_peripherals)
+            scan_peripherals_hjson(user_peripherals)
+        else:
+            # Fallback to old behavior if config_path is not in cache
+            x_heep = kwargs["xheep"]
+            base_peripherals = x_heep.get_base_peripheral_domain().get_peripherals()
+            user_peripherals = x_heep.get_user_peripheral_domain().get_peripherals()
+            scan_peripherals_python(base_peripherals)
+            scan_peripherals_python(user_peripherals)
 
     elif mcu_cfg_file.endswith(".py"):
         x_heep = x_heep_gen.load_config.load_cfg_script_file(mcu_cfg_file)

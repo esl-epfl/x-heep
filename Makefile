@@ -51,9 +51,6 @@ PADS_CFG ?= configs/pad_cfg.hjson
 PYTHON_X_HEEP_CFG ?= 
 # Cached mcu-gen xheep configuration
 XHEEP_CONFIG_CACHE ?= build/xheep_config_cache.pickle
-# Configuration file with ALL peripherals (for struct generation only)
-ALL_PERIPHERALS_CFG ?= configs/all_peripherals.hjson
-ALL_PERIPHERALS_CACHE ?= build/all_peripherals_cache.pickle
 
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER ?= gcc
@@ -153,8 +150,6 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/dma/data/dma.hjson.tpl 
 	bash -c "cd hw/ip/dma; source dma_gen.sh; cd ../../../"	
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/dma/data/dma_conf.svh.tpl 
-	$(PYTHON) util/mcu_gen.py --cached_path $(ALL_PERIPHERALS_CACHE) --config $(ALL_PERIPHERALS_CFG) --pads_cfg $(PADS_CFG) --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS)
-	$(PYTHON) util/structs_periph_gen.py --cfg_peripherals $(ALL_PERIPHERALS_CACHE)
 	$(PYTHON) util/structs_periph_gen.py --cfg_peripherals $(XHEEP_CONFIG_CACHE)
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/fpga/sram_wrapper.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/fpga/scripts/generate_sram.tcl.tpl
