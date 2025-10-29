@@ -1,4 +1,4 @@
-% for num_words in xheep.iter_bank_numwords():
+% for num_words in xheep.memory_ss().iter_bank_numwords():
 
 set ipName xilinx_mem_gen_${num_words}
 
@@ -41,10 +41,10 @@ create_ip_run [get_ips $ipName]
 % endfor
 
 <%ips = ""
-for num_words in xheep.iter_bank_numwords():
+for num_words in xheep.memory_ss().iter_bank_numwords():
     ips += f" xilinx_mem_gen_{num_words}_synth_1"%>
 launch_runs -jobs 8 ${ips}
 
-% for num_words in xheep.iter_bank_numwords():
+% for num_words in xheep.memory_ss().iter_bank_numwords():
 wait_on_run xilinx_mem_gen_${num_words}_synth_1
 % endfor

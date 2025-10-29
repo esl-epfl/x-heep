@@ -26,7 +26,7 @@ WAVE_FILE=$WAVE_FILE.fst
 PROFILE_REPORT_DIR=$ROOT_DIR/util/profile
 
 # Config file
-PROFILE_CONFIG_FILE=$PROFILE_REPORT_DIR/configs/${cpu_type}.wal
+PROFILE_CONFIG_FILE=$PROFILE_REPORT_DIR/configs/${xheep.cpu().get_name()}.wal
 
 # Run the profiler
 $RV_PROFILE --elf $ROOT_DIR/sw/build/main.elf \

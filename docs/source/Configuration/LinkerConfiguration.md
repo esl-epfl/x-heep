@@ -25,7 +25,6 @@ int32_t __attribute__((section(".xheep_data_interleaved"))) m_c[16*16];
 
 ```{code} js
 {
-    ram_address: 0
     bus_type: "onetoM"
     ram_banks: {
         code_and_data: {

@@ -17,6 +17,7 @@
 
 <%
   dma = xheep.get_base_peripheral_domain().get_dma()
+  memory_ss = xheep.memory_ss()
 %>
 
 module system_bus
@@ -168,7 +169,7 @@ module system_bus
 
   // Internal slave requests
   assign error_slave_req = int_slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
   assign ram_req_o[${bank.name()}] = int_slave_req[core_v_mini_mcu_pkg::RAM${bank.name()}_IDX];
 % endfor
   assign debug_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
@@ -192,7 +193,7 @@ module system_bus
 
   // Internal slave responses
   assign int_slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
   assign int_slave_resp[core_v_mini_mcu_pkg::RAM${bank.name()}_IDX] = ram_resp_i[${bank.name()}];
 % endfor
   assign int_slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;

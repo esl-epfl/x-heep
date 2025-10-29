@@ -72,7 +72,7 @@ _start:
     sub    a0,a0,s2
     call w25q128jw_read_standard
 
-% for i, section in enumerate(xheep.iter_linker_sections()):
+% for i, section in enumerate(xheep.memory_ss().iter_linker_sections()):
 % if section.name != "code":
 _load_${section.name}_section:
     // src ptr

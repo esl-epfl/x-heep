@@ -1,8 +1,6 @@
-from dataclasses import *
 from typing import Optional
 
 
-@dataclass
 class LinkerSection:
     """
     Object representing a section in the linker configuration.
@@ -25,8 +23,15 @@ class LinkerSection:
     end: Optional[int]
     """The end address"""
 
-    def __post_init__(self):
+    def __init__(self, name: str, start: int, end: Optional[int]):
+        self.name = name
+        self.start = start
+        self.end = end
+
         self.check()
+
+    def __str__(self) -> str:
+        return f"LinkerSection(name={self.name}, start=0x{self.start:08X}, end={'None' if self.end is None else f'0x{self.end:08X}'})"
 
     def check(self):
         """
