@@ -46,13 +46,16 @@ def write_template(tpl_path, outfile, **kwargs):
         tpl_path = pathlib.Path(tpl_path).absolute()
         if tpl_path.exists():
             tpl = Template(filename=str(tpl_path))
+            print("Generating file from template: {0}".format(tpl_path))
+            print("Template inside =", tpl.source)
+
             if outfile:
                 filename = outfile
             else:
                 filename = tpl_path.with_suffix("")
 
             with open(filename, "w") as file:
-                code = tpl.render_unicode(**kwargs)
+                code = tpl.render_unicode(**kwargs,strict_undefined=True)
                 code = re_trailws.sub("", code)
                 file.write(code)
         else:
@@ -172,8 +175,7 @@ def generate_xheep(args):
     }
 
     interrupts = {**config["interrupts"]["list"], **ext_int_list}
-    
-    ## TODO call pad_ring builder with argument pad_cfg
+
     padring = PadRing(pad_cfg,config)
     
 
@@ -201,8 +203,6 @@ def generate_xheep(args):
         "total_pad_list": padring.total_pad_list,
         "total_pad": padring.total_pad,
         "right_pad_list": padring.right_pad_list,
-        "left_pad_list": padring.left_pad_list,
-        "top_pad_list": padring.top_pad_list,
         "bottom_pad_list": padring.bottom_pad_list,
         "physical_attributes": padring.physical_attributes,
         "bondpad_offsets": padring.bondpad_offsets,
@@ -212,6 +212,7 @@ def generate_xheep(args):
         "total_pad_muxed": padring.total_pad_muxed,
         "max_total_pad_mux_bitlengh": padring.max_total_pad_mux_bitlengh,
         "pads_attributes": padring.pads_attributes,
+        "padring": padring,
     }
 
     return kwargs
