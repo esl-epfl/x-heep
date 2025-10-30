@@ -14,12 +14,6 @@
       swaccess: "rw"
       hwaccess: "hrw"
       fields: [
-        {
-          bits: "1",
-          name: "WRITE",
-          desc: "Write enable",
-          resval: "0x0"
-        }
         { bits: "0", 
           name: "START", 
           desc: "Start action",
@@ -27,20 +21,20 @@
         }
       ]
     }
-    { name:     "ADDRESS"
-      desc:     "Address to W/R"
+    { name:     "R_ADDRESS"
+      desc:     "Address in Flash to read from"
       swaccess: "rw"
       hwaccess: "hrw"
       fields: [
-        { bits: "31:0", name: "ADDRESS", desc: "Address to W/R" },
+        { bits: "31:0", name: "R_ADDRESS", desc: "Address to read from" },
       ]
     }
-    { name:     "DATA"
-      desc:     "Data to W"
+    { name:     "S_ADDRESS"
+      desc:     "Address to store read data from SPI_FLASH"
       swaccess: "rw"
       hwaccess: "hrw"
       fields: [
-        { bits: "31:0", name: "DATA", desc: "Data to W" },
+        { bits: "31:0", name: "S_ADDRESS", desc: "Address to store read data from SPI_FLASH" },
       ]
     }
     { name:     "LENGTH"

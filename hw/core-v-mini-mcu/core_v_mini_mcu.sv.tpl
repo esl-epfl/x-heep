@@ -537,7 +537,8 @@ ${pad.core_v_mini_mcu_interface}
       .i2s_rx_valid_o(i2s_rx_valid),
       .my_ip_done_o(my_ip_done_o),
       .my_ip_master_bus_req_o(my_ip_master_bus_req_i),
-      .my_ip_master_bus_resp_i(my_ip_master_bus_resp_o)
+      .my_ip_master_bus_resp_i(my_ip_master_bus_resp_o),
+      .dma_done(dma_done_o)
   );
 
   // Debug_req assign

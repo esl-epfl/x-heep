@@ -76,18 +76,15 @@ module my_ip_reg_top #(
   logic intr_enable_we;
   logic intr_test_wd;
   logic intr_test_we;
-  logic control_start_qs;
-  logic control_start_wd;
-  logic control_start_we;
-  logic control_write_qs;
-  logic control_write_wd;
-  logic control_write_we;
-  logic [31:0] address_qs;
-  logic [31:0] address_wd;
-  logic address_we;
-  logic [31:0] data_qs;
-  logic [31:0] data_wd;
-  logic data_we;
+  logic control_qs;
+  logic control_wd;
+  logic control_we;
+  logic [31:0] r_address_qs;
+  logic [31:0] r_address_wd;
+  logic r_address_we;
+  logic [31:0] s_address_qs;
+  logic [31:0] s_address_wd;
+  logic s_address_we;
   logic [31:0] length_qs;
   logic [31:0] length_wd;
   logic length_we;
@@ -165,109 +162,82 @@ module my_ip_reg_top #(
 
   // R[control]: V(False)
 
-  //   F[start]: 0:0
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_control_start (
+  ) u_control (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(control_start_we),
-      .wd(control_start_wd),
+      .we(control_we),
+      .wd(control_wd),
 
       // from internal hardware
-      .de(hw2reg.control.start.de),
-      .d (hw2reg.control.start.d),
+      .de(hw2reg.control.de),
+      .d (hw2reg.control.d),
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.control.start.q),
+      .q (reg2hw.control.q),
 
       // to register interface (read)
-      .qs(control_start_qs)
+      .qs(control_qs)
   );
 
 
-  //   F[write]: 1:1
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
-  ) u_control_write (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(control_write_we),
-      .wd(control_write_wd),
-
-      // from internal hardware
-      .de(hw2reg.control.write.de),
-      .d (hw2reg.control.write.d),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.control.write.q),
-
-      // to register interface (read)
-      .qs(control_write_qs)
-  );
-
-
-  // R[address]: V(False)
+  // R[r_address]: V(False)
 
   prim_subreg #(
       .DW      (32),
       .SWACCESS("RW"),
       .RESVAL  (32'h0)
-  ) u_address (
+  ) u_r_address (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(address_we),
-      .wd(address_wd),
+      .we(r_address_we),
+      .wd(r_address_wd),
 
       // from internal hardware
-      .de(hw2reg.address.de),
-      .d (hw2reg.address.d),
+      .de(hw2reg.r_address.de),
+      .d (hw2reg.r_address.d),
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.address.q),
+      .q (reg2hw.r_address.q),
 
       // to register interface (read)
-      .qs(address_qs)
+      .qs(r_address_qs)
   );
 
 
-  // R[data]: V(False)
+  // R[s_address]: V(False)
 
   prim_subreg #(
       .DW      (32),
       .SWACCESS("RW"),
       .RESVAL  (32'h0)
-  ) u_data (
+  ) u_s_address (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(data_we),
-      .wd(data_wd),
+      .we(s_address_we),
+      .wd(s_address_wd),
 
       // from internal hardware
-      .de(hw2reg.data.de),
-      .d (hw2reg.data.d),
+      .de(hw2reg.s_address.de),
+      .d (hw2reg.s_address.d),
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.data.q),
+      .q (reg2hw.s_address.q),
 
       // to register interface (read)
-      .qs(data_qs)
+      .qs(s_address_qs)
   );
 
 
@@ -307,8 +277,8 @@ module my_ip_reg_top #(
     addr_hit[1] = (reg_addr == MY_IP_INTR_ENABLE_OFFSET);
     addr_hit[2] = (reg_addr == MY_IP_INTR_TEST_OFFSET);
     addr_hit[3] = (reg_addr == MY_IP_CONTROL_OFFSET);
-    addr_hit[4] = (reg_addr == MY_IP_ADDRESS_OFFSET);
-    addr_hit[5] = (reg_addr == MY_IP_DATA_OFFSET);
+    addr_hit[4] = (reg_addr == MY_IP_R_ADDRESS_OFFSET);
+    addr_hit[5] = (reg_addr == MY_IP_S_ADDRESS_OFFSET);
     addr_hit[6] = (reg_addr == MY_IP_LENGTH_OFFSET);
   end
 
@@ -335,17 +305,14 @@ module my_ip_reg_top #(
   assign intr_test_we = addr_hit[2] & reg_we & !reg_error;
   assign intr_test_wd = reg_wdata[0];
 
-  assign control_start_we = addr_hit[3] & reg_we & !reg_error;
-  assign control_start_wd = reg_wdata[0];
+  assign control_we = addr_hit[3] & reg_we & !reg_error;
+  assign control_wd = reg_wdata[0];
 
-  assign control_write_we = addr_hit[3] & reg_we & !reg_error;
-  assign control_write_wd = reg_wdata[1];
+  assign r_address_we = addr_hit[4] & reg_we & !reg_error;
+  assign r_address_wd = reg_wdata[31:0];
 
-  assign address_we = addr_hit[4] & reg_we & !reg_error;
-  assign address_wd = reg_wdata[31:0];
-
-  assign data_we = addr_hit[5] & reg_we & !reg_error;
-  assign data_wd = reg_wdata[31:0];
+  assign s_address_we = addr_hit[5] & reg_we & !reg_error;
+  assign s_address_wd = reg_wdata[31:0];
 
   assign length_we = addr_hit[6] & reg_we & !reg_error;
   assign length_wd = reg_wdata[31:0];
@@ -367,16 +334,15 @@ module my_ip_reg_top #(
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[0] = control_start_qs;
-        reg_rdata_next[1] = control_write_qs;
+        reg_rdata_next[0] = control_qs;
       end
 
       addr_hit[4]: begin
-        reg_rdata_next[31:0] = address_qs;
+        reg_rdata_next[31:0] = r_address_qs;
       end
 
       addr_hit[5]: begin
-        reg_rdata_next[31:0] = data_qs;
+        reg_rdata_next[31:0] = s_address_qs;
       end
 
       addr_hit[6]: begin

@@ -92,9 +92,10 @@ module peripheral_subsystem
     input  logic pdm2pcm_pdm_i,
 
     // My IP signals
-    output logic      my_ip_done_o,
-    output obi_req_t  my_ip_master_bus_req_o,
-    input  obi_resp_t my_ip_master_bus_resp_i
+    output logic                                            my_ip_done_o,
+    output obi_req_t                                        my_ip_master_bus_req_o,
+    input  obi_resp_t                                       my_ip_master_bus_resp_i,
+    input  logic      [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -492,7 +493,8 @@ module peripheral_subsystem
 
       // Master ports on the system bus
       .my_ip_master_bus_req_o,
-      .my_ip_master_bus_resp_i
+      .my_ip_master_bus_resp_i,
+      .dma_done
   );
 
 endmodule : peripheral_subsystem

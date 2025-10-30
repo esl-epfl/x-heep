@@ -34,13 +34,12 @@ extern "C" {
 // Controls for SPI_FLASH W/R
 #define MY_IP_CONTROL_REG_OFFSET 0xc
 #define MY_IP_CONTROL_START_BIT 0
-#define MY_IP_CONTROL_WRITE_BIT 1
 
-// Address to W/R
-#define MY_IP_ADDRESS_REG_OFFSET 0x10
+// Address in Flash to read from
+#define MY_IP_R_ADDRESS_REG_OFFSET 0x10
 
-// Data to W
-#define MY_IP_DATA_REG_OFFSET 0x14
+// Address to store read data from SPI_FLASH
+#define MY_IP_S_ADDRESS_REG_OFFSET 0x14
 
 // Length of data to W/R
 #define MY_IP_LENGTH_REG_OFFSET 0x18

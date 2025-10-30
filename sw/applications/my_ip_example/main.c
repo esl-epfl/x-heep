@@ -136,3 +136,6 @@ int main(void) {
 //SPI_HW(spi)->CONTROL = wval;
 
 // printf("T\n");
+
+
+// dma_init in sw

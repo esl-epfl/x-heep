@@ -25,3 +25,8 @@ lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Signal is not driven: 'hw2reg
 lint_off -rule UNDRIVEN -file "*/my_ip.sv" -match "Bits of signal are not driven: 'hw2*"
 
 lint_off -rule UNUSED -file "*/my_ip.sv" -match "Bits of signal are not used: 'my_ip_master_bus_resp_i*"
+
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Parameter is not used: 'SPI_FLASH_RX_FIFO_DEPTH'"
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Parameter is not used: 'SPI_FLASH_TX_FIFO_DEPTH'"
+
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Bits of signal are not used: 'dma_done'[3:1]"
