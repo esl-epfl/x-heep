@@ -120,14 +120,14 @@ if __name__ == "__main__":
         # Get the original config path from the cached kwargs
         if "config_path" in kwargs and os.path.exists(kwargs["config_path"]):
             hjson_config_path = kwargs["config_path"]
-            
+
             # Load from the original HJSON to get ALL peripherals with "path" field
             with open(hjson_config_path) as f:
                 data = hjson.load(f)
-            
+
             base_peripherals = data["ao_peripherals"]
             user_peripherals = data["peripherals"]
-            
+
             # Scan ALL peripherals that have a "path" field, ignoring is_included
             scan_peripherals_hjson(base_peripherals)
             scan_peripherals_hjson(user_peripherals)
