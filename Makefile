@@ -278,7 +278,7 @@ vivado-fpga-nobuild:
 ## Loads the generated bitstream into the FPGA
 ## @param FPGA_BOARD=nexys-a7-100t,pynq-z2,zcu104
 vivado-fpga-pgm:
-	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/$(FPGA_BOARD)-vivado pgm
+	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --run openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildvivado.log
 
 ## @section ASIC
 ## Note that for this step you need to provide technology-dependent files (e.g., libs, constraints)
