@@ -342,8 +342,7 @@ module my_ip #(
     DMA_DST_INC,
     DMA_SRC_TYPE,
     DMA_DST_TYPE,
-    DMA_SRC_TRIG,
-    DMA_DST_TRIG,
+    DMA_TRIG,
     DMA_SIZE_D1_,
     SPI_CHECK_TX_FIFO,
     SPI_FILL_TX_FIFO,
@@ -448,24 +447,13 @@ module my_ip #(
         obi_start = 1'b1;
 
         if (obi_finish) begin
-          dma_state_d = DMA_SRC_TRIG;
+          dma_state_d = DMA_TRIG;
         end
       end
 
-      DMA_SRC_TRIG: begin
+      DMA_TRIG: begin
         address = DMA_START_ADDRESS + {25'b0, DMA_SLOT_OFFSET};
-        data = 32'h4;  // RX_TRG: SPI Host RX FIFO threshold
-        w_enable = 1'b1;
-        obi_start = 1'b1;
-
-        if (obi_finish) begin
-          dma_state_d = DMA_DST_TRIG;
-        end
-      end
-
-      DMA_DST_TRIG: begin
-        address = DMA_START_ADDRESS + {25'b0, DMA_SLOT_OFFSET};
-        data = 32'h0;  // TX_TRG: Memory write trigger
+        data = {16'h0, 16'h4};  // TX_TRG: Memory write trigger + RX_TRG: SPI Host RX FIFO threshold
         w_enable = 1'b1;
         obi_start = 1'b1;
 
@@ -500,7 +488,6 @@ module my_ip #(
             dma_state_d = SPI_FILL_TX_FIFO;
           end
         end
-
       end
 
       SPI_FILL_TX_FIFO: begin
@@ -527,7 +514,7 @@ module my_ip #(
 
       SPI_SEND_CMD_1: begin
         address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-        data = (32'h2 << 27) + (32'h0 << 25) + (32'h1 << 24) + 32'h3; // Direction + Speed + Csaat + Length
+        data = {3'h0, 2'h2, 2'h0, 1'h1, 24'h3};  // Empty + Direction + Speed + Csaat + Length
         w_enable = 1'b1;
         obi_start = 1'b1;
 
@@ -542,21 +529,30 @@ module my_ip #(
 
         if (obi_finish) begin
           if (read_value_d[31] == 1'b1) begin
-            dma_state_d = SPI_SEND_CMD_1;
+            dma_state_d = SPI_SEND_CMD_2;
           end
         end
       end
 
       SPI_SEND_CMD_2: begin
         address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-        data = (32'h1 << 27) + (32'h0 << 25) + (32'h0 << 24) + (reg2hw.length-1); // Direction + Speed + Csaat + Length
+        data = {
+          3'h0, 2'h1, 2'h0, 1'h0, reg2hw.length[23:0] - 1'h1
+        };  // Empty + Direction + Speed + Csaat + Length
         w_enable = 1'b1;
         obi_start = 1'b1;
 
         if (obi_finish) begin
-          dma_state_d = DMA_IDLE;
+          dma_state_d = WAIT_TRANS;
         end
       end
+
+      // STAYS HERE
+      // MOST LIKELY DUE TO THE FACT THAT THE ADDRESS GIVEN TO SPI IS NOT WITHIN FLASH HENCE DOESN'T READ HENCE DOESN'T SRC TRIGGER DMA HENCE DMA IS STILL WAITING
+      // SHOULD SIZE_D1 OF DMA DECREASE AS WE GO? AS SHOULD THE DST PTR? 
+
+      // erilator doesn't work for FLASH?
+      // Go to server, change gitignore, pull here then launch waves?
 
       WAIT_TRANS: begin
         if (dma_done[0] == 1'b1) begin  // Transaction done
