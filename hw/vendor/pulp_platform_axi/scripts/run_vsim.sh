@@ -13,7 +13,7 @@
 # Authors:
 # - Andreas Kurth <akurth@iis.ee.ethz.ch>
 # - Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
-# - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
+# - Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
 
 set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -49,6 +49,14 @@ exec_test() {
             call_vsim tb_$1
             ;;
         axi_dw_downsizer)
+            call_vsim tb_axi_dw_downsizer \
+                    -gTbAxiSlvPortDataWidth=32 \
+                    -gTbAxiMstPortDataWidth=16 \
+                    -gTbInitialBStallCycles=100000 -t 1ps
+            call_vsim tb_axi_dw_downsizer \
+                    -gTbAxiSlvPortDataWidth=32 \
+                    -gTbAxiMstPortDataWidth=16 \
+                    -gTbInitialRStallCycles=100000 -t 1ps
             for AxiSlvPortDataWidth in 8 16 32 64 128 256 512 1024; do
                 for (( AxiMstPortDataWidth = 8; \
                         AxiMstPortDataWidth < $AxiSlvPortDataWidth; \
@@ -69,6 +77,70 @@ exec_test() {
                     call_vsim tb_axi_dw_upsizer \
                             -gTbAxiSlvPortDataWidth=$AxiSlvPortDataWidth \
                             -gTbAxiMstPortDataWidth=$AxiMstPortDataWidth -t 1ps
+                done
+            done
+            ;;
+        axi_fifo)
+            for DEPTH in 0 1 16; do
+                for FALL_THROUGH in 0 1; do
+                    call_vsim tb_axi_fifo -gDepth=$DEPTH \
+                            -gFallThrough=$FALL_THROUGH
+                done
+            done
+            ;;
+        axi_iw_converter)
+            for SLV_PORT_IW in 1 2 3 4 8; do
+                MAX_SLV_PORT_IDS=$((2**SLV_PORT_IW))
+                MAX_UNIQ_SLV_PORT_IDS_OPTS=(1 2)
+                EXCL_OPTS=(0)
+                if [ $SLV_PORT_IW -eq 3 ]; then
+                    # Save time by not testing exclusive accesses for every parametrization.
+                    EXCL_OPTS+=(1)
+                fi
+                for EXCL in "${EXCL_OPTS[@]}"; do
+                    if [ $MAX_SLV_PORT_IDS -gt 2 ]; then
+                        MAX_UNIQ_SLV_PORT_IDS_OPTS+=(3 4)
+                    fi
+                    if [ $(($MAX_SLV_PORT_IDS/2)) -ge 4 ]; then
+                        MAX_UNIQ_SLV_PORT_IDS_OPTS+=($((MAX_SLV_PORT_IDS/2-1)))
+                    fi
+                    MAX_UNIQ_SLV_PORT_IDS_OPTS+=($MAX_SLV_PORT_IDS)
+                    for MST_PORT_IW in 1 2 3 4; do
+                        if [ $MST_PORT_IW -lt $SLV_PORT_IW ]; then # downsize
+                            for MAX_UNIQ_SLV_PORT_IDS in "${MAX_UNIQ_SLV_PORT_IDS_OPTS[@]}"; do
+                                MAX_MST_PORT_IDS=$((2**MST_PORT_IW))
+                                if [ $MAX_UNIQ_SLV_PORT_IDS -le $MAX_MST_PORT_IDS ]; then
+                                    call_vsim tb_axi_iw_converter \
+                                            -t 1ns -coverage -classdebug \
+                                            -voptargs="+acc +cover=bcesfx" \
+                                            -GTbEnExcl=$EXCL \
+                                            -GTbAxiSlvPortIdWidth=$SLV_PORT_IW \
+                                            -GTbAxiMstPortIdWidth=$MST_PORT_IW \
+                                            -GTbAxiSlvPortMaxUniqIds=$MAX_UNIQ_SLV_PORT_IDS \
+                                            -GTbAxiSlvPortMaxTxnsPerId=5
+                                else
+                                    call_vsim tb_axi_iw_converter \
+                                            -t 1ns -coverage -classdebug \
+                                            -voptargs="+acc +cover=bcesfx" \
+                                            -GTbEnExcl=$EXCL \
+                                            -GTbAxiSlvPortIdWidth=$SLV_PORT_IW \
+                                            -GTbAxiMstPortIdWidth=$MST_PORT_IW \
+                                            -GTbAxiSlvPortMaxUniqIds=$MAX_UNIQ_SLV_PORT_IDS \
+                                            -GTbAxiSlvPortMaxTxns=31 \
+                                            -GTbAxiMstPortMaxUniqIds=$((2**MST_PORT_IW)) \
+                                            -GTbAxiMstPortMaxTxnsPerId=7
+                                fi
+                            done
+                        else
+                            call_vsim tb_axi_iw_converter \
+                                    -t 1ns -coverage -classdebug \
+                                    -voptargs="+acc +cover=bcesfx" \
+                                    -GTbEnExcl=$EXCL \
+                                    -GTbAxiSlvPortIdWidth=$SLV_PORT_IW \
+                                    -GTbAxiMstPortIdWidth=$MST_PORT_IW \
+                                    -GTbAxiSlvPortMaxTxnsPerId=3
+                        fi
+                    done
                 done
             done
             ;;
@@ -104,12 +176,68 @@ exec_test() {
             done
             ;;
         axi_xbar)
-            for Atop in 0 1; do
-                for Exclusive in 0 1; do
-                    for UniqueIds in 0 1; do
-                        call_vsim tb_axi_xbar -gTbEnAtop=$Atop -gTbEnExcl=$Exclusive \
-                                -gTbUniqueIds=$UniqueIds
+            for NumMst in 1 6; do
+                for NumSlv in 1 8; do
+                    for Atop in 0 1; do
+                        for Exclusive in 0 1; do
+                            for UniqueIds in 0 1; do
+                                call_vsim tb_axi_xbar -gTbNumMasters=$NumMst -gTbNumSlaves=$NumSlv \
+                                        -gTbEnAtop=$Atop -gTbEnExcl=$Exclusive \
+                                        -gTbUniqueIds=$UniqueIds
+                            done
+                        done
                     done
+                done
+            done
+            ;;
+        axi_to_mem_banked)
+            for MEM_LAT in 1 2; do
+                for BANK_FACTOR in 1 2; do
+                    for NUM_BANKS in 1 2 ; do
+                        for AXI_DATA_WIDTH in 64 256 ; do
+                            ACT_BANKS=$((2*$BANK_FACTOR*$NUM_BANKS))
+                            MEM_DATA_WIDTH=$(($AXI_DATA_WIDTH/$NUM_BANKS))
+                            call_vsim tb_axi_to_mem_banked \
+                                -voptargs="+acc +cover=bcesfx" \
+                                -gTbAxiDataWidth=$AXI_DATA_WIDTH \
+                                -gTbNumWords=2048 \
+                                -gTbNumBanks=$ACT_BANKS \
+                                -gTbMemDataWidth=$MEM_DATA_WIDTH \
+                                -gTbMemLatency=$MEM_LAT \
+                                -gTbNumWrites=2000 \
+                                -gTbNumReads=2000
+                        done
+                    done
+                done
+            done
+            ;;
+        axi_xbar)
+            for GEN_ATOP in 0 1; do
+                for NUM_MST in 1 6; do
+                    for NUM_SLV in 2 9; do
+                        for MST_ID_USE in 3 5; do
+                            MST_ID=5
+                            for DATA_WIDTH in 64 256; do
+                                for PIPE in 0 1; do
+                                    call_vsim tb_axi_xbar -t 1ns -voptargs="+acc" \
+                                        -gTbNumMasters=$NUM_MST       \
+                                        -gTbNumSlaves=$NUM_SLV        \
+                                        -gTbAxiIdWidthMasters=$MST_ID \
+                                        -gTbAxiIdUsed=$MST_ID_USE     \
+                                        -gTbAxiDataWidth=$DATA_WIDTH  \
+                                        -gTbPipeline=$PIPE            \
+                                        -gTbEnAtop=$GEN_ATOP
+                                done
+                            done
+                        done
+                    done
+                done
+            done
+            ;;
+        axi_lite_dw_converter)
+            for DWSLV in 32 64 128; do
+                for DWMST in 16 32 64; do
+                    call_vsim tb_axi_lite_dw_converter -gTbAxiDataWidthSlv=$DWSLV -gTbAxiDataWidthMst=$DWMST
                 done
             done
             ;;

@@ -12,6 +12,7 @@
 // - Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
 // - Andreas Kurth <akurth@iis.ee.ethz.ch>
 // - Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
+// - Michael Rogenmoser <michaero@iis.ee.ethz.ch>
 
 /// A synthesis test bench which instantiates various adapter variants.
 module axi_synth_bench (
@@ -151,6 +152,57 @@ module axi_synth_bench (
       .AXI_ADDR_WIDTH ( 32'd32            ),
       .AXI_DATA_WIDTH ( 32'd32            )
     ) i_axi_lite_regs (.*);
+  end
+
+  // AXI ID width converter
+  for (genvar i_iwus = 0; i_iwus < 3; i_iwus++) begin : gen_iw_upstream
+    localparam int unsigned AxiIdWidthUs = AXI_ID_USER_WIDTH[i_iwus] + 1;
+    for (genvar i_iwds = 0; i_iwds < 3; i_iwds++) begin : gen_iw_downstream
+      localparam int unsigned AxiIdWidthDs = AXI_ID_USER_WIDTH[i_iwds] + 1;
+      localparam int unsigned TableSize    = 2**AxiIdWidthDs;
+      synth_axi_iw_converter # (
+        .AxiSlvPortIdWidth      ( AxiIdWidthUs    ),
+        .AxiMstPortIdWidth      ( AxiIdWidthDs    ),
+        .AxiSlvPortMaxUniqIds   ( 2**AxiIdWidthUs ),
+        .AxiSlvPortMaxTxnsPerId ( 13              ),
+        .AxiSlvPortMaxTxns      ( 81              ),
+        .AxiMstPortMaxUniqIds   ( 2**AxiIdWidthDs ),
+        .AxiMstPortMaxTxnsPerId ( 11              ),
+        .AxiAddrWidth           ( 32'd64          ),
+        .AxiDataWidth           ( 32'd512         ),
+        .AxiUserWidth           ( 32'd10          )
+      ) i_synth_axi_iw_converter (.*);
+    end
+  end
+
+  // AXI4+ATOP on chip memory slave banked
+  for (genvar i = 0; i < 5; i++) begin : gen_axi_to_mem_banked_data
+    for (genvar j = 0; j < 4; j++) begin : gen_axi_to_mem_banked_bank_num
+      for (genvar k = 0; k < 2; k++) begin : gen_axi_to_mem_banked_bank_addr
+        localparam int unsigned DATA_WIDTH_AXI[5]   = {32'd32, 32'd64, 32'd128, 32'd256, 32'd512};
+        localparam int unsigned NUM_BANKS[4]        = {32'd2,  32'd4,  32'd6,   32'd8};
+        localparam int unsigned ADDR_WIDTH_BANKS[2] = {32'd5,  32'd11};
+
+        synth_axi_to_mem_banked #(
+          .AxiDataWidth  ( DATA_WIDTH_AXI[i]   ),
+          .BankNum       ( NUM_BANKS[j]        ),
+          .BankAddrWidth ( ADDR_WIDTH_BANKS[k] )
+        ) i_axi_to_mem_banked (.*);
+      end
+    end
+  end
+
+  // AXI4-Lite DW converter
+  for (genvar i = 0; i < 3; i++) begin
+    for (genvar j = 0; j < 3; j++) begin
+      localparam int unsigned SLV_DW[3] = {32, 64, 128};
+      localparam int unsigned MST_DW[3] = {16, 32, 64};
+
+      synth_axi_lite_dw_converter #(
+        .AXI_SLV_PORT_DATA_WIDTH (SLV_DW[i]),
+        .AXI_MST_PORT_DATA_WIDTH (MST_DW[j])
+      ) i_axi_lite_dw_converter (.*);
+    end
   end
 
 endmodule
@@ -366,8 +418,8 @@ module synth_axi_lite_xbar #(
   `AXI_LITE_TYPEDEF_B_CHAN_T(b_chan_t)
   `AXI_LITE_TYPEDEF_AR_CHAN_T(ar_chan_t, addr_t)
   `AXI_LITE_TYPEDEF_R_CHAN_T(r_chan_t, data_t)
-  `AXI_LITE_TYPEDEF_REQ_T(req_t, aw_chan_t, w_chan_t, ar_chan_t)
-  `AXI_LITE_TYPEDEF_RESP_T(resp_t, b_chan_t, r_chan_t)
+  `AXI_LITE_TYPEDEF_REQ_T(axi_req_t, aw_chan_t, w_chan_t, ar_chan_t)
+  `AXI_LITE_TYPEDEF_RESP_T(axi_resp_t, b_chan_t, r_chan_t)
   localparam axi_pkg::xbar_cfg_t XbarCfg = '{
     NoSlvPorts:         NoSlvMst,
     NoMstPorts:         NoSlvMst,
@@ -383,19 +435,19 @@ module synth_axi_lite_xbar #(
 
   axi_pkg::xbar_rule_32_t [NoSlvMst-1:0] addr_map;
   logic                                  test;
-  req_t                   [NoSlvMst-1:0] mst_reqs,  slv_reqs;
-  resp_t                  [NoSlvMst-1:0] mst_resps, slv_resps;
+  axi_req_t               [NoSlvMst-1:0] mst_reqs,  slv_reqs;
+  axi_resp_t              [NoSlvMst-1:0] mst_resps, slv_resps;
 
   axi_lite_xbar #(
-    .Cfg       ( XbarCfg                 ),
-    .aw_chan_t ( aw_chan_t               ),
-    .w_chan_t  (  w_chan_t               ),
-    .b_chan_t  (  b_chan_t               ),
-    .ar_chan_t ( ar_chan_t               ),
-    .r_chan_t  (  r_chan_t               ),
-    .req_t     (     req_t               ),
-    .resp_t    (    resp_t               ),
-    .rule_t    ( axi_pkg::xbar_rule_32_t )
+    .Cfg        ( XbarCfg                 ),
+    .aw_chan_t  (  aw_chan_t              ),
+    .w_chan_t   (   w_chan_t              ),
+    .b_chan_t   (   b_chan_t              ),
+    .ar_chan_t  (  ar_chan_t              ),
+    .r_chan_t   (   r_chan_t              ),
+    .axi_req_t  (  axi_req_t              ),
+    .axi_resp_t ( axi_resp_t              ),
+    .rule_t     ( axi_pkg::xbar_rule_32_t )
   ) i_xbar_dut (
     .clk_i                 ( clk_i     ),
     .rst_ni                ( rst_ni    ),
@@ -590,4 +642,154 @@ module synth_axi_lite_regs #(
     .reg_load_i  ( reg_load    ),
     .reg_q_o     ( reg_q       )
   );
+endmodule
+
+module synth_axi_iw_converter # (
+  parameter int unsigned AxiSlvPortIdWidth = 32'd0,
+  parameter int unsigned AxiMstPortIdWidth = 32'd0,
+  parameter int unsigned AxiSlvPortMaxUniqIds = 32'd0,
+  parameter int unsigned AxiSlvPortMaxTxnsPerId = 32'd0,
+  parameter int unsigned AxiSlvPortMaxTxns = 32'd0,
+  parameter int unsigned AxiMstPortMaxUniqIds = 32'd0,
+  parameter int unsigned AxiMstPortMaxTxnsPerId = 32'd0,
+  parameter int unsigned AxiAddrWidth = 32'd0,
+  parameter int unsigned AxiDataWidth = 32'd0,
+  parameter int unsigned AxiUserWidth = 32'd0
+) (
+  input logic clk_i,
+  input logic rst_ni
+);
+  AXI_BUS #(
+    .AXI_ADDR_WIDTH ( AxiAddrWidth      ),
+    .AXI_DATA_WIDTH ( AxiDataWidth      ),
+    .AXI_ID_WIDTH   ( AxiSlvPortIdWidth ),
+    .AXI_USER_WIDTH ( AxiUserWidth      )
+  ) upstream ();
+  AXI_BUS #(
+    .AXI_ADDR_WIDTH ( AxiAddrWidth      ),
+    .AXI_DATA_WIDTH ( AxiDataWidth      ),
+    .AXI_ID_WIDTH   ( AxiMstPortIdWidth ),
+    .AXI_USER_WIDTH ( AxiUserWidth      )
+  ) downstream ();
+
+  axi_iw_converter_intf #(
+    .AXI_SLV_PORT_ID_WIDTH        (AxiSlvPortIdWidth      ),
+    .AXI_MST_PORT_ID_WIDTH        (AxiMstPortIdWidth      ),
+    .AXI_SLV_PORT_MAX_UNIQ_IDS    (AxiMstPortIdWidth      ),
+    .AXI_SLV_PORT_MAX_TXNS_PER_ID (AxiSlvPortMaxTxnsPerId ),
+    .AXI_SLV_PORT_MAX_TXNS        (AxiSlvPortMaxTxns      ),
+    .AXI_MST_PORT_MAX_UNIQ_IDS    (AxiMstPortMaxUniqIds   ),
+    .AXI_MST_PORT_MAX_TXNS_PER_ID (AxiMstPortMaxTxnsPerId ),
+    .AXI_ADDR_WIDTH               (AxiAddrWidth           ),
+    .AXI_DATA_WIDTH               (AxiDataWidth           ),
+    .AXI_USER_WIDTH               (AxiUserWidth           )
+  ) i_axi_iw_converter_dut (
+    .clk_i,
+    .rst_ni,
+    .slv     ( upstream   ),
+    .mst     ( downstream )
+  );
+endmodule
+
+
+module synth_axi_to_mem_banked #(
+  parameter int unsigned AxiDataWidth  = 32'd0,
+  parameter int unsigned BankNum       = 32'd0,
+  parameter int unsigned BankAddrWidth = 32'd0
+) (
+  input logic clk_i,
+  input logic rst_ni
+);
+  localparam int unsigned AxiIdWidth    = 32'd10;
+  localparam int unsigned AxiAddrWidth  = 32'd64;
+  localparam int unsigned AxiStrbWidth  = AxiDataWidth / 32'd8;
+  localparam int unsigned AxiUserWidth  = 32'd8;
+  localparam int unsigned BankDataWidth = 32'd2 * AxiDataWidth / BankNum;
+  localparam int unsigned BankStrbWidth = BankDataWidth / 32'd8;
+  localparam int unsigned BankLatency   = 32'd1;
+
+  typedef logic [BankAddrWidth-1:0] mem_addr_t;
+  typedef logic [BankDataWidth-1:0] mem_data_t;
+  typedef logic [BankStrbWidth-1:0] mem_strb_t;
+
+  AXI_BUS #(
+    .AXI_ADDR_WIDTH ( AxiIdWidth   ),
+    .AXI_DATA_WIDTH ( AxiAddrWidth ),
+    .AXI_ID_WIDTH   ( AxiDataWidth ),
+    .AXI_USER_WIDTH ( AxiUserWidth )
+  ) axi ();
+
+  // Misc signals
+  logic                             test;
+  logic           [1:0]             axi_to_mem_busy;
+  // Signals for mem macros
+  logic           [BankNum-1:0] mem_req;
+  logic           [BankNum-1:0] mem_gnt;
+  mem_addr_t      [BankNum-1:0] mem_addr;
+  logic           [BankNum-1:0] mem_we;
+  mem_data_t      [BankNum-1:0] mem_wdata;
+  mem_strb_t      [BankNum-1:0] mem_be;
+  axi_pkg::atop_t [BankNum-1:0] mem_atop;
+  mem_data_t      [BankNum-1:0] mem_rdata;
+
+
+  axi_to_mem_banked_intf #(
+    .AXI_ID_WIDTH    ( AxiIdWidth    ),
+    .AXI_ADDR_WIDTH  ( AxiAddrWidth  ),
+    .AXI_DATA_WIDTH  ( AxiDataWidth  ),
+    .AXI_USER_WIDTH  ( AxiUserWidth  ),
+    .MEM_NUM_BANKS   ( BankNum       ),
+    .MEM_ADDR_WIDTH  ( BankAddrWidth ),
+    .MEM_DATA_WIDTH  ( BankDataWidth ),
+    .MEM_LATENCY     ( BankLatency   )
+  ) i_axi_to_mem_banked_intf (
+    .clk_i,
+    .rst_ni,
+    .test_i            ( test            ),
+    .slv               ( axi             ),
+    .mem_req_o         ( mem_req         ),
+    .mem_gnt_i         ( mem_gnt         ),
+    .mem_add_o         ( mem_addr        ),
+    .mem_we_o          ( mem_we          ),
+    .mem_wdata_o       ( mem_wdata       ),
+    .mem_be_o          ( mem_be          ),
+    .mem_atop_o        ( mem_atop        ),
+    .mem_rdata_i       ( mem_rdata       ),
+    .axi_to_mem_busy_o ( axi_to_mem_busy )
+  );
+
+endmodule
+
+
+module synth_axi_lite_dw_converter #(
+  parameter int unsigned AXI_SLV_PORT_DATA_WIDTH = 32'd0,
+  parameter int unsigned AXI_MST_PORT_DATA_WIDTH = 32'd0
+) (
+  input logic clk_i,
+  input logic rst_ni
+);
+
+  localparam int unsigned AXI_ADDR_WIDTH = 32'd64;
+
+  AXI_LITE #(
+    .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH          ),
+    .AXI_DATA_WIDTH ( AXI_SLV_PORT_DATA_WIDTH )
+  ) slv_intf ();
+
+  AXI_LITE #(
+    .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH          ),
+    .AXI_DATA_WIDTH ( AXI_MST_PORT_DATA_WIDTH )
+  ) mst_intf ();
+
+  axi_lite_dw_converter_intf #(
+    .AXI_ADDR_WIDTH          ( AXI_ADDR_WIDTH          ),
+    .AXI_SLV_PORT_DATA_WIDTH ( AXI_SLV_PORT_DATA_WIDTH ),
+    .AXI_MST_PORT_DATA_WIDTH ( AXI_MST_PORT_DATA_WIDTH )
+  ) i_axi_lite_dw_converter_intf (
+    .clk_i,
+    .rst_ni,
+    .slv    ( slv_intf ),
+    .mst    ( mst_intf )
+  );
+
 endmodule

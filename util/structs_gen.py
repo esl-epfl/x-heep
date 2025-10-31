@@ -4,6 +4,9 @@ import string
 import argparse
 import sys
 from datetime import date
+import re
+import ast
+import operator
 
 ############################################################
 #  This module generates the structures for the registers  #
@@ -22,16 +25,16 @@ reserved_name = "_reserved"
 tab_spaces = "  "
 
 # ENUM definitions #
-enum_start = "typedef enum {}_enum {{\n"
-enum_end = "}} {}_t;\n\n"
+enum_start = "typedef enum {}_enum {\n"
+enum_end = "} {}_t;\n\n"
 
 # UNION definitions #
 union_start = tab_spaces + "union\n" + tab_spaces + "{\n"
-union_end = tab_spaces + "}} {};\n\n"
+union_end = tab_spaces + "}; {};\n\n"
 
 # STRUCT definitions #
 struct_typedef_start = (
-    (2 * tab_spaces) + "struct \n" + (2 * tab_spaces) + "{{\n"
+    (2 * tab_spaces) + "struct \n" + (2 * tab_spaces) + "{\n"
 )  # used to define a new struct and format the name
 struct_entry = (3 * tab_spaces) + "{}" + "{}" + ":{}"  # type, name and amount of bits
 struct_typedef_end = (
@@ -44,6 +47,71 @@ line_comment_start = "/*!< "
 line_comment_end = "*/"
 struct_comment = "Structure used for bit access"
 word_comment = "Type used for word access"
+
+############################
+# Expression resolution   ##
+############################
+_ALLOWED_BINOP = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.floordiv,
+    ast.Mod: operator.mod,
+    ast.LShift: operator.lshift,
+    ast.RShift: operator.rshift,
+}
+_ALLOWED_UNARY = {ast.UAdd: operator.pos, ast.USub: operator.neg}
+
+
+def _eval_ast(node):
+    if isinstance(node, ast.Num):  # py<3.8
+        return node.n
+    if isinstance(node, ast.Constant):  # py>=3.8
+        if isinstance(node.value, int):
+            return node.value
+        raise ValueError("Unsupported constant")
+    if isinstance(node, ast.BinOp) and type(node.op) in _ALLOWED_BINOP:
+        return _ALLOWED_BINOP[type(node.op)](
+            _eval_ast(node.left), _eval_ast(node.right)
+        )
+    if isinstance(node, ast.UnaryOp) and type(node.op) in _ALLOWED_UNARY:
+        return _ALLOWED_UNARY[type(node.op)](_eval_ast(node.operand))
+    if isinstance(node, ast.Expr):
+        return _eval_ast(node.value)
+    raise ValueError("Disallowed expression")
+
+
+def resolve_expr(expr, params):
+    """
+    Replace identifiers using 'params' and safely evaluate a small arithmetic subset.
+    """
+    # Replace identifiers with numbers using word-boundary matches
+    def repl(m):
+        name = m.group(0)
+        if name not in params:
+            raise KeyError(f"Unknown symbol '{name}' in expression '{expr}'")
+        return str(params[name])
+
+    expr_sub = re.sub(r"\b[A-Za-z_]\w*\b", repl, expr)
+    tree = ast.parse(expr_sub, mode="eval")
+    return int(_eval_ast(tree.body))
+
+
+def count_bits_expr(bits_range, params):
+    """
+    Accept 'end:start' or a single-bit expression.
+    Examples: "Log2MaxClkDiv-1:0", "8+Log2RawModeTXFifoDepth-1:8", "31", "SomeBit"
+    """
+    if ":" in bits_range:
+        end_expr, start_expr = bits_range.split(":")
+        end_bit = resolve_expr(end_expr.strip(), params)
+        start_bit = resolve_expr(start_expr.strip(), params)
+        return int(end_bit) - int(start_bit) + 1
+    else:
+        # Single index still counts as 1 bit; resolve to validate if it’s an expr
+        if re.search(r"[A-Za-z_()]", bits_range):
+            _ = resolve_expr(bits_range.strip(), params)
+        return 1
 
 
 def read_json(json_file):
@@ -139,24 +207,6 @@ def generate_enum(enum_field, name):
     return enum
 
 
-def count_bits(bits_range):
-    """
-    Used to determine if the "bits_range" input string contains only a single bit index or a range of bits.
-    In the latter case the range is supposed to be identified with the following format "end_bit:start_bit".
-    Ex: "7:0" will correspond to 8 bits from 0 to 7.
-    It returns the amount of bits specified in the range
-
-    :param bits_range: string containing the nuber of bit (or range or bits) of a specific field
-    :return: the amount of bits
-    """
-    if bits_range.find(":") != -1:
-        start_bit = bits_range.split(":")[1]
-        end_bit = bits_range.split(":")[0]
-        return int(end_bit) - int(start_bit) + 1
-    else:
-        return 1
-
-
 def select_type(amount_of_bits):
     """
     Used to select the C type to give to a specific bit field. The type depends on the amount of bits
@@ -218,13 +268,14 @@ def alert_regs_auto_gen():
     return res
 
 
-def add_fields(register_json):
+def add_fields(register_json, params):
     """
     Loops through the fields of the json of a register, passed as parameter.
     Returns the structs and enums entries relative to the register, already
     indented.
 
     :param register_json: the json-like description of a register
+    :param params: dict of parameter values to resolve expressions
     :return: the strings of the the struct fields, the enum (if present)
     """
 
@@ -234,7 +285,7 @@ def add_fields(register_json):
 
     # loops through the fields of the register
     for field in register_json["fields"]:
-        field_bits = count_bits(field["bits"])
+        field_bits = count_bits_expr(field["bits"], params)
         field_type = select_type(field_bits)
 
         # Check if there is an ENUM, if yes it generates it and set the type of the associated field
@@ -281,12 +332,13 @@ def add_fields(register_json):
     return struct_fields, enum
 
 
-def add_registers(peripheral_json):
+def add_registers(peripheral_json, params):
     """
     Reads the json description of a peripheral and generates structures for every
     register.
 
     :param peripheral_json: the json-like description of the registers of a peripheral
+    :param params: dict of parameter values to resolve expressions
     :return: the strings containing the indented structs and enums relative to the registers
     """
 
@@ -297,8 +349,8 @@ def add_registers(peripheral_json):
     num_of_reserved = 0
 
     # Keeps track of the offset in Bytes from the base address of the peripheral.
-    # It is usefult to compute how many Bytes to reserve in case a "skipto"
-    # keywork is encountered
+    # It is useful to compute how many Bytes to reserve in case a "skipto"
+    # keyword is encountered
     bytes_offset = 0
 
     # To handle INTR specific registers #
@@ -319,16 +371,22 @@ def add_registers(peripheral_json):
             multireg = elem["multireg"]
             count_var = multireg["count"]
 
-            # search the multireg count default value
-            # This is the number of bitfields needed
-            for p in peripheral_json["param_list"]:
-                if count_var == p["name"]:
-                    count = int(p["default"])
+            # resolve the multireg count
+            count = None
+            if count_var in params:
+                count = int(params[count_var])
+            else:
+                for p in peripheral_json.get("param_list", []):
+                    if count_var == p["name"]:
+                        count = int(p["default"])
+                        break
+            if count is None:
+                raise ValueError(f"Cannot resolve multireg count for '{count_var}'")
 
             # counts the bits needed by the multireg register
             n_bits = 0
             for f in multireg["fields"]:
-                n_bits += count_bits(f["bits"])
+                n_bits += count_bits_expr(f["bits"], params)
 
             # computes the number of registers needed to pack all the bit fields needed
             n_multireg = ceil((count * n_bits) / int(peripheral_json["regwidth"]))
@@ -348,10 +406,11 @@ def add_registers(peripheral_json):
 
         # check and handle the "window" case
         elif "window" in elem:
-
             window = elem["window"]
-
-            validbits = int(window["validbits"])
+            vb = str(window["validbits"])
+            validbits = (
+                resolve_expr(vb, params) if re.search(r"[A-Za-z_()]", vb) else int(vb)
+            )
 
             line = tab_spaces + "{} {};".format(select_type(validbits), window["name"])
             reg_comment = (
@@ -364,7 +423,6 @@ def add_registers(peripheral_json):
 
         # if no multireg or window, just generate the reg
         elif "name" in elem:
-
             line = tab_spaces + "uint32_t {};".format(elem["name"])
             reg_comment = (
                 line_comment_start
@@ -373,9 +431,7 @@ def add_registers(peripheral_json):
                 + "\n\n"
             )
             reg_struct += line.ljust(comment_align_space) + reg_comment
-            bytes_offset += (
-                4  # in order to properly generate subsequent "multireg cases"
-            )
+            bytes_offset += 4  # in order to properly generate subsequent "multireg cases"
 
         if "skipto" in elem:
             new_address = elem["skipto"]
@@ -401,9 +457,7 @@ def add_registers(peripheral_json):
 
             ## OLD VERSION WITH UNION AND BIT FIELDS ##
             # reg_struct += union_start + struct_typedef_start.format(elem["name"])
-
-            # # generate the struct entries relative to the fields of the register
-            # new_field, new_enum = add_fields(elem)
+            # new_field, new_enum = add_fields(elem, params)
             # reg_struct += new_field
             # reg_enum += new_enum
 
@@ -453,13 +507,26 @@ def main(arg_vect):
 
     data = read_json(input_hjson_file)
 
+    # Build a params map from the HJSON param_list defaults
+    params = {}
+    for p in data.get("param_list", []):
+        expr = str(p["default"]).strip()
+        try:
+            # try plain int first
+            params[p["name"]] = int(expr)
+        except Exception:
+            # allow simple expressions referencing earlier params
+            params[p["name"]] = resolve_expr(expr, params)
+
     # Two strings used to store all the structs and enums #
-    structs_definitions = "typedef struct {\n"  # used to store all the struct definitions to write in the template in the end
+    structs_definitions = (
+        "typedef struct {\n"
+    )  # used to store all the struct definitions to write in the template in the end
     enums_definitions = ""  # used to store all the enums definitions, if present
 
     # START OF THE GENERATION #
 
-    reg_structs, reg_enums = add_registers(data)
+    reg_structs, reg_enums = add_registers(data, params)
     structs_definitions += reg_structs
     enums_definitions += reg_enums
 
@@ -473,3 +540,7 @@ def main(arg_vect):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+
+
+## Updated the reg generation script to be abge to generate regs of the sizes which are passed
+## as parameters in .sv files. Example Log2ClkDiv in vendor serial link

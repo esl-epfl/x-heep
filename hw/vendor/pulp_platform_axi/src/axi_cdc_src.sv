@@ -10,10 +10,8 @@
 // specific language governing permissions and limitations under the License.
 //
 // Authors:
+// - Luca Valente <luca.valente@unibo.it>
 // - Andreas Kurth <akurth@iis.ee.ethz.ch>
-// - Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
-// - Florian Zaruba <zarubaf@iis.ee.ethz.ch>
-// - Luca Valente <luca.valente2@unibo.it>
 
 `include "axi/assign.svh"
 `include "axi/typedef.svh"
@@ -25,7 +23,9 @@
 /// the FIFO; see the header of `cdc_fifo_gray` for instructions.
 module axi_cdc_src #(
   /// Depth of the FIFO crossing the clock domain, given as 2**LOG_DEPTH.
-  parameter int unsigned LogDepth = 1,
+  parameter int unsigned LogDepth   = 1,
+  /// Number of synchronization registers to insert on the async pointers
+  parameter int unsigned SyncStages = 2,
   parameter type aw_chan_t = logic,
   parameter type w_chan_t = logic,
   parameter type b_chan_t = logic,
@@ -58,8 +58,14 @@ module axi_cdc_src #(
 );
 
   cdc_fifo_gray_src #(
+    // Workaround for a bug in Questa (see comment in `axi_cdc_dst` for details).
+`ifdef QUESTA
     .T         ( logic [$bits(aw_chan_t)-1:0] ),
-    .LOG_DEPTH ( LogDepth                     )
+`else
+    .T         ( aw_chan_t                    ),
+`endif
+    .LOG_DEPTH   ( LogDepth                     ),
+    .SYNC_STAGES ( SyncStages                   )
   ) i_cdc_fifo_gray_src_aw (
     .src_clk_i,
     .src_rst_ni,
@@ -72,8 +78,13 @@ module axi_cdc_src #(
   );
 
   cdc_fifo_gray_src #(
+`ifdef QUESTA
     .T         ( logic [$bits(w_chan_t)-1:0]  ),
-    .LOG_DEPTH ( LogDepth                     )
+`else
+    .T         ( w_chan_t                     ),
+`endif
+    .LOG_DEPTH   ( LogDepth                     ),
+    .SYNC_STAGES ( SyncStages                   )
   ) i_cdc_fifo_gray_src_w (
     .src_clk_i,
     .src_rst_ni,
@@ -86,8 +97,13 @@ module axi_cdc_src #(
   );
 
   cdc_fifo_gray_dst #(
+`ifdef QUESTA
     .T         ( logic [$bits(b_chan_t)-1:0]  ),
-    .LOG_DEPTH ( LogDepth                     )
+`else
+    .T         ( b_chan_t                     ),
+`endif
+    .LOG_DEPTH   ( LogDepth                     ),
+    .SYNC_STAGES ( SyncStages                   )
   ) i_cdc_fifo_gray_dst_b (
     .dst_clk_i    ( src_clk_i                   ),
     .dst_rst_ni   ( src_rst_ni                  ),
@@ -100,8 +116,13 @@ module axi_cdc_src #(
   );
 
   cdc_fifo_gray_src #(
+`ifdef QUESTA
     .T         ( logic [$bits(ar_chan_t)-1:0] ),
-    .LOG_DEPTH ( LogDepth                     )
+`else
+    .T         ( ar_chan_t                    ),
+`endif
+    .LOG_DEPTH   ( LogDepth                     ),
+    .SYNC_STAGES ( SyncStages                   )
   ) i_cdc_fifo_gray_src_ar (
     .src_clk_i,
     .src_rst_ni,
@@ -114,8 +135,13 @@ module axi_cdc_src #(
   );
 
   cdc_fifo_gray_dst #(
+`ifdef QUESTA
     .T         ( logic [$bits(r_chan_t)-1:0]  ),
-    .LOG_DEPTH ( LogDepth                     )
+`else
+    .T         ( r_chan_t                     ),
+`endif
+    .LOG_DEPTH   ( LogDepth                     ),
+    .SYNC_STAGES ( SyncStages                   )
   ) i_cdc_fifo_gray_dst_r (
     .dst_clk_i    ( src_clk_i                   ),
     .dst_rst_ni   ( src_rst_ni                  ),
@@ -136,7 +162,9 @@ module axi_cdc_src_intf #(
   parameter int unsigned AXI_DATA_WIDTH = 0,
   parameter int unsigned AXI_USER_WIDTH = 0,
   /// Depth of the FIFO crossing the clock domain, given as 2**LOG_DEPTH.
-  parameter int unsigned LOG_DEPTH = 1
+  parameter int unsigned LOG_DEPTH   = 1,
+  /// Number of synchronization registers to insert on the async pointers
+  parameter int unsigned SYNC_STAGES = 2
 ) (
   // synchronous slave port - clocked by `src_clk_i`
   input  logic                src_clk_i,
@@ -166,14 +194,15 @@ module axi_cdc_src_intf #(
   `AXI_ASSIGN_FROM_RESP(src, src_resp)
 
   axi_cdc_src #(
-    .aw_chan_t  ( aw_chan_t ),
-    .w_chan_t   ( w_chan_t  ),
-    .b_chan_t   ( b_chan_t  ),
-    .ar_chan_t  ( ar_chan_t ),
-    .r_chan_t   ( r_chan_t  ),
-    .axi_req_t  ( req_t     ),
-    .axi_resp_t ( resp_t    ),
-    .LogDepth   ( LOG_DEPTH )
+    .aw_chan_t  ( aw_chan_t   ),
+    .w_chan_t   ( w_chan_t    ),
+    .b_chan_t   ( b_chan_t    ),
+    .ar_chan_t  ( ar_chan_t   ),
+    .r_chan_t   ( r_chan_t    ),
+    .axi_req_t  ( req_t       ),
+    .axi_resp_t ( resp_t      ),
+    .LogDepth   ( LOG_DEPTH   ),
+    .SyncStages ( SYNC_STAGES )
   ) i_axi_cdc_src (
     .src_clk_i,
     .src_rst_ni,
@@ -203,7 +232,9 @@ module axi_lite_cdc_src_intf #(
   parameter int unsigned AXI_ADDR_WIDTH = 0,
   parameter int unsigned AXI_DATA_WIDTH = 0,
   /// Depth of the FIFO crossing the clock domain, given as 2**LOG_DEPTH.
-  parameter int unsigned LOG_DEPTH = 1
+  parameter int unsigned LOG_DEPTH = 1,
+  /// Number of synchronization registers to insert on the async pointers
+  parameter int unsigned SYNC_STAGES = 2
 ) (
   // synchronous slave port - clocked by `src_clk_i`
   input  logic                src_clk_i,
@@ -231,19 +262,20 @@ module axi_lite_cdc_src_intf #(
   `AXI_LITE_ASSIGN_FROM_RESP(src, src_resp)
 
   axi_cdc_src #(
-    .aw_chan_t  ( aw_chan_t ),
-    .w_chan_t   ( w_chan_t  ),
-    .b_chan_t   ( b_chan_t  ),
-    .ar_chan_t  ( ar_chan_t ),
-    .r_chan_t   ( r_chan_t  ),
-    .axi_req_t  ( req_t     ),
-    .axi_resp_t ( resp_t    ),
-    .LogDepth   ( LOG_DEPTH )
+    .aw_chan_t  ( aw_chan_t   ),
+    .w_chan_t   ( w_chan_t    ),
+    .b_chan_t   ( b_chan_t    ),
+    .ar_chan_t  ( ar_chan_t   ),
+    .r_chan_t   ( r_chan_t    ),
+    .axi_req_t  ( req_t       ),
+    .axi_resp_t ( resp_t      ),
+    .LogDepth   ( LOG_DEPTH   ),
+    .SyncStages ( SYNC_STAGES )
   ) i_axi_cdc_src (
     .src_clk_i,
     .src_rst_ni,
-    .src_req_o                    ( src_req     ),
-    .src_resp_i                   ( src_resp    ),
+    .src_req_i                    ( src_req     ),
+    .src_resp_o                   ( src_resp    ),
     .async_data_master_aw_data_o  ( dst.aw_data ),
     .async_data_master_aw_wptr_o  ( dst.aw_wptr ),
     .async_data_master_aw_rptr_i  ( dst.aw_rptr ),
