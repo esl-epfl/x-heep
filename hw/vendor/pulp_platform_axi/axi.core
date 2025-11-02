@@ -71,14 +71,13 @@ filesets:
       - src/axi_chan_compare.sv
       - src/axi_dumper.sv
       - src/axi_sim_mem.sv
-      - src/axi_test.sv
       # Level 5
       - src/axi_xbar.sv
       # Level 6
       - src/axi_xp.sv
     file_type : systemVerilogSource
     depend :
-      - ">=pulp-platform.org::common_cells:1.31.1"
+      - ">=pulp-platform.org::common_cells:1.29.0"
   benchs:
     files:
       - test/tb_axi_dw_pkg.sv
