@@ -27,11 +27,11 @@ package serial_link_single_channel_reg_pkg;
     struct packed {logic q;} axi_out_isolate;
   } serial_link_single_channel_reg2hw_ctrl_reg_t;
 
-  typedef struct packed {logic [10:0] q;} serial_link_single_channel_reg2hw_tx_phy_clk_div_mreg_t;
+  typedef struct packed {logic [9:0] q;} serial_link_single_channel_reg2hw_tx_phy_clk_div_mreg_t;
 
-  typedef struct packed {logic [10:0] q;} serial_link_single_channel_reg2hw_tx_phy_clk_start_mreg_t;
+  typedef struct packed {logic [9:0] q;} serial_link_single_channel_reg2hw_tx_phy_clk_start_mreg_t;
 
-  typedef struct packed {logic [10:0] q;} serial_link_single_channel_reg2hw_tx_phy_clk_end_mreg_t;
+  typedef struct packed {logic [9:0] q;} serial_link_single_channel_reg2hw_tx_phy_clk_end_mreg_t;
 
   typedef struct packed {logic q;} serial_link_single_channel_reg2hw_raw_mode_en_reg_t;
 
@@ -79,10 +79,10 @@ package serial_link_single_channel_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    serial_link_single_channel_reg2hw_ctrl_reg_t ctrl;  // [78:75]
-    serial_link_single_channel_reg2hw_tx_phy_clk_div_mreg_t [0:0] tx_phy_clk_div;  // [74:64]
-    serial_link_single_channel_reg2hw_tx_phy_clk_start_mreg_t [0:0] tx_phy_clk_start;  // [63:53]
-    serial_link_single_channel_reg2hw_tx_phy_clk_end_mreg_t [0:0] tx_phy_clk_end;  // [52:42]
+    serial_link_single_channel_reg2hw_ctrl_reg_t ctrl;  // [75:72]
+    serial_link_single_channel_reg2hw_tx_phy_clk_div_mreg_t [0:0] tx_phy_clk_div;  // [71:62]
+    serial_link_single_channel_reg2hw_tx_phy_clk_start_mreg_t [0:0] tx_phy_clk_start;  // [61:52]
+    serial_link_single_channel_reg2hw_tx_phy_clk_end_mreg_t [0:0] tx_phy_clk_end;  // [51:42]
     serial_link_single_channel_reg2hw_raw_mode_en_reg_t raw_mode_en;  // [41:41]
     serial_link_single_channel_reg2hw_raw_mode_in_ch_sel_reg_t raw_mode_in_ch_sel;  // [40:40]
     serial_link_single_channel_reg2hw_raw_mode_in_data_reg_t raw_mode_in_data;  // [39:23]

@@ -1,8 +1,0 @@
---- a/pulp_platform_axi/axi.core
-+++ b/pulp_platform_axi/axi.core
-@@
-  filesets:
-    rtl:
-      files:
--       - src/axi_test.sv
-      file_type: systemVerilogSource

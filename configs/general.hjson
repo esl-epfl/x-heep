@@ -169,8 +169,6 @@
             offset:  0x00090000
             length:  0x00010000
             is_included: "yes"
-            //path:    "./hw/vendor/pulp_platform_serial_link/src/regs/serial_link_single_channel.hjson"
-            path:    "./hw/vendor/pulp_platform_serial_link/src/regs/serial_link.hjson" 
         }
         serial_link_slave: {
             offset:  0x00100000

@@ -418,7 +418,6 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "serial_link":
                         peripheral = SERIAL_LINK(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "serial_link_slave":
                         peripheral = SERIAL_LINK_SLAVE(offset, length)
                     elif peripheral_name == "serial_link_receiver_fifo":

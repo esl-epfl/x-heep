@@ -9,5 +9,5 @@
     url: "https://github.com/pulp-platform/axi.git",
     rev: "4e54ac6766b160217a83a74d5a23af9bbf59e6ee",
   },
-
+  patch_dir: "patches/pulp_platform_axi",
 }

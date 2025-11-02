@@ -84,14 +84,14 @@ module serial_link_single_channel_reg_top #(
   logic isolated_axi_in_re;
   logic isolated_axi_out_qs;
   logic isolated_axi_out_re;
-  logic [10:0] tx_phy_clk_div_qs;
-  logic [10:0] tx_phy_clk_div_wd;
+  logic [9:0] tx_phy_clk_div_qs;
+  logic [9:0] tx_phy_clk_div_wd;
   logic tx_phy_clk_div_we;
-  logic [10:0] tx_phy_clk_start_qs;
-  logic [10:0] tx_phy_clk_start_wd;
+  logic [9:0] tx_phy_clk_start_qs;
+  logic [9:0] tx_phy_clk_start_wd;
   logic tx_phy_clk_start_we;
-  logic [10:0] tx_phy_clk_end_qs;
-  logic [10:0] tx_phy_clk_end_wd;
+  logic [9:0] tx_phy_clk_end_qs;
+  logic [9:0] tx_phy_clk_end_wd;
   logic tx_phy_clk_end_we;
   logic raw_mode_en_wd;
   logic raw_mode_en_we;
@@ -261,9 +261,9 @@ module serial_link_single_channel_reg_top #(
   // R[tx_phy_clk_div]: V(False)
 
   prim_subreg #(
-      .DW      (11),
+      .DW      (10),
       .SWACCESS("RW"),
-      .RESVAL  (11'h8)
+      .RESVAL  (10'h8)
   ) u_tx_phy_clk_div (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -290,9 +290,9 @@ module serial_link_single_channel_reg_top #(
   // R[tx_phy_clk_start]: V(False)
 
   prim_subreg #(
-      .DW      (11),
+      .DW      (10),
       .SWACCESS("RW"),
-      .RESVAL  (11'h2)
+      .RESVAL  (10'h2)
   ) u_tx_phy_clk_start (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -319,9 +319,9 @@ module serial_link_single_channel_reg_top #(
   // R[tx_phy_clk_end]: V(False)
 
   prim_subreg #(
-      .DW      (11),
+      .DW      (10),
       .SWACCESS("RW"),
-      .RESVAL  (11'h6)
+      .RESVAL  (10'h6)
   ) u_tx_phy_clk_end (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -628,13 +628,13 @@ module serial_link_single_channel_reg_top #(
   assign isolated_axi_out_re = addr_hit[1] & reg_re & !reg_error;
 
   assign tx_phy_clk_div_we = addr_hit[2] & reg_we & !reg_error;
-  assign tx_phy_clk_div_wd = reg_wdata[10:0];
+  assign tx_phy_clk_div_wd = reg_wdata[9:0];
 
   assign tx_phy_clk_start_we = addr_hit[3] & reg_we & !reg_error;
-  assign tx_phy_clk_start_wd = reg_wdata[10:0];
+  assign tx_phy_clk_start_wd = reg_wdata[9:0];
 
   assign tx_phy_clk_end_we = addr_hit[4] & reg_we & !reg_error;
-  assign tx_phy_clk_end_wd = reg_wdata[10:0];
+  assign tx_phy_clk_end_wd = reg_wdata[9:0];
 
   assign raw_mode_en_we = addr_hit[5] & reg_we & !reg_error;
   assign raw_mode_en_wd = reg_wdata[0];
@@ -682,15 +682,15 @@ module serial_link_single_channel_reg_top #(
       end
 
       addr_hit[2]: begin
-        reg_rdata_next[10:0] = tx_phy_clk_div_qs;
+        reg_rdata_next[9:0] = tx_phy_clk_div_qs;
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[10:0] = tx_phy_clk_start_qs;
+        reg_rdata_next[9:0] = tx_phy_clk_start_qs;
       end
 
       addr_hit[4]: begin
-        reg_rdata_next[10:0] = tx_phy_clk_end_qs;
+        reg_rdata_next[9:0] = tx_phy_clk_end_qs;
       end
 
       addr_hit[5]: begin

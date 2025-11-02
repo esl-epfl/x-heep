@@ -8,6 +8,7 @@ module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
   import fifo_pkg::*;
+  import axi_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,

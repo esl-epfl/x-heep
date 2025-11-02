@@ -7,6 +7,9 @@
 module peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
+  import axi_pkg::*;
+  import serial_link_pkg::*;
+  import serial_link_minimum_axi_pkg::*;
 #(
     //do not touch these parameters
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
@@ -145,6 +148,18 @@ module peripheral_subsystem
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
 
+
+  // Serial Link Signal Declaration
+  obi_req_t axi_sl_m_req, sl_recreg_req_o;
+  obi_resp_t axi_sl_m_resp, sl_recreg_resp_i;
+  obi_req_t  axi_sl_slave_req;
+  obi_resp_t axi_sl_slave_resp;
+
+  serial_link_minimum_axi_pkg::axi_req_t axi_in_req_i, axi_out_req_o, fast_sl_req_i;
+  serial_link_minimum_axi_pkg::axi_resp_t axi_in_rsp_o, axi_out_rsp_i, fast_sl_rsp_i;
+  reg_req_t cfg_req_sl;
+  reg_rsp_t cfg_rsp_sl;
+  //----------------------------------------------------------------
   // this avoids lint errors
   assign unused_irq_id = irq_id;
 
@@ -506,6 +521,85 @@ module peripheral_subsystem
       .intr_rx_timeout_o(uart_intr_rx_timeout),
       .intr_rx_parity_err_o(uart_intr_rx_parity_err)
   );
+
+
+
+  serial_link_xheep_wrapper #(
+      // .axi_req_t(core_v_mini_mcu_pkg::axi_req_t),
+      // .axi_rsp_t(core_v_mini_mcu_pkg::axi_resp_t),
+      // .aw_chan_t(core_v_mini_mcu_pkg::axi_aw_t),
+      // .ar_chan_t(core_v_mini_mcu_pkg::axi_ar_t),
+      // .r_chan_t(core_v_mini_mcu_pkg::axi_r_t),
+      // .w_chan_t(core_v_mini_mcu_pkg::axi_w_t),
+      // .b_chan_t(core_v_mini_mcu_pkg::axi_b_t),
+
+      .axi_req_t(serial_link_minimum_axi_pkg::axi_req_t),
+      .axi_rsp_t(serial_link_minimum_axi_pkg::axi_resp_t),
+      .aw_chan_t(serial_link_minimum_axi_pkg::axi_aw_t),
+      .ar_chan_t(serial_link_minimum_axi_pkg::axi_ar_t),
+      .r_chan_t (serial_link_minimum_axi_pkg::axi_r_t),
+      .w_chan_t (serial_link_minimum_axi_pkg::axi_w_t),
+      .b_chan_t (serial_link_minimum_axi_pkg::axi_b_t),
+
+      .cfg_rsp_t(reg_rsp_t),
+      .cfg_req_t(reg_req_t),
+      .obi_req_t(obi_req_t),
+      .obi_resp_t(obi_resp_t),
+      .NumChannels(1),
+      .NumLanes(4),
+      .MaxClkDiv(32),
+      // .AddrWidth(1),
+      .AddrWidth(32),
+      .DataWidth(32),
+      // .AW_CH_SIZE(core_v_mini_mcu_pkg::AW_CH_SIZE),
+      // .W_CH_SIZE(core_v_mini_mcu_pkg::W_CH_SIZE),
+      // .B_CH_SIZE(core_v_mini_mcu_pkg::B_CH_SIZE),
+      // .AR_CH_SIZE(core_v_mini_mcu_pkg::AR_CH_SIZE),
+      // .R_CH_SIZE(core_v_mini_mcu_pkg::R_CH_SIZE)
+      .AW_CH_SIZE(serial_link_minimum_axi_pkg::AW_CH_SIZE),
+      .W_CH_SIZE(serial_link_minimum_axi_pkg::W_CH_SIZE),
+      .B_CH_SIZE(serial_link_minimum_axi_pkg::B_CH_SIZE),
+      .AR_CH_SIZE(serial_link_minimum_axi_pkg::AR_CH_SIZE),
+      .R_CH_SIZE(serial_link_minimum_axi_pkg::R_CH_SIZE)
+  ) serial_link_xheep_wrapper_i (
+      .clk_i     (clk_i),
+      .fast_clock(clk_i),
+      .rst_ni    (rst_ni),
+      .clk_reg_i (clk_i),   //intended for clock gating purposes
+      .rst_reg_ni(rst_ni),  //intended for SW reset purposes
+
+      .testmode_i('0),
+
+      .obi_req_i(axi_sl_slave_req),
+      .obi_rsp_i(axi_sl_slave_resp),
+
+      //.obi_req_o(axi_sl_m_req), //axi_in_req_i
+      //.obi_rsp_o(axi_sl_m_resp),
+
+      // .obi_req_o(obi_sl_req),   //fifo writing
+      // .obi_rsp_o(obi_sl_rsp),
+      .reader_req_i (sl_recreg_req_o),
+      .reader_resp_o(sl_recreg_resp_i),
+
+      .cfg_req_i(cfg_req_sl),  //register configuration
+      .cfg_rsp_o(cfg_rsp_sl),
+
+      .fifo_empty_o,
+      .fifo_full_o,
+
+      .ddr_rcv_clk_i,  //Source-synchronous input clock to sample data. One clock per channel
+      .ddr_i,  //Double-Data-Rate (DDR) input data
+
+      .ddr_rcv_clk_o,           //Source-synchronous output clock which is forwarded together with the data. One clock per channel
+      .ddr_o  //Double-Data-Rate (DDR) output data
+
+  );
+
+
+
+
+
+
 
 
 
