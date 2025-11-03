@@ -15,11 +15,20 @@ module testharness #(
     parameter USE_EXTERNAL_DEVICE_EXAMPLE = 1,
     parameter CLK_FREQUENCY               = 'd100_000  //KHz
 ) (
-    inout wire clk_i,
-    inout wire rst_ni,
-
-    inout wire boot_select_i,
-    inout wire execute_from_flash_i,
+`ifdef VERILATOR
+    input  wire         clk_i,
+    input  wire         rst_ni,
+    input  wire         boot_select_i,
+    input  wire         execute_from_flash_i,
+    output wire         exit_valid_o,
+`else  // VERILATOR
+    inout  wire         clk_i,
+    inout  wire         rst_ni,
+    inout  wire         boot_select_i,
+    inout  wire         execute_from_flash_i,
+    inout  wire         exit_valid_o,
+`endif  // VERILATOR
+    output logic [31:0] exit_value_o,
 
 `ifdef SIM_SYSTEMC
     output logic        ext_systemc_req_req_o,
@@ -36,9 +45,7 @@ module testharness #(
     input  wire         jtag_tms_i,
     input  wire         jtag_trst_ni,
     input  wire         jtag_tdi_i,
-    output wire         jtag_tdo_o,
-    output logic [31:0] exit_value_o,
-    inout  wire         exit_valid_o
+    output wire         jtag_tdo_o
 );
 
 
@@ -64,9 +71,21 @@ module testharness #(
   localparam EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS;
   localparam NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT;
 
+  // Internal signals
+  // ----------------
+  // Global pins
+  wire clk;
+  wire rst_n;
+  wire boot_select;
+  wire execute_from_flash;
+  wire exit_valid;
+
+  // UART
   wire uart_rx;
   wire uart_tx;
   logic sim_jtag_enable = (JTAG_DPI == 1);
+
+  // JTAG
   wire sim_jtag_tck;
   wire sim_jtag_tms;
   wire sim_jtag_tdi;
@@ -79,6 +98,7 @@ module testharness #(
   wire mux_jtag_trstn;
   wire [31:0] gpio;
 
+  // SPI
   wire [3:0] spi_flash_sd_io;
   wire [1:0] spi_flash_csb;
   wire spi_flash_sck;
@@ -86,8 +106,6 @@ module testharness #(
   wire [3:0] spi_sd_io;
   wire [1:0] spi_csb;
   wire spi_sck;
-
-  logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] ext_periph_select;
 
   logic iffifo_in_ready, iffifo_out_valid;
   logic iffifo_int_o;
@@ -106,12 +124,13 @@ module testharness #(
 
   assign ext_dma_slot_tx[0] = iffifo_in_ready;
   assign ext_dma_slot_rx[0] = iffifo_out_valid;
-  if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin
+  if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : gen_dma_slot_tx
     assign ext_dma_slot_tx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
     assign ext_dma_slot_rx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
   end
 
   // External xbar master/slave and peripheral ports
+  logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] ext_periph_select;
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req;
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_req;
   obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_resp;
@@ -147,7 +166,11 @@ module testharness #(
 
   // External subsystems
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_n;
-  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_n;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY:0];
+  logic [EXT_DOMAINS_RND-1:0] cpu_subsystem_powergate_switch_n;
+  logic [EXT_DOMAINS_RND-1:0] cpu_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY:0];
+  logic [EXT_DOMAINS_RND-1:0] peripheral_subsystem_powergate_switch_n;
+  logic [EXT_DOMAINS_RND-1:0] peripheral_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY:0];
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_n;
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_n;
   logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_n;
@@ -202,7 +225,22 @@ module testharness #(
   end
 `endif
 
-  // X-HEEP system
+  // -------------
+  // X-HEEP SYSTEM
+  // -------------
+  // Inout pins assignments
+  // NOTE: These assignments are needed to avoid a Verilator 5.X error triggered when directly
+  // connecting primary input/output ports to inout ports of internal modules. It should be safe
+  // to remove this workaround once support for Verilator 4.X is dropped and proper handling of
+  // primary inout ports is implemented in the C++ testbench.
+  // See https://verilator.org/guide/latest/languages.html#tri-inout for details.
+  assign clk = clk_i;
+  assign rst_n = rst_ni;
+  assign boot_select = boot_select_i;
+  assign execute_from_flash = execute_from_flash_i;
+  assign exit_valid_o = exit_valid;
+
+  // X-HEEP system instance
   x_heep_system #(
       .COREV_PULP(COREV_PULP),
       .FPU(FPU),
@@ -211,16 +249,18 @@ module testharness #(
       .EXT_XBAR_NMASTER(HEEP_EXT_XBAR_NMASTER),
       .AO_SPC_NUM(AO_SPC_NUM)
   ) x_heep_system_i (
-      .clk_i,
-      .rst_ni,
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .hart_id_i('0),
+      .xheep_instance_id_i('0),
       .jtag_tck_i(mux_jtag_tck),
       .jtag_tms_i(mux_jtag_tms),
       .jtag_trst_ni(mux_jtag_trstn),
       .jtag_tdi_i(mux_jtag_tdi),
       .jtag_tdo_o(mux_jtag_tdo),
-      .boot_select_i,
-      .execute_from_flash_i,
-      .exit_valid_o,
+      .boot_select_i(boot_select),
+      .execute_from_flash_i(execute_from_flash),
+      .exit_valid_o(exit_valid),
       .uart_rx_i(uart_rx),
       .uart_tx_o(uart_tx),
       .gpio_0_io(gpio[0]),
@@ -297,8 +337,12 @@ module testharness #(
       .ext_ao_peripheral_resp_o(ext_ao_peripheral_resp),
       .ext_peripheral_slave_req_o(periph_slave_req),
       .ext_peripheral_slave_resp_i(periph_slave_rsp),
+      .cpu_subsystem_powergate_switch_no(cpu_subsystem_powergate_switch_n),
+      .cpu_subsystem_powergate_switch_ack_ni(cpu_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY]),
+      .peripheral_subsystem_powergate_switch_no(peripheral_subsystem_powergate_switch_n),
+      .peripheral_subsystem_powergate_switch_ack_ni(peripheral_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY]),
       .external_subsystem_powergate_switch_no(external_subsystem_powergate_switch_n),
-      .external_subsystem_powergate_switch_ack_ni(external_subsystem_powergate_switch_ack_n),
+      .external_subsystem_powergate_switch_ack_ni(external_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY]),
       .external_subsystem_powergate_iso_no(external_subsystem_powergate_iso_n),
       .external_subsystem_rst_no(external_subsystem_rst_n),
       .external_ram_banks_set_retentive_no(external_ram_banks_set_retentive_n),
@@ -343,52 +387,18 @@ module testharness #(
       .ext_slave_resp_i        (ext_slave_resp)
   );
 
-  logic pdm;
-
-  //pretending to be SWITCH CELLs that delay by SWITCH_ACK_LATENCY cycles the ACK signal
-  logic
-      tb_cpu_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1],
-      tb_peripheral_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1];
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] tb_memory_subsystem_banks_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1];
-  logic [EXT_DOMAINS_RND-1:0] tb_external_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1];
-
-  logic delayed_tb_cpu_subsystem_powergate_switch_ack_n;
-  logic delayed_tb_peripheral_subsystem_powergate_switch_ack_n;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] delayed_tb_memory_subsystem_banks_powergate_switch_ack_n;
-  logic [EXT_DOMAINS_RND-1:0] delayed_tb_external_subsystem_powergate_switch_ack_n;
-
-  always_ff @(negedge clk_i) begin
-    tb_cpu_subsystem_powergate_switch_ack_n[0] <= x_heep_system_i.cpu_subsystem_powergate_switch_n;
-    tb_peripheral_subsystem_powergate_switch_ack_n[0] <= x_heep_system_i.peripheral_subsystem_powergate_switch_n;
-    tb_memory_subsystem_banks_powergate_switch_ack_n[0] <= x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_n;
-    tb_external_subsystem_powergate_switch_ack_n[0] <= external_subsystem_powergate_switch_n;
-    for (int i = 0; i < SWITCH_ACK_LATENCY; i++) begin
-      tb_memory_subsystem_banks_powergate_switch_ack_n[i+1] <= tb_memory_subsystem_banks_powergate_switch_ack_n[i];
-      tb_cpu_subsystem_powergate_switch_ack_n[i+1] <= tb_cpu_subsystem_powergate_switch_ack_n[i];
-      tb_peripheral_subsystem_powergate_switch_ack_n[i+1] <= tb_peripheral_subsystem_powergate_switch_ack_n[i];
-      tb_external_subsystem_powergate_switch_ack_n[i+1] <= tb_external_subsystem_powergate_switch_ack_n[i];
+  // Power switch emulation
+  // ----------------------
+  assign external_subsystem_powergate_switch_ack_n[0] = external_subsystem_powergate_switch_n;
+  assign cpu_subsystem_powergate_switch_ack_n[0] = cpu_subsystem_powergate_switch_n;
+  assign peripheral_subsystem_powergate_switch_ack_n[0] = peripheral_subsystem_powergate_switch_n;
+  always_ff @(posedge clk_i) begin : blockName
+    for (int unsigned i = 0; i < SWITCH_ACK_LATENCY; i++) begin
+      external_subsystem_powergate_switch_ack_n[i+1] <= external_subsystem_powergate_switch_ack_n[i];
+      cpu_subsystem_powergate_switch_ack_n[i+1] <= cpu_subsystem_powergate_switch_ack_n[i];
+      peripheral_subsystem_powergate_switch_ack_n[i+1] <= peripheral_subsystem_powergate_switch_ack_n[i];
     end
   end
-
-  assign delayed_tb_cpu_subsystem_powergate_switch_ack_n = tb_cpu_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
-  assign delayed_tb_peripheral_subsystem_powergate_switch_ack_n = tb_peripheral_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
-  assign delayed_tb_memory_subsystem_banks_powergate_switch_ack_n = tb_memory_subsystem_banks_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
-  assign delayed_tb_external_subsystem_powergate_switch_ack_n = tb_external_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
-
-  always_comb begin
-`ifndef VERILATOR
-    force x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack_ni = delayed_tb_cpu_subsystem_powergate_switch_ack_n;
-    force x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack_ni = delayed_tb_peripheral_subsystem_powergate_switch_ack_n;
-    force x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack_n = delayed_tb_memory_subsystem_banks_powergate_switch_ack_n;
-    force external_subsystem_powergate_switch_ack_n = delayed_tb_external_subsystem_powergate_switch_ack_n;
-`else
-    x_heep_system_i.cpu_subsystem_powergate_switch_ack_n = delayed_tb_cpu_subsystem_powergate_switch_ack_n;
-    x_heep_system_i.peripheral_subsystem_powergate_switch_ack_n = delayed_tb_peripheral_subsystem_powergate_switch_ack_n;
-    x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack_n = delayed_tb_memory_subsystem_banks_powergate_switch_ack_n;
-    external_subsystem_powergate_switch_ack_n = delayed_tb_external_subsystem_powergate_switch_ack_n;
-`endif
-  end
-
 
   uartdpi #(
       .BAUD('d256000),
@@ -439,25 +449,23 @@ module testharness #(
   assign slow_ram_slave_req[SLOW_MEMORY1_IDX] = ext_slave_req[SLOW_MEMORY1_IDX];
   assign ext_slave_resp[SLOW_MEMORY1_IDX]     = slow_ram_slave_resp[SLOW_MEMORY1_IDX];
 
-
-
 `else
 
   obi_req_t  ext_systemc_req;
   obi_resp_t ext_systemc_resp;
 
-  assign ext_systemc_req_req_o           = ext_systemc_req.req;
-  assign ext_systemc_req_we_o            = ext_systemc_req.we;
-  assign ext_systemc_req_be_o            = ext_systemc_req.be;
-  assign ext_systemc_req_addr_o          = ext_systemc_req.addr;
-  assign ext_systemc_req_wdata_o         = ext_systemc_req.wdata;
+  assign ext_systemc_req_req_o            = ext_systemc_req.req;
+  assign ext_systemc_req_we_o             = ext_systemc_req.we;
+  assign ext_systemc_req_be_o             = ext_systemc_req.be;
+  assign ext_systemc_req_addr_o           = ext_systemc_req.addr;
+  assign ext_systemc_req_wdata_o          = ext_systemc_req.wdata;
 
-  assign ext_systemc_resp.gnt            = ext_systemc_resp_gnt_i;
-  assign ext_systemc_resp.rvalid         = ext_systemc_resp_rvalid_i;
-  assign ext_systemc_resp.rdata          = ext_systemc_resp_rdata_i;
+  assign ext_systemc_resp.gnt             = ext_systemc_resp_gnt_i;
+  assign ext_systemc_resp.rvalid          = ext_systemc_resp_rvalid_i;
+  assign ext_systemc_resp.rdata           = ext_systemc_resp_rdata_i;
 
-  assign ext_systemc_req                 = ext_slave_req[SLOW_MEMORY_IDX];
-  assign ext_slave_resp[SLOW_MEMORY_IDX] = ext_systemc_resp;
+  assign ext_systemc_req                  = ext_slave_req[SLOW_MEMORY0_IDX];
+  assign ext_slave_resp[SLOW_MEMORY0_IDX] = ext_systemc_resp;
 `endif
 
   generate

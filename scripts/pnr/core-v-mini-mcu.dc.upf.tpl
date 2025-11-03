@@ -13,7 +13,7 @@ set_scope .
 create_power_domain PD_TOP -include_scope
 create_power_domain PD_CPU -elements {cpu_subsystem_i}
 create_power_domain PD_PERIP_SUBS -elements {peripheral_subsystem_i}
-% for bank in xheep.iter_ram_banks():
+% for bank in xheep.memory_ss().iter_ram_banks():
 create_power_domain PD_MEM_BANK_${bank.name()} -elements {memory_subsystem_i/ram${bank.name()}_i}
 % endfor
 
@@ -39,13 +39,12 @@ add_power_state PD_PERIP_SUBS.primary -state PERIP_SUBS_ON <%text>\</%text>
 add_power_state PD_PERIP_SUBS.primary -state PERIP_SUBS_OFF <%text>\</%text>
     {-supply_expr {power == `{OFF} && ground == `{FULL_ON, 0.0}}} -simstate CORRUPT
 
-% for bank in xheep.iter_ram_banks():
+% for bank in xheep.memory_ss().iter_ram_banks():
 add_power_state PD_MEM_BANK_${bank.name()}.primary -state MEM_BANK_${bank.name()}_ON <%text>\</%text>
     {-supply_expr {power == `{FULL_ON, 1.2} && ground == `{FULL_ON, 0.0}}}
 
 add_power_state PD_MEM_BANK_${bank.name()}.primary -state MEM_BANK_${bank.name()}_OFF <%text>\</%text>
     {-supply_expr {power == `{OFF} && ground == `{FULL_ON, 0.0}}} -simstate CORRUPT
-
 % endfor
 
 <%text>
@@ -71,10 +70,9 @@ create_supply_set PD_CPU.primary -function {power VDD_CPU} -function {ground VSS
 create_supply_net VDD_PERIP_SUBS
 create_supply_set PD_PERIP_SUBS.primary -function {power VDD_PERIP_SUBS} -function {ground VSS} -update
 
-% for bank in xheep.iter_ram_banks():
+% for bank in xheep.memory_ss().iter_ram_banks():
 create_supply_net VDD_MEM_BANK_${bank.name()}
 create_supply_set PD_MEM_BANK_${bank.name()}.primary -function {power VDD_MEM_BANK_${bank.name()}} -function {ground VSS} -update
-
 % endfor
 
 <%text>
@@ -103,7 +101,7 @@ create_power_switch switch_PD_PERIP_SUBS <%text>\</%text>
     -on_state           {on_state  sw_in {sw_ctrl}} <%text>\</%text>
     -off_state          {off_state {!sw_ctrl}}
 
-% for bank in xheep.iter_ram_banks():
+% for bank in xheep.memory_ss().iter_ram_banks():
 create_power_switch switch_PD_MEM_BANK_${bank.name()} <%text>\</%text>
     -supply_set         PD_TOP.primary <%text>\</%text>
     -domain             PD_MEM_BANK_${bank.name()} <%text>\</%text>
@@ -113,7 +111,6 @@ create_power_switch switch_PD_MEM_BANK_${bank.name()} <%text>\</%text>
     -ack_port           {sw_ack    ao_peripheral_subsystem_i/memory_subsystem_pwr_ctrl_i[${bank.name()}]<%text>\</%text>[pwrgate_ack_n<%text>\</%text>]}  <%text>\</%text>
     -on_state           {on_state  sw_in {sw_ctrl}} <%text>\</%text>
     -off_state          {off_state {!sw_ctrl}}
-
 % endfor
 
 <%text>
@@ -144,7 +141,7 @@ set_isolation perip_subs_iso <%text>\</%text>
     -name_prefix cpu_iso_cell <%text>\</%text>
     -location parent
 
-% for bank in xheep.iter_ram_banks():
+% for bank in xheep.memory_ss().iter_ram_banks():
 set_isolation mem_bank_${bank.name()}_iso <%text>\</%text>
     -domain PD_MEM_BANK_${bank.name()} <%text>\</%text>
     -isolation_power_net VDD <%text>\</%text>
@@ -155,5 +152,4 @@ set_isolation mem_bank_${bank.name()}_iso <%text>\</%text>
     -elements {memory_subsystem_i/ram${bank.name()}_i/rdata_o} <%text>\</%text>
     -name_prefix cpu_iso_cell <%text>\</%text>
     -location parent
-
 % endfor

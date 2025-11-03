@@ -25,5 +25,6 @@ BusConfiguration
 LinkerConfiguration
 PadConfiguration
 PeripheralConfiguration
+ExtensionConfiguration
 
 x_heep_gen/index

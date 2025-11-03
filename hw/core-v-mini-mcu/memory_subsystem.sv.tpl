@@ -2,6 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%
+    memory_ss = xheep.memory_ss()
+%>
+
 /* verilator lint_off UNUSED */
 /* verilator lint_off MULTIDRIVEN */
 
@@ -29,11 +33,11 @@ module memory_subsystem
   // Clock-gating
   logic [NUM_BANKS-1:0] clk_cg;
 
-% for i, bank in enumerate(xheep.iter_ram_banks()):
+% for i, bank in enumerate(memory_ss.iter_ram_banks()):
   logic [${bank.size().bit_length()-1 -2}-1:0] ram_req_addr_${i};
 % endfor
 
-% for i, bank in enumerate(xheep.iter_ram_banks()):
+% for i, bank in enumerate(memory_ss.iter_ram_banks()):
 <%
   p1 = bank.size().bit_length()-1 + bank.il_level()
   p2 = 2 + bank.il_level()
@@ -62,7 +66,7 @@ module memory_subsystem
     assign ram_resp_o[i].rvalid = ram_valid_q[i];
   end
 
-%for i, bank in enumerate(xheep.iter_ram_banks()):
+%for i, bank in enumerate(memory_ss.iter_ram_banks()):
   sram_wrapper #(
       .NumWords (${bank.size() // 4}),
       .DataWidth(32'd32)

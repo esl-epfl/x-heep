@@ -17,7 +17,6 @@ __pycache__/
 run_verif_rtl_log.txt
 
 # ignore the following hw automatically generated files
-environment.yml
 tb/tb_util.svh
 hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
 hw/core-v-mini-mcu/system_bus.sv
@@ -26,6 +25,9 @@ hw/core-v-mini-mcu/memory_subsystem.sv
 hw/system/x_heep_system.sv
 hw/system/pad_ring.sv
 tb/tb_util.svh
+hw/ip/soc_ctrl/data/soc_ctrl.hjson
+hw/ip/soc_ctrl/rtl/soc_ctrl_reg_top.sv
+hw/ip/soc_ctrl/rtl/soc_ctrl_reg_pkg.sv
 hw/ip/power_manager/data/power_manager.hjson
 hw/ip/power_manager/rtl/power_manager.sv
 hw/ip/power_manager/rtl/power_manager_reg_top.sv
@@ -68,6 +70,7 @@ flow/OpenROAD-flow-scripts
 
 # User-dependent configuration files
 .vscode
+.continue
 private/
 
 # Verilator

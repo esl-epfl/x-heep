@@ -8,7 +8,7 @@ ENTRY(_start)
 MEMORY
 {
 <%flash_end = 0%>
-% for i, section in enumerate(xheep.iter_linker_sections()):
+% for i, section in enumerate(xheep.memory_ss().iter_linker_sections()):
     ram${i} (rwxai) : ORIGIN = ${f"{section.start:#08x}"}, LENGTH = ${f"{section.size:#08x}"}
     FLASH${i} (rx)  : ORIGIN = ${f"{section.start + int(flash_mem_start_address,16):#08x}"}, LENGTH = ${f"{section.size:#08x}"}
 <%flash_end = section.end%>
@@ -158,7 +158,7 @@ SECTIONS {
        PROVIDE(__freertos_irq_stack_top = .);
     } >ram1
 
-  % for i, section in enumerate(xheep.iter_linker_sections()):
+  % for i, section in enumerate(xheep.memory_ss().iter_linker_sections()):
   % if not section.name in ["code", "data"]:
     .${section.name} : ALIGN_WITH_INPUT
     {

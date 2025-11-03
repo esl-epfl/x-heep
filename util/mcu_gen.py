@@ -13,19 +13,12 @@ import sys
 import re
 import logging
 import pickle
-from subprocess import run
-import csv
 from jsonref import JsonRef
 from mako.template import Template
-import collections
-from math import log2
 import x_heep_gen.load_config
 from x_heep_gen.load_config import load_peripherals_config
-from x_heep_gen.system import BusType
-import x_heep_gen.peripherals.base_peripherals
-import x_heep_gen.peripherals.user_peripherals
-import x_heep_gen.peripherals.abstractions
-import math
+from x_heep_gen.xheep import BusType
+from x_heep_gen.cpu.cpu import CPU
 import os
 
 
@@ -711,6 +704,18 @@ def generate_xheep(args):
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
+    # Load general configuration file.
+    # This can be either the Python or HJSON config file.
+    # If using the Python config file, the HJSON parameters that are supported by Python will be ignored
+    # except for the peripherals. Any peripheral not configured in Python will be added from the HJSON config.
+    if args.python_config != None and args.python_config != "":
+        xheep = x_heep_gen.load_config.load_cfg_file(
+            pathlib.PurePath(str(args.python_config))
+        )
+    else:
+        xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)))
+
+    # We still need to load from the HJSON config the configuration options that are not yet supported in the Python model of X-HEEP
     with open(args.config, "r") as file:
         try:
             srcfull = file.read()
@@ -719,6 +724,7 @@ def generate_xheep(args):
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
+    # Load pads HJSON configuration file
     with open(args.pads_cfg, "r") as file:
         try:
             srcfull = file.read()
@@ -726,32 +732,6 @@ def generate_xheep(args):
             pad_cfg = JsonRef.replace_refs(pad_cfg)
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
-
-    config_override = x_heep_gen.system.Override(None, None, None)
-
-    if args.cpu != None and args.cpu != "":
-        cpu_type = args.cpu
-    else:
-        cpu_type = config["cpu_type"]
-
-    if "cve2_rv32e" in config:
-        cve2_rv32e = config["cve2_rv32e"]
-    else:
-        cve2_rv32e = None
-
-    if "cve2_rv32m" in config:
-        cve2_rv32m = config["cve2_rv32m"]
-    else:
-        cve2_rv32m = None
-
-    if args.bus != None and args.bus != "":
-        config_override.bus_type = BusType(args.bus)
-
-    if args.memorybanks != None and args.memorybanks != "":
-        config_override.numbanks = int(args.memorybanks)
-
-    if args.memorybanks_il != None and args.memorybanks_il != "":
-        config_override.numbanks_il = int(args.memorybanks_il)
 
     if args.external_domains != None and args.external_domains != "":
         external_domains = int(args.external_domains)
@@ -768,17 +748,21 @@ def generate_xheep(args):
     except KeyError:
         has_spi_slave = 0
 
-    if args.python_x_heep_cfg != None and args.python_x_heep_cfg != "":
-        xheep = x_heep_gen.load_config.load_cfg_file(
-            pathlib.PurePath(str(args.python_x_heep_cfg)), config_override
-        )
-    else:
-        xheep = x_heep_gen.load_config.load_cfg_file(
-            pathlib.PurePath(str(args.config)), config_override
-        )
-
     # config is used as the base config for peripherals (if a domain is not defined in the config, it will be added to xheep using informations in config)
     load_peripherals_config(xheep, args.config)
+
+    if args.bus != None and args.bus != "":
+        xheep.set_bus_type(BusType(args.bus))
+
+    if args.memorybanks != None and args.memorybanks != "":
+        xheep.memory_ss().override_ram_banks(int(args.memorybanks))
+
+    if args.memorybanks_il != None and args.memorybanks_il != "":
+        xheep.memory_ss().override_ram_banks_il(int(args.memorybanks_il))
+
+    # Override CPU setting if specified in the make arguments
+    if args.cpu != None and args.cpu != "":
+        xheep.set_cpu(CPU(args.cpu))
 
     debug_start_address = string2int(config["debug"]["address"])
     if int(debug_start_address, 16) < int("10000", 16):
@@ -794,7 +778,9 @@ def generate_xheep(args):
     stack_size = string2int(config["linker_script"]["stack_size"])
     heap_size = string2int(config["linker_script"]["heap_size"])
 
-    if (int(stack_size, 16) + int(heap_size, 16)) > xheep.ram_size_address():
+    if (
+        int(stack_size, 16) + int(heap_size, 16)
+    ) > xheep.memory_ss().ram_size_address():
         exit(
             "The stack and heap section must fit in the RAM size, instead they takes "
             + str(stack_size + heap_size)
@@ -1274,11 +1260,14 @@ def generate_xheep(args):
         right_pad_list = None
         bondpad_offsets = None
 
+    # Here the xheep system is built,
+    # The missing gaps are filled, like the missing end address of the data section.
+    xheep.build()
+    if not xheep.validate():
+        raise RuntimeError("There are errors when configuring X-HEEP")
+
     kwargs = {
         "xheep": xheep,
-        "cpu_type": cpu_type,
-        "cve2_rv32e": cve2_rv32e,
-        "cve2_rv32m": cve2_rv32m,
         "external_domains": external_domains,
         "debug_start_address": debug_start_address,
         "debug_size_address": debug_size_address,
@@ -1372,17 +1361,17 @@ def main():
             metavar="file",
             type=str,
             required=True,
-            help="X-Heep general configuration",
+            help="X-HEEP general HJSON configuration",
         )
 
         parser.add_argument(
-            "--python_x_heep_cfg",
+            "--python_config",
             metavar="file",
             type=str,
             required=False,
             nargs="?",
             default="",
-            help="X-Heep custom configuration",
+            help="X-HEEP general Python configuration",
         )
 
         parser.add_argument(
@@ -1391,7 +1380,7 @@ def main():
             metavar="file",
             type=str,
             required=True,
-            help="Pads configuration",
+            help="Pads HJSON configuration",
         )
 
         parser.add_argument(

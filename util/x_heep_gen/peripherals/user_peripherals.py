@@ -113,6 +113,17 @@ class MY_IP(UserPeripheral, DataConfiguration):
     _name = "my_ip"
     _config_path = "./hw/ip/my_ip/data/my_ip.hjson"
 
+class UART(UserPeripheral, DataConfiguration):
+    """
+    Universal Asynchronous Receiver/Transmitter for serial communication.
+
+    Default configuration file: ./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson
+    """
+
+    _name = "uart"
+    _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
+
+
 # Domain Class
 class UserPeripheralDomain(PeripheralDomain):
     """

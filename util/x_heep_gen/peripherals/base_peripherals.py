@@ -76,6 +76,7 @@ class DMA(BasePeripheral, DataConfiguration):
         subaddr_mode: str = "yes",
         hw_fifo_mode: str = "yes",
         zero_padding: str = "yes",
+        is_included: str = "yes",
     ):
         """
         Initialize the DMA peripheral.
@@ -97,6 +98,13 @@ class DMA(BasePeripheral, DataConfiguration):
         self._subaddr_mode = 0 if subaddr_mode == "no" else 1
         self._hw_fifo_mode = 0 if hw_fifo_mode == "no" else 1
         self._zero_padding = 0 if zero_padding == "no" else 1
+        self._is_included = 0 if is_included == "no" else 1
+
+    def get_is_included(self):
+        """
+        Get whether the DMA is included.
+        """
+        return self._is_included
 
     def set_ch_length(self, value: int):
         """
@@ -268,7 +276,6 @@ class DMA(BasePeripheral, DataConfiguration):
             if sum(array_xbar_gen) != self.get_num_channels() or 0 in array_xbar_gen:
                 exit("Error in the DMA xbar generation: wrong parameters")
 
-            print(", ".join(map(str, array_xbar_gen)))
             return ", ".join(map(str, array_xbar_gen))
         else:
             if self.get_num_channels_per_master_port() != self.get_num_channels():
@@ -365,17 +372,6 @@ class GPIO_ao(BasePeripheral):
     _name = "gpio_ao"
 
 
-class UART(BasePeripheral, DataConfiguration):
-    """
-    Universal Asynchronous Receiver/Transmitter for serial communication.
-
-    Default configuration file: ./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson
-    """
-
-    _name = "uart"
-    _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
-
-
 # Domain Class
 
 
@@ -400,7 +396,6 @@ class BasePeripheralDomain(PeripheralDomain):
         Ext_peripheral(),
         Pad_control(),
         GPIO_ao(),
-        UART(),
     ]
 
     def __init__(self, start_address: int = 0x20000000, length: int = 0x00100000):

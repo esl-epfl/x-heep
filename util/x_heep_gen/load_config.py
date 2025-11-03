@@ -1,11 +1,16 @@
 import importlib
 from pathlib import PurePath
-from typing import List, Optional, Union
+from typing import List, Union
 import hjson
 import os
 import sys
 from jsonref import JsonRef
 
+from .cpu.cpu import CPU
+from .cpu.cv32e20 import cv32e20
+from .memory_ss.memory_ss import MemorySS
+from .memory_ss.linker_section import LinkerSection
+from .xheep import BusType, XHeep
 from .peripherals.base_peripherals import (
     BasePeripheralDomain,
     SOC_ctrl,
@@ -19,7 +24,6 @@ from .peripherals.base_peripherals import (
     Ext_peripheral,
     Pad_control,
     GPIO_ao,
-    UART,
 )
 from .peripherals.user_peripherals import (
     UserPeripheralDomain,
@@ -31,10 +35,9 @@ from .peripherals.user_peripherals import (
     SPI2,
     PDM2PCM,
     I2S,
+    UART,
     MY_IP,
 )
-from .linker_section import LinkerSection
-from .system import BusType, Override, XHeep
 
 
 def to_int(input) -> Union[int, None]:
@@ -101,17 +104,17 @@ def ram_list(l: "List[int]", entry):
     )
 
 
-def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
+def load_ram_configuration(memory_ss: MemorySS, mem: hjson.OrderedDict):
     """
     Reads the whole ram configuration.
 
-    :param XHeep system: the system object where the ram should be added.
+    :param MemorySS memory_ss: the memory_ss object where the ram should be added.
     :param hjson.OrderedDict mem: The configuration part with the ram informations.
     :raise TypeError: when arguments do not have the right type
     :raise RuntimeError: when an invalid configuration is processed.
     """
-    if not isinstance(system, XHeep):
-        raise TypeError("system should be an instance of XHeep object")
+    if not isinstance(memory_ss, MemorySS):
+        raise TypeError("memory_ss should be an instance of MemorySS")
     if type(mem) is not hjson.OrderedDict:
         raise TypeError("mem should be of type hjson.OrderedDict")
 
@@ -127,7 +130,7 @@ def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
         if "type" in value:
             t = value["type"]
             if type(t) is not str:
-                raise RuntimeError("ram type should be a string")
+                raise TypeError("ram type should be a string")
             if t != "continuous" and t != "interleaved":
                 raise RuntimeError(
                     f"ram type should be continuous or interleaved not {t}"
@@ -144,29 +147,31 @@ def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
                     "The size field is required for interleaved ram section and should be an integer"
                 )
 
-            system.add_ram_banks_il(int(value["num"]), int(value["size"]), section_name)
+            memory_ss.add_ram_banks_il(
+                int(value["num"]), int(value["size"]), section_name
+            )
 
         elif t == "continuous":
             banks: List[int] = []
             ram_list(banks, value)
-            system.add_ram_banks(banks, section_name)
+            memory_ss.add_ram_banks(banks, section_name)
 
 
-def load_linker_config(system: XHeep, config: list):
+def load_linker_config(memory_ss: MemorySS, config: list):
     """
     Reads the whole linker section configuration.
 
-    :param XHeep system: the system object where the sections should be added.
+    :param MemorySS memory_ss: the memory_ss object where the sections should be added.
     :param hjson.OrderedDict mem: The configuration part with the section informations.
     :raise TypeError: when arguments do not have the right type
     :raise RuntimeError: when an invalid configuration is processed.
     """
     if type(config) is not list:
-        raise RuntimeError("Linker Section configuraiton should be a list.")
+        raise TypeError("Linker Section configuraiton should be a list.")
 
     for l in config:
         if type(l) is not hjson.OrderedDict:
-            raise RuntimeError("Sections should be represented as Dictionaries")
+            raise TypeError("Sections should be represented as Dictionaries")
         if "name" not in l:
             raise RuntimeError("All sections should have names")
 
@@ -177,13 +182,13 @@ def load_linker_config(system: XHeep, config: list):
         start = to_int(l["start"])
 
         if type(name) is not str:
-            raise RuntimeError("Section names should be strings")
+            raise TypeError("Section names should be strings")
 
         if name == "":
             raise RuntimeError("Section names should not be empty")
 
         if type(start) is not int:
-            raise RuntimeError("The start of a section should be an integer")
+            raise TypeError("The start of a section should be an integer")
 
         if "size" in l and "end" in l:
             raise RuntimeError("Each section should only specify end or size.")
@@ -206,7 +211,7 @@ def load_linker_config(system: XHeep, config: list):
         else:
             end = None
 
-        system.add_linker_section(LinkerSection(name, start, end))
+        memory_ss.add_linker_section(LinkerSection(name, start, end))
 
 
 def load_peripherals_config(system: XHeep, config_path: str):
@@ -257,6 +262,14 @@ def load_peripherals_config(system: XHeep, config_path: str):
 
                     offset = int(peripheral_config["offset"], 16)
                     length = int(peripheral_config["length"], 16)
+                    try:
+                        if (
+                            peripheral_config["is_included"] == "no"
+                            and peripheral_name != "dma"
+                        ):
+                            continue
+                    except KeyError:
+                        pass
                     if peripheral_name == "soc_ctrl":
                         peripheral = SOC_ctrl(offset, length)
                         peripheral.custom_configuration(peripheral_config["path"])
@@ -267,30 +280,56 @@ def load_peripherals_config(system: XHeep, config_path: str):
                     elif peripheral_name == "spi_memio":
                         peripheral = SPI_memio(offset, length)
                     elif peripheral_name == "dma":
-                        addr_mode_en = peripheral_config["addr_mode_en"]
-                        subaddr_mode_en = peripheral_config["subaddr_mode_en"]
-                        hw_fifo_mode_en = peripheral_config["hw_fifo_mode_en"]
-                        zero_padding_en = peripheral_config["zero_padding_en"]
-                        if addr_mode_en != "no" and addr_mode_en != "yes":
-                            raise ValueError("addr_mode_en should be no or yes")
-                        if subaddr_mode_en != "no" and subaddr_mode_en != "yes":
-                            raise ValueError("subaddr_mode_en should be no or yes")
-                        if hw_fifo_mode_en != "no" and hw_fifo_mode_en != "yes":
-                            raise ValueError("hw_fifo_mode_en should be no or yes")
-                        if zero_padding_en != "no" and zero_padding_en != "yes":
-                            raise ValueError("zero_padding_en should be no or yes")
+                        try:
+                            if peripheral_config["is_included"] == "yes":
+                                dma_is_included = "yes"
+                            else:
+                                dma_is_included = "no"
+                        except KeyError:
+                            dma_is_included = "yes"
+
+                        if dma_is_included == "yes":
+                            addr_mode_en = peripheral_config["addr_mode_en"]
+                            subaddr_mode_en = peripheral_config["subaddr_mode_en"]
+                            hw_fifo_mode_en = peripheral_config["hw_fifo_mode_en"]
+                            zero_padding_en = peripheral_config["zero_padding_en"]
+                            if addr_mode_en != "no" and addr_mode_en != "yes":
+                                raise ValueError("addr_mode_en should be no or yes")
+                            if subaddr_mode_en != "no" and subaddr_mode_en != "yes":
+                                raise ValueError("subaddr_mode_en should be no or yes")
+                            if hw_fifo_mode_en != "no" and hw_fifo_mode_en != "yes":
+                                raise ValueError("hw_fifo_mode_en should be no or yes")
+                            if zero_padding_en != "no" and zero_padding_en != "yes":
+                                raise ValueError("zero_padding_en should be no or yes")
+                            ch_length = int(peripheral_config["ch_length"], 16)
+                            num_channels = int(peripheral_config["num_channels"], 16)
+                            num_master_ports = int(
+                                peripheral_config["num_master_ports"], 16
+                            )
+                            num_channels_per_master_port = int(
+                                peripheral_config["num_channels_per_master_port"], 16
+                            )
+                            fifo_depth = int(peripheral_config["fifo_depth"], 16)
+                        else:
+                            addr_mode_en = "no"
+                            subaddr_mode_en = "no"
+                            hw_fifo_mode_en = "no"
+                            zero_padding_en = "no"
+                            ch_length = int("0x100", 16)
+                            num_channels = int("0x1", 16)
+                            num_master_ports = int("0x1", 16)
+                            num_channels_per_master_port = int("0x1", 16)
+                            fifo_depth = int("0x4", 16)
+
                         peripheral = DMA(
+                            is_included=dma_is_included,
                             address=offset,
                             length=length,
-                            ch_length=int(peripheral_config["ch_length"], 16),
-                            num_channels=int(peripheral_config["num_channels"], 16),
-                            num_master_ports=int(
-                                peripheral_config["num_master_ports"], 16
-                            ),
-                            num_channels_per_master_port=int(
-                                peripheral_config["num_channels_per_master_port"], 16
-                            ),
-                            fifo_depth=int(peripheral_config["fifo_depth"], 16),
+                            ch_length=ch_length,
+                            num_channels=num_channels,
+                            num_master_ports=num_master_ports,
+                            num_channels_per_master_port=num_channels_per_master_port,
+                            fifo_depth=fifo_depth,
                             addr_mode=addr_mode_en,
                             subaddr_mode=subaddr_mode_en,
                             hw_fifo_mode=hw_fifo_mode_en,
@@ -311,9 +350,6 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral = Pad_control(offset, length)
                     elif peripheral_name == "gpio_ao":
                         peripheral = GPIO_ao(offset, length)
-                    elif peripheral_name == "uart":
-                        peripheral = UART(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     else:
                         raise ValueError(
                             f"Peripheral {peripheral_name} does not exist."
@@ -375,9 +411,11 @@ def load_peripherals_config(system: XHeep, config_path: str):
                     elif peripheral_name == "i2s":
                         peripheral = I2S(offset, length)
                         peripheral.custom_configuration(peripheral_config["path"])
+                    elif peripheral_name == "uart":
+                        peripheral = UART(offset, length)
+                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "my_ip":
                         peripheral = MY_IP(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     else:
                         raise ValueError(
                             f"Peripheral {peripheral_name} does not exist."
@@ -388,12 +426,11 @@ def load_peripherals_config(system: XHeep, config_path: str):
                 system.add_peripheral_domain(user_peripherals)
 
 
-def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
+def load_cfg_hjson(src: str) -> XHeep:
     """
     Loads the configuration passed as a hjson string and creates an object representing the mcu.
 
     :param str src: configuration content
-    :param Optional[Override] override: configs to be overriden
     :return: the object representing the mcu configuration
     :rtype: XHeep
     :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
@@ -401,107 +438,74 @@ def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
     config = hjson.loads(src, parse_int=int, object_pairs_hook=hjson.OrderedDict)
     mem_config = None
     bus_config = None
-    ram_address_config = None
     linker_config = None
+
+    cpu_config = None
+    cve2_rv32e_config = None
+    cve2_rv32m_config = None
 
     for key, value in config.items():
         if key == "ram_banks":
             mem_config = value
         elif key == "bus_type":
             bus_config = value
-        elif key == "ram_address":
-            ram_address_config = value
         elif key == "linker_sections":
             linker_config = value
+        elif key == "cpu_type":
+            cpu_config = value
+        elif key == "cve2_rv32e":
+            cve2_rv32e_config = value
+        elif key == "cve2_rv32m":
+            cve2_rv32m_config = value
 
     if mem_config is None:
         raise RuntimeError("No memory configuration found")
     if bus_config is None:
         raise RuntimeError("No bus type configuration found")
 
-    ram_start = 0
-    if ram_address_config is not None:
-        if type(ram_address_config) is not int:
-            RuntimeError("The ram_address should be an intger")
-        ram_start = ram_address_config
+    system = XHeep(BusType(bus_config))
+    memory_ss = MemorySS()
 
-    system = XHeep(BusType(bus_config), ram_start, override=override)
-    load_ram_configuration(system, mem_config)
+    load_ram_configuration(memory_ss, mem_config)
 
     if linker_config is not None:
-        load_linker_config(system, linker_config)
+        load_linker_config(memory_ss, linker_config)
 
-    system.build()
-    if not system.validate():
-        raise RuntimeError("Could not validate system configuration")
+    system.set_memory_ss(memory_ss)
+
+    if cpu_config is not None:
+        if cpu_config == "cv32e20":
+            cpu = cv32e20(cve2_rv32e_config, cve2_rv32m_config)
+        else:
+            cpu = CPU(cpu_config)
+        system.set_cpu(cpu)
+
     return system
 
 
-def _chk_purep(f):
-    """
-    Helper to check the type is `PurePath`
-
-    :param f: object to check
-    :raise TypeError: when object is of wrong type.
-    """
-    if not isinstance(f, PurePath):
-        raise TypeError("parameter should be of type PurePath")
-
-
-def load_cfg_hjson_file(f: PurePath, override: Optional[Override] = None) -> XHeep:
-    """
-    Loads the configuration passed in the path as hjson and creates an object representing the mcu.
-
-    :param PurePath f: path of the configuration
-    :param Optional[Override] override: configs to be overriden
-    :return: the object representing the mcu configuration
-    :rtype: XHeep
-    :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
-    """
-    _chk_purep(f)
-
-    with open(f, "r") as file:
-        return load_cfg_hjson(file.read(), override)
-
-
-def load_cfg_script_file(f: PurePath) -> XHeep:
-    """
-    Executes the python file passed as argument to cinfigure the system.
-
-    This file should have a function config that takes no parameters and returns an instance (or subclass) of the XHeep type.
-    The script can import modules from the util directory.
-    The script should not have side effects as it is called multiple time in the current makefile.
-
-    :param PurePath f: path of the configuration
-    :return: the object representing the mcu configuration
-    :rtype: XHeep
-    :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
-    """
-    _chk_purep(f)
-
-    spec = importlib.util.spec_from_file_location("configs._config", f)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-
-    return mod.config()
-
-
-def load_cfg_file(f: PurePath, override: Optional[Override] = None) -> XHeep:
+def load_cfg_file(f: PurePath) -> XHeep:
     """
     Load the Configuration by extension type. It currently supports .hjson and .py
 
     :param PurePath f: path of the configuration
-    :param Optional[Override] override: configs to be overriden
     :return: the object representing the mcu configuration
     :rtype: XHeep
     :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
     """
-    _chk_purep(f)
+    if not isinstance(f, PurePath):
+        raise TypeError("parameter should be of type PurePath")
 
     if f.suffix == ".hjson":
-        return load_cfg_hjson_file(f, override)
+        with open(f, "r") as file:
+            return load_cfg_hjson(file.read())
 
-    if f.suffix == ".py":
-        return load_cfg_script_file(f)
+    elif f.suffix == ".py":
+        # The python script should have a function config() that takes no parameters and
+        # returns an instance of the XHeep type.
+        spec = importlib.util.spec_from_file_location("configs._config", f)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod.config()
 
-    raise RuntimeError(f"unsupported file extension {f.suffix}")
+    else:
+        raise RuntimeError(f"unsupported file extension {f.suffix}")

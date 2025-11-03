@@ -10,7 +10,7 @@ so that you can extend it with your own accelerator without modifying the MCU, b
 By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`,
 and you can focus on building your special HW supported by the microcontroller.
 
-`X-HEEP` supports simulation with Verilator, Questasim, etc. Morever, FW can be built and linked by using `CMake` either with gcc or with clang. It can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target. See below for more details.
+`X-HEEP` currently supports simulation with Verilator, Questasim, VCS, and Xcelium. Morever, the firmware can be built and linked using `CMake` with either _GCC_ or _Clang_ as backends. It can be implemented on FPGA, and it supports ASIC implementation in silicon, which is its main (but not the only) target for the platform. See below for more details.
 
 The block diagram below shows the `X-HEEP` MCU
 
@@ -22,15 +22,14 @@ You can access an editable version of this diagram for your use in presentations
 
 ## Reference
 
-If you use X-HEEP in your academic work you can cite us: [X-HEEP Paper](https://arxiv.org/abs/2401.05548)
+If you use X-HEEP in your academic work you can cite us: [X-HEEP Paper](https://doi.org/10.1109/ISVLSI65124.2025.11130281).
 
 ```
-@misc{machetti2024xheep,
-      title={X-HEEP: An Open-Source, Configurable and Extendible RISC-V Microcontroller for the Exploration of Ultra-Low-Power Edge Accelerators},
-      author={Simone Machetti and Pasquale Davide Schiavone and Thomas Christoph Müller and Miguel Peón-Quirós and David Atienza},
-      year={2024},
-      eprint={2401.05548},
-      archivePrefix={arXiv},
-      primaryClass={cs.AR}
+@INPROCEEDINGS{machetti2025xheep,
+  author={Machetti, Simone and Schiavone, Pasquale Davide and Ansaloni, Giovanni and Peón-Quirós, Miguel and Atienza, David},
+  booktitle={2025 IEEE Computer Society Annual Symposium on VLSI (ISVLSI)}, 
+  title={X-HEEP: An Open-Source, Configurable and Extendible RISC-V Platform for TinyAI Applications}, 
+  year={2025},
+  doi={10.1109/ISVLSI65124.2025.11130281}
 }
 ```

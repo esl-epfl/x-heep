@@ -126,7 +126,7 @@ module dma_subsystem
 
 
   generate
-    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_gen
+    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : gen_dma_channels
 
       /* Register interface routing signals */
       logic [core_v_mini_mcu_pkg::DMA_CH_PORT_SEL_WIDTH-1:0] submodules_select;
@@ -170,7 +170,9 @@ module dma_subsystem
             .slave_resp_i(dma_addr_resp_i)
         );
       end else if (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS > 1 && core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS == core_v_mini_mcu_pkg::DMA_CH_NUM) begin : xbar_n_to_n_gen
-        for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin
+        for (
+            genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++
+        ) begin : gen_master_ports
           assign dma_read_req_o[i] = xbar_read_req[i];
           assign xbar_read_resp[i] = dma_read_resp_i[i];
           assign dma_write_req_o[i] = xbar_write_req[i];
@@ -246,7 +248,7 @@ module dma_subsystem
           .out_rsp_i(submodules_rsp)
       );
 
-    end else begin
+    end else begin : gen_no_dma_channels
 
       /* Bus ports routing in the case of a single DMA */
       assign dma_read_req_o[0] = xbar_read_req[0];
