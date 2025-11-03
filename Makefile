@@ -276,7 +276,7 @@ vivado-fpga-nobuild:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildvivado.log
 
 ## Loads the generated bitstream into the FPGA
-## @param FPGA_BOARD=nexys-a7-100t,pynq-z2,zcu104
+## @param FPGA_BOARD=nexys-a7-100t,pynq-z2,zcu104,zcu102
 vivado-fpga-pgm:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --run openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee programfpga.log
 
