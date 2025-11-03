@@ -1,6 +1,6 @@
 CAPI=2:
 
-name : pulp-platform.org::common_cells:1.29.0
+name : pulp-platform.org::common_cells:1.31.1
 
 filesets:
   rtl:
@@ -81,9 +81,11 @@ filesets:
       # Level 3
       - src/cdc_fifo_gray_clearable.sv
       - src/cdc_2phase_clearable.sv
-      - src/mem_to_banks.sv
+      - src/mem_to_banks_detailed.sv
       - src/stream_arbiter.sv
       - src/stream_omega_net.sv
+      # Level 4
+      - src/mem_to_banks.sv
     file_type : systemVerilogSource
 
   deprecated:

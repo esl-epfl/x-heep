@@ -1,6 +1,6 @@
 CAPI=2:
 
-name : pulp-platform.org::axi:0.29.1
+name : pulp-platform.org::axi:0.39.4
 
 filesets:
   rtl:
@@ -17,18 +17,24 @@ filesets:
       # Level 2
       - src/axi_atop_filter.sv
       - src/axi_burst_splitter.sv
+      - src/axi_bus_compare.sv
       - src/axi_cdc_dst.sv
       - src/axi_cdc_src.sv
       - src/axi_cut.sv
       - src/axi_delayer.sv
-      - src/axi_demux.sv
+      - src/axi_demux_simple.sv
       - src/axi_dw_downsizer.sv
       - src/axi_dw_upsizer.sv
+      - src/axi_fifo.sv
+      - src/axi_id_remap.sv
       - src/axi_id_prepend.sv
       - src/axi_isolate.sv
       - src/axi_join.sv
       - src/axi_lite_demux.sv
+      - src/axi_lite_dw_converter.sv
+      - src/axi_lite_from_mem.sv
       - src/axi_lite_join.sv
+      - src/axi_lite_lfsr.sv
       - src/axi_lite_mailbox.sv
       - src/axi_lite_mux.sv
       - src/axi_lite_regs.sv
@@ -36,19 +42,73 @@ filesets:
       - src/axi_lite_to_axi.sv
       - src/axi_modify_address.sv
       - src/axi_mux.sv
+      - src/axi_rw_join.sv
+      - src/axi_rw_split.sv
       - src/axi_serializer.sv
+      - src/axi_slave_compare.sv
+      - src/axi_throttle.sv
+      - src/axi_to_detailed_mem.sv
       # Level 3
       - src/axi_cdc.sv
+      - src/axi_demux.sv
       - src/axi_err_slv.sv
       - src/axi_dw_converter.sv
+      - src/axi_from_mem.sv
+      - src/axi_id_serialize.sv
+      - src/axi_lfsr.sv
       - src/axi_multicut.sv
       - src/axi_to_axi_lite.sv
+      - src/axi_to_mem.sv
+      - src/axi_zero_mem.sv
       # Level 4
+      - src/axi_interleaved_xbar.sv
+      - src/axi_iw_converter.sv
       - src/axi_lite_xbar.sv
+      - src/axi_xbar_unmuxed.sv
+      - src/axi_to_mem_banked.sv
+      - src/axi_to_mem_interleaved.sv
+      - src/axi_to_mem_split.sv
+      - src/axi_chan_compare.sv
+      - src/axi_dumper.sv
+      - src/axi_sim_mem.sv
+      # Level 5
       - src/axi_xbar.sv
+      # Level 6
+      - src/axi_xp.sv
     file_type : systemVerilogSource
     depend :
-      - ">=pulp-platform.org::common_cells:1.21.0"
+      - ">=pulp-platform.org::common_cells:1.29.0"
+  benchs:
+    files:
+      - test/tb_axi_dw_pkg.sv
+      - test/tb_axi_xbar_pkg.sv
+      - test/axi_synth_bench.sv
+      - test/tb_axi_addr_test.sv
+      - test/tb_axi_atop_filter.sv
+      - test/tb_axi_bus_compare.sv
+      - test/tb_axi_cdc.sv
+      - test/tb_axi_delayer.sv
+      - test/tb_axi_dw_downsizer.sv
+      - test/tb_axi_dw_upsizer.sv
+      - test/tb_axi_fifo.sv
+      - test/tb_axi_isolate.sv
+      - test/tb_axi_iw_converter.sv
+      - test/tb_axi_lite_dw_converter.sv
+      - test/tb_axi_lite_mailbox.sv
+      - test/tb_axi_lite_regs.sv
+      - test/tb_axi_lite_to_apb.sv
+      - test/tb_axi_lite_to_axi.sv
+      - test/tb_axi_lite_xbar.sv
+      - test/tb_axi_modify_address.sv
+      - test/tb_axi_serializer.sv
+      - test/tb_axi_sim_mem.sv
+      - test/tb_axi_slave_compare.sv
+      - test/tb_axi_to_axi_lite.sv
+      - test/tb_axi_to_mem_banked.sv
+      - test/tb_axi_xbar.sv
+    file_type : systemVerilogSource
+    depend :
+      - ">=pulp-platform.org::common_verification:0.2.3"
 
 generators:
   axi_intercon_gen:
@@ -104,3 +164,29 @@ generators:
 targets:
   default:
     filesets : [rtl]
+  sim: &sim
+    filesets : [rtl,benchs]
+    description: Simulate the design
+    toplevel: tb_axi_delayer
+  sim_dw_downsizer:
+    <<: *sim
+    toplevel: tb_axi_dw_downsizer
+  sim_addr_test     : { filesets : [rtl,benchs] , toplevel: tb_axi_addr_test      }
+  sim_atop_filter   : { filesets : [rtl,benchs] , toplevel: tb_axi_atop_filter    }
+  sim_cdc           : { filesets : [rtl,benchs] , toplevel: tb_axi_cdc            }
+  sim_delayer       : { filesets : [rtl,benchs] , toplevel: tb_axi_delayer        }
+  sim_dw_pkg        : { filesets : [rtl,benchs] , toplevel: tb_axi_dw_pkg         }
+  sim_dw_upsizer    : { filesets : [rtl,benchs] , toplevel: tb_axi_dw_upsizer     }
+  sim_isolate       : { filesets : [rtl,benchs] , toplevel: tb_axi_isolate        }
+  sim_iw_converter  : { filesets : [rtl,benchs] , toplevel: tb_axi_iw_converter   }
+  sim_lite_mailbox  : { filesets : [rtl,benchs] , toplevel: tb_axi_lite_mailbox   }
+  sim_lite_regs     : { filesets : [rtl,benchs] , toplevel: tb_axi_lite_regs      }
+  sim_lite_to_apb   : { filesets : [rtl,benchs] , toplevel: tb_axi_lite_to_apb    }
+  sim_lite_to_axi   : { filesets : [rtl,benchs] , toplevel: tb_axi_lite_to_axi    }
+  sim_lite_xbar     : { filesets : [rtl,benchs] , toplevel: tb_axi_lite_xbar      }
+  sim_modify_address: { filesets : [rtl,benchs] , toplevel: tb_axi_modify_address }
+  sim_serializer    : { filesets : [rtl,benchs] , toplevel: tb_axi_serializer     }
+  sim_sim_mem       : { filesets : [rtl,benchs] , toplevel: tb_axi_sim_mem        }
+  sim_to_axi_lite   : { filesets : [rtl,benchs] , toplevel: tb_axi_to_axi_lite    }
+  sim_xbar          : { filesets : [rtl,benchs] , toplevel: tb_axi_xbar           }
+  sim_xbar_pkg      : { filesets : [rtl,benchs] , toplevel: tb_axi_xbar_pkg       }

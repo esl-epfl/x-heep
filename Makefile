@@ -148,8 +148,9 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl $(LINK_FOLDER)/link_flash_exec.ld.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl $(LINK_FOLDER)/link_flash_load.ld.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/dma/data/dma.hjson.tpl 
-	bash -c "cd hw/ip/dma; source dma_gen.sh; cd ../../../"	
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/dma/data/dma_conf.svh.tpl 
+	bash -c "cd hw/ip/dma; source dma_gen.sh; cd ../../../"
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/dma/data/dma_conf.svh.tpl
+	bash -c "cd hw/ip/serial_link; source serial_link_gen.sh; cd ../../../"	 
 	$(PYTHON) util/structs_periph_gen.py --cfg_peripherals $(XHEEP_CONFIG_CACHE)
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/fpga/sram_wrapper.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/fpga/scripts/generate_sram.tcl.tpl

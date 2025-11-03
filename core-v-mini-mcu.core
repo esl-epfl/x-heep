@@ -17,9 +17,11 @@ filesets:
     - esl_epfl:ip:cv32e40px
     - pulp-platform.org:ip:gpio
     - pulp-platform.org::common_cells
+    - pulp-platform.org::axi:0.39.4
     - pulp-platform.org::cluster_interconnect
     - pulp-platform.org::riscv_dbg
     - pulp-platform.org::register_interface
+    #- pulp-platform.org::core2axi
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
     - lowrisc:ip:rv_plic_example:0.1
@@ -36,6 +38,7 @@ filesets:
     - x-heep:ip:fast_intr_ctrl
     - x-heep:ip:obi_fifo
     - x-heep:ip:pdm2pcm
+    - pulp-platform.org::serial-link
     - esl_epfl:ip:obi_spi_slave
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
@@ -373,6 +376,7 @@ targets:
       verilator:
         mode: cc
         verilator_options:
+          - '--sv'
           - '--cc'
           - '--trace'
           - '--trace-fst'

@@ -1,0 +1,33 @@
+From d9fe7c0e15ac2caf7f3269a11cfb514e8f05f2f7 Mon Sep 17 00:00:00 2001
+From: annaburds <annaburdse@gmail.com>
+Date: Sun, 2 Nov 2025 20:53:08 +0100
+Subject: [PATCH] pulp_platform_axi: tweak src/axi.core common cells
+ version/unsupported verilator
+
+---
+ hw/vendor/pulp_platform_axi/axi.core | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/hw/vendor/pulp_platform_axi/axi.core b/hw/vendor/pulp_platform_axi/axi.core
+index 5d17f61..d9b7b97 100644
+--- a/hw/vendor/pulp_platform_axi/axi.core
++++ b/hw/vendor/pulp_platform_axi/axi.core
+@@ -71,14 +71,13 @@ filesets:
+       - src/axi_chan_compare.sv
+       - src/axi_dumper.sv
+       - src/axi_sim_mem.sv
+-      - src/axi_test.sv
+       # Level 5
+       - src/axi_xbar.sv
+       # Level 6
+       - src/axi_xp.sv
+     file_type : systemVerilogSource
+     depend :
+-      - ">=pulp-platform.org::common_cells:1.31.1"
++      - ">=pulp-platform.org::common_cells:1.29.0"
+   benchs:
+     files:
+       - test/tb_axi_dw_pkg.sv
+-- 
+2.25.1
+

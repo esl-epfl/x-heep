@@ -19,11 +19,11 @@
   dma = base_peripheral_domain.get_dma()
   memory_ss = xheep.memory_ss()
 %>
-
 package core_v_mini_mcu_pkg;
 
   import addr_map_rule_pkg::*;
   import power_manager_pkg::*;
+  
 
   typedef enum logic [1:0] {
     cv32e40p,

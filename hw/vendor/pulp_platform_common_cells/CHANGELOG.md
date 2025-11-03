@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 1.31.1 - 2023-08-09
+### Fixed
+- `mem_to_banks`: Keep defaut values for localparams
+
+## 1.31.0 - 2023-08-08
+### Added
+- Add `mem_to_banks_detailed`: `mem_to_banks` with detailed response signals
+
+### Fixed
+- `unread`: Add dummy signal assignment when targeting Vivado to avoid blackbox inference
+
+## 1.30.0 - 2023-06-09
+### Added
+- Add `lossy_valid_to_stream`: A converter between valid-only protocols and ready-valid where the latest transaction overwrites the most recently queue one.
+- Add `clk_int_div_static`: A wrapper for `clk_int_div` for static clock division.
+
+### Changed
+- `popcount`: Refactor and support all input widths.
+- `clk_int_div`: Support clock output during reset.
+- `stream_delay`: Support larger counts.
+
+### Fixed
+- `clk_int_div`: Fix possible deadlock and avoid hold issues.
+
 ## 1.29.0 - 2023-04-14
 ### Added
 - Add `shift_reg_gated`: Shift register with ICG for arbitrary types.

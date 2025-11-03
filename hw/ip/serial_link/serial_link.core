@@ -1,0 +1,52 @@
+CAPI=2:
+name : pulp-platform.org::serial-link
+
+filesets:
+  includes:
+    files:
+      #Ugly workaround from https://github.com/fusesoc/fusesoc-cores/blob/master/pulp-platform.org/common_cells-1.16.4.core#L9
+      - ../../vendor/pulp_platform_serial_link/src/axis/include/axis : {is_include_file : true}
+    file_type : systemVerilogSource
+
+  rtl:
+    depend:
+    - pulp-platform.org::axi:0.39.4
+    - pulp-platform.org::common_cells
+    files:
+    - ../../vendor/pulp_platform_register_interface/src/reg_cdc.sv
+    - ../../vendor/pulp_platform_serial_link/src/serial_link_pkg.sv
+    - ../../vendor/pulp_platform_serial_link/src/regs/serial_link_reg_pkg.sv
+    - ../../vendor/pulp_platform_serial_link/src/regs/serial_link_reg_top.sv
+    - ../../vendor/pulp_platform_serial_link/src/regs/serial_link_single_channel_reg_pkg.sv
+    - ../../vendor/pulp_platform_serial_link/src/regs/serial_link_single_channel_reg_top.sv
+    - ../../vendor/pulp_platform_serial_link/src/channel_allocator/serial_link_channel_allocator.sv
+    - ../../vendor/pulp_platform_serial_link/src/channel_allocator/stream_dechopper.sv
+    - ../../vendor/pulp_platform_serial_link/src/channel_allocator/stream_chopper.sv
+    - ../../vendor/pulp_platform_serial_link/src/channel_allocator/channel_spread_sfr.sv
+    - ../../vendor/pulp_platform_serial_link/src/channel_allocator/channel_despread_sfr.sv
+    - ../../vendor/pulp_platform_serial_link/src/serial_link_network.sv
+    - ../../vendor/pulp_platform_serial_link/src/serial_link_physical.sv
+    - ../../vendor/pulp_platform_serial_link/src/serial_link_data_link.sv
+    - ../../vendor/pulp_platform_serial_link/src/serial_link.sv
+    - ../../vendor/pulp_platform_serial_link/src/serial_link_occamy_wrapper.sv
+    - ../../vendor/pulp_platform_per2axi/src/per2axi_busy_unit.sv
+    - ../../vendor/pulp_platform_per2axi/src/per2axi_req_channel.sv
+    - ../../vendor/pulp_platform_per2axi/src/per2axi_res_channel.sv
+    - ../../vendor/pulp_platform_per2axi/src/per2axi.sv
+    - ../../vendor/pulp_platform_axi_slice/src/axi_ar_buffer.sv
+    - ../../vendor/pulp_platform_axi_slice/src/axi_aw_buffer.sv
+    - ../../vendor/pulp_platform_axi_slice/src/axi_b_buffer.sv
+    - ../../vendor/pulp_platform_axi_slice/src/axi_r_buffer.sv
+    - ../../vendor/pulp_platform_axi_slice/src/axi_single_slice.sv
+    - ../../vendor/pulp_platform_axi_slice/src/axi_slice_wrap.sv
+    - ../../vendor/pulp_platform_axi_slice/src/axi_w_buffer.sv
+    - ../../vendor/pulp_platform_axi_slice/src/axi_slice.sv
+    - serial_link_minimum_axi_pkg.sv
+    - serial_link_xheep_wrapper.sv
+    file_type: systemVerilogSource
+    include_dirs:
+      - ../../vendor/pulp_platform_serial_link/src/axis/include
+
+targets:
+  default:
+    filesets : [includes, rtl]
