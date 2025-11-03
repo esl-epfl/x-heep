@@ -765,15 +765,12 @@ module core_v_mini_mcu
       .i2s_sd_oe_o(i2s_sd_oe_o),
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid),
-<<<<<<< HEAD
+      .uart_rx_i,
+      .uart_tx_o,
       .my_ip_done_o(my_ip_done_o),
       .my_ip_master_bus_req_o(my_ip_master_bus_req_i),
       .my_ip_master_bus_resp_i(my_ip_master_bus_resp_o),
       .dma_done(dma_done_o)
-=======
-      .uart_rx_i,
-      .uart_tx_o
->>>>>>> origin/main
   );
 
   // Debug_req assign

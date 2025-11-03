@@ -142,9 +142,6 @@ module peripheral_subsystem
   logic i2c_intr_host_timeout;
   logic spi2_intr_event;
   logic i2s_intr_event;
-<<<<<<< HEAD
-  logic my_ip_intr_event;
-=======
   logic uart_intr_tx_watermark;
   logic uart_intr_rx_watermark;
   logic uart_intr_tx_empty;
@@ -153,7 +150,8 @@ module peripheral_subsystem
   logic uart_intr_rx_break_err;
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
->>>>>>> origin/main
+
+  logic my_ip_intr_event;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -482,30 +480,8 @@ module peripheral_subsystem
       .i2s_rx_valid_o(i2s_rx_valid_o)
   );
 
-  my_ip #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) my_ip_i (
-      .clk_i(clk_cg),
-      .rst_ni,
 
-<<<<<<< HEAD
-      // Register interface
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::MY_IP_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::MY_IP_IDX]),
 
-      // Done signal
-      .my_ip_done_o,
-
-      // Interrupt signal
-      .my_ip_interrupt_o(my_ip_intr_event),
-
-      // Master ports on the system bus
-      .my_ip_master_bus_req_o,
-      .my_ip_master_bus_resp_i,
-      .dma_done
-  );
-=======
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -543,6 +519,27 @@ module peripheral_subsystem
 
 
 
->>>>>>> origin/main
+  my_ip #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) my_ip_i (
+      .clk_i(clk_cg),
+      .rst_ni,
+
+      // Register interface
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::MY_IP_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::MY_IP_IDX]),
+
+      // Done signal
+      .my_ip_done_o,
+
+      // Interrupt signal
+      .my_ip_interrupt_o(my_ip_intr_event),
+
+      // Master ports on the system bus
+      .my_ip_master_bus_req_o,
+      .my_ip_master_bus_resp_i,
+      .dma_done
+  );
 
 endmodule : peripheral_subsystem
