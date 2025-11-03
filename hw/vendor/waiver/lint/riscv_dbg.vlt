@@ -11,5 +11,6 @@ lint_off -rule DECLFILENAME -file "*/src/cdc_reset_ctrlr.sv" -match "Filename 'c
 lint_off -rule DECLFILENAME -file "*/src/cdc_fifo_gray_clearable.sv" -match "Filename 'cdc_fifo_gray_clearable' does not match MODULE name: 'cdc_fifo_gray_src_clearable'*"
 lint_off -rule WIDTH -file "*/src/cdc_2phase_clearable.sv" -match "Logical operator GENIF expects 1 bit on the If, but If's VARREF 'CLEAR_ON_ASYNC_RESET' generates 32 bits.*"
 lint_off -rule UNOPTFLAT -file "*/src/cdc_4phase.sv" -match "Signal unoptimizable*"
+lint_off -rule UNOPTFLAT -file "*/src/dm_top.sv" -match "Signal unoptimizable*"
 lint_off -rule WIDTH -file "*/src/dm_mem.sv" -match "*"
 lint_off -rule CMPCONST -file "*/src/dm_csrs.sv" -match "*"

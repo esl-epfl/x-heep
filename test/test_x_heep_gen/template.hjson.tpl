@@ -6,16 +6,17 @@
     base_peripheral_domain = xheep.get_base_peripheral_domain()
     dma = base_peripheral_domain.get_dma()
     pdm2pcm = user_peripheral_domain.get_pdm2pcm()
+    cpu = xheep.cpu()
 %>
 
 {
     // CPU configuration
-    cpu_type: "${cpu_type}"
-    % if cve2_rv32e is not None:
-    cve2_rv32e: "${cve2_rv32e}"
+    cpu_type: "${cpu.get_name()}"
+    % if cpu.is_defined("rv32e"):
+    cve2_rv32e: "${cpu.get_sv_str("rv32e")}"
     % endif
-    % if cve2_rv32m is not None:
-    cve2_rv32m: "${cve2_rv32m}"
+    % if cpu.is_defined("rv32m"):
+    cve2_rv32m: "${cpu.get_sv_str("rv32m")}"
     % endif
     external_domains: ${external_domains}
 

@@ -64,7 +64,7 @@ We recomend using the [vendor](https://opentitan.org/book/util/doc/vendor.html) 
 The `main` branch in `rev:` can be replaced with a specific commit. This is the recommended operation
 to prevent accidental updates to an incompatible repository commit.
 
-In a directory `BASE/util` add the [vendor python script](https://github.com/lowRISC/opentitan/blob/master/util/vendor.py).
+In a directory `BASE/util` add the [vendor Python script](https://github.com/lowRISC/opentitan/blob/master/util/vendor.py).
 
 To vendorize or revendorize the X-HEEP repository inside a `BASE/hw/vendor/esl_epfl_x_heep/` folder run the following command from your `BASE`.
 ```

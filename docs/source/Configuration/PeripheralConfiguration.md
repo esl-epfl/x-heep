@@ -1,6 +1,6 @@
 # Peripheral Configuration
 
-The default configuration of the peripherals can be found in either [mcu_cfg.hjson](https://github.com/esl-epfl/x-heep/blob/main/mcu_cfg.hjson) or [configs/example.py](https://github.com/esl-epfl/x-heep/blob/main/configs/example.py). A custom configuration can be created through python configuration.
+The default configuration of the peripherals can be found in either [configs/general.hjson](https://github.com/esl-epfl/x-heep/blob/main/configs/general.hjson) or [configs/general.py](https://github.com/esl-epfl/x-heep/blob/main/configs/general.py). A custom configuration can be created through Python configuration.
 
 ## Overall structure
 
@@ -12,19 +12,13 @@ Peripherals are split between two domains :
 
 Each domain has its corresponding peripherals : 
  - Base peripherals (Mandatory peripherals)
- - User peripherals (Optionnal peripherals)
+ - User peripherals (Optional peripherals)
 
-Every peripheral has at least an offset and a length, which represent its position in the corresponding domain. Some peripherals have their own registers, and thus have a linked `hjson` configuration file. Each peripheral must be stored in the corresponding domain. Every peripheral is represented as a python class, more information about each peripheral can be found [here](https://x-heep.readthedocs.io/en/latest/Configuration/x_heep_gen/index.html)
+Every peripheral has at least an offset and a length, which represent its position in the corresponding domain. Some peripherals have their own registers, and thus have a linked `hjson` configuration file. Each peripheral must be stored in the corresponding domain. Every peripheral is represented as a Python class, more information about each peripheral can be found [here](https://x-heep.readthedocs.io/en/latest/Configuration/x_heep_gen/index.html)
 
 ## Adding a custom configuration
 
-A toy example is shown in `configs/example.py` :
-```{literalinclude} ../../../configs/example.py
-:language: python
-:lines: 39-59
-```
-
-First, both domains must be created. If a domain is not created, X-HEEP will be built with the default configuration from `mcu_cfg.hjson`. Base Peripheral domain starts from 0x20000000, User peripheral domain starts from 0x30000000, and each fills 1MB.
+An example is shown in [configs/general.py](https://github.com/esl-epfl/x-heep/blob/main/configs/general.py). First, both domains must be created. If a domain is not created, X-HEEP will be built with the provided HJSON configuration. Base Peripheral domain starts from 0x20000000, User peripheral domain starts from 0x30000000, and each fills 1MB.
 
 Each peripheral has its own class, that must be imported from `x_heep_gen.peripherals.base_peripherals.py`or `x_heep_gen.peripherals.user_peripherals.py`.
 

@@ -17,7 +17,7 @@ typedef struct memory_address {
 } xheep_memory_address_t;
 
 xheep_memory_address_t xheep_memory_regions[MEMORY_BANKS] = {
-% for bank in xheep.iter_ram_banks():
+% for bank in xheep.memory_ss().iter_ram_banks():
     {.start = RAM${bank.name()}_START_ADDRESS, .end = RAM${bank.name()}_END_ADDRESS},
 % endfor
 };
