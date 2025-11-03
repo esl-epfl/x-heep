@@ -41,7 +41,7 @@
 
   <div class="section">
     <h2>1️⃣ Connect to the Server (11 or 13)</h2>
-    <pre><code>ssh lenges@eslsrv13.epfl.ch</code></pre>
+    <pre><code>ssh -X lenges@eslsrv13.epfl.ch</code></pre>
   </div>
 
   <div class="section">
@@ -69,9 +69,10 @@ conda activate core-v-mini-mcu</code></pre>
   <div class="section">
     <h2>5️⃣ Run Simulation (QuestaSim)</h2>
     <p><strong>⚠️ Building hardware takes time, especially with prints — please use moderately.</strong></p>
-    <pre><code>make questasim-sim
+    <pre><code>make questasim-sim-opt
 cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
-make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=0"
+make run-gui RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=0"
+run -all (restart for change in application)
 cat uart0.log
 # boot_sel=1 for flash_load/flash_exec linker, on_chip=0
 </code></pre>

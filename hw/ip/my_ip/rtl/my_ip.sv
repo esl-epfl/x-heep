@@ -570,3 +570,8 @@ module my_ip #(
 
 endmodule
 
+ssh -X
+make questasim-sim-opt
+make run-gui
+run -all
+gtkwave waveform.vcd &

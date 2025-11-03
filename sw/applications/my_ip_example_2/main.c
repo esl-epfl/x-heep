@@ -118,6 +118,8 @@ int main(void) {
     return EXIT_SUCCESS;
 }
 
+// Polling then Interrupt
+
 // Requiremens:
 // make mcu-gen MEMORY_BANKS=3
 // make app PROJECT=my_ip_example_2 LINKER=flash_load
