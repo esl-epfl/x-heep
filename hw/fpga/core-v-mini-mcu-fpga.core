@@ -45,6 +45,11 @@ filesets:
     - scripts/zcu104/xilinx_generate_clk_wizard.tcl
     file_type: tclSource
 
+  ip-fpga-zcu102:
+    files:
+    - hw/fpga/scripts/zcu102/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
+
+
   xdc-fpga-nexys:
     files:
     - constraints/nexys/pin_assign.xdc
