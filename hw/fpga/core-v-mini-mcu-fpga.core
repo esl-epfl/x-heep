@@ -47,8 +47,8 @@ filesets:
 
   ip-fpga-zcu102:
     files:
-    - hw/fpga/scripts/zcu102/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
-
+    - scripts/zcu102/xilinx_generate_clk_wizard.tcl
+    file_type: tclSource
 
   xdc-fpga-nexys:
     files:
@@ -77,6 +77,14 @@ filesets:
     - constraints/common/sync.xdc
     file_type: xdc
 
+  xdc-fpga-zcu102:
+    files:
+    - constraints/zcu102/pin_assign.xdc
+    - constraints/zcu102/constraints.xdc
+    - constraints/common/spi_slave.xdc
+    - constraints/common/jtag.xdc
+    - constraints/common/sync.xdc
+    file_type: xdc
 
 targets:
   default: &default_target
