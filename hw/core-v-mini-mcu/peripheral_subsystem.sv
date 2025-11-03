@@ -7,9 +7,6 @@
 module peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
-  import axi_pkg::*;
-  import serial_link_pkg::*;
-  import serial_link_minimum_axi_pkg::*;
 #(
     //do not touch these parameters
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
@@ -83,10 +80,15 @@ module peripheral_subsystem
     input  logic i2s_sd_i,
     output logic i2s_rx_valid_o,
 
+    //Serial Link
+    input logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_i,
+    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_o,
+    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_i,
+    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_o,
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
     output logic pdm2pcm_clk_en_o,
-    input  logic pdm2pcm_pdm_i
+    input logic pdm2pcm_pdm_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -155,10 +157,9 @@ module peripheral_subsystem
   obi_req_t  axi_sl_slave_req;
   obi_resp_t axi_sl_slave_resp;
 
-  serial_link_minimum_axi_pkg::axi_req_t axi_in_req_i, axi_out_req_o, fast_sl_req_i;
-  serial_link_minimum_axi_pkg::axi_resp_t axi_in_rsp_o, axi_out_rsp_i, fast_sl_rsp_i;
-  reg_req_t cfg_req_sl;
-  reg_rsp_t cfg_rsp_sl;
+
+  reg_req_t  cfg_req_sl;
+  reg_rsp_t  cfg_rsp_sl;
   //----------------------------------------------------------------
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -532,19 +533,10 @@ module peripheral_subsystem
       // .r_chan_t(core_v_mini_mcu_pkg::axi_r_t),
       // .w_chan_t(core_v_mini_mcu_pkg::axi_w_t),
       // .b_chan_t(core_v_mini_mcu_pkg::axi_b_t),
-
-      .axi_req_t(serial_link_minimum_axi_pkg::axi_req_t),
-      .axi_rsp_t(serial_link_minimum_axi_pkg::axi_resp_t),
-      .aw_chan_t(serial_link_minimum_axi_pkg::axi_aw_t),
-      .ar_chan_t(serial_link_minimum_axi_pkg::axi_ar_t),
-      .r_chan_t (serial_link_minimum_axi_pkg::axi_r_t),
-      .w_chan_t (serial_link_minimum_axi_pkg::axi_w_t),
-      .b_chan_t (serial_link_minimum_axi_pkg::axi_b_t),
-
-      .cfg_rsp_t(reg_rsp_t),
-      .cfg_req_t(reg_req_t),
-      .obi_req_t(obi_req_t),
-      .obi_resp_t(obi_resp_t),
+      //.cfg_rsp_t(reg_rsp_t),
+      //.cfg_req_t(reg_req_t),
+      //.obi_req_t(obi_req_t),
+      //.obi_resp_t(obi_resp_t),
       .NumChannels(1),
       .NumLanes(4),
       .MaxClkDiv(32),
@@ -556,11 +548,6 @@ module peripheral_subsystem
       // .B_CH_SIZE(core_v_mini_mcu_pkg::B_CH_SIZE),
       // .AR_CH_SIZE(core_v_mini_mcu_pkg::AR_CH_SIZE),
       // .R_CH_SIZE(core_v_mini_mcu_pkg::R_CH_SIZE)
-      .AW_CH_SIZE(serial_link_minimum_axi_pkg::AW_CH_SIZE),
-      .W_CH_SIZE(serial_link_minimum_axi_pkg::W_CH_SIZE),
-      .B_CH_SIZE(serial_link_minimum_axi_pkg::B_CH_SIZE),
-      .AR_CH_SIZE(serial_link_minimum_axi_pkg::AR_CH_SIZE),
-      .R_CH_SIZE(serial_link_minimum_axi_pkg::R_CH_SIZE)
   ) serial_link_xheep_wrapper_i (
       .clk_i     (clk_i),
       .fast_clock(clk_i),
@@ -584,8 +571,7 @@ module peripheral_subsystem
       .cfg_req_i(cfg_req_sl),  //register configuration
       .cfg_rsp_o(cfg_rsp_sl),
 
-      .fifo_empty_o,
-      .fifo_full_o,
+
 
       .ddr_rcv_clk_i,  //Source-synchronous input clock to sample data. One clock per channel
       .ddr_i,  //Double-Data-Rate (DDR) input data

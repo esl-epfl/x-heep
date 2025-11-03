@@ -1,8 +1,8 @@
 
-`include "axi/typedef.svh"
+
 
 package serial_link_minimum_axi_pkg;
- import axi_pkg::*; 
+  `include "axi/typedef.svh"
   parameter int unsigned AXI_ADDR_WIDTH = 1;  //original 32
   parameter int unsigned AXI_DATA_WIDTH = 32;
   parameter int unsigned AXI_USER_WIDTH = 1;  //8

@@ -43,8 +43,6 @@ module serial_link_xheep_wrapper
     input  cfg_req_t cfg_req_i,
     output cfg_rsp_t cfg_rsp_o,
 
-    output logic fifo_empty_o,
-    output logic fifo_full_o,
 
     input  logic [NumChannels-1:0]    ddr_rcv_clk_i,
     output logic [NumChannels-1:0]    ddr_rcv_clk_o,
@@ -58,6 +56,10 @@ module serial_link_xheep_wrapper
 
   logic clk_ena;
   logic reset_n;
+
+  // Debug signals for the Serial Link 
+  logic fifo_empty_o;
+  logic fifo_full_o;
 
   axi_req_t fast_sl_req_i, fast_sl_req_O, axi_in_req_i, axi_out_req_o, axi_lite_req;
   axi_rsp_t fast_sl_rsp_i, fast_sl_rsp_O, axi_in_rsp_o, axi_out_rsp_i, axi_lite_rsp;

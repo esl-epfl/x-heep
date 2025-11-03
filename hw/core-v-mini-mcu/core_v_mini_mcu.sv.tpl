@@ -11,7 +11,6 @@ module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
   import fifo_pkg::*;
-  import axi_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -262,6 +261,12 @@ ${pad.core_v_mini_mcu_interface}
   // I2s
   logic i2s_rx_valid;
 
+  // Serial Link
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i;  
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o;
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_i;
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_o;
+
   assign intr = {
     irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
@@ -508,6 +513,11 @@ ${pad.core_v_mini_mcu_interface}
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid),
       .uart_rx_i,
+      //Serial Link
+      .ddr_rcv_clk_i,  
+      .ddr_rcv_clk_o,
+      .ddr_i,
+      .ddr_o,
       .uart_tx_o
   );
 
