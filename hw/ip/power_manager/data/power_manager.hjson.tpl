@@ -1,6 +1,11 @@
 // Copyright lowRISC contributors.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
+
+<%
+    memory_ss = xheep.memory_ss()
+%>
+
 { name: "power_manager",
   clock_primary: "clk_i",
   bus_interfaces: [
@@ -235,7 +240,7 @@
     }
 % endfor
 
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
     { name:     "RAM_${bank.name()}_CLK_GATE",
       desc:     "Clock-gates the RAM_${bank.name()} domain",
       resval:   "0x00000000"
@@ -389,7 +394,7 @@
       ]
     }
 
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
     { name:     "MONITOR_POWER_GATE_RAM_BLOCK_${bank.name()}",
       desc:     "Used to monitor the signals to power gate ram block ${bank.name()}",
       resval:   "0x00000000"

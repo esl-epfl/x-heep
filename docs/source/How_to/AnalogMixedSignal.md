@@ -78,7 +78,7 @@ The SPICE netlist uses the [65nm_bulk PTM Bulk CMOS model](http://ptm.asu.edu/mo
 
 The AMS simulation of X-HEEP can be ran by typing
 ```
-make vcs-ams-sim
+make vcs-ams-build
 ```
 
 then going to the target system built folder

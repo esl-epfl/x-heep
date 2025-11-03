@@ -132,6 +132,8 @@ module xilinx_core_v_mini_mcu_wrapper
       .FPU(FPU),
       .ZFINX(ZFINX)
   ) x_heep_system_i (
+      .hart_id_i('0),
+      .xheep_instance_id_i('0),
       .intr_vector_ext_i('0),
       .xif_compressed_if(ext_if),
       .xif_issue_if(ext_if),
@@ -157,6 +159,10 @@ module xilinx_core_v_mini_mcu_wrapper
       .ext_peripheral_slave_resp_i('0),
       .ext_ao_peripheral_req_i('0),
       .ext_ao_peripheral_resp_o(),
+      .cpu_subsystem_powergate_switch_no(),
+      .cpu_subsystem_powergate_switch_ack_ni('0),
+      .peripheral_subsystem_powergate_switch_no(),
+      .peripheral_subsystem_powergate_switch_ack_ni('0),
       .external_subsystem_powergate_switch_no(),
       .external_subsystem_powergate_switch_ack_ni('0),
       .external_subsystem_powergate_iso_no(),

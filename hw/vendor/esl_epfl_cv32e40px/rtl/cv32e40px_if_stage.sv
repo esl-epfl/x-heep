@@ -291,7 +291,7 @@ module cv32e40px_if_stage #(
 
 
   generate
-    if (COREV_X_IF != 0) begin
+    if (COREV_X_IF != 0) begin : gen_core_v_x_if
       assign x_compressed_valid_o = illegal_c_insn_dec;
       assign x_compressed_req_o.instr = instr_aligned[15:0];
       assign x_compressed_req_o.mode = 2'b00;  // Machine Mode
@@ -308,7 +308,7 @@ module cv32e40px_if_stage #(
           illegal_c_insn = 1'b1;
         end
       end
-    end else begin
+    end else begin : gen_no_core_v_x_if
       assign instr_decompressed   = instr_decompressed_dec;
       assign illegal_c_insn       = illegal_c_insn_dec;
       assign x_compressed_valid_o = '0;

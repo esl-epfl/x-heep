@@ -210,7 +210,7 @@ def __generate_argv(
     extension: str,
 ):
 
-    python_x_heep_cfg = (
+    python_config = (
         f"{config_dir}/example{example_number}.py" if extension == "py" else ""
     )
 
@@ -220,8 +220,8 @@ def __generate_argv(
         f"{output_dir}/example{example_number}-{extension}.pickle",
         "--config",
         f"{config_dir}/example{example_number}.hjson",
-        "--python_x_heep_cfg",
-        python_x_heep_cfg,
+        "--python_config",
+        python_config,
         "--pads_cfg",
         pads_cfg,
     ]

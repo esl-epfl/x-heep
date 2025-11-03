@@ -20,7 +20,7 @@ MEMORY
   /* Our testbench is a bit weird in that we initialize the RAM (thus
      allowing initialized sections to be placed there). Infact we dump all
      sections to ram. */
-  % for i, section in enumerate(xheep.iter_linker_sections()):
+  % for i, section in enumerate(xheep.memory_ss().iter_linker_sections()):
     ram${i} (rwxai) : ORIGIN = ${f"{section.start:#08x}"}, LENGTH = ${f"{section.size:#08x}"}
 % endfor
 }
@@ -292,7 +292,7 @@ SECTIONS
    PROVIDE(__freertos_irq_stack_top = .);
   } >ram1
 
-% for i, section in enumerate(xheep.iter_linker_sections()):
+% for i, section in enumerate(xheep.memory_ss().iter_linker_sections()):
 % if not section.name in ["code", "data"]:
   .${section.name} :
   {

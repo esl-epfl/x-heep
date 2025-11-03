@@ -31,8 +31,17 @@ filesets:
     - lint/fpu_ss.vlt
     file_type: vlt
 
+generate:
+  waivers-v5:
+    generator: waiver-v5-gen
+    parameters:
+      waivers_v5:
+      - lint/common_cells_v5.vlt
+      - lint/cv32e40p_v5.vlt
 
 targets:
   default: &default_target
     filesets:
-    - tool_verilator? (files_verilator_waiver)
+    - tool_verilator ? (files_verilator_waiver)
+    generate:
+    - tool_verilator ? (waivers-v5)

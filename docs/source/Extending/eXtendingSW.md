@@ -81,6 +81,101 @@ In the (optional) `external` folder you can add whatever is necessary for softwa
 
 The external folder or any of its subdirectories cannot contain neither a `device` nor an `applications` folder as it would collide with the respective folders inside `BASE/sw/`. It should also not contain a `main.c` file.
 
+## Embedding binary data into X-HEEP firmware
+The [`util/c_gen.py`](../../../util/c_gen.py) script is a versatile utility for converting binary files and NumPy arrays into C header files. This is particularly useful for embedding data directly into the X-HEEP firmware, such as the Firmware for your programmable accelerator or some Python-generated golden results for your application.
+
+The utility can be used in two ways: as a straightforward command-line tool for simple conversions, or as a Python module for more complex and customized header generation.
+
+### Command-Line Usage
+For quick conversion of a single binary file (e.g., a compiled firmware blob), the command-line interface is ideal.
+```bash
+python c_gen.py <header_file> <bin_file> [<src_file> ...]
+```
+
+| Argument          | Description|
+|-------------------|------------|
+| `<header_file>`	| The path and name for the output C header file (e.g., `firmware.h`). |
+| `<bin_file>`	    | The path to the input binary file to be converted (e.g., `firmware.bin`). |
+| `[<src_file> ...]`| (Optional) One or more paths to C source files. The script will parse these files and copy any `#define` directives into the generated header. |
+
+For example, to convert a compiled peripheral firmware dma_engine.bin into dma_engine.h and include definitions from its source code:
+```bash
+python c_gen.py sw/external/lib/driver/accel/firmware.h whatever/firmware.bin whatever/main.c
+```
+This will generate `sw/external/lib/driver/accel/firmware.h` containing the binary data as a `uint32_t` array named `firmware`, along with size macros (e.g, `FIRMWARE_SIZE`) and any macros defined in `whatever/main.c`. The application code can therefore copy this data to the accelerator memory when needed.
+
+### Programmatic Usage (as a Python Module)
+For more advanced use cases, you can import the CFileGen class into your Python scripts. This approach is highly recommended for test-bench generation and complex data embedding, as it provides much greater flexibility:
+- __Multiple data sources__: add any number of binaries, matrices, or code arrays to an header file.
+- __NumPy array conversion__: firectly convert NumPy arrays into C arrays, perfect for test vectors and golden models. The script automatically handles signed-to-unsigned conversion and formats values in hexadecimal.
+- __Automatic size macros__: for each array, it automatically generates `_SIZE`, `_ROWS`, and `_COLS` macros.
+- __Custom C attributes__: add GCC/Clang attributes (e.g., `__attribute__((section(".data_interleaved")))`) to place arrays in specific memory sections.
+
+For example, here's how you could generate a header file containing both a firmware binary and a NumPy array of test vectors for an accelerator:
+
+```python
+import numpy as np
+from c_gen import CFileGen
+
+# 1. Create some test data as a NumPy array
+# This could be input data for a near-memory accelerator test
+test_vectors = np.array([
+    [10, -20, 30],
+    [40, -50, 60],
+    [70, 80, -90]
+], dtype=np.int16)
+
+# 2. Instantiate the C code generator
+header_gen = CFileGen()
+
+# 3. Add the firmware binary for the accelerator
+header_gen.add_binary('accelerator_fw', 'build/accelerator.bin')
+
+# 4. Add the NumPy test vectors as an input matrix
+# Let's also place this array in a specific memory section
+header_gen.add_attribute('section(".data_interleaved")')
+header_gen.add_input_matrix('input_vectors', test_vectors)
+
+# 5. Write the final header file
+header_gen.write_header('generated_tests', 'accelerator_test.h')
+
+print("Generated accelerator_test.h successfully!")
+```
+This script would produce a file named `generated_tests/accelerator_test.h` with content similar to this:
+
+```C
+#ifndef ACCELERATOR_TEST_H_
+#define ACCELERATOR_TEST_H_
+
+#include <stdint.h>
+
+// Input matrix size
+#define INPUT_VECTORS_SIZE 18
+#define INPUT_VECTORS_ROWS 3
+#define INPUT_VECTORS_COLS 3
+
+// Binary size
+// -----------
+#define ACCELERATOR_FW_SIZE 4096 // Example size
+
+// Binary files
+// ------------
+uint32_t accelerator_fw[] = {
+    0xDEADBEEF,
+    // ... firmware data ...
+};
+
+// Input matrices
+// --------------
+int16_t input_vectors [] __attribute__((section(".data_interleaved"))) = {
+    {0x000a, 0xffec, 0x001e},
+    {0x0028, 0xffce, 0x003c},
+    {0x0046, 0x0050, 0xffa6}
+};
+
+#endif // ACCELERATOR_TEST_H_
+```
+
 ## The BASE/Makefile
 
 The `BASE/Makefile` is your own custom Makefile. You can use it as a bridge to access the Makefile from X-HEEP. To do so, it MUST include the `external.mk` AFTER all your custom rules.
@@ -99,8 +194,8 @@ app:
     @echo This target will do something and then call the one inside X-HEEP.
     $(MAKE) -f $(XHEEP_MAKE) $(MAKECMDGOALS) PROJECT=hello_world SOURCE=.
 
-verilator-sim:
-    @echo You will not access the verilator-sim target from X-HEEP.
+verilator-build:
+    @echo You will not access the verilator-build target from X-HEEP.
 
 export HEEP_DIR = hw/vendor/esl_epfl_x_heep/
 XHEEP_MAKE = $(HEEP_DIR)/external.mk
@@ -109,7 +204,7 @@ include $(XHEEP_MAKE)
 
 - The `custom` rule will not use the X-HEEP Makefile in any way. Make the target a prerequisite of `.PHONY` to prevent X-HEEP's Makefile from attempting to run a non-existent target.
 - The `app` rule will perform actions before calling X-HEEP Makefile's `app` rule. In this case, the project and where the source files are to be extracted from is being specified. The `SOURCE=.` argument will set X-HEEP's own `sw/` folder as the directory from which to fetch source files. This is an example of building inner sources from an external directory.
-- The `verilator-sim` rule will override the X-HEEP Makefile's one.
+- The `verilator-build` rule will override the X-HEEP Makefile's one.
 - Any other target will be passed straight to X-HEEP's Makefile. For example
 ```sh
 make mcu-gen CPU=cv32e40px

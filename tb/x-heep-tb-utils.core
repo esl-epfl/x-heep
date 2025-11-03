@@ -1,0 +1,85 @@
+CAPI=2:
+
+# Copyright 2022 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: x-heep::tb-utils
+description: X-HEEP testbench files.
+
+filesets:
+  files_examples:
+    depend:
+    - example:ip:slow_memory
+    - example:ip:gpio_cnt
+    - example:ip:pdm2pcm_dummy
+    - example:ip:ams
+    - example:ip:iffifo
+    - example:ip:i2s_microphone
+    - example:ip:simple_accelerator
+    - example:ip:dlc
+    - example:ip:im2col_spc
+
+  files_verilator_waiver:
+    files:
+    - ../hw/ip_examples/slow_memory/slow_memory.vlt
+    - ../hw/ip_examples/ams/ams.vlt
+    - ../hw/ip_examples/iffifo/iffifo.vlt
+    - ../hw/ip_examples/simple_accelerator/simple_accelerator.vlt
+    - ../hw/ip_examples/dlc/dlc.vlt
+    - ../hw/ip_examples/im2col_spc/im2col_spc.vlt
+    - tb.vlt
+    file_type: vlt
+
+  systemverilog_only_simjtag:
+    depend:
+    - pulp-platform.org::pulpissimo_simjtag
+
+  tb-harness:
+    depend:
+    - pulp-platform.org:ip:fpu_ss
+    files:
+    - tb_util.svh: {is_include_file: true}
+    - yosys_spiflash.sv
+    - testharness_pkg.sv
+    - testharness.sv
+    - ext_xbar.sv
+    - ext_bus.sv
+    file_type: systemVerilogSource
+
+  uartdpi:
+    depend:
+    - lowrisc:dv_dpi:uartdpi
+
+  systemverilog_only_uart:
+    files:
+    - ../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.sv
+    file_type: systemVerilogSource
+
+  remote_bitbang_dpi:
+    depend:
+    - pulp-platform.org::pulpissimo_remote_bitbang
+
+generate:
+  waivers-v5:
+    generator: waiver-v5-gen
+    parameters:
+      waivers_v5:
+      - tb_v5.vlt
+
+targets:
+  default: &default_target
+    filesets:
+    - files_examples
+    - tb-harness
+    - tool_verilator? (uartdpi)
+    - tool_modelsim? (systemverilog_only_uart)
+    - tool_vcs? (systemverilog_only_uart)
+    - tool_xcelium? (systemverilog_only_uart)
+    - tool_verilator? (files_verilator_waiver)
+    - tool_verilator? (remote_bitbang_dpi)
+    - tool_modelsim? (systemverilog_only_simjtag)
+    - tool_vcs? (systemverilog_only_simjtag)
+    - tool_xcelium? (systemverilog_only_simjtag)
+    generate:
+    - tool_verilator ? (waivers-v5)

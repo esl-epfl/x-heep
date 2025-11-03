@@ -25,15 +25,9 @@ module peripheral_subsystem
     output logic                    irq_plic_o,
     output logic                    msip_o,
 
-    //UART PLIC interrupts
-    input logic uart_intr_tx_watermark_i,
-    input logic uart_intr_rx_watermark_i,
-    input logic uart_intr_tx_empty_i,
-    input logic uart_intr_rx_overflow_i,
-    input logic uart_intr_rx_frame_err_i,
-    input logic uart_intr_rx_break_err_i,
-    input logic uart_intr_rx_timeout_i,
-    input logic uart_intr_rx_parity_err_i,
+    // UART
+    input  logic uart_rx_i,
+    output logic uart_tx_o,
 
     //GPIO
     input  logic [31:8] cio_gpio_i,
@@ -99,8 +93,8 @@ module peripheral_subsystem
   reg_pkg::reg_req_t peripheral_req;
   reg_pkg::reg_rsp_t peripheral_rsp;
 
-  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::PERIPHERALS-1:0] peripheral_slv_req;
-  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::PERIPHERALS-1:0] peripheral_slv_rsp;
+  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::PERIPHERALS_RND-1:0] peripheral_slv_req;
+  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::PERIPHERALS_RND-1:0] peripheral_slv_rsp;
 
   tlul_pkg::tl_h2d_t plic_tl_h2d;
   tlul_pkg::tl_d2h_t plic_tl_d2h;
@@ -110,6 +104,9 @@ module peripheral_subsystem
 
   tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
   tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
+
+  tlul_pkg::tl_h2d_t uart_tl_h2d;
+  tlul_pkg::tl_d2h_t uart_tl_d2h;
 
   logic [rv_plic_reg_pkg::NumTarget-1:0] irq_plic;
   logic [rv_plic_reg_pkg::NumSrc-1:0] intr_vector;
@@ -139,20 +136,28 @@ module peripheral_subsystem
   logic i2c_intr_host_timeout;
   logic spi2_intr_event;
   logic i2s_intr_event;
+  logic uart_intr_tx_watermark;
+  logic uart_intr_rx_watermark;
+  logic uart_intr_tx_empty;
+  logic uart_intr_rx_overflow;
+  logic uart_intr_rx_frame_err;
+  logic uart_intr_rx_break_err;
+  logic uart_intr_rx_timeout;
+  logic uart_intr_rx_parity_err;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
 
   // Assign internal interrupts
   assign intr_vector[0] = 1'b0;  // ID [0] is a special case and must be tied to zero.
-  assign intr_vector[1] = uart_intr_tx_watermark_i;
-  assign intr_vector[2] = uart_intr_rx_watermark_i;
-  assign intr_vector[3] = uart_intr_tx_empty_i;
-  assign intr_vector[4] = uart_intr_rx_overflow_i;
-  assign intr_vector[5] = uart_intr_rx_frame_err_i;
-  assign intr_vector[6] = uart_intr_rx_break_err_i;
-  assign intr_vector[7] = uart_intr_rx_timeout_i;
-  assign intr_vector[8] = uart_intr_rx_parity_err_i;
+  assign intr_vector[1] = uart_intr_tx_watermark;
+  assign intr_vector[2] = uart_intr_rx_watermark;
+  assign intr_vector[3] = uart_intr_tx_empty;
+  assign intr_vector[4] = uart_intr_rx_overflow;
+  assign intr_vector[5] = uart_intr_rx_frame_err;
+  assign intr_vector[6] = uart_intr_rx_break_err;
+  assign intr_vector[7] = uart_intr_rx_timeout;
+  assign intr_vector[8] = uart_intr_rx_parity_err;
   assign intr_vector[32:9] = gpio_intr;
   assign intr_vector[33] = i2c_intr_fmt_watermark;
   assign intr_vector[34] = i2c_intr_rx_watermark;
@@ -174,7 +179,7 @@ module peripheral_subsystem
   assign intr_vector[50] = i2s_intr_event;
 
   // External interrupts assignement
-  for (genvar i = 0; i < NEXT_INT; i++) begin
+  for (genvar i = 0; i < NEXT_INT; i++) begin : gen_external_intr_vect
     assign intr_vector[i+PLIC_USED_NINT] = intr_vector_ext_i[i];
   end
 
@@ -246,8 +251,8 @@ module peripheral_subsystem
   );
 
   addr_decode #(
-      .NoIndices(core_v_mini_mcu_pkg::PERIPHERALS),
-      .NoRules(core_v_mini_mcu_pkg::PERIPHERALS),
+      .NoIndices(core_v_mini_mcu_pkg::PERIPHERALS_RND),
+      .NoRules(core_v_mini_mcu_pkg::PERIPHERALS_RND),
       .addr_t(logic [31:0]),
       .rule_t(addr_map_rule_pkg::addr_map_rule_t)
   ) i_addr_decode_soc_regbus_periph_xbar (
@@ -261,7 +266,7 @@ module peripheral_subsystem
   );
 
   reg_demux #(
-      .NoPorts(core_v_mini_mcu_pkg::PERIPHERALS),
+      .NoPorts(core_v_mini_mcu_pkg::PERIPHERALS_RND),
       .req_t  (reg_pkg::reg_req_t),
       .rsp_t  (reg_pkg::reg_rsp_t)
   ) reg_demux_i (
@@ -465,6 +470,43 @@ module peripheral_subsystem
       .intr_i2s_event_o(i2s_intr_event),
       .i2s_rx_valid_o(i2s_rx_valid_o)
   );
+
+
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) reg_to_tlul_uart_i (
+      .tl_o(uart_tl_h2d),
+      .tl_i(uart_tl_d2h),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::UART_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::UART_IDX])
+  );
+
+  uart uart_i (
+      .clk_i(clk_cg),
+      .rst_ni,
+      .tl_i(uart_tl_h2d),
+      .tl_o(uart_tl_d2h),
+      .cio_rx_i(uart_rx_i),
+      .cio_tx_o(uart_tx_o),
+      .cio_tx_en_o(),
+      .intr_tx_watermark_o(uart_intr_tx_watermark),
+      .intr_rx_watermark_o(uart_intr_rx_watermark),
+      .intr_tx_empty_o(uart_intr_tx_empty),
+      .intr_rx_overflow_o(uart_intr_rx_overflow),
+      .intr_rx_frame_err_o(uart_intr_rx_frame_err),
+      .intr_rx_break_err_o(uart_intr_rx_break_err),
+      .intr_rx_timeout_o(uart_intr_rx_timeout),
+      .intr_rx_parity_err_o(uart_intr_rx_parity_err)
+  );
+
 
 
 
