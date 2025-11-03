@@ -389,7 +389,7 @@ module testharness #(
   // ----------------------
   always_ff @(posedge clk_i) begin : blockName
     for (int unsigned i = 0; i <= SWITCH_ACK_LATENCY; i++) begin
-      if(i==0) begin
+      if (i == 0) begin
         external_subsystem_powergate_switch_ack_n[0] <= external_subsystem_powergate_switch_n;
         cpu_subsystem_powergate_switch_ack_n[0] <= cpu_subsystem_powergate_switch_n;
         peripheral_subsystem_powergate_switch_ack_n[0] <= peripheral_subsystem_powergate_switch_n;
