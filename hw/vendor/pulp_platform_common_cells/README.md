@@ -15,14 +15,15 @@ Please note that cells with status *deprecated* are not to be used for new desig
 
 ### Clocks and Resets
 
-| Name                    | Description                                                                          | Status       | Superseded By |
-| ----------------------- | ------------------------------------------------------------------------------------ | ------------ | ------------- |
-| `clk_int_div`           | Arbitrary integer clock divier with config interface and 50% output clock duty cycle | active       |               |
-| `clk_div`               | Clock divider with integer divisor                                                   | *deprecated* | `clk_int_div` |
-| `clock_divider`         | Clock divider with configuration registers                                           | *deprecated* | `clk_int_div` |
-| `clock_divider_counter` | Clock divider using a counter                                                        | *deprecated* | `clk_int_div` |
-| `rstgen`                | Reset synchronizer                                                                   | active       |               |
-| `rstgen_bypass`         | Reset synchronizer with dedicated test reset bypass                                  | active       |               |
+| Name                    | Description                                                                           | Status       | Superseded By |
+|-------------------------|---------------------------------------------------------------------------------------|--------------|---------------|
+| `clk_int_div`           | Arbitrary integer clock divider with config interface and 50% output clock duty cycle | active       |               |
+| `clk_int_div_static`    | A convenience wrapper around `clk_int_div` with static division factor.               | active       |               |
+| `clk_div`               | Clock divider with integer divisor                                                    | *deprecated* | `clk_int_div` |
+| `clock_divider`         | Clock divider with configuration registers                                            | *deprecated* | `clk_int_div` |
+| `clock_divider_counter` | Clock divider using a counter                                                         | *deprecated* | `clk_int_div` |
+| `rstgen`                | Reset synchronizer                                                                    | active       |               |
+| `rstgen_bypass`         | Reset synchronizer with dedicated test reset bypass                                   | active       |               |
 
 ### Clock Domains and Asynchronous Crossings
 
@@ -65,7 +66,7 @@ Please note that cells with status *deprecated* are not to be used for new desig
 ### Data Path Elements
 
 | Name                       | Description                                                                                               | Status       | Superseded By |
-| -------------------------- | --------------------------------------------------------------------------------------------------------- | ------------ | ------------- |
+|----------------------------|-----------------------------------------------------------------------------------------------------------|--------------|---------------|
 | `addr_decode`              | Address map decoder                                                                                       | active       |               |
 | `addr_decode_napot`        | Address map decoder using naturally-aligned power of two (NAPOT) regions                                  | active       |               |
 | `ecc_decode`               | SECDED Decoder (Single Error Correction, Double Error Detection)                                          | active       |               |
@@ -86,6 +87,7 @@ Please note that cells with status *deprecated* are not to be used for new desig
 | `stream_arbiter`           | Round-robin arbiter for ready/valid stream interface                                                      | active       |               |
 | `stream_arbiter_flushable` | Round-robin arbiter for ready/valid stream interface and flush functionality                              | active       |               |
 | `stream_demux`             | Ready/valid interface demultiplexer                                                                       | active       |               |
+| `lossy_valid_to_stream`    | Convert Valid-only to ready/valid by updating in-flight transaction                                       | active       |               |
 | `stream_join`              | Ready/valid handshake join multiple to one common                                                         | active       |               |
 | `stream_mux`               | Ready/valid interface multiplexer                                                                         | active       |               |
 | `stream_register`          | Register with ready/valid interface                                                                       | active       |               |
@@ -99,6 +101,7 @@ Please note that cells with status *deprecated* are not to be used for new desig
 | `stream_throttle`          | Restrict the number of outstanding transfers in a stream.                                                 | active       |               |
 | `sub_per_hash`             | Substitution-permutation hash function                                                                    | active       |               |
 | `popcount`                 | Combinatorial popcount (hamming weight)                                                                   | active       |               |
+| `mem_to_banks_detailed`    | Split memory access over multiple parallel banks with detailed response signals                           | active       |               |
 | `mem_to_banks`             | Split memory access over multiple parallel banks                                                          | active       |               |
 
 ### Data Structures

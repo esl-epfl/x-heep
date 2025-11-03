@@ -7,6 +7,7 @@ filesets:
       #Ugly workaround from https://github.com/fusesoc/fusesoc-cores/blob/master/pulp-platform.org/common_cells-1.16.4.core#L9
       - ../../vendor/pulp_platform_serial_link/src/axis/include/axis : {is_include_file : true}
     file_type : systemVerilogSource
+
   rtl:
     depend:
     - pulp-platform.org::axi:0.39.4
@@ -40,7 +41,6 @@ filesets:
     - ../../vendor/pulp_platform_axi_slice/src/axi_slice_wrap.sv
     - ../../vendor/pulp_platform_axi_slice/src/axi_w_buffer.sv
     - ../../vendor/pulp_platform_axi_slice/src/axi_slice.sv
-    - pulp_platform_common_cells/src/mem_to_banks_detailed.sv
     - serial_link_minimum_axi_pkg.sv
     - serial_link_xheep_wrapper.sv
     file_type: systemVerilogSource

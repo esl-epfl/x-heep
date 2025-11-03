@@ -1,7 +1,9 @@
 // Copyright 2022 OpenHW Group
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-
+<%
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
+%>
 module x_heep_system
   import obi_pkg::*;
   import reg_pkg::*;
@@ -97,8 +99,13 @@ ${pad.x_heep_system_interface}
 
   //do not touch these parameter
   localparam EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS;
-
-
+  % if user_peripheral_domain.contains_peripheral('serial_link'):
+  // Serial Link
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i;  
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o;
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_i;
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_o;
+  %endif
   logic [EXT_HARTS_RND-1:0] ext_debug_req;
   logic ext_cpu_subsystem_rst_n;
   logic ext_debug_reset_n;
@@ -129,7 +136,14 @@ ${pad.internal_signals}
     .AO_SPC_NUM(AO_SPC_NUM),
     .EXT_HARTS(EXT_HARTS)
   ) core_v_mini_mcu_i (
-
+    % if user_peripheral_domain.contains_peripheral('serial_link'):
+    //Serial Link
+    .ddr_rcv_clk_i,  
+    .ddr_rcv_clk_o,
+    .ddr_i,
+    .ddr_o,
+    %endif
+% if total_pad_muxed > 0:
     .rst_ni(rst_ngen),
 % for pad in pad_list:
 ${pad.core_v_mini_mcu_bonding}
@@ -221,7 +235,7 @@ ${pad_mux_process}
       ,
 % endif
 % endif
-% if total_pad_muxed > 0:
+
       .pad_muxes_o(pad_muxes)
 % endif
   );

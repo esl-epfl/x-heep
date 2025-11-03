@@ -256,21 +256,20 @@ module serial_link_xheep_wrapper
 
   if (NumChannels > 1) begin : gen_multi_channel_serial_link
     serial_link #(
-        .axi_req_t        (axi_req_t),
-        .axi_rsp_t        (axi_rsp_t),
-        .aw_chan_t        (aw_chan_t),
-        .w_chan_t         (w_chan_t),
-        .b_chan_t         (b_chan_t),
-        .ar_chan_t        (ar_chan_t),
-        .r_chan_t         (r_chan_t),
-        .cfg_req_t        (cfg_req_t),
-        .cfg_rsp_t        (cfg_rsp_t),
-        .hw2reg_t         (serial_link_reg_pkg::serial_link_hw2reg_t),
-        .reg2hw_t         (serial_link_reg_pkg::serial_link_reg2hw_t),
-        .NumChannels      (NumChannels),
-        .NumLanes         (NumLanes),
-        .MaxClkDiv        (MaxClkDiv),
-        .MaxAxiChannelBits(MaxAxiChannelBits)
+        .axi_req_t  (axi_req_t),
+        .axi_rsp_t  (axi_rsp_t),
+        .aw_chan_t  (aw_chan_t),
+        .w_chan_t   (w_chan_t),
+        .b_chan_t   (b_chan_t),
+        .ar_chan_t  (ar_chan_t),
+        .r_chan_t   (r_chan_t),
+        .cfg_req_t  (cfg_req_t),
+        .cfg_rsp_t  (cfg_rsp_t),
+        .hw2reg_t   (serial_link_reg_pkg::serial_link_hw2reg_t),
+        .reg2hw_t   (serial_link_reg_pkg::serial_link_reg2hw_t),
+        .NumChannels(NumChannels),
+        .NumLanes   (NumLanes),
+        .MaxClkDiv  (MaxClkDiv)
     ) i_serial_link (
         .clk_i        (clk_i),
         .rst_ni       (rst_ni),
@@ -302,21 +301,20 @@ module serial_link_xheep_wrapper
     );
   end else begin : gen_single_channel_serial_link
     serial_link #(
-        .axi_req_t        (axi_req_t),
-        .axi_rsp_t        (axi_rsp_t),
-        .aw_chan_t        (aw_chan_t),
-        .w_chan_t         (w_chan_t),
-        .b_chan_t         (b_chan_t),
-        .ar_chan_t        (ar_chan_t),
-        .r_chan_t         (r_chan_t),
-        .cfg_req_t        (cfg_req_t),
-        .cfg_rsp_t        (cfg_rsp_t),
-        .hw2reg_t         (serial_link_single_channel_reg_pkg::serial_link_single_channel_hw2reg_t),
-        .reg2hw_t         (serial_link_single_channel_reg_pkg::serial_link_single_channel_reg2hw_t),
-        .NumChannels      (NumChannels),
-        .NumLanes         (NumLanes),
-        .MaxClkDiv        (MaxClkDiv),
-        .MaxAxiChannelBits(MaxAxiChannelBits)
+        .axi_req_t  (axi_req_t),
+        .axi_rsp_t  (axi_rsp_t),
+        .aw_chan_t  (aw_chan_t),
+        .w_chan_t   (w_chan_t),
+        .b_chan_t   (b_chan_t),
+        .ar_chan_t  (ar_chan_t),
+        .r_chan_t   (r_chan_t),
+        .cfg_req_t  (cfg_req_t),
+        .cfg_rsp_t  (cfg_rsp_t),
+        .hw2reg_t   (serial_link_single_channel_reg_pkg::serial_link_single_channel_hw2reg_t),
+        .reg2hw_t   (serial_link_single_channel_reg_pkg::serial_link_single_channel_reg2hw_t),
+        .NumChannels(NumChannels),
+        .NumLanes   (NumLanes),
+        .MaxClkDiv  (MaxClkDiv)
     ) i_serial_link (
         .clk_i        (clk_i),
         .rst_ni       (rst_ni),
