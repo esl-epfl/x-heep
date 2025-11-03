@@ -44,7 +44,6 @@ def write_template(tpl_path, outfile, **kwargs):
         if tpl_path.exists():
             tpl = Template(filename=str(tpl_path))
             print("Generating file from template: {0}".format(tpl_path))
-            print("Template inside =", tpl.source)
 
             if outfile:
                 filename = outfile
@@ -166,13 +165,12 @@ def generate_xheep(args):
 
     interrupts = {**config["interrupts"]["list"], **ext_int_list}
 
-    padring = PadRing(pad_cfg,config)
     
 
 
     # Here the xheep system is built,
     # The missing gaps are filled, like the missing end address of the data section.
-    xheep.build()
+    xheep.build(pad_cfg,config)
     if not xheep.validate():
         raise RuntimeError("There are errors when configuring X-HEEP")
 
@@ -191,22 +189,7 @@ def generate_xheep(args):
         "plic_used_n_interrupts": plic_used_n_interrupts,
         "plit_n_interrupts": plit_n_interrupts,
         "interrupts": interrupts,
-        "pad_list": padring.pad_list,
-        "external_pad_list": padring.external_pad_list,
-        "total_pad_list": padring.total_pad_list,
-        "total_pad": padring.total_pad,
-        "right_pad_list": padring.right_pad_list,
-        "bottom_pad_list": padring.bottom_pad_list,
-        "physical_attributes": padring.physical_attributes,
-        "bondpad_offsets": padring.bondpad_offsets,
-        "pad_constant_driver_assign": padring.pad_constant_driver_assign,
-        "pad_mux_process": padring.pad_mux_process,
-        "pad_muxed_list": padring.pad_muxed_list,
-        "total_pad_muxed": padring.total_pad_muxed,
-        "max_total_pad_mux_bitlengh": padring.max_total_pad_mux_bitlengh,
-        "pads_attributes": padring.pads_attributes,
-        "padring": padring,
-    }
+        }
 
     return kwargs
 

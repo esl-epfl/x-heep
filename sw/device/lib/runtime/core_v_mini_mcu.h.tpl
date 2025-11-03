@@ -127,8 +127,8 @@ extern "C" {
 #define ${key.upper()} ${value}
 % endfor
 
-% if pads_attributes != None:
-% for pad in pad_list:
+% if xheep.padring.pads_attributes != None:
+% for pad in xheep.padring.pad_list:
 #define ${pad.localparam}_ATTRIBUTE ${pad.index}
 % endfor
 % endif

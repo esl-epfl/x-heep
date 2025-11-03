@@ -5,45 +5,45 @@
 module pad_control #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-% if not (total_pad_muxed > 0 or pads_attributes != None):
+% if not (xheep.padring.total_pad_muxed > 0 or xheep.padring.pads_attributes != None):
     /* verilator lint_off UNUSED */
 % endif
     parameter NUM_PAD = 1
 ) (
 
-% if not (total_pad_muxed > 0 or pads_attributes != None):
+% if not (xheep.padring.total_pad_muxed > 0 or xheep.padring.pads_attributes != None):
     /* verilator lint_off UNUSED */
 % endif
     input logic clk_i,
-% if not (total_pad_muxed > 0 or pads_attributes != None):
+% if not (xheep.padring.total_pad_muxed > 0 or xheep.padring.pads_attributes != None):
     /* verilator lint_off UNUSED */
 % endif
     input logic rst_ni,
 
     // Bus Interface
-% if not (total_pad_muxed > 0 or pads_attributes != None):
+% if not (xheep.padring.total_pad_muxed > 0 or xheep.padring.pads_attributes != None):
     /* verilator lint_off UNUSED */
 % endif
     input  reg_req_t reg_req_i,
-% if not (total_pad_muxed > 0 or pads_attributes != None):
+% if not (xheep.padring.total_pad_muxed > 0 or xheep.padring.pads_attributes != None):
     /* verilator lint_off UNDRIVEN */
 % endif
     output reg_rsp_t reg_rsp_o
-% if total_pad_muxed > 0 or pads_attributes != None:
+% if xheep.padring.total_pad_muxed > 0 or xheep.padring.pads_attributes != None:
       ,
 % endif
-% if pads_attributes != None:
-    output logic [NUM_PAD-1:0][${pads_attributes['bits']}] pad_attributes_o
-% if total_pad_muxed > 0:
+% if xheep.padring.pads_attributes != None:
+    output logic [NUM_PAD-1:0][${xheep.padring.pads_attributes['bits']}] pad_attributes_o
+% if xheep.padring.total_pad_muxed > 0:
       ,
 % endif
 % endif
-% if total_pad_muxed > 0:
-    output logic [NUM_PAD-1:0][${max_total_pad_mux_bitlengh-1}:0] pad_muxes_o
+% if xheep.padring.total_pad_muxed > 0:
+    output logic [NUM_PAD-1:0][${xheep.padring.max_total_pad_mux_bitlengh-1}:0] pad_muxes_o
 % endif
 );
 
-% if total_pad_muxed > 0 or pads_attributes != None:
+% if xheep.padring.total_pad_muxed > 0 or xheep.padring.pads_attributes != None:
 
   import core_v_mini_mcu_pkg::*;
 
@@ -64,20 +64,20 @@ module pad_control #(
   );
 % endif
 
-% if pads_attributes != None:
-% for pad in total_pad_list:
+% if xheep.padring.pads_attributes != None:
+% for pad in xheep.padring.total_pad_list:
 % if pad.pad_type == 'input' or pad.pad_type == 'output' or pad.pad_type == 'inout':
 % if pad.constant_attribute == False:
   assign pad_attributes_o[${pad.localparam}] = reg2hw.pad_attribute_${pad.name.lower()}.q;
 % else:
-  assign pad_attributes_o[${pad.localparam}] = ${int(pads_attributes['resval'], 16)};
+  assign pad_attributes_o[${pad.localparam}] = ${int(xheep.padring.pads_attributes['resval'], 16)};
 % endif
 % endif
 % endfor
 % endif
 
 
-% for pad in pad_muxed_list:
+% for pad in xheep.padring.pad_muxed_list:
   assign pad_muxes_o[${pad.localparam}] = $unsigned(reg2hw.pad_mux_${pad.name.lower()}.q);
 % endfor
 

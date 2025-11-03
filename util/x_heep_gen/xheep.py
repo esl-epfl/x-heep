@@ -5,6 +5,7 @@ from .cpu.cpu import CPU
 from .peripherals.abstractions import PeripheralDomain
 from .peripherals.base_peripherals import BasePeripheralDomain
 from .peripherals.user_peripherals import UserPeripheralDomain
+from .pad_ring import PadRing
 
 
 class XHeep:
@@ -198,10 +199,11 @@ class XHeep:
     # Build and Validate
     # ------------------------------------------------------------
 
-    def build(self):
+    def build(self,pad_cfg,config):
         """
         Makes the system ready to be used.
         """
+        self.padring = PadRing(pad_cfg,config)
         if self.memory_ss():
             self.memory_ss().build()
         if self.are_base_peripherals_configured():
