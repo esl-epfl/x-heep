@@ -567,11 +567,9 @@ module my_ip #(
     endcase
   end
 
-
+// ssh -X
+// make questasim-sim-opt
+// make run-gui
+// run -all
+// gtkwave waveform.vcd &
 endmodule
-
-ssh -X
-make questasim-sim-opt
-make run-gui
-run -all
-gtkwave waveform.vcd &
