@@ -2,6 +2,8 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+
+
 module cpu_subsystem
   import obi_pkg::*;
   import core_v_mini_mcu_pkg::*;
@@ -18,6 +20,9 @@ module cpu_subsystem
     // Clock and Reset
     input logic clk_i,
     input logic rst_ni,
+
+    // Core ID
+    input logic [31:0] hart_id_i,
 
     // Instruction memory interface
     output obi_req_t  core_instr_req_o,
@@ -67,7 +72,7 @@ module cpu_subsystem
 
         .test_en_i(1'b0),
 
-        .hart_id_i(32'h0),
+        .hart_id_i,
         .boot_addr_i(BOOT_ADDR),
         .dm_exception_addr_i(32'h0),
         .dm_halt_addr_i(DM_HALTADDRESS),
@@ -252,7 +257,7 @@ module cpu_subsystem
         .boot_addr_i        (BOOT_ADDR),
         .mtvec_addr_i       (32'h0),
         .dm_halt_addr_i     (DM_HALTADDRESS),
-        .hart_id_i          (32'h0),
+        .hart_id_i,
         .dm_exception_addr_i(32'h0),
 
         .instr_addr_o  (core_instr_req_o.addr),
@@ -335,7 +340,7 @@ module cpu_subsystem
         .boot_addr_i        (BOOT_ADDR),
         .mtvec_addr_i       (32'h0),
         .dm_halt_addr_i     (DM_HALTADDRESS),
-        .hart_id_i          (32'h0),
+        .hart_id_i,
         .dm_exception_addr_i(32'h0),
 
         .instr_addr_o  (core_instr_req_o.addr),

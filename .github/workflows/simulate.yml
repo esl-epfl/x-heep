@@ -10,6 +10,14 @@ jobs:
     steps:
       - name: Checkout the pushed code. 
         uses: actions/checkout@v3
+      - name: Detect RISCV toolchain and export
+        shell: bash
+        run: |
+          tool=$(command -v riscv32-unknown-elf-gcc || true)
+          if [ -z "$tool" ]; then echo "RISC-V toolchain not found"; exit 1; fi
+          root=$(dirname "$(dirname "$tool")")
+          echo "RISCV_XHEEP=$root" >> $GITHUB_ENV
+          echo "PATH=$root/bin:$PATH" >> $GITHUB_ENV
       - name: Configure the job container and simulate all apps
         run: |
           # Create the virtual environment and install the requirements. 
@@ -17,12 +25,6 @@ jobs:
           source /root/.bashrc
           conda activate core-v-mini-mcu
           make clean-all
-
-          # All peripherals are included to make sure all apps can be built.
-          sed 's/is_included: "no"/is_included: "yes"/' -i configs/ci.hjson
-
-          sed 's/num_channels:   0x1/num_channels:   0x4/' -i configs/ci.hjson
-          sed 's/num_channels_per_master_port: 0x1/num_channels_per_master_port: 0x4/' -i configs/ci.hjson
 
           # The MCU is generated with various memory banks to avoid example code not fitting.
           make mcu-gen X_HEEP_CFG=configs/ci.hjson

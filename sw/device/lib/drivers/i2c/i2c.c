@@ -28,7 +28,8 @@ static uint16_t round_up_divide(uint32_t a, uint32_t b) {
  * Returns an unspecified value for an invalid speed.
  */
 static i2c_config_t default_timing_for_speed(i2c_speed_t speed,
-                                                 uint32_t clock_period_nanos) {
+                                                 uint32_t clock_period_nanos,
+                                                 uint16_t data_signal_hold_cycles) {
   // NOTE: All constants below are lifted from Table 10 of the I2C spec.
   // All literal values are given in nanoseconds; we don't bother putting
   // these into constants since they are not used anywhere else.
@@ -41,7 +42,7 @@ static i2c_config_t default_timing_for_speed(i2c_speed_t speed,
               round_up_divide(4700, clock_period_nanos),
           .start_signal_hold_cycles = round_up_divide(4000, clock_period_nanos),
           .data_signal_setup_cycles = round_up_divide(250, clock_period_nanos),
-          .data_signal_hold_cycles = 0,
+          .data_signal_hold_cycles = data_signal_hold_cycles,
           .stop_signal_setup_cycles = round_up_divide(4000, clock_period_nanos),
           .stop_signal_hold_cycles = round_up_divide(4700, clock_period_nanos),
       };
@@ -52,7 +53,7 @@ static i2c_config_t default_timing_for_speed(i2c_speed_t speed,
           .start_signal_setup_cycles = round_up_divide(600, clock_period_nanos),
           .start_signal_hold_cycles = round_up_divide(600, clock_period_nanos),
           .data_signal_setup_cycles = round_up_divide(100, clock_period_nanos),
-          .data_signal_hold_cycles = 0,
+          .data_signal_hold_cycles = data_signal_hold_cycles,
           .stop_signal_setup_cycles = round_up_divide(600, clock_period_nanos),
           .stop_signal_hold_cycles = round_up_divide(1300, clock_period_nanos),
       };
@@ -63,7 +64,7 @@ static i2c_config_t default_timing_for_speed(i2c_speed_t speed,
           .start_signal_setup_cycles = round_up_divide(260, clock_period_nanos),
           .start_signal_hold_cycles = round_up_divide(260, clock_period_nanos),
           .data_signal_setup_cycles = round_up_divide(50, clock_period_nanos),
-          .data_signal_hold_cycles = 0,
+          .data_signal_hold_cycles = data_signal_hold_cycles,
           .stop_signal_setup_cycles = round_up_divide(260, clock_period_nanos),
           .stop_signal_hold_cycles = round_up_divide(500, clock_period_nanos),
       };
@@ -98,7 +99,8 @@ i2c_result_t i2c_compute_timing(i2c_timing_config_t timing_config,
   // https://docs.opentitan.org/hw/ip/i2c/doc/index.html#initialization
 
   *config = default_timing_for_speed(timing_config.lowest_target_device_speed,
-                                     timing_config.clock_period_nanos);
+                                     timing_config.clock_period_nanos, 
+                                     timing_config.data_signal_hold_cycles);
 
   config->rise_cycles = round_up_divide(timing_config.sda_rise_nanos,
                                         timing_config.clock_period_nanos);
@@ -555,13 +557,13 @@ i2c_result_t i2c_write_byte_raw(const i2c_t *i2c, uint8_t byte,
   }
   // Validate that "write only" flags and "read only" flags are not set
   // simultaneously.
-  bool has_write_flags = flags.start || flags.stop || flags.suppress_nak_irq;
+  bool has_write_flags = flags.start || flags.suppress_nak_irq;
   bool has_read_flags = flags.read || flags.read_cont;
   if (has_write_flags && has_read_flags) {
     return kDifI2cBadArg;
   }
-  // Also, read_cont requires read.
-  if (flags.read_cont && !flags.read) {
+  // Also, read_cont requires read and is not allowed with stop.
+  if (flags.read_cont && (!flags.read || flags.stop)) {
     return kDifI2cBadArg;
   }
 

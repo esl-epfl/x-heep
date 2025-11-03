@@ -2,6 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%
+  cpu = xheep.cpu()
+%>
+
 module cpu_subsystem
   import obi_pkg::*;
   import core_v_mini_mcu_pkg::*;
@@ -18,6 +22,9 @@ module cpu_subsystem
     // Clock and Reset
     input logic clk_i,
     input logic rst_ni,
+
+    // Core ID
+    input logic [31:0] hart_id_i,
 
     // Instruction memory interface
     output obi_req_t  core_instr_req_o,
@@ -60,11 +67,11 @@ module cpu_subsystem
   if (CPU_TYPE == cv32e20) begin : gen_cv32e20
 
     cve2_xif_wrapper #(
-% if cve2_rv32e:
-        .RV32E(${cve2_rv32e}),
+% if cpu.is_defined("rv32e"):
+        .RV32E(${cpu.get_sv_str("rv32e")}),
 % endif
-% if cve2_rv32m:
-        .RV32M(${cve2_rv32m}),
+% if cpu.is_defined("rv32m"):
+        .RV32M(${cpu.get_sv_str("rv32m")}),
 % endif
         .XInterface(X_EXT)
     ) cv32e20_i (
@@ -73,7 +80,7 @@ module cpu_subsystem
 
         .test_en_i(1'b0),
 
-        .hart_id_i  (32'h0),
+        .hart_id_i,
         .boot_addr_i(BOOT_ADDR),
         .dm_exception_addr_i(32'h0),
         .dm_halt_addr_i(DM_HALTADDRESS),
@@ -258,7 +265,7 @@ module cpu_subsystem
         .boot_addr_i        (BOOT_ADDR),
         .mtvec_addr_i       (32'h0),
         .dm_halt_addr_i     (DM_HALTADDRESS),
-        .hart_id_i          (32'h0),
+        .hart_id_i,
         .dm_exception_addr_i(32'h0),
 
         .instr_addr_o  (core_instr_req_o.addr),
@@ -341,7 +348,7 @@ module cpu_subsystem
         .boot_addr_i        (BOOT_ADDR),
         .mtvec_addr_i       (32'h0),
         .dm_halt_addr_i     (DM_HALTADDRESS),
-        .hart_id_i          (32'h0),
+        .hart_id_i,
         .dm_exception_addr_i(32'h0),
 
         .instr_addr_o  (core_instr_req_o.addr),

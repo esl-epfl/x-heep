@@ -1,5 +1,8 @@
-from x_heep_gen.linker_section import LinkerSection
-from x_heep_gen.system import XHeep, BusType
+from x_heep_gen.xheep import XHeep
+from x_heep_gen.cpu.cpu import CPU
+from x_heep_gen.bus_type import BusType
+from x_heep_gen.memory_ss.memory_ss import MemorySS
+from x_heep_gen.memory_ss.linker_section import LinkerSection
 from x_heep_gen.peripherals.base_peripherals import (
     BasePeripheralDomain,
     SOC_ctrl,
@@ -13,7 +16,6 @@ from x_heep_gen.peripherals.base_peripherals import (
     Ext_peripheral,
     Pad_control,
     GPIO_ao,
-    UART,
 )
 from x_heep_gen.peripherals.user_peripherals import (
     UserPeripheralDomain,
@@ -25,6 +27,7 @@ from x_heep_gen.peripherals.user_peripherals import (
     SPI2,
     PDM2PCM,
     I2S,
+    UART,
 )
 
 
@@ -32,11 +35,14 @@ def config():
     # All user peripherals are included
 
     system = XHeep(BusType.NtoM)
-    system.add_ram_banks([32] * 2)
-    system.add_ram_banks_il(2, 64, "data_interleaved")
+    system.set_cpu(CPU("cv32e20"))
 
-    system.add_linker_section(LinkerSection.by_size("code", 0, 0x00000C800))
-    system.add_linker_section(LinkerSection("data", 0x00000C800, None))
+    memory_ss = MemorySS()
+    memory_ss.add_ram_banks([32] * 2)
+    memory_ss.add_ram_banks_il(2, 64, "data_interleaved")
+    memory_ss.add_linker_section(LinkerSection.by_size("code", 0, 0x00000C800))
+    memory_ss.add_linker_section(LinkerSection("data", 0x00000C800, None))
+    system.set_memory_ss(memory_ss)
 
     # Peripheral domains initialization
     base_peripheral_domain = BasePeripheralDomain()
@@ -53,6 +59,7 @@ def config():
     user_peripheral_domain.add_peripheral(RV_timer(0x00040000))
     user_peripheral_domain.add_peripheral(SPI2(0x00050000))
     user_peripheral_domain.add_peripheral(PDM2PCM())
+    user_peripheral_domain.add_peripheral(UART(0x00080000))
     user_peripheral_domain.add_peripheral(
         I2S()
     )  # If no address is provided, the peripheral will be automatically added where there is space.

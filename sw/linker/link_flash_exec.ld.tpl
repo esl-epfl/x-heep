@@ -3,12 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+<%
+    ram_start_address = xheep.memory_ss().ram_start_address()
+    ram_size_address = xheep.memory_ss().ram_size_address()
+%>
+
 ENTRY(_start)
 
 MEMORY
 {
     FLASH (rx)      : ORIGIN = 0x${flash_mem_start_address}, LENGTH = 0x${flash_mem_size_address}
-    RAM (xrw)       : ORIGIN = 0x${f'{xheep.ram_start_address()+4:08X}'}, LENGTH = 0x${f'{xheep.ram_size_address()-4:08X}'}
+    RAM (xrw)       : ORIGIN = 0x${f'{ram_start_address+4:08X}'}, LENGTH = 0x${f'{ram_size_address-4:08X}'}
 }
 
 SECTIONS {

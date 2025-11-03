@@ -89,11 +89,11 @@ class VerifHeep:
     
     def buildModel(self):
         if self.target == 'verilator':
-            cmd = f'cd {self.xheep_dir} ; make verilator-sim FUSESOC_PARAM=--JTAG_DPI=1'
+            cmd = f'cd {self.xheep_dir} ; make verilator-build FUSESOC_PARAM=--JTAG_DPI=1'
         elif self.target == 'questasim' and self.opt_en:
-            cmd = f'cd {self.xheep_dir} ; make questasim-sim-opt FUSESOC_PARAM=--JTAG_DPI=1'
+            cmd = f'cd {self.xheep_dir} ; make questasim-build-opt FUSESOC_PARAM=--JTAG_DPI=1'
         elif self.target == 'questasim' and not self.opt_en:
-            cmd = f'cd {self.xheep_dir} ; make questasim-sim'
+            cmd = f'cd {self.xheep_dir} ; make questasim-build'
         elif self.target == 'pynq-z2':
             cmd = f"cd {self.xheep_dir} ; make vivado-fpga FPGA_BOARD={self.target} FUSESOC_FLAGS=--flag=use_bscane_xilinx"
         result_synth = subprocess.run(cmd, shell=True, capture_output=True, text=True, executable="/bin/bash")
@@ -124,7 +124,7 @@ class VerifHeep:
     def setUpDeb(self):
         gdb_cmd = f"""
         cd {self.xheep_dir}
-        $RISCV/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
+        $RISCV_XHEEP/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
         """
         self.gdb = pexpect.spawn(f"/bin/bash -c '{gdb_cmd}'")
         self.gdb.expect('(gdb)')
