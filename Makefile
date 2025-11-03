@@ -339,9 +339,9 @@ test:
 
 .PHONY: test_kwargs
 test_kwargs:
-	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson
+	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson PADS_CFG=test/test_x_heep_gen/pads/pad_cfg.hjson
 	$(RM) test/*.log
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl test/test_x_heep_gen/pads/output/kwargs_output.json.tpl
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl test/test_x_heep_gen/pads/output/kwargs_output.json.tpl
 	python3 test/test_x_heep_gen/pad_test.py
 
 
