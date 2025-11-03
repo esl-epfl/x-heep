@@ -10,6 +10,7 @@ create_bd_design $design_name
 
 # Create instance and set properties
 create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_0
+
 set_property -dict [list \
   CONFIG.CLKIN1_JITTER_PS {33.330000000000005} \
   CONFIG.CLKOUT1_JITTER {282.792} \
