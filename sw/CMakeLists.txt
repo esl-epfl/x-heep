@@ -481,7 +481,6 @@ endif()
 # Specify that we want to link with GCC even if we are compiling with clang
 if (${COMPILER} MATCHES "clang")
   # Call clang here as the flags below are actually meant for a compiler driver, not a linker.
-  # TODO: this part shall call the linker only, leaving compiler flags to the compiler driver only.
   set(CLANG_LINKER_EXE "ld.lld")
 	if( ${PROJECT} MATCHES "freertos" )
 		set( CMAKE_C_LINK_EXECUTABLE "${CLANG_LINKER_EXE} ${CMAKE_EXE_LINKER_FLAGS} \
