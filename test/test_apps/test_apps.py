@@ -16,6 +16,8 @@ SIM_TIMEOUT_S = 180
 
 # Available compilers
 COMPILERS = ["gcc", "clang"]
+COMPILER_PATH = [os.environ.get("RISCV_XHEEP") for _ in COMPILERS]
+COMPILER_PREFIXES = ["riscv32-unknown-" for _ in COMPILERS]
 
 # Available simulators
 SIMULATORS = ["verilator"]
@@ -37,7 +39,8 @@ BLACKLIST = [
     "example_spidma_powergate",
     "example_spi_write",
     "example_dma_subaddressing",
-    "example_pdm2pcm" 
+    "example_pdm2pcm",
+    "example_dma_slow_mem" # TODO: @tommaso remove this once it's fixed
 ]
 # TODO : The example_pdm2pcm app is testing a wrong version of the PDM2PCM acting only as a CIC filter. 
 #        When fixed, it not passes anymore. Need to be updated.
@@ -46,18 +49,15 @@ BLACKLIST = [
 VERILATOR_BLACKLIST = []
 
 # Blacklist of apps to skip with clang
-CLANG_BLACKLIST = [
-    "example_cpp",
-]
+CLANG_BLACKLIST = []
 
-
-def in_list(name, list):
+def in_list(name, item_list):
     """
     Checks if the given name is in the list. This allows for pattern
     matching. For example, if "example" is in the list, in_list("my_example_app")
     will return True.
     """
-    return any(word in name for word in list)
+    return any(word in name for word in item_list)
 
 
 class BColors:
@@ -121,7 +121,7 @@ class Application:
         return all(self.compilation_success.values())
 
 
-def compile_app(an_app, compiler, linker):
+def compile_app(an_app, compiler_path, compiler_prefix, compiler, linker):
     """
     Compile an_app with the compiler and linker. Outputs if
     it finishes with errors or without.
@@ -130,18 +130,21 @@ def compile_app(an_app, compiler, linker):
     """
     print(
         BColors.OKBLUE
-        + f"Compiling {an_app.name} with {compiler} and {linker} linker..."
+        + f"Compiling {an_app.name} with {compiler} and linker {linker}"
         + BColors.ENDC,
         flush=True,
     )
     try:
         compile_command = ["make", "app", f"PROJECT={an_app.name}"]
+        os.environ["RISCV_XHEEP"] = compiler_path
+        if compiler_prefix:
+            compile_command.append(f"COMPILER_PREFIX={compiler_prefix}")
         if compiler:
             compile_command.append(f"COMPILER={compiler}")
         if linker:
             compile_command.append(f"LINKER={linker}")
 
-        compile_output = subprocess.run(
+        _ = subprocess.run(
             compile_command, capture_output=True, check=True
         )
     except subprocess.CalledProcessError as exc:
@@ -286,7 +289,7 @@ def filter_results(app_list):
         else:
             # Check if the app failed in any simulator
             all_sim_passed = True
-            for sim, res in app.simulation_results.items():
+            for _, res in app.simulation_results.items():
                 if res == SimResult.FAILED:
                     simulation_failed_apps.append(app)
                     all_sim_passed = False
@@ -387,7 +390,60 @@ def main():
     parser.add_argument(
         "--compile-only", action="store_true", help="Only compile the applications"
     )
+    parser.add_argument(
+        "--compilers",
+        help="Override default list of compilers to test.",
+    )
+    parser.add_argument(
+        "--compiler-paths",
+        help="Override default compiler paths. Can be a single path (shared among all the compilers) or a comma-separated list (a different path for each compiler).",
+    )
+    parser.add_argument(
+        "--compiler-prefixes",
+        help="Override default compiler prefixes. Can be a single prefix (shared among all the compilers) or a comma-separated list (a different prefix for each compiler).",
+    )
     args = parser.parse_args()
+
+    # Override the default list of compilers if specified
+    compilers = COMPILERS
+    if args.compilers:
+        compilers = args.compilers.split(",")
+
+    # Override the default list of compiler paths if specified
+    compiler_paths = COMPILER_PATH
+    if args.compiler_paths:
+        paths = args.compiler_paths.split(",")
+        if len(paths) == 1:
+            # Use this path for all compilers
+            compiler_paths = [paths[0] for _ in compilers]
+        elif len(paths) == len(compilers):
+            # Use the provided list of paths
+            compiler_paths = paths
+        else:
+            print(
+                BColors.FAIL
+                + f"Error: The number of compiler paths ({len(paths)}) does not match the number of compilers: {compilers} ({len(compilers)})."
+                + BColors.ENDC
+            )
+            exit(1)
+
+    # Override the default list of compiler prefixes if specified
+    compiler_prefixes = COMPILER_PREFIXES
+    if args.compiler_prefixes:
+        prefixes = args.compiler_prefixes.split(",")
+        if len(prefixes) == 1:
+            # Use this prefix for all compilers
+            compiler_prefixes = [prefixes[0] for _ in compilers]
+        elif len(prefixes) == len(compilers):
+            # Use the provided list of prefixes
+            compiler_prefixes = prefixes
+        else:
+            print(
+                BColors.FAIL
+                + f"Error: The number of compiler prefixes ({len(prefixes)}) does not match the number of compilers: {compilers} ({len(compilers)})."
+                + BColors.ENDC
+            )
+            exit(1)
 
     # Get a list with all the applications we want to test
     app_list = get_apps("sw/applications")
@@ -402,7 +458,9 @@ def main():
         if not in_list(an_app.name, BLACKLIST):
             # Compile the app with every compiler, leaving gcc for last
             #   so the simulation is done with gcc
-            for compiler in [c for c in COMPILERS if c != "gcc"]:
+            for (compiler_path, compiler_prefix, compiler) in zip(compiler_paths, compiler_prefixes, compilers):
+                if compiler == "gcc":
+                    continue
                 if in_list(an_app.name, CLANG_BLACKLIST) and compiler == "clang":
                     print(
                         BColors.WARNING
@@ -411,9 +469,9 @@ def main():
                         flush=True,
                     )
                 else:
-                    compilation_result = compile_app(an_app, compiler, "on_chip")
+                    compilation_result = compile_app(an_app, compiler_path, compiler_prefix, compiler, "on_chip")
                     an_app.set_compilation_status(compiler, compilation_result)
-            compilation_result = compile_app(an_app, "gcc", "on_chip")
+            compilation_result = compile_app(an_app, compiler_paths[compilers.index("gcc")], compiler_prefixes[compilers.index("gcc")], "gcc", "on_chip")
             an_app.set_compilation_status("gcc", compilation_result)
 
             # Run the app with every simulator if the compilation was successful

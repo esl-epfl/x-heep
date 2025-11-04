@@ -7,10 +7,10 @@
 that can be configured to target small and tiny platforms as well as extended to support accelerators.
 The cool thing about `X-HEEP` is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc.
 so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design.
-By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`,
-and you can focus on building your special HW supported by the microcontroller.
+By doing so, you inherit an IP capable of running baremetal or booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`,
+and you can focus on building your special HW or APP supported by the microcontroller.
 
-`X-HEEP` currently supports simulation with Verilator, Questasim, VCS, and Xcelium. Morever, the firmware can be built and linked using `CMake` with either _GCC_ or _Clang_ as backends. It can be implemented on FPGA, and it supports ASIC implementation in silicon, which is its main (but not the only) target for the platform. See below for more details.
+`X-HEEP` currently supports simulation with Verilator, Questasim, VCS, and Xcelium. Morever, the firmware can be built and linked using `CMake` with either _GCC_ or _Clang_ as backends. It can be implemented on FPGA, and it supports ASIC implementation in silicon, which is its main (but not the only) target for the platform.
 
 The block diagram below shows the `X-HEEP` MCU
 
@@ -18,7 +18,9 @@ The block diagram below shows the `X-HEEP` MCU
 
 You can access an editable version of this diagram for your use in presentations or publications [here](https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000FF&edit=_blank&layers=1&nav=1&title=X-HEEP-general-diagram.drawio&dark=auto#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1FxAmuywf1zneG0PeiYe_IHTJCv-3kLPI%26export%3Ddownload). 
 
-> :bookmark_tabs: Please refer to the documentation in [Read the Docs](https://x-heep.readthedocs.io/en/latest/index.html)
+## :bookmark_tabs: Documentation
+
+Please refer to the documentation in [Read the Docs](https://x-heep.readthedocs.io/en/latest/index.html)
 
 ## Reference
 
