@@ -29,7 +29,7 @@ module sram_wrapper #(
     // output ports
     output logic [31:0] rdata_o
 );
-
+  assign pwrgate_ack_no = pwrgate_ni;
   tc_sram #(
       .NumWords (NumWords),
       .DataWidth(DataWidth),
