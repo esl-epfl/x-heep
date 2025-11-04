@@ -4,8 +4,6 @@ GITHUB_REPOSITORY 	:= ghcr.io/esl-epfl/x-heep
 IMAGE_NAME 			:= x-heep-toolchain
 IMAGE_ID 			:= $(GITHUB_REPOSITORY)/$(IMAGE_NAME)
 
-.PHONY: docker-build docker-push docker-run docker-pull
-
 # User targets
 
 # Try to download the image corresponding to the current revision, else default to 'latest'
