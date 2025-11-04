@@ -194,13 +194,15 @@ jobs:
           set -ex
           VERSION=${{ github.event.inputs.release_tag }}
           VERSION_NUM=${VERSION#v}
+          RELEASE_NUM=$(echo ${VERSION_NUM} | cut -d. -f1,2)
           BRANCH_NAME="release/${VERSION}"
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b ${BRANCH_NAME} ${{ github.ref }}
           sed -i "s/name: openhwgroup.org:systems:core-v-mini-mcu:.*/name: openhwgroup.org:systems:core-v-mini-mcu:${VERSION_NUM}/" core-v-mini-mcu.core
           sed -i "s/ARG toolchain_version=.*/ARG toolchain_version=${VERSION}/" util/docker/dockerfile
-          #sed -i "s/version = \".*\"/version = \"${VERSION}\"/" docs/source/conf.py
+          sed -i "s/release = .*/release = \"${RELEASE_NUM}\"/" docs/source/conf.py
+          sed -i "s/version = .*/version = \"${VERSION_NUM}\"/" docs/source/conf.py
           git add core-v-mini-mcu.core util/docker/dockerfile docs/source/conf.py
           git commit -m "Release: Bump version to ${VERSION}"
           git push --set-upstream origin ${BRANCH_NAME}
