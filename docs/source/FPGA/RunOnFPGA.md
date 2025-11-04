@@ -53,14 +53,14 @@ make vivado-fpga-pgm FPGA_BOARD=<BOARD_NAME>
 
 ## Running firmware on the FPGA
 
-To run SW, follow the [Debug](./Debug.md) guide to load the binaries with the HS2 cable over JTAG,
-or follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide if you have a FLASH attached to the FPGA.
+To run SW, follow the [Debug](./../How_to/Debug.md) guide to load the binaries with the HS2 cable over JTAG,
+or follow the [ExecuteFromFlash](./../How_to/ExecuteFromFlash.md) guide if you have a FLASH attached to the FPGA.
 
 Do not forget that the `pynq-z2` board requires you to have the ethernet cable attached to the board while running.
 
 For example, if you want to run your application using flash_exec, do as follow:
 compile your application, e.g. `make app PROJECT=example_matfadd TARGET=pynq-z2 ARCH=rv32imfc LINKER=flash_exec`
-and then follow the [ExecuteFromFlash](./ExecuteFromFlash.md) to program the flash and set the boot buttons on the FPGA correctly.
+and then follow the [ExecuteFromFlash](./../How_to/ExecuteFromFlash.md) to program the flash and set the boot buttons on the FPGA correctly.
 To look at the output of your printf, run in another terminal:
 `picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSB2`
 Please be sure to use the right `ttyUSB` number (you can discover it with `dmesg --time-format iso | grep FTDI` for example).
@@ -107,7 +107,7 @@ make openOCD_epflp
 openOCD_bscan
 ```
 
-Now you can run gdb in another shell and connect to the openocd server as explained in the [Debug](./Debug.md) guide.
+Now you can run gdb in another shell and connect to the openocd server as explained in the [Debug](./../How_to/Debug.md) guide.
 
 ### SPI Flash programming
 
