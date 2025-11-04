@@ -1,10 +1,10 @@
 # Setup
 
-There are two ways of setting up X-HEEP. You can either use the provided docker image or install and configure the environment manually.
+There are two ways of setting up X-HEEP. You can either use the provided Docker image or install and configure the environment manually.
 
 ## Docker setup
 
-A docker image containing all the required software dependencies is available on [github-packages](https://ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest).
+A Docker image containing all the required software dependencies is available on [github-packages](https://ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest).
 
 It is only required to [install Docker](https://docs.docker.com/engine/install/) and pull the image.
 
@@ -12,7 +12,7 @@ It is only required to [install Docker](https://docs.docker.com/engine/install/)
 docker pull ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest
 ```
 
-Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\folder`, it is possible to directly run the docker mounting `X-HEEP-DIR` to the path `\workspace\x-heep` in the docker.
+Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\folder`, it is possible to directly run the Docker container mounting `X-HEEP-DIR` to the container path `\workspace\x-heep`.
 
 ```bash
 docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep esl-epfl/x-heep/x-heep-toolchain:latest
@@ -28,6 +28,20 @@ make -C util/docker docker-run #  mount the current X-HEEP clone to '/workspace/
 ```
 
 In particular, the `docker-pull` target tries to infer your X-HEEP revision using `git describe` and pull the corresponding image. If it fails, it defaults to the `latest` image available, that is the one used by the upstream `main` branch.
+
+The Docker image provides built-in shortcuts (as Bash functions) to select among the available software compilation flows, as an alternative to providing the `COMPILER`, `COMPILER_PREFIX`, and `ARCH` variable when compiling an application with `make app`. Here is a brief description of the shortcut defined in `util/docker/env.sh`:
+
+| Shortcut | Description | Configuration |
+| -------- | ----------- | ------------- |
+| `init_gcc` | Use the GCC toolchain | `COMPILER=gcc`<br>`COMPILER_PREFIX=riscv32-unknown-`<br>`ARCH=rv32imc_zicsr` |
+| `init_clang` | Use the LLVM/Clang toolchain | `COMPILER=clang`<br>`COMPILER_PREFIX=riscv32-unknown-`<br>`ARCH=rv32imc_zicsr` |
+| `init_corev` | Use the Embecosm CORE-V toolchain with PULP extension | `COMPILER=gcc`<br>`COMPILER_PREFIX=riscv32-unknown-`<br>`ARCH=rv32imc_zicsr_zifencei_xcvhwlp_xcvmem_xcvmac_xcvbi_xcvalu_xcvsimd_xcvbitmanip` |
+
+For example, if you want to compile and link the `hello_world` application using LLVM/Clang:
+```bash
+init_clang
+make app PROJECT=hello_world
+```
 
 The Docker setup has certain limitations. For example, the following are not supported:
 
