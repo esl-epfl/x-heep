@@ -6,8 +6,9 @@
   base_peripheral_domain = xheep.get_base_peripheral_domain()
 %>
 
+`include "core_v_mini_mcu_config.svh"
 
-module ao_peripheral_subsystem
+module `AO_PERIPHERAL_SUBSYSTEM
   import obi_pkg::*;
   import reg_pkg::*;
   import power_manager_pkg::*;
@@ -484,4 +485,4 @@ module ao_peripheral_subsystem
   assign intr_gpio_o   = '0;
 % endif
 
-endmodule : ao_peripheral_subsystem
+endmodule : `AO_PERIPHERAL_SUBSYSTEM

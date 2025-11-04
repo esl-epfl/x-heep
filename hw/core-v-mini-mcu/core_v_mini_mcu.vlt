@@ -44,3 +44,4 @@ lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not
 lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not used: 'cio_gpio_i'*"
 lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not used: 'spi*"
 lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not used: 'use_spimemio'*"
+lint_off -rule DECLFILENAME -file "*/ao_peripheral_subsystem.sv" -match "*"

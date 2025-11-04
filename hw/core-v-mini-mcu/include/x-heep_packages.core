@@ -10,6 +10,7 @@ description: "toplevel packages of x-heep"
 filesets:
   files_rtl:
     files:
+    - core_v_mini_mcu_config.svh: { is_include_file: true }
     - addr_map_rule_pkg.sv
     - obi_pkg.sv
     - reg_pkg.sv

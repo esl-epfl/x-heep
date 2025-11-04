@@ -1,4 +1,7 @@
 {
+    
+    config_name: "general"
+    
     bus_type: "onetoM"
     ram_banks: {
         code_and_data: {
