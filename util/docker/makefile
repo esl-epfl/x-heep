@@ -9,13 +9,17 @@ IMAGE_ID 			:= $(GITHUB_REPOSITORY)/$(IMAGE_NAME)
 # User targets
 
 # Try to download the image corresponding to the current revision, else default to 'latest'
+.PHONY: docker-pull
 docker-pull:
 	docker pull $(IMAGE_ID):$(TAG) || docker pull $(IMAGE_ID):latest
 
+# Spawn a Docker container and mount the X-HEEP directory in `/workspace/x-heep`
+.PHONY: docker-run
 docker-run:
 	docker run -it --rm -v $(ROOT_DIR):/workspace/x-heep $(IMAGE_ID):$(TAG)
 
 # Build the image locally
+.PHONY: docker-build
 docker-build: toolchain.tar.gz
 	docker build -t $(IMAGE_ID):$(TAG) -f ./dockerfile $(ROOT_DIR) --build-arg toolchain_path=util/docker/$<
 	$(RM) $<
