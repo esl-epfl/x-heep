@@ -53,13 +53,13 @@ PYTHON_X_HEEP_CFG ?=
 XHEEP_CONFIG_CACHE ?= build/xheep_config_cache.pickle
 
 # Compiler options are 'gcc' (default) and 'clang'
-COMPILER ?= gcc
-# Compiler prefix options are 'riscv32-unknown-' (default)
+COMPILER 		?= gcc
+# Compiler prefix options are 'riscv32-unknown-' (default) and 'riscv32-corev-'
 COMPILER_PREFIX ?= riscv32-unknown-
 # Compiler flags to be passed (for both linking and compiling)
-COMPILER_FLAGS ?=
-# Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
-ARCH     ?= rv32imc
+COMPILER_FLAGS 	?=
+# Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc_zicsr'
+ARCH     		?= rv32imc_zicsr
 
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= $(".")
@@ -171,6 +171,7 @@ format-python:
 	$(PYTHON) -m black util/mcu_gen.py
 	$(PYTHON) -m black util/structs_periph_gen.py
 	$(PYTHON) -m black util/waiver-gen.py
+	$(PYTHON) -m black util/c_gen.py
 	$(PYTHON) -m black test/test_x_heep_gen/test_peripherals.py
 
 ## @section APP FW Build

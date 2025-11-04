@@ -4,7 +4,7 @@ CAPI=2:
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-name: openhwgroup.org:systems:core-v-mini-mcu:0.3.0
+name: openhwgroup.org:systems:core-v-mini-mcu:0.2.2
 description: CORE-V MINI-MCU Top.
 
 filesets:
@@ -281,6 +281,8 @@ scripts:
     - ../../../scripts/sim/vcs/patch_vcs_ams_Makefile.py
 
   # Simulation utils
+  remove_uart_log:
+    cmd: [sh, -c, rm -f uart0.log]
   print_uart_log:
     cmd: [sh, -c, cat uart0.log]
 
@@ -324,6 +326,8 @@ targets:
         - ams_sim? (pre_patch_vcs_ams_Makefile)
         - tool_xcelium? (pre_build_uartdpi)
         - tool_xcelium? (pre_build_remote_bitbang)
+      pre_run:
+        - remove_uart_log
       post_run:
         - print_uart_log
     parameters:
@@ -405,6 +409,8 @@ targets:
     - REMOVE_OBI_FIFO
     - SIM_SYSTEMC=true
     hooks:
+      pre_run:
+        - remove_uart_log
       post_run:
         - print_uart_log
     tools:
