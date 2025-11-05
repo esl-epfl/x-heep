@@ -441,6 +441,8 @@ def load_cfg_hjson(src: str) -> XHeep:
     cve2_rv32e_config = None
     cve2_rv32m_config = None
 
+    config_name = None
+
     for key, value in config.items():
         if key == "ram_banks":
             mem_config = value
@@ -454,6 +456,8 @@ def load_cfg_hjson(src: str) -> XHeep:
             cve2_rv32e_config = value
         elif key == "cve2_rv32m":
             cve2_rv32m_config = value
+        elif key == "config_name":
+            config_name = value
 
     if mem_config is None:
         raise RuntimeError("No memory configuration found")
@@ -476,6 +480,9 @@ def load_cfg_hjson(src: str) -> XHeep:
         else:
             cpu = CPU(cpu_config)
         system.set_cpu(cpu)
+
+    if config_name is not None and config_name != "":
+        system.set_config_name(config_name)
 
     return system
 

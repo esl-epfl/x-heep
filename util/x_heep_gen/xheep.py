@@ -38,7 +38,21 @@ class XHeep:
         self._base_peripheral_domain = None
         self._user_peripheral_domain = None
 
+        self._config_name = None
+
         self._extensions = {}
+
+    # ------------------------------------------------------------
+    # Config Name
+    # ------------------------------------------------------------
+
+    def set_config_name(self, config_name):
+        """
+        Set the X-HEEP configuration name.
+
+        : param config_name: The name of the configuration
+        """
+        self._config_name = config_name
 
     # ------------------------------------------------------------
     # CPU

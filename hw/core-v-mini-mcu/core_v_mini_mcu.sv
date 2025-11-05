@@ -4,6 +4,8 @@
 
 
 
+`include "core_v_mini_mcu_config.svh"
+
 module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
@@ -638,7 +640,7 @@ module core_v_mini_mcu
       .set_retentive_ni(memory_subsystem_banks_set_retentive_n)
   );
 
-  ao_peripheral_subsystem #(
+  `AO_PERIPHERAL_SUBSYSTEM #(
       .AO_SPC_NUM(AO_SPC_NUM)
   ) ao_peripheral_subsystem_i (
       .clk_i,
