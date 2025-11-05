@@ -134,5 +134,6 @@ jobs:
             util/periph_structs_gen
             util/mcu_gen.py
             util/waiver-gen.py
+            util/c_gen.py
             test/test_x_heep_gen/test_peripherals.py
           version: "~= 24.8.0"
