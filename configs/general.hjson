@@ -127,13 +127,11 @@
             offset:  0x00030000
             length:  0x00010000
             is_included: "yes"
-            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/i2c/data/i2c.hjson"
         }
         rv_timer: {
             offset:  0x00040000
             length:  0x00010000
             is_included: "yes"
-            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/rv_timer/data/rv_timer.hjson"
         }
         spi2: {
             offset:  0x00050000
