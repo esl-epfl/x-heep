@@ -20,6 +20,9 @@ jobs:
     outputs:
       tag: ${{ steps.get_tag.outputs.tag }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Get Tag from Branch
         id: get_tag
         run: |
