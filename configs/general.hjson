@@ -80,7 +80,6 @@
         power_manager: {
             offset:  0x00040000
             length:  0x00010000
-            path:    "./hw/ip/power_manager/data/power_manager.hjson"
         }
         rv_timer_ao: {
             offset:  0x00050000
