@@ -117,13 +117,11 @@
             offset:  0x00010000
             length:  0x00010000
             is_included: "yes"
-            path:    "./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson"
         }
         gpio: {
             offset:  0x00020000
             length:  0x00010000
             is_included: "yes"
-            path:    "./hw/vendor/pulp_platform_gpio/gpio_regs.hjson"
         }
         i2c: {
             offset:  0x00030000
