@@ -2,8 +2,9 @@ name: Publish Release
 
 on:
   # Run when a (specific, see "if" below) PR is merged
-  pull_request_target:
+  pull_request:
     types: [closed]
+    branches: ['main']
 
 env:
   REGISTRY: ghcr.io
@@ -12,7 +13,7 @@ env:
 jobs:
   publish-release:
     # Only run for merged PRs from "release/" branches
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head_ref, 'release/')
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -22,7 +23,7 @@ jobs:
       - name: Get Tag from Branch
         id: get_tag
         run: |
-          BRANCH_NAME="${{ github.event.pull_request.head_ref }}"
+          BRANCH_NAME="${{ github.head_ref }}"
           TAG_NAME="${BRANCH_NAME#release/}"
           echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
 
@@ -37,7 +38,7 @@ jobs:
 
       - name: Delete Source Branch
         run: |
-          git push -d origin ${{ github.event.pull_request.head_ref }}
+          git push -d origin ${{ github.head_ref }}
 
   tag-latest:
     name: Tag 'Latest' Docker Image
