@@ -243,9 +243,22 @@ jobs:
         run: |
           echo "name=$(echo '${{ env.IMAGE_NAME }}' | sed 's/^[^\/]*\///')" >> $GITHUB_OUTPUT
 
+      - name: Get Docker Image Version ID
+        id: get_version_id
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -ex
+          OWNER=$(echo '${{ env.IMAGE_NAME }}' | cut -d/ -f1)
+          PACKAGE_NAME_URLENCODED=$(echo '${{ steps.get_package_name.outputs.name }}' | sed 's/\\//%2F/g')
+          VERSION_ID=$(gh api "orgs/${OWNER}/packages/container/${PACKAGE_NAME_URLENCODED}/versions" --jq '.[] | select(.metadata.container.tags and (.metadata.container.tags | index("${{ github.event.inputs.release_tag }}"))) | .id' || echo "")
+          echo "VERSION_ID=${VERSION_ID}" >> $GITHUB_OUTPUT
+
       - name: Delete Docker Image from GHCR
+        if: steps.get_version_id.outputs.VERSION_ID != ''
         uses: actions/delete-package-versions@v5
         with:
           package-name: ${{ steps.get_package_name.outputs.name }}
-          package-version-ids: ${{ github.event.inputs.release_tag }}
+          package-version-ids: ${{ steps.get_version_id.outputs.VERSION_ID }}
           package-type: 'container'
