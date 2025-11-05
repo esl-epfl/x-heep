@@ -88,7 +88,6 @@
         fast_intr_ctrl: {
             offset:  0x00060000
             length:  0x00010000
-            path:    "./hw/ip/fast_intr_ctrl/data/fast_intr_ctrl.hjson"
         }
         ext_peripheral: {
             offset:  0x00070000
