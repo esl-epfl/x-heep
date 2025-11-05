@@ -21,13 +21,10 @@ env:
   IMAGE_NAME: esl-epfl/x-heep/x-heep-toolchain
 
 jobs:
-  build-and-release-toolchain:
-    name: Build and Create Draft Release
+  build-toolchain:
+    name: Build and Package Toolchain
     runs-on: ubuntu-22.04
-    permissions:
-      contents: write
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
       tarball_name: ${{ steps.package.outputs.TARBALL_NAME }}
     steps:
       - name: Checkout repository
@@ -75,7 +72,7 @@ jobs:
                 -DLLVM_USE_LINKER=lld
           ninja -C build install
           rm -rf /tmp/llvm-project
-          
+
       - name: Package Toolchain
         id: package
         run: |
@@ -86,47 +83,85 @@ jobs:
           cd ${INSTALL_DIR}
           tar -czf /tmp/${TARBALL_NAME} .
 
+      - name: Upload toolchain artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolchain-tarball
+          path: /tmp/${{ steps.package.outputs.TARBALL_NAME }}
+
+  prepare-release:
+    name: Prepare Release Branch, Tag, and Draft Release
+    runs-on: ubuntu-latest
+    needs: build-toolchain
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download toolchain artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: toolchain-tarball
+          path: /tmp
+
+      - name: Create release branch, update versions, and tag
+        run: |
+          set -ex
+          VERSION=${{ github.event.inputs.release_tag }}
+          VERSION_NUM=${VERSION#v}
+          RELEASE_NUM=$(echo ${VERSION_NUM} | cut -d. -f1,2)
+          BRANCH_NAME="release/${VERSION}"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b ${BRANCH_NAME} ${{ github.ref }}
+          sed -i "s/name: openhwgroup.org:systems:core-v-mini-mcu:.*/name: openhwgroup.org:systems:core-v-mini-mcu:${VERSION_NUM}/" core-v-mini-mcu.core
+          sed -i "s/ARG toolchain_version=.*/ARG toolchain_version=${VERSION}/" util/docker/dockerfile
+          git add core-v-mini-mcu.core util/docker/dockerfile
+          git commit -m "Release: Bump version to ${VERSION}"
+          git tag ${VERSION}
+          git push --set-upstream origin ${BRANCH_NAME}
+          git push origin ${VERSION}
+
       - name: Create GitHub Draft Release
-        id: create_release
-        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.event.inputs.release_tag }}
-          release_name: X-HEEP ${{ github.event.inputs.release_tag }}
-          body: |
-            This release includes the X-HEEP code and the following components:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # fallback for gh CLI
+        run: |
+          gh release create ${{ github.event.inputs.release_tag }} \
+            --title "X-HEEP ${{ github.event.inputs.release_tag }}" \
+            --body "This release includes the X-HEEP code and the following components:
             - GCC toolchain, version ${{ github.event.inputs.gcc_version }}
             - LLVM/Clang toolchain, version ${{ github.event.inputs.llvm_version }}
 
             You can pull and use the latest Docker container integrating the above components with the following commands:
-            ```bash
+            \
             make -C util/docker docker-pull
             make -C util/docker docker-run
-            ```
-          draft: true
-          prerelease: false
+            "
+            --draft
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /tmp/${{ steps.package.outputs.TARBALL_NAME }}
-          asset_name: ${{ steps.package.outputs.TARBALL_NAME }}
-          asset_content_type: application/gzip
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # fallback for gh CLI
+        run: |
+          gh release upload ${{ github.event.inputs.release_tag }} /tmp/${{ needs.build-toolchain.outputs.tarball_name }}
 
   build-docker:
     name: Build and Publish Docker Container
     runs-on: ubuntu-latest
-    needs: build-and-release-toolchain
+    needs:
+      - prepare-release
+      - build-toolchain
     permissions:
-      contents: write
+      contents: write # needed to access draft releases
       packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.release_tag }}
 
       - name: Download toolchain asset from draft release
         env:
@@ -134,7 +169,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # fallback for gh CLI
         run: |
           gh release download ${{ github.event.inputs.release_tag }} \
-            --pattern "${{ needs.build-and-release-toolchain.outputs.tarball_name }}" \
+            --pattern "${{ needs.build-toolchain.outputs.tarball_name }}" \
             --output toolchain.tar.gz
 
       - name: Log in to GitHub Container Registry
@@ -168,31 +203,12 @@ jobs:
   create-version-pr:
     name: Create Version Bump PR
     runs-on: ubuntu-latest
-    needs: [build-and-release-toolchain, build-docker]
+    needs: build-docker
     permissions:
-      contents: write
       pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Create release branch and update versions
-        run: |
-          set -ex
-          VERSION=${{ github.event.inputs.release_tag }}
-          VERSION_NUM=${VERSION#v}
-          RELEASE_NUM=$(echo ${VERSION_NUM} | cut -d. -f1,2)
-          BRANCH_NAME="release/${VERSION}"
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b ${BRANCH_NAME} ${{ github.ref }}
-          sed -i "s/name: openhwgroup.org:systems:core-v-mini-mcu:.*/name: openhwgroup.org:systems:core-v-mini-mcu:${VERSION_NUM}/" core-v-mini-mcu.core
-          sed -i "s/ARG toolchain_version=.*/ARG toolchain_version=${VERSION}/" util/docker/dockerfile
-          sed -i "s/release = .*/release = \"${RELEASE_NUM}\"/" docs/source/conf.py
-          sed -i "s/version = .*/version = \"${VERSION_NUM}\"/" docs/source/conf.py
-          git add core-v-mini-mcu.core util/docker/dockerfile docs/source/conf.py
-          git commit -m "Release: Bump version to ${VERSION}"
-          git push --set-upstream origin ${BRANCH_NAME}
 
       - name: Create Pull Request
         env:
