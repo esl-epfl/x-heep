@@ -140,7 +140,7 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/pdm2pcm/data/pdm2pcm.hjson.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/pdm2pcm/rtl/pdm2pcm.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/pdm2pcm/rtl/pdm_core.sv.tpl
-	bash -c "cd hw/ip/pdm2pcm; source pdm2pcm.sh; cd ../../../"
+	bash -c "cd hw/ip/pdm2pcm; source pdm2pcm_gen.sh; cd ../../../"
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl sw/device/lib/drivers/power_manager/power_manager.h.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/system/pad_control/data/pad_control.hjson.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/system/pad_control/rtl/pad_control.sv.tpl
