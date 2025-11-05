@@ -1,7 +1,7 @@
 import hjson
 import pickle
 from mcu_gen import Pad
-import structs_gen
+import util.periph_structs_gen.periph_structs_gen as periph_structs_gen
 import x_heep_gen.load_config
 import x_heep_gen.peripherals
 import argparse
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     # Call the generation script, once for every peripheral
     for i in range(len(JSON_FILES)):
-        structs_gen.main(
+        periph_structs_gen.main(
             [
                 "--template_filename",
                 template_path,

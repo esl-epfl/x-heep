@@ -148,9 +148,8 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl $(LINK_FOLDER)/link_flash_exec.ld.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl $(LINK_FOLDER)/link_flash_load.ld.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/dma/data/dma.hjson.tpl 
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/dma/data/dma_conf.svh.tpl
 	bash -c "cd hw/ip/dma; source dma_gen.sh; cd ../../../"	
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/ip/dma/data/dma_conf.svh.tpl 
-	$(PYTHON) util/structs_periph_gen.py --cfg_peripherals $(XHEEP_CACHE)
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/fpga/sram_wrapper.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl hw/fpga/scripts/generate_sram.tcl.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CACHE) --cached --outtpl sw/device/lib/crt/crt0.S.tpl
@@ -168,8 +167,8 @@ verible:
 ## Runs black formating for python xheep generator files
 format-python:
 	$(PYTHON) -m black util/x_heep_gen
+	$(PYTHON) -m black util/periph_structs_gen
 	$(PYTHON) -m black util/mcu_gen.py
-	$(PYTHON) -m black util/structs_periph_gen.py
 	$(PYTHON) -m black util/waiver-gen.py
 	$(PYTHON) -m black test/test_x_heep_gen/test_peripherals.py
 
