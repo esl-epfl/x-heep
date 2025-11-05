@@ -1,28 +1,34 @@
 # Setup
 
-There are two ways of setting up X-HEEP. You can either use the provided docker image or install and configure the environment manually.
+There are two ways of setting up X-HEEP. You can either use the provided Docker image or install and configure the environment manually.
 
 ## Docker setup
 
-A docker image containing all the required software dependencies is available on [github-packages](https://github.com/orgs/esl-epfl/packages/container/package/x-heep-toolchain).
+A Docker image containing all the required software dependencies is available on [github-packages](https://ghcr.io/esl-epfl/x-heep/x-heep-toolchain:latest).
 
-It is only required to install docker and pull the image.
-
+It is only required to [install Docker](https://docs.docker.com/engine/install/), pull the image and run the container. The pull and run steps are wrapped in dedicated `makefile` targets that you can access from the top-level directory as:
 ```bash
-docker pull ghcr.io/esl-epfl/x-heep-toolchain:latest
+make -C util/docker docker-pull # pull the latest available X-HEEP image
+make -C util/docker docker-run #  mount the current X-HEEP clone to '/workspace/x-heep'
 ```
 
-Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\folder`, it is possible to directly run the docker mounting `X-HEEP-DIR` to the path `\workspace\x-heep` in the docker.
+In particular, the `docker-pull` target tries to infer your X-HEEP revision using `git describe` and pull the corresponding image. If it fails, it defaults to the `latest` image available, that is the one used by the upstream `main` branch.
 
+The Docker image provides built-in shortcuts (as Bash functions) to select among the available software compilation flows, as an alternative to providing the `COMPILER`, `COMPILER_PREFIX`, and `ARCH` variable when compiling an application with `make app`. Here is a brief description of the shortcut defined in `util/docker/env.sh`:
+
+| Shortcut | Description | Configuration |
+| -------- | ----------- | ------------- |
+| `init_gcc` | Use the GCC toolchain | `COMPILER=gcc`<br>`COMPILER_PREFIX=riscv32-unknown-`<br>`ARCH=rv32imc_zicsr` |
+| `init_clang` | Use the LLVM/Clang toolchain | `COMPILER=clang`<br>`COMPILER_PREFIX=riscv32-unknown-`<br>`ARCH=rv32imc_zicsr` |
+| `init_corev` | Use the Embecosm CORE-V toolchain with PULP extension | `COMPILER=gcc`<br>`COMPILER_PREFIX=riscv32-unknown-`<br>`ARCH=rv32imc_zicsr_zifencei_xcvhwlp_xcvmem_xcvmac_xcvbi_xcvalu_xcvsimd_xcvbitmanip` |
+
+For example, if you want to compile and link the `hello_world` application using LLVM/Clang:
 ```bash
-docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep ghcr.io/esl-epfl/x-heep-toolchain
+init_clang
+make app PROJECT=hello_world
 ```
 
-```{warning}
-Take care to indicate the absolute path to the local clone of X-HEEP, otherwise docker will not be able to properly mount the local folder in the container.
-```
-
-The docker setup has certain limitations. For example, the following are not supported:
+The Docker setup has certain limitations. For example, the following are not supported:
 
 - Simulation with Questasim and VCS, synthesis with Design Compiler. Licenses are required to use these tools, so they are not installed in the container.
 
@@ -56,7 +62,7 @@ Choose between `2.a` or `2.b` to setup your environment.
 
 #### 2.a Miniconda
 
-Install [Miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions) python 3.8 version by downloading an older version and selecting the latest `py38` version [here](https://repo.anaconda.com/miniconda/). Then, create the Conda environment from inside the x-heep folder:
+Install [Miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions) Python 3.8 version by downloading an older version and selecting the latest `py38` version [here](https://repo.anaconda.com/miniconda/). Then, create the Conda environment from inside the x-heep folder:
 
 ```bash
 make conda
@@ -72,10 +78,10 @@ or put the command directly in the `~/.bashrc` file.
 #### 2.b Virtual Environment
 
 ```{note}
-The python environment has only been tested on Python 3.8.
+The Python environment has only been tested on Python 3.8.
 ```
 
-Install the python virtual environment just as:
+Install the Python virtual environment just as:
 
 ```bash
 make venv
@@ -97,10 +103,11 @@ The RISC-V compiler requires the [following packages](https://github.com/riscv-c
 
 Then the installation can proceed with the following commands :
 ```
-git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
+git clone https://github.com/riscv/riscv-gnu-toolchain
 cd riscv-gnu-toolchain
+git checkout 2023.01.03
 ./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
-make
+make -j $(nproc)
 ```
 You need to set the `RISCV_XHEEP` environment variable like this:
 
@@ -109,15 +116,15 @@ export RISCV_XHEEP=/home/$USER/tools/riscv
 ```
 Also consider adding it to your `~/.bashrc` or equivalent so that it's set automatically in the future. 
 
-Optionally you can also compile with clang/LLVM instead of gcc. For that you must install the clang compiler into the same `RISCV_XHEEP` path. The binaries of gcc and clang do not collide so you can have both residing in the same `RISCV_XHEEP` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV_XHEEP` when building LLVM. This can be accomplished by doing the following:
+Optionally you can also compile and link with Clang/LLVM instead of GCC. For that you must install the Clang compiler (and the LLVM LLD linker) into the same `RISCV_XHEEP` path. The binaries of GCC and Clang do not collide so you can have both residing in the same `RISCV_XHEEP` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV_XHEEP` when building LLVM. This can be accomplished by doing the following:
 
-```
+```bash
+INSTALL_DIR=${RISCV_XHEEP}
 git clone https://github.com/llvm/llvm-project.git
 cd llvm-project
-git checkout llvmorg-14.0.0
-mkdir build && cd build
-cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV_XHEEP -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
-cmake --build . --target install
+git checkout llvmorg-19.1.4
+cmake -S llvm -B build -G "Ninja" -DLLVM_ENABLE_PROJECTS="clang;lld" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -DLLVM_TARGETS_TO_BUILD="RISCV" -DLLVM_USE_LINKER=lld
+cmake --build build --target install # or ninja -C build install
 ```
 
 ### 4. Install Verilator:
@@ -160,23 +167,23 @@ sudo apt-get install -y gtkwave
 
 ### 5. Install Verible
 
-Files are formatted with Verible. We use version v0.0-1824-ga3b5bedf
+Files are formatted with Verible. We use version v0.0-4023-gc1271a00
 
 ```
-export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
-wget https:wget https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
-tar -xf verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
+export VERIBLE_VERSION=v0.0-4023-gc1271a00
+wget https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
+tar -xf verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
 mkdir -p /home/$USER/tools/verible/${VERIBLE_VERSION}/
 mv verible-${VERIBLE_VERSION}/* /home/$USER/tools/verible/${VERIBLE_VERSION}/
-rm verible-${VERIBLE_VERSION}-Ubuntu-20.04-focal-x86_64.tar.gz
+rm verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
 rm -r verible-${VERIBLE_VERSION}
 ```
 
 After installation you need to add `/home/$USER/tools/verible/${VERIBLE_VERSION}/bin` to your `PATH` environment variable. Also consider adding it to your `~/.bashrc` or equivalent so that it's on the `PATH` in the future, like this:
 
 ```
-export VERIBLE_VERSION=v0.0-1824-ga3b5bedf
+export VERIBLE_VERSION=v0.0-4023-gc1271a00
 export PATH=/home/$USER/tools/verible/${VERIBLE_VERSION}/bin:$PATH
 ```
 
-In general, have a look at the [Install Verible](https://opentitan.org/book/doc/getting_started/index.html#step-7a-install-verible-optional) section of the OpenTitan documentation.
+In general, have a look at the [Install Verible](https://opentitan.org/book/doc/getting_started/index.html#step-7a-install-verible-optional) section of the OpenTitan documentation (the version referenced there is _not_ the one we use in X-HEEP).

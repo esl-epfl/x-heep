@@ -1,5 +1,8 @@
-from x_heep_gen.linker_section import LinkerSection
-from x_heep_gen.system import XHeep, BusType
+from x_heep_gen.xheep import XHeep
+from x_heep_gen.cpu.cpu import CPU
+from x_heep_gen.bus_type import BusType
+from x_heep_gen.memory_ss.memory_ss import MemorySS
+from x_heep_gen.memory_ss.linker_section import LinkerSection
 from x_heep_gen.peripherals.base_peripherals import (
     BasePeripheralDomain,
     SOC_ctrl,
@@ -30,11 +33,14 @@ from x_heep_gen.peripherals.user_peripherals import (
 
 def config():
     system = XHeep(BusType.NtoM)
-    system.add_ram_banks([32] * 2)
-    system.add_ram_banks_il(2, 64, "data_interleaved")
+    system.set_cpu(CPU("cv32e20"))
 
-    system.add_linker_section(LinkerSection.by_size("code", 0, 0x00000C800))
-    system.add_linker_section(LinkerSection("data", 0x00000C800, None))
+    memory_ss = MemorySS()
+    memory_ss.add_ram_banks([32] * 2)
+    memory_ss.add_ram_banks_il(2, 64, "data_interleaved")
+    memory_ss.add_linker_section(LinkerSection.by_size("code", 0, 0x00000C800))
+    memory_ss.add_linker_section(LinkerSection("data", 0x00000C800, None))
+    system.set_memory_ss(memory_ss)
 
     # Peripheral domains initialization
     base_peripheral_domain = BasePeripheralDomain()
@@ -58,11 +64,5 @@ def config():
     # Add the peripheral domains to the system
     system.add_peripheral_domain(base_peripheral_domain)
     system.add_peripheral_domain(user_peripheral_domain)
-
-    # Here the system is build,
-    # The missing gaps are filled, like the missing end address of the data section.
-    system.build()
-    if not system.validate():
-        raise RuntimeError("there are errors")
 
     return system

@@ -105,8 +105,8 @@ typedef struct power_manager_ram_map_t {
   uint32_t monitor_power_gate;
 } power_manager_ram_map_t;
 
-static power_manager_ram_map_t power_manager_ram_map[${xheep.ram_numbanks()}] = {
-% for bank in xheep.iter_ram_banks():
+static power_manager_ram_map_t power_manager_ram_map[${xheep.memory_ss().ram_numbanks()}] = {
+% for bank in xheep.memory_ss().iter_ram_banks():
   (power_manager_ram_map_t) {
     .clk_gate = POWER_MANAGER_RAM_${bank.name()}_CLK_GATE_REG_OFFSET,
     .power_gate_ack = POWER_MANAGER_POWER_GATE_RAM_BLOCK_${bank.name()}_ACK_REG_OFFSET,

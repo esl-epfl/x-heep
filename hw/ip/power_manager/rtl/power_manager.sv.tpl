@@ -2,6 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%
+    memory_ss = xheep.memory_ss()
+%>
+
 `include "common_cells/assertions.svh"
 
 module power_manager import power_manager_pkg::*; #(
@@ -125,7 +129,7 @@ module power_manager import power_manager_pkg::*; #(
   assign peripheral_subsystem_pwr_ctrl_o.retentive_en_n = 1'b1; //unused
   assign peripheral_subsystem_pwr_ctrl_o.clkgate_en_n = ~reg2hw.periph_clk_gate.q;
 
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].pwrgate_en_n = memory_subsystem_banks_powergate_switch_n[${bank.name()}];
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].isogate_en_n = memory_subsystem_banks_powergate_iso_n[${bank.name()}];
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].rst_n = 1'b1;
@@ -412,7 +416,7 @@ module power_manager import power_manager_pkg::*; #(
       .switch_onoff_signal_o(peripheral_subsystem_powergate_iso_n)
   );
 
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
   // --------------------------------------------------------------------------------------
   // RAM_${bank.name()} DOMAIN
   // --------------------------------------------------------------------------------------
@@ -582,10 +586,9 @@ module power_manager import power_manager_pkg::*; #(
   assign hw2reg.monitor_power_gate_periph.de = 1'b1;
   assign hw2reg.monitor_power_gate_periph.d = {peripheral_subsystem_rst_n, peripheral_subsystem_powergate_iso_n, peripheral_subsystem_powergate_switch_n};
 
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
   assign hw2reg.monitor_power_gate_ram_block_${bank.name()}.de = 1'b1;
   assign hw2reg.monitor_power_gate_ram_block_${bank.name()}.d = {memory_subsystem_banks_powergate_iso_n[${bank.name()}], memory_subsystem_banks_powergate_switch_n[${bank.name()}]};
-
 % endfor
 
 % for ext in range(external_domains):

@@ -17,6 +17,7 @@
   user_peripheral_domain = xheep.get_user_peripheral_domain()
   base_peripheral_domain = xheep.get_base_peripheral_domain()
   dma = base_peripheral_domain.get_dma()
+  memory_ss = xheep.memory_ss()
 %>
 
 package core_v_mini_mcu_pkg;
@@ -31,7 +32,7 @@ package core_v_mini_mcu_pkg;
     cv32e40px
   } cpu_type_e;
 
-  localparam cpu_type_e CpuType = ${cpu_type};
+  localparam cpu_type_e CpuType = ${xheep.cpu().get_name()};
 
   typedef enum logic {
     NtoM,
@@ -53,15 +54,15 @@ package core_v_mini_mcu_pkg;
   // Internal slave memory map and index
   // -----------------------------------
   //must be power of two
-  localparam int unsigned MEM_SIZE = 32'h${f'{xheep.ram_size_address():08X}'};
+  localparam int unsigned MEM_SIZE = 32'h${f'{memory_ss.ram_size_address():08X}'};
 
-  localparam SYSTEM_XBAR_NSLAVE = ${xheep.ram_numbanks() + 5};
+  localparam SYSTEM_XBAR_NSLAVE = ${memory_ss.ram_numbanks() + 5};
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
 
-  localparam int unsigned NUM_BANKS = ${xheep.ram_numbanks()};
-  localparam int unsigned NUM_BANKS_IL = ${xheep.ram_numbanks_il()};
+  localparam int unsigned NUM_BANKS = ${memory_ss.ram_numbanks()};
+  localparam int unsigned NUM_BANKS_IL = ${memory_ss.ram_numbanks_il()};
   localparam int unsigned EXTERNAL_DOMAINS = ${external_domains};
 
   localparam logic[31:0] ERROR_START_ADDRESS = 32'hBADACCE5;
@@ -69,14 +70,14 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] ERROR_END_ADDRESS = ERROR_START_ADDRESS + ERROR_SIZE;
   localparam logic[31:0] ERROR_IDX = 32'd0;
 
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
   localparam logic [31:0] RAM${bank.name()}_IDX = 32'd${bank.map_idx()};
   localparam logic [31:0] RAM${bank.name()}_SIZE = 32'h${f'{bank.size():08X}'};
   localparam logic [31:0] RAM${bank.name()}_START_ADDRESS = 32'h${f'{bank.start_address():08X}'};
   localparam logic [31:0] RAM${bank.name()}_END_ADDRESS = 32'h${f'{bank.end_address():08X}'};
 % endfor
 
-% for i, group in enumerate(xheep.iter_il_groups()):
+% for i, group in enumerate(memory_ss.iter_il_groups()):
   localparam logic [31:0] RAM_IL${i}_START_ADDRESS = 32'h${f'{group.start:08X}'};
   localparam logic [31:0] RAM_IL${i}_SIZE = 32'h${f'{group.size:08X}'};
   localparam logic [31:0] RAM_IL${i}_END_ADDRESS = RAM_IL${i}_START_ADDRESS + RAM_IL${i}_SIZE;
@@ -86,26 +87,26 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] DEBUG_START_ADDRESS = 32'h${debug_start_address};
   localparam logic[31:0] DEBUG_SIZE = 32'h${debug_size_address};
   localparam logic[31:0] DEBUG_END_ADDRESS = DEBUG_START_ADDRESS + DEBUG_SIZE;
-  localparam logic[31:0] DEBUG_IDX = 32'd${xheep.ram_numbanks() + 1};
+  localparam logic[31:0] DEBUG_IDX = 32'd${memory_ss.ram_numbanks() + 1};
 
   localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h${hex(base_peripheral_domain.get_start_address())[2:]};
   localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h${hex(base_peripheral_domain.get_length())[2:]};
   localparam logic[31:0] AO_PERIPHERAL_END_ADDRESS = AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE;
-  localparam logic[31:0] AO_PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 2};
+  localparam logic[31:0] AO_PERIPHERAL_IDX = 32'd${memory_ss.ram_numbanks() + 2};
 
   localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h${hex(user_peripheral_domain.get_start_address())[2:]};
   localparam logic[31:0] PERIPHERAL_SIZE = 32'h${hex(user_peripheral_domain.get_length())[2:]};
   localparam logic[31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
-  localparam logic[31:0] PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 3};
+  localparam logic[31:0] PERIPHERAL_IDX = 32'd${memory_ss.ram_numbanks() + 3};
 
   localparam logic[31:0] FLASH_MEM_START_ADDRESS = 32'h${flash_mem_start_address};
   localparam logic[31:0] FLASH_MEM_SIZE = 32'h${flash_mem_size_address};
   localparam logic[31:0] FLASH_MEM_END_ADDRESS = FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE;
-  localparam logic[31:0] FLASH_MEM_IDX = 32'd${xheep.ram_numbanks() + 4};
+  localparam logic[31:0] FLASH_MEM_IDX = 32'd${memory_ss.ram_numbanks() + 4};
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS },
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
       '{ idx: RAM${bank.name()}_IDX, start_addr: RAM${bank.name()}_START_ADDRESS, end_addr: RAM${bank.name()}_END_ADDRESS },
 % endfor
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },

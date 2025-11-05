@@ -8,7 +8,7 @@
 sudo apt install pkg-config libftdi1-2
 ```
 
-You need at least gcc>10, so in case you do not have it:
+You need at least GCC>10, so in case you do not have it:
 
 ```
 sudo apt install gcc-10 g++-10
@@ -100,7 +100,7 @@ In a 3rd shell, conenct gdb as:
 $RISCV_XHEEP/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
 ```
 
-In case gdb is started in python mode (due to initialisation conditions set in the ~/.gdbinit) - then run the command as:
+In case gdb is started in Python mode (due to initialisation conditions set in the ~/.gdbinit) - then run the command as:
 ```
 $RISCV_XHEEP/bin/riscv32-unknown-elf-gdb -nx ./sw/build/main.elf
 ```

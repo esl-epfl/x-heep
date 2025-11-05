@@ -4,6 +4,7 @@
 
 <%
   dma = xheep.get_base_peripheral_domain().get_dma()
+  memory_ss = xheep.memory_ss()
 %>
 
 module core_v_mini_mcu
@@ -221,7 +222,7 @@ ${pad.core_v_mini_mcu_interface}
   assign peripheral_subsystem_rst_n           = peripheral_subsystem_pwr_ctrl_out.rst_n;
   assign peripheral_subsystem_clkgate_en_n    = peripheral_subsystem_pwr_ctrl_out.clkgate_en_n;
 
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
   assign memory_subsystem_banks_powergate_switch_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].pwrgate_en_n;
   assign memory_subsystem_pwr_ctrl_in[${bank.name()}].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[${bank.name()}];
   //isogate exposed outside for UPF sim flow and switch cells

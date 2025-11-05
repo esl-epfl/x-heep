@@ -283,7 +283,7 @@ module spiflash (
     end
   endtask
 
-  always_ff @(posedge csb or negedge csb) begin
+  always @(posedge csb or negedge csb) begin
     if (csb) begin
       if (verbose) begin
         $display("");
@@ -310,7 +310,7 @@ module spiflash (
     end
   end
 
-  always_ff @(posedge csb or negedge csb or posedge clk or negedge clk) begin
+  always @(posedge csb or negedge csb or posedge clk or negedge clk) begin
     spi_io_vld = 0;
     if (!csb && !clk) begin
       if (dummycount > 0) begin
@@ -393,7 +393,7 @@ module spiflash (
     end
   end
 
-  always_ff @(posedge clk) begin
+  always @(posedge clk) begin
     if (!csb) begin
       if (dummycount > 0) begin
         dummycount = dummycount - 1;
