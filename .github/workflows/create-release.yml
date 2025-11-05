@@ -216,3 +216,36 @@ jobs:
             --head ${{ needs.prepare-release.outputs.branch_name }} \
             --title "Release: ${{ github.event.inputs.release_tag }}" \
             --body "This PR bumps the version for the ${{ github.event.inputs.release_tag }} release. All artifacts have been successfully built and a draft release is ready. Merging this PR will automatically publish the release."
+
+  cleanup-on-failure:
+    name: Clean up on failure
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [prepare-release, build-and-upload-toolchain, build-docker]
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Delete Release and Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete ${{ github.event.inputs.release_tag }} --cleanup-tag --yes || echo "Release not found or already deleted."
+
+      - name: Delete Remote Branch
+        run: |
+          BRANCH_NAME="release/${{ github.event.inputs.release_tag }}"
+          git push origin --delete ${BRANCH_NAME} || echo "Branch not found or already deleted."
+
+      - name: Get Package Name
+        id: get_package_name
+        run: |
+          echo "name=$(echo '${{ env.IMAGE_NAME }}' | sed 's/^[^\/]*\///')" >> $GITHUB_OUTPUT
+
+      - name: Delete Docker Image from GHCR
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ${{ steps.get_package_name.outputs.name }}
+          package-version-ids: ${{ github.event.inputs.release_tag }}
+          package-type: 'container'
