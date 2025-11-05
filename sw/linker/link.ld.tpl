@@ -21,7 +21,7 @@ MEMORY
      allowing initialized sections to be placed there). Infact we dump all
      sections to ram. */
   % for i, section in enumerate(xheep.memory_ss().iter_linker_sections()):
-    ram${i} (rwxai) : ORIGIN = ${f"{section.start:#08x}"}, LENGTH = ${f"{section.size:#08x}"}
+    ram${i} (rwxa) : ORIGIN = ${f"{section.start:#08x}"}, LENGTH = ${f"{section.size:#08x}"}
 % endfor
 }
 
@@ -277,7 +277,7 @@ SECTIONS
   .heap          :
   {
    PROVIDE(__heap_start = .);
-   . = __heap_size;
+   . += __heap_size;
    PROVIDE(__heap_end = .);
   } >ram1
 
@@ -286,7 +286,7 @@ SECTIONS
   .stack         : ALIGN(16) /* this is a requirement of the ABI(?) */
   {
    PROVIDE(__stack_start = .);
-   . = __stack_size;
+   . += __stack_size;
    PROVIDE(_sp = .);
    PROVIDE(__stack_end = .);
    PROVIDE(__freertos_irq_stack_top = .);

@@ -48,18 +48,18 @@ TARGET   	?= sim
 # Mcu-gen configuration files
 X_HEEP_CFG  ?= configs/general.hjson
 PADS_CFG ?= configs/pad_cfg.hjson
-PYTHON_X_HEEP_CFG ?= 
+PYTHON_X_HEEP_CFG ?=
 # Cached mcu-gen xheep configuration
 XHEEP_CONFIG_CACHE ?= build/xheep_config_cache.pickle
 
 # Compiler options are 'gcc' (default) and 'clang'
-COMPILER ?= gcc
-# Compiler prefix options are 'riscv32-unknown-' (default)
+COMPILER 		?= gcc
+# Compiler prefix options are 'riscv32-unknown-' (default) and 'riscv32-corev-'
 COMPILER_PREFIX ?= riscv32-unknown-
 # Compiler flags to be passed (for both linking and compiling)
-COMPILER_FLAGS ?=
-# Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
-ARCH     ?= rv32imc
+COMPILER_FLAGS 	?=
+# Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc_zicsr'
+ARCH     		?= rv32imc_zicsr
 
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= $(".")
@@ -147,9 +147,9 @@ mcu-gen:
 	bash -c "cd hw/system/pad_control; source pad_control_gen.sh; cd ../../../"
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl $(LINK_FOLDER)/link_flash_exec.ld.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl $(LINK_FOLDER)/link_flash_load.ld.tpl
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/dma/data/dma.hjson.tpl 
-	bash -c "cd hw/ip/dma; source dma_gen.sh; cd ../../../"	
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/dma/data/dma_conf.svh.tpl 
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/dma/data/dma.hjson.tpl
+	bash -c "cd hw/ip/dma; source dma_gen.sh; cd ../../../"
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/dma/data/dma_conf.svh.tpl
 	$(PYTHON) util/structs_periph_gen.py --cfg_peripherals $(XHEEP_CONFIG_CACHE)
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/fpga/sram_wrapper.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/fpga/scripts/generate_sram.tcl.tpl
@@ -171,6 +171,7 @@ format-python:
 	$(PYTHON) -m black util/mcu_gen.py
 	$(PYTHON) -m black util/structs_periph_gen.py
 	$(PYTHON) -m black util/waiver-gen.py
+	$(PYTHON) -m black util/c_gen.py
 	$(PYTHON) -m black test/test_x_heep_gen/test_peripherals.py
 
 ## @section APP FW Build
@@ -215,12 +216,12 @@ questasim-build:
 
 ## Questasim simulation with HDL optimized compilation
 questasim-build-opt: questasim-build
-	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt
+	$(MAKE) -C $(shell find build -type d -name sim-modelsim | head -n 1) opt
 
 ## Questasim simulation with HDL optimized compilation and UPF power domain description
 ## @param FUSESOC_PARAM="--USE_UPF"
 questasim-build-opt-upf: questasim-build
-	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt-upf
+	$(MAKE) -C $(shell find build -type d -name sim-modelsim | head -n 1) opt-upf
 
 ## VCS simulation
 ## @param CPU=cv32e20(default),cv32e40p,cv32e40x,cv32e40px
@@ -250,13 +251,13 @@ verilator-run-app: app
 
 ## Launches the RTL simulation with the compiled firmware (`app` target) using
 ## the C++ Verilator model previously built (`verilator-build` target).
-verilator-run: 
+verilator-run:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --run openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) \
 		--run_options="+firmware=../../../sw/build/main.hex $(SIM_ARGS)"
 
 ## Launches the RTL simulation with the compiled firmware (`app` target) using
 ## the SystemC Verilator model previously built (`verilator-build-sc` target).
-verilator-run-sc: 
+verilator-run-sc:
 	$(FUSESOC) --cores-root . run --no-export --target=sim_sc --tool=verilator $(FUSESOC_FLAGS) --run openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) \
 		--run_options="+firmware=../../../sw/build/main.hex $(SIM_ARGS)"
 
