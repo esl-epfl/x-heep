@@ -2,7 +2,7 @@ name: Publish Release
 
 on:
   # Run when a (specific, see "if" below) PR is merged
-  pull_request:
+  pull_request_target:
     types: [closed]
 
 env:
@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      tag: ${{ steps.get_tag.outputs.tag }}
     steps:
       - name: Get Tag from Branch
         id: get_tag
@@ -35,7 +37,7 @@ jobs:
 
       - name: Delete Source Branch
         run: |
-          git push -d origin $BRANCH_NAME
+          git push -d origin ${{ github.event.pull_request.head_ref }}
 
   tag-latest:
     name: Tag 'Latest' Docker Image
@@ -45,13 +47,6 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Get Tag from Branch
-        id: get-tag
-        run: |
-          BRANCH_NAME="${{ github.event.pull_request.head_ref }}"
-          TAG_NAME="${BRANCH_NAME#release/}"
-          echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -65,7 +60,7 @@ jobs:
       - name: Remotely tag 'latest' image
         env:
           IMAGE_ID: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          VERSION_TAG: ${{ steps.get-tag.outputs.tag }}
+          VERSION_TAG: ${{ needs.publish-release.outputs.tag }} 
         run: |
           echo "Tagging $IMAGE_ID:$VERSION_TAG as latest..."
           docker buildx imagetools create $IMAGE_ID:$VERSION_TAG --tag $IMAGE_ID:latest
