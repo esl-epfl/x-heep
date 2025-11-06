@@ -91,55 +91,71 @@ This workflow ensures the stability and integrity of the codebase by running a s
 
 ### Release Workflows
 
-The CI is also responsible for handling releases. There are two workflows for this purpose: `create-release.yml` and `publish-release.yml`. This automated process ensures that every release is consistently built and published with its corresponding toolchain and Docker image.
+The project includes a robust, automated process for creating and publishing releases. This is handled by two GitHub Actions workflows: `create-release.yml` and `publish-release.yml`. This system ensures that every release is consistently built, tested, and published with its corresponding toolchain and Docker image.
 
 #### Create X-HEEP Release Workflow (`create-release.yml`)
 
-This workflow is responsible for preparing a new release. It is triggered manually and requires a release tag (e.g., `v1.0.0`) as input parameter.
+This workflow prepares a new release. It is a comprehensive process that builds the toolchain, packages it, creates a draft release, builds a Docker container, and opens a version bump pull request. It's designed to be triggered manually when a new release is needed.
 
 **Trigger:**
 
-*   Manual dispatch (`workflow_dispatch`) with a `release_tag` input. This can be achieved by running the _Create X-HEEP Release_ workflow from the X-HEEP repository Actions tab on GitHub.
+*   Manual dispatch (`workflow_dispatch`) from the GitHub Actions tab.
+*   **Inputs**:
+    *   `llvm_version`: The LLVM version tag to build (default: `llvmorg-19.1.4`).
+    *   `gcc_version`: The GCC version tag to build (default: `2023.01.03`).
+    *   `release_tag`: The tag for the new GitHub release (e.g., `v1.0.0`).
 
 ```{note}
-This workflow is meant to be executed only when major changes are merged to `main`. An example is new tools versions, breaking changes, etc. Bug fixes that don't require rebuilding the toolchain or the Docker container, or do not represent a major update, don't necessarily require a new release to be created.
+This workflow is intended for major releases that:
+- Introduce support for new tools
+- Bump existing tools to newer versions
+- Modify the CI workflows
+- Represent a significant update in general
+
+Minor bug fixes or feature improvements may not require/justify a full new release.
 ```
 
 **Jobs:**
 
-1.  **`prepare-release-branch`**:
-    *   Creates a new branch named `release/vX.Y.Z` from the `main` branch.
-    *   Updates the version number in `core-v-mini-mcu.core` and `util/docker/dockerfile` to match the release tag.
-    *   Commits and pushes the version update to the new release branch.
-    *   Opens a pull request from the release branch to `main`.
+1.  **`prepare-release`**:
+    *   Creates a new release branch (`release/<release_tag>`).
+    *   Updates the version in `core-v-mini-mcu.core` and the toolchain version in `util/docker/dockerfile`.
+    *   Commits and pushes the changes to the new branch.
+    *   Creates a **draft** GitHub release, which will be populated with assets by later jobs.
 
-2.  **`build-toolchain`**:
-    *   Runs in parallel with `prepare-release-branch`.
-    *   Builds the RISC-V GCC and Clang/LLVM toolchains.
-    *   Archives the compressed toolchain binaries as a workflow artifact named `x-heep-toolchain`.
+2.  **`build-and-upload-toolchain`**:
+    *   Builds the RISC-V GCC and Clang/LLVM toolchains from the sources specified in the workflow inputs.
+    *   Packages the compiled toolchains into a `.tar.gz` file.
+    *   Uploads this tarball as an asset to the draft GitHub release.
 
-3.  **`build-and-push-docker`**:
-    *   Depends on the completion of `build-toolchain`.
-    *   Builds the `x-heep-toolchain` Docker image, which includes the newly built toolchains and all other necessary dependencies (Verilator, Verible, etc.).
-    *   Pushes the Docker image to the GitHub Container Registry (`ghcr.io/esl-epfl/x-heep/x-heep-toolchain`) with a tag corresponding to the release version.
+3.  **`build-docker`**:
+    *   Downloads the toolchain asset that was just uploaded to the draft release.
+    *   Builds the `x-heep-toolchain` Docker image, injecting the new toolchain.
+    *   Pushes the new Docker image to the GitHub Container Registry (GHCR) with the release tag.
 
-4.  **`create-draft-release`**:
-    *   Depends on the completion of `build-and-push-docker`.
-    *   Creates a draft release on GitHub associated with the specified tag.
-    *   The release notes are automatically generated based on the commit history since the last release.
-    *   Downloads the `x-heep-toolchain` artifact and attaches it as a `.tar.gz` file to the draft release.
+4.  **`create-version-pr`**:
+    *   Creates a new pull request to merge the release branch back into `main`. This PR contains the version bumps.
+
+5.  **`cleanup-on-failure`**:
+    *   This job runs only if any of the previous jobs fail.
+    *   It automatically cleans up by deleting the draft release, the release tag, the remote release branch, and the pushed Docker image from GHCR. This prevents leftovers from partial, broken releases.
 
 #### Publish Release Workflow (`publish-release.yml`)
 
-This workflow finalizes the release process after the release pull request has been merged and the draft release has been manually published.
+This workflow finalizes the release process. It is triggered automatically after the version bump PR (created by the `create-release.yml` workflow) is merged into the `main` branch.
 
 **Trigger:**
 
-*   On a release being `published`, that is a merged PR from a `release/*` branch. Such PR should be automatically created by the _Create X-HEEP Release_ workflow detailed above.
+*   A pull request from a `release/*` branch is merged into `main`.
 
 **Jobs:**
 
-1.  **`publish-docker-image`**:
-    *   Pulls the Docker image for the release version from GHCR.
-    *   Re-tags the image with the `latest` tag.
-    *   Pushes the `latest` tag to GHCR. This ensures that the main CI workflow will use the most up-to-date toolchain for its runs.
+1.  **`publish-release`**:
+    *   Identifies the release tag from the merged branch name.
+    *   Converts the corresponding draft release into a **public release**.
+    *   Deletes the now-merged remote release branch to keep the repository clean.
+
+2.  **`tag-latest`**:
+    *   After the release is published, this job pulls the newly released Docker image from GHCR.
+    *   It then re-tags this image with the `latest` tag and pushes it.
+    *   This ensures that the main `ci.yml` workflow will use the most up-to-date toolchain for future runs on the `main` branch.
