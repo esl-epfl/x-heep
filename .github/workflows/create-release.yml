@@ -203,6 +203,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [prepare-release, build-docker]
     permissions:
+      contents: write
       pull-requests: write
     steps:
       - name: Checkout repository
@@ -214,6 +215,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # fallback for gh CLI
         run: |
           gh pr create \
+            --verbose \
             --base main \
             --head ${{ needs.prepare-release.outputs.branch_name }} \
             --title "Release: ${{ github.event.inputs.release_tag }}" \
@@ -222,6 +224,7 @@ jobs:
   cleanup-on-failure:
     name: Clean up on failure
     runs-on: ubuntu-latest
+    # if: failure()
     needs: [prepare-release, build-and-upload-toolchain, build-docker]
     permissions:
       contents: write
