@@ -222,7 +222,6 @@ jobs:
   cleanup-on-failure:
     name: Clean up on failure
     runs-on: ubuntu-latest
-    if: failure()
     needs: [prepare-release, build-and-upload-toolchain, build-docker]
     permissions:
       contents: write
