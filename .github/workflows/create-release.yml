@@ -101,13 +101,12 @@ jobs:
           set -ex
           INSTALL_DIR=/tmp/riscv
           mkdir -p ${INSTALL_DIR}
-          #git clone https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain
-          #cd /tmp/riscv-gnu-toolchain
-          #git checkout ${{ github.event.inputs.gcc_version }}
-          #./configure --target=riscv32-unknown-elf --prefix=${INSTALL_DIR} --with-newlib --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
-          #make -j$(nproc)
-          #rm -rf /tmp/riscv-gnu-toolchain
-          echo "test" > $INSTALL_DIR/gcc.txt
+          git clone https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain
+          cd /tmp/riscv-gnu-toolchain
+          git checkout ${{ github.event.inputs.gcc_version }}
+          ./configure --target=riscv32-unknown-elf --prefix=${INSTALL_DIR} --with-newlib --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
+          make -j$(nproc)
+          rm -rf /tmp/riscv-gnu-toolchain
 
       - name: Build LLVM/Clang
         id: build-clang
@@ -115,18 +114,17 @@ jobs:
           set -ex
           INSTALL_DIR=/tmp/riscv
           mkdir -p ${INSTALL_DIR}
-          #git clone https://github.com/llvm/llvm-project.git /tmp/llvm-project
-          #cd /tmp/llvm-project
-          #git checkout ${{ github.event.inputs.llvm_version }}
-          #cmake -S llvm -B build -G "Ninja" \
-          #      -DLLVM_ENABLE_PROJECTS="clang;lld" \
-          #      -DCMAKE_BUILD_TYPE=Release \
-          #      -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-          #      -DLLVM_TARGETS_TO_BUILD="RISCV" \
-          #      -DLLVM_USE_LINKER=lld
-          #ninja -C build install
-          #rm -rf /tmp/llvm-project
-          echo "test" > $INSTALL_DIR/clang.txt
+          git clone https://github.com/llvm/llvm-project.git /tmp/llvm-project
+          cd /tmp/llvm-project
+          git checkout ${{ github.event.inputs.llvm_version }}
+          cmake -S llvm -B build -G "Ninja" \
+                -DLLVM_ENABLE_PROJECTS="clang;lld" \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
+                -DLLVM_TARGETS_TO_BUILD="RISCV" \
+                -DLLVM_USE_LINKER=lld
+          ninja -C build install
+          rm -rf /tmp/llvm-project
 
       - name: Package Toolchain
         id: package
@@ -203,7 +201,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [prepare-release, build-docker]
     permissions:
-      contents: write
       pull-requests: write
     steps:
       - name: Checkout repository
@@ -215,7 +212,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # fallback for gh CLI
         run: |
           gh pr create \
-            --verbose \
             --base main \
             --head ${{ needs.prepare-release.outputs.branch_name }} \
             --title "Release: ${{ github.event.inputs.release_tag }}" \
@@ -224,7 +220,7 @@ jobs:
   cleanup-on-failure:
     name: Clean up on failure
     runs-on: ubuntu-latest
-    # if: failure()
+    if: failure()
     needs: [prepare-release, build-and-upload-toolchain, build-docker]
     permissions:
       contents: write
