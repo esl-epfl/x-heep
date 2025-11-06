@@ -114,7 +114,6 @@ As said at the beginning of this guide, these steps are the same for any domain 
        <peripheral>: {
            offset:  0x00080000
            length:  0x00010000
-           path:    "./hw/ip/<peripheral>/data/<peripheral>.hjson"
            is_included: "yes"
        }
        // existing peripherals…
