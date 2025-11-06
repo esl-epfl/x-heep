@@ -65,31 +65,6 @@ class Peripheral(ABC):
         return self._name
 
 
-class DataConfiguration(ABC):
-    """
-    Abstract class for adding a more sofisticated configuration to a peripheral, acts as an interface in Java. This class cannot be instantiated.
-
-    :param str config_path: The path to the hjson file that describes the peripheral (interface and registers).
-    """
-
-    _config_path: str
-
-    def custom_configuration(self, config_path: str):
-        """
-        Select a custom configuration for the peripheral.
-
-        :param str config_path: The path to the hjson file that describes the peripheral. When calling validate function, the config file path must be valid (or there should be a corresponding .tpl file).
-        """
-        self._config_path = config_path
-
-    def get_config_path(self):
-        """
-        :return: The path to the hjson file that describes the peripheral.
-        :rtype: str
-        """
-        return self._config_path
-
-
 class BasePeripheral(Peripheral, ABC):
     """
     Abstract class representing always-on peripherals. This class cannot be instantiated.
@@ -317,27 +292,6 @@ class PeripheralDomain(ABC):
             self._peripherals[idx].set_address(offsets[idx])
 
     # Validate functions
-    def __check_paths(self):
-        """
-        Check if the paths to the configuration file of the peripherals that have one are valid.
-
-        :return: True if all paths are valid, False otherwise.
-        :rtype: bool
-        """
-        return_bool = True
-        for p in self._peripherals:
-            if isinstance(p, DataConfiguration):
-                # path stands for os.path
-                if not path.exists(p.get_config_path()) and not path.exists(
-                    p.get_config_path() + ".tpl"
-                ):
-                    print(
-                        f"The peripheral {p.get_name()} has an invalid path : {p.get_config_path()}"
-                    )
-                    return_bool = False
-
-        return return_bool
-
     def __check_peripheral_non_overlap(self):
         """
         Check if the peripherals do not overlap.
@@ -411,14 +365,13 @@ class PeripheralDomain(ABC):
 
     def validate(self):
         """
-        Validate the peripheral domain. Checks if the paths to the configuration files of the peripherals that have one are valid, if the peripherals do not overlap and if the peripheral domain is within the bounds.
+        Validate the peripheral domain. Checks if the peripherals do not overlap and if the peripheral domain is within the bounds.
 
         :return: True if the peripheral domain is valid, False otherwise.
         :rtype: bool
         """
 
         return (
-            self.__check_paths()
-            and self.__check_peripheral_non_overlap()
+            self.__check_peripheral_non_overlap()
             and self.__check_peripheral_domain_bounds()
         )

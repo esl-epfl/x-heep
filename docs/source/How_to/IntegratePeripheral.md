@@ -114,7 +114,6 @@ As said at the beginning of this guide, these steps are the same for any domain 
        <peripheral>: {
            offset:  0x00080000
            length:  0x00010000
-           path:    "./hw/ip/<peripheral>/data/<peripheral>.hjson"
            is_included: "yes"
        }
        // existing peripherals…
@@ -122,9 +121,8 @@ As said at the beginning of this guide, these steps are the same for any domain 
    ```
 2. For Python configs, import a new class in `util/x_heep_gen/peripherals/user_peripherals.py` (or `base_peripherals.py` if mandatory):
    ```python
-   class <peripheral>(UserPeripheral, DataConfiguration):
+   class <peripheral>(UserPeripheral):
        _name = "<peripheral>"
-       _config_path = "./hw/ip/<peripheral>/data/<peripheral>.hjson"
    ```
    Instantiate the class in your config script and add it to the user domain before calling `build()`.
 3. If your IP generates an interrupt signal, extend the _interrupt list_ with it.
