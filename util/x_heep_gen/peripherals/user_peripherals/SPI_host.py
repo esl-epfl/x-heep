@@ -9,10 +9,3 @@ class SPI_host(UserPeripheral, DataConfiguration):
 
     _name = "spi_host"
     _config_path = "./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson"
-
-class SPI2(UserPeripheral):
-    """
-    Secondary Serial Peripheral Interface.
-    """
-
-    _name = "spi2"
