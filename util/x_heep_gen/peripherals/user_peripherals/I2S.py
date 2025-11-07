@@ -1,6 +1,6 @@
-from ..abstractions import UserPeripheral,DataConfiguration
+from ..abstractions import UserPeripheral
 
-class I2S(UserPeripheral, DataConfiguration):
+class I2S(UserPeripheral):
     """
     Inter-IC Sound interface.
 
@@ -8,4 +8,4 @@ class I2S(UserPeripheral, DataConfiguration):
     """
 
     _name = "i2s"
-    _config_path = "./hw/ip/i2s/data/i2s.hjson"
+

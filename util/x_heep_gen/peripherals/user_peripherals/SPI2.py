@@ -1,4 +1,4 @@
-from ..abstractions import UserPeripheral, DataConfiguration, PeripheralDomain
+from ..abstractions import UserPeripheral
 
 class SPI2(UserPeripheral):
     """

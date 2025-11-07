@@ -1,4 +1,4 @@
-from ..abstractions import BasePeripheral, DataConfiguration, PeripheralDomain
+from ..abstractions import BasePeripheral
 
 class SPI_flash(BasePeripheral):
     """

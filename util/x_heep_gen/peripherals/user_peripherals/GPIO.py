@@ -1,7 +1,7 @@
-from ..abstractions import UserPeripheral, DataConfiguration, PeripheralDomain
+from ..abstractions import UserPeripheral
 
 
-class GPIO(UserPeripheral, DataConfiguration):
+class GPIO(UserPeripheral):
     """
     General Purpose Input/Output controller.
 
@@ -9,4 +9,4 @@ class GPIO(UserPeripheral, DataConfiguration):
     """
 
     _name = "gpio"
-    _config_path = "./hw/vendor/pulp_platform_gpio/gpio_regs.hjson"
+

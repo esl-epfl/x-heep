@@ -1,6 +1,6 @@
-from ..abstractions import UserPeripheral, DataConfiguration, PeripheralDomain
+from ..abstractions import UserPeripheral
 
-class I2C(UserPeripheral, DataConfiguration):
+class I2C(UserPeripheral):
     """
     Inter-Integrated Circuit communication interface.
 
@@ -8,4 +8,3 @@ class I2C(UserPeripheral, DataConfiguration):
     """
 
     _name = "i2c"
-    _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/i2c/data/i2c.hjson"

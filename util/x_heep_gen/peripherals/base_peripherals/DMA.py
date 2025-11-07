@@ -1,8 +1,8 @@
 
-from ..abstractions import BasePeripheral, DataConfiguration
+from ..abstractions import BasePeripheral
 import math
 
-class DMA(BasePeripheral, DataConfiguration):
+class DMA(BasePeripheral):
     """
     Direct Memory Access controller for efficient data transfer between memory and peripherals.
 
@@ -16,7 +16,6 @@ class DMA(BasePeripheral, DataConfiguration):
     """
 
     _name = "dma"
-    _config_path = "./hw/ip/dma/data/dma.hjson"
 
     def __init__(
         self,

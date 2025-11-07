@@ -1,6 +1,6 @@
-from ..abstractions import UserPeripheral, DataConfiguration, PeripheralDomain
+from ..abstractions import UserPeripheral
 
-class SPI_host(UserPeripheral, DataConfiguration):
+class SPI_host(UserPeripheral):
     """
     Serial Peripheral Interface host controller.
 
@@ -8,4 +8,4 @@ class SPI_host(UserPeripheral, DataConfiguration):
     """
 
     _name = "spi_host"
-    _config_path = "./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson"
+ 

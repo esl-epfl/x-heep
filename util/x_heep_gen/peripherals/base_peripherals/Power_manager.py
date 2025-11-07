@@ -1,6 +1,6 @@
-from ..abstractions import BasePeripheral, DataConfiguration
+from ..abstractions import BasePeripheral
 
-class Power_manager(BasePeripheral, DataConfiguration):
+class Power_manager(BasePeripheral):
     """
     Manages power states and clock gating for different system components.
 
@@ -8,4 +8,3 @@ class Power_manager(BasePeripheral, DataConfiguration):
     """
 
     _name = "power_manager"
-    _config_path = "./hw/ip/power_manager/data/power_manager.hjson"

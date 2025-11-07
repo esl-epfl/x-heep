@@ -1,6 +1,6 @@
-from ..abstractions import UserPeripheral, DataConfiguration, PeripheralDomain
+from ..abstractions import UserPeripheral
 
-class RV_timer(UserPeripheral, DataConfiguration):
+class RV_timer(UserPeripheral):
     """
     RISC-V timer peripheral.
 
@@ -8,5 +8,3 @@ class RV_timer(UserPeripheral, DataConfiguration):
     """
 
     _name = "rv_timer"
-    _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/rv_timer/data/rv_timer.hjson"
-

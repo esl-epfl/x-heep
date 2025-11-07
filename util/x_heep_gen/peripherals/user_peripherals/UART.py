@@ -1,6 +1,6 @@
-from ..abstractions import UserPeripheral, DataConfiguration
+from ..abstractions import UserPeripheral
 
-class UART(UserPeripheral, DataConfiguration):
+class UART(UserPeripheral):
     """
     Universal Asynchronous Receiver/Transmitter for serial communication.
 
@@ -8,4 +8,3 @@ class UART(UserPeripheral, DataConfiguration):
     """
 
     _name = "uart"
-    _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"

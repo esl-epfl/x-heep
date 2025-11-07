@@ -1,6 +1,6 @@
-from ..abstractions import UserPeripheral, DataConfiguration, PeripheralDomain
+from ..abstractions import UserPeripheral
 
-class RV_plic(UserPeripheral, DataConfiguration):
+class RV_plic(UserPeripheral):
     """
     RISC-V Platform Level Interrupt Controller.
 
@@ -8,6 +8,4 @@ class RV_plic(UserPeripheral, DataConfiguration):
     """
 
     _name = "rv_plic"
-    _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson"
-
 
