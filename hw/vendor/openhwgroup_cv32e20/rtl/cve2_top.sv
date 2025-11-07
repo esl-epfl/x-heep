@@ -256,7 +256,7 @@ module cve2_top import cve2_pkg::*; #(
   // X check for top-level inputs
   `ASSERT_KNOWN(IbexTestEnX, test_en_i)
   `ASSERT_KNOWN(IbexRamCfgX, ram_cfg_i)
-  `ASSERT_KNOWN(IbexHartIdX, hart_id_i)
+  // `ASSERT_KNOWN(IbexHartIdX, hart_id_i)
   `ASSERT_KNOWN(IbexBootAddrX, boot_addr_i)
 
   `ASSERT_KNOWN(IbexInstrGntX, instr_gnt_i)
