@@ -26,7 +26,6 @@ import math
 from x_heep_gen.xheep import BusType
 from x_heep_gen.cpu.cpu import CPU
 import os
-from x_heep_gen.arg_utils import as_bool, get_nested, coerce_enum
 
 
 
