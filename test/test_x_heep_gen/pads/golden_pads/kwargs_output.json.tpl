@@ -3,7 +3,6 @@
     from enum import Enum
 
     def make_json_serializable(obj):
-        print(type(obj))
         if isinstance(obj, (str, int, float, bool)) or obj is None:
             return obj
         if isinstance(obj,Enum):

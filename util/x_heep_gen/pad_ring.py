@@ -85,6 +85,7 @@ class PadRing:
     
             # If layout parameters exist in the config, compute the pad offset/skip parameters and order the pads on each side
         try:
+            print(pad_cfg["physical_attributes"])
             physical_attributes = pad_cfg["physical_attributes"]
             (
                 top_pad_list,
@@ -248,6 +249,8 @@ def prepare_pads_for_layout(total_pad_list, physical_attributes):
         "left": bondpad_offset_left,
         "right": bondpad_offset_right,
     }
+    
+
 
     return top_pad_list, bottom_pad_list, left_pad_list, right_pad_list, bondpad_offsets
 
