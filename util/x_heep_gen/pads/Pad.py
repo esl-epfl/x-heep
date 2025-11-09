@@ -16,112 +16,75 @@ class Pad:
             self.x_heep_system_interface = s
 
     def create_pad_ring(self):
-
-        # Mapping dictionary from string to integer
+        # Mapping dictionary (unchanged)
         mapping_dict = {
             PadMapping.TOP: "core_v_mini_mcu_pkg::TOP",
             PadMapping.RIGHT: "core_v_mini_mcu_pkg::RIGHT",
             PadMapping.BOTTOM: "core_v_mini_mcu_pkg::BOTTOM",
             PadMapping.LEFT: "core_v_mini_mcu_pkg::LEFT",
         }
-        
-        
-
-        mapping = ""
-        if self.pad_mapping is not None:
-            mapping = ", .SIDE(" + mapping_dict[self.pad_mapping] + ")"
-
-        self.interface = "    inout wire " + self.name + "_io,\n"
-
+    
+        # Build ", .SIDE(...)" exactly like before
+        mapping = f", .SIDE({mapping_dict[self.pad_mapping]})" if self.pad_mapping else ""
+    
+        # Top-level interface
+        self.interface = f"    inout wire {self.name}_io,\n"
+    
+        # Parameter string (keeps same parenthesis position)
+        param_str = f"#(.PADATTR({self.attribute_bits}){mapping})"
+        sig = self.signal_name
+    
+        # --- Pad type logic ---
         if self.pad_type == "input":
-            self.pad_ring_io_interface = "    inout wire " + self.io_interface + ","
+            self.pad_ring_io_interface = f"    inout wire {self.io_interface},"
+            self.pad_ring_ctrl_interface += f"    output logic {sig}o,"
+            conns = "\n".join([
+                "   .pad_in_i(1'b0),",
+                "   .pad_oe_i(1'b0),",
+                f"   .pad_out_o({sig}o),",
+                f"   .pad_io({sig}io),"
+            ]) + "\n"
+            cell = "pad_cell_input"
+    
+        elif self.pad_type == "output":
+            self.pad_ring_io_interface = f"    inout wire {self.io_interface},"
+            self.pad_ring_ctrl_interface += f"    input logic {sig}i,"
+            conns = "\n".join([
+                f"   .pad_in_i({sig}i),",
+                "   .pad_oe_i(1'b1),",
+                "   .pad_out_o(),",
+                f"   .pad_io({sig}io),"
+            ]) + "\n"
+            cell = "pad_cell_output"
+    
+        elif self.pad_type == "inout":
+            self.pad_ring_io_interface = f"    inout wire {self.io_interface},"
             self.pad_ring_ctrl_interface += (
-                "    output logic " + self.signal_name + "o,"
+                f"    input logic {sig}i,\n"
+                f"    output logic {sig}o,\n"
+                f"    input logic {sig}oe_i,"
             )
-            self.pad_ring_instance = (
-                "pad_cell_input #(.PADATTR("
-                + str(self.attribute_bits)
-                + ")"
-                + mapping
-                + ") "
-                + self.cell_name
-                + " ( \n"
-                + "   .pad_in_i(1'b0),\n"
-                + "   .pad_oe_i(1'b0),\n"
-                + "   .pad_out_o("
-                + self.signal_name
-                + "o),\n"
-                + "   .pad_io("
-                + self.signal_name
-                + "io),\n"
-            )
-        if self.pad_type == "output":
-            self.pad_ring_io_interface = "    inout wire " + self.io_interface + ","
-            self.pad_ring_ctrl_interface += "    input logic " + self.signal_name + "i,"
-            self.pad_ring_instance = (
-                "pad_cell_output #(.PADATTR("
-                + str(self.attribute_bits)
-                + ")"
-                + mapping
-                + ") "
-                + self.cell_name
-                + " ( \n"
-                + "   .pad_in_i("
-                + self.signal_name
-                + "i),\n"
-                + "   .pad_oe_i(1'b1),\n"
-                + "   .pad_out_o(),\n"
-                + "   .pad_io("
-                + self.signal_name
-                + "io),\n"
-            )
-        if self.pad_type == "inout":
-            self.pad_ring_io_interface = "    inout wire " + self.io_interface + ","
-            self.pad_ring_ctrl_interface += (
-                "    input logic " + self.signal_name + "i,\n"
-            )
-            self.pad_ring_ctrl_interface += (
-                "    output logic " + self.signal_name + "o,\n"
-            )
-            self.pad_ring_ctrl_interface += (
-                "    input logic " + self.signal_name + "oe_i,"
-            )
-            self.pad_ring_instance = (
-                "pad_cell_inout #(.PADATTR("
-                + str(self.attribute_bits)
-                + ")"
-                + mapping
-                + ") "
-                + self.cell_name
-                + " ( \n"
-                + "   .pad_in_i("
-                + self.signal_name
-                + "i),\n"
-                + "   .pad_oe_i("
-                + self.signal_name
-                + "oe_i),\n"
-                + "   .pad_out_o("
-                + self.signal_name
-                + "o),\n"
-                + "   .pad_io("
-                + self.signal_name
-                + "io),\n"
-            )
-
-        if (
-            self.pad_type == "input"
-            or self.pad_type == "output"
-            or self.pad_type == "inout"
-        ):
+            conns = "\n".join([
+                f"   .pad_in_i({sig}i),",
+                f"   .pad_oe_i({sig}oe_i),",
+                f"   .pad_out_o({sig}o),",
+                f"   .pad_io({sig}io),"
+            ]) + "\n"
+            cell = "pad_cell_inout"
+    
+        # --- Instance construction (identical layout) ---
+        if self.pad_type in ("input", "output", "inout"):
+            header = f"{cell} {param_str} {self.cell_name} ( \n{conns}"
             if self.has_attribute:
-                self.pad_ring_instance += (
-                    "   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::"
-                    + self.localparam
-                    + "])\n"
-                    + ");\n\n"
+                attr_line = (
+                    f"   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::{self.localparam}])\n"
+                    ");\n\n"
                 )
             else:
-                self.pad_ring_instance += "   .pad_attributes_i('0)" + ");\n\n"
+                attr_line = "   .pad_attributes_i('0)" + ");\n\n"
+            self.pad_ring_instance = header + attr_line
+
+
 
     def create_core_v_mini_mcu_ctrl(self):
 
