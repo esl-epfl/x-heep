@@ -38,6 +38,7 @@ class XHeep:
 
         self._base_peripheral_domain = None
         self._user_peripheral_domain = None
+        pad_ring : PadRing = None 
 
         self._extensions = {}
 
@@ -199,11 +200,11 @@ class XHeep:
     # Build and Validate
     # ------------------------------------------------------------
 
-    def build(self,pad_cfg,config):
+    def build(self):
         """
         Makes the system ready to be used.
         """
-        self.padring = PadRing(pad_cfg,config)
+        
         if self.memory_ss():
             self.memory_ss().build()
         if self.are_base_peripherals_configured():
