@@ -1,21 +1,26 @@
 from .Pad import Pad, PadMapping
 
 
-
-def as_bool(v, default: bool=False) -> bool:
-    if isinstance(v, bool): return v
+def as_bool(v, default: bool = False) -> bool:
+    if isinstance(v, bool):
+        return v
     if isinstance(v, str):
         s = v.strip().lower()
-        if s in {"true","1","yes","y"}: return True
-        if s in {"false","0","no","n"}: return False
+        if s in {"true", "1", "yes", "y"}:
+            return True
+        if s in {"false", "0", "no", "n"}:
+            return False
     return default
+
 
 def get_nested(d, path, default=None):
     cur = d
     for k in path:
-        if not isinstance(cur, dict) or k not in cur: return default
+        if not isinstance(cur, dict) or k not in cur:
+            return default
         cur = cur[k]
     return cur
+
 
 def coerce_enum(enum_cls, raw, default=None):
     if raw is None:
@@ -34,89 +39,98 @@ def coerce_enum(enum_cls, raw, default=None):
     except Exception:
         return default  # or raise if you prefer strictness
 
+
 class PadRing:
-    def __init__(self,pad_cfg,config):
-        
+    def __init__(self, pad_cfg, config):
+
         pads = pad_cfg["pads"]
-    
+
         try:
             pads_attributes = pad_cfg["attributes"]
             pads_attributes_bits = pads_attributes["bits"]
         except KeyError:
             pads_attributes = None
             pads_attributes_bits = "-1:0"
-    
+
         # Read HJSON description of External Pads
         if "external_pads" in config:
             external_pads = config["external_pads"]
         else:
             external_pads = None
-    
+
         pad_list = []
         pad_index_counter = 0
         external_pad_list = []
         external_pad_index_counter = 0
-    
+
         pad_constant_driver_assign = ""
         pad_mux_process = ""
-    
+
         pad_muxed_list = []
-    
-# in    ternal pads
-        pad_list, pad_muxed_internal, next_index, pad_constant_driver_assign, pad_mux_process = \
-            build_pads_from_block(
-                pads_block=pads,
-                start_index=0,
-                pads_attributes_present=(pads_attributes is not None),
-                pads_attributes_bits=pads_attributes_bits,
-                default_constant_attribute=False,
-                always_emit_ring=False,   # respect keep_internal for internal pads
-            )
-    
+
+        # in    ternal pads
+        (
+            pad_list,
+            pad_muxed_internal,
+            next_index,
+            pad_constant_driver_assign,
+            pad_mux_process,
+        ) = build_pads_from_block(
+            pads_block=pads,
+            start_index=0,
+            pads_attributes_present=(pads_attributes is not None),
+            pads_attributes_bits=pads_attributes_bits,
+            default_constant_attribute=False,
+            always_emit_ring=False,  # respect keep_internal for internal pads
+        )
+
         # external pads (continue indexing, always emit ring)
         external_pad_list = []
         pad_muxed_external = []
         external_pad_index_counter = 0
-    
+
         if external_pads:
-            external_pad_list, pad_muxed_external, next_index, ext_const, ext_mux = \
+            external_pad_list, pad_muxed_external, next_index, ext_const, ext_mux = (
                 build_pads_from_block(
                     pads_block=external_pads,
                     start_index=next_index,
                     pads_attributes_present=(pads_attributes is not None),
                     pads_attributes_bits=pads_attributes_bits,
                     default_constant_attribute=False,
-                    always_emit_ring=True,   # external pads always generate pad ring
+                    always_emit_ring=True,  # external pads always generate pad ring
                 )
+            )
             pad_constant_driver_assign += ext_const
             pad_mux_process += ext_mux
             external_pad_index_counter = len(external_pad_list)
-    
+
         # merge, totals
         total_pad_list = pad_list + external_pad_list
         pad_muxed_list = pad_muxed_internal + pad_muxed_external
         total_pad = len(total_pad_list)
         total_pad_muxed = len(pad_muxed_list)
-    
+
         # max mux selector width (0 if none)
         max_total_pad_mux_bitlengh = 0
         if pad_muxed_list:
-            max_total_pad_mux_bitlengh = max((len(p.pad_mux_list) - 1).bit_length() for p in pad_muxed_list)
-    
+            max_total_pad_mux_bitlengh = max(
+                (len(p.pad_mux_list) - 1).bit_length() for p in pad_muxed_list
+            )
+
         # remove trailing comma from last PAD io_interface (kept to preserve behavior)
         if total_pad_list:
             last_pad = total_pad_list.pop()
             last_pad.remove_comma_io_interface()
             total_pad_list.append(last_pad)
-        
+
         physical_attributes = None
         top_pad_list = None
         bottom_pad_list = None
         left_pad_list = None
         right_pad_list = None
         bondpad_offsets = None
-    
-            # If layout parameters exist in the config, compute the pad offset/skip parameters and order the pads on each side
+
+        # If layout parameters exist in the config, compute the pad offset/skip parameters and order the pads on each side
         try:
             print(pad_cfg["physical_attributes"])
             physical_attributes = pad_cfg["physical_attributes"]
@@ -129,7 +143,7 @@ class PadRing:
             ) = prepare_pads_for_layout(total_pad_list, physical_attributes)
         except KeyError:
             pass
-            
+
         self.pad_list = pad_list
         self.total_pad_list = total_pad_list
         self.pad_muxed_list = pad_muxed_list
@@ -146,15 +160,16 @@ class PadRing:
         self.pad_constant_driver_assign = pad_constant_driver_assign
         self.pad_mux_process = pad_mux_process
         self.pads_attributes = pads_attributes
-      
-        
 
-def build_pads_from_block(pads_block,
-                          start_index: int,
-                          pads_attributes_present: bool,
-                          pads_attributes_bits: str,
-                          default_constant_attribute: bool,
-                          always_emit_ring: bool) :
+
+def build_pads_from_block(
+    pads_block,
+    start_index: int,
+    pads_attributes_present: bool,
+    pads_attributes_bits: str,
+    default_constant_attribute: bool,
+    always_emit_ring: bool,
+):
     pad_list = []
     pad_muxed_list = []
     const_assign_parts = []
@@ -163,34 +178,48 @@ def build_pads_from_block(pads_block,
 
     for key, block in pads_block.items():
         base_name = key
-        pad_num   = int(block["num"])
-        pad_type  = (block["type"].strip(",") if isinstance(block["type"], str)
-                     else block["type"])
+        pad_num = int(block["num"])
+        pad_type = (
+            block["type"].strip(",")
+            if isinstance(block["type"], str)
+            else block["type"]
+        )
         pad_offset = int(block.get("num_offset", 0))
         pad_active = block.get("active", "high")
         pad_mapping = coerce_enum(PadMapping, block.get("mapping"), None)
 
         pad_driven_manually = as_bool(block.get("driven_manually"), False)
-        print(f"Creating Pad Block: {base_name} of type {pad_type} mapped to {pad_mapping} is driven manually: {pad_driven_manually}")
+        print(
+            f"Creating Pad Block: {base_name} of type {pad_type} mapped to {pad_mapping} is driven manually: {pad_driven_manually}"
+        )
         pad_skip_declaration = as_bool(block.get("skip_declaration"), False)
-        pad_keep_internal   = as_bool(block.get("keep_internal"), False)
-        pad_constant_attribute = as_bool(block.get("constant_attribute"),
-                                         default_constant_attribute)
+        pad_keep_internal = as_bool(block.get("keep_internal"), False)
+        pad_constant_attribute = as_bool(
+            block.get("constant_attribute"), default_constant_attribute
+        )
 
         # layout (optional)
-        pad_layout_orient = get_nested(block, ["layout_attributes","orient"])
-        pad_layout_cell   = get_nested(block, ["layout_attributes","cell"])
-        pad_layout_bondpad= get_nested(block, ["layout_attributes","bondpad"])
-        pad_layout_offset = get_nested(block, ["layout_attributes","offset"])
-        pad_layout_skip   = get_nested(block, ["layout_attributes","skip"])
-        pad_layout_index  = get_nested(block, ["layout_attributes","index"])
+        pad_layout_orient = get_nested(block, ["layout_attributes", "orient"])
+        pad_layout_cell = get_nested(block, ["layout_attributes", "cell"])
+        pad_layout_bondpad = get_nested(block, ["layout_attributes", "bondpad"])
+        pad_layout_offset = get_nested(block, ["layout_attributes", "offset"])
+        pad_layout_skip = get_nested(block, ["layout_attributes", "skip"])
+        pad_layout_index = get_nested(block, ["layout_attributes", "index"])
 
         # mux list
-        pad_mux_list = build_mux_list(block, pad_mapping,
-                                      pads_attributes_present, pads_attributes_bits,
-                                      pad_constant_attribute,
-                                      pad_layout_index, pad_layout_orient, pad_layout_cell,
-                                      pad_layout_bondpad, pad_layout_offset, pad_layout_skip)
+        pad_mux_list = build_mux_list(
+            block,
+            pad_mapping,
+            pads_attributes_present,
+            pads_attributes_bits,
+            pad_constant_attribute,
+            pad_layout_index,
+            pad_layout_orient,
+            pad_layout_cell,
+            pad_layout_bondpad,
+            pad_layout_offset,
+            pad_layout_skip,
+        )
 
         # unified loop (single/multi)
         for i in range(pad_num):
@@ -200,12 +229,24 @@ def build_pads_from_block(pads_block,
             pad_cell_name = f"pad_{base_name}{suf}_i"
 
             pad_obj = Pad(
-                pad_name, pad_cell_name, pad_type, pad_mapping, idx,
-                pad_active, pad_driven_manually, pad_skip_declaration,
-                pad_mux_list, pads_attributes_present, pads_attributes_bits,
+                pad_name,
+                pad_cell_name,
+                pad_type,
+                pad_mapping,
+                idx,
+                pad_active,
+                pad_driven_manually,
+                pad_skip_declaration,
+                pad_mux_list,
+                pads_attributes_present,
+                pads_attributes_bits,
                 pad_constant_attribute,
-                pad_layout_index, pad_layout_orient, pad_layout_cell,
-                pad_layout_bondpad, pad_layout_offset, pad_layout_skip,
+                pad_layout_index,
+                pad_layout_orient,
+                pad_layout_cell,
+                pad_layout_bondpad,
+                pad_layout_offset,
+                pad_layout_skip,
             )
 
             # build sections (internal can skip ring; external always emits ring)
@@ -228,7 +269,13 @@ def build_pads_from_block(pads_block,
 
         next_index += pad_num
 
-    return pad_list, pad_muxed_list, next_index, "".join(const_assign_parts), "".join(mux_process_parts)
+    return (
+        pad_list,
+        pad_muxed_list,
+        next_index,
+        "".join(const_assign_parts),
+        "".join(mux_process_parts),
+    )
 
 
 def prepare_pads_for_layout(total_pad_list, physical_attributes):
@@ -241,7 +288,7 @@ def prepare_pads_for_layout(total_pad_list, physical_attributes):
     bottom_pad_list = []
     right_pad_list = []
     left_pad_list = []
-    pad_lists ={
+    pad_lists = {
         PadMapping.TOP: top_pad_list,
         PadMapping.BOTTOM: bottom_pad_list,
         PadMapping.RIGHT: right_pad_list,
@@ -252,8 +299,9 @@ def prepare_pads_for_layout(total_pad_list, physical_attributes):
             pad_lists[pad.pad_mapping].append(pad)
         else:
             print(
-                "ERROR: Pad {0} has an invalid mapping {1}. Please set mapping to top, bottom, left, or right."
-                .format(pad.cell_name, getattr(pad, "pad_mapping", None))
+                "ERROR: Pad {0} has an invalid mapping {1}. Please set mapping to top, bottom, left, or right.".format(
+                    pad.cell_name, getattr(pad, "pad_mapping", None)
+                )
             )
             return
 
@@ -283,23 +331,28 @@ def prepare_pads_for_layout(total_pad_list, physical_attributes):
         "left": bondpad_offset_left,
         "right": bondpad_offset_right,
     }
-    
-
 
     return top_pad_list, bottom_pad_list, left_pad_list, right_pad_list, bondpad_offsets
 
 
-def build_mux_list(block,
-                   pad_mapping,
-                   pads_attributes_present: bool,
-                   pads_attributes_bits: str,
-                   pad_constant_attribute: bool,
-                   pad_layout_index, pad_layout_orient, pad_layout_cell,
-                   pad_layout_bondpad, pad_layout_offset, pad_layout_skip) :
+def build_mux_list(
+    block,
+    pad_mapping,
+    pads_attributes_present: bool,
+    pads_attributes_bits: str,
+    pad_constant_attribute: bool,
+    pad_layout_index,
+    pad_layout_orient,
+    pad_layout_cell,
+    pad_layout_bondpad,
+    pad_layout_offset,
+    pad_layout_skip,
+):
     mux_list = []
     for mux_name, entry in (block.get("mux") or {}).items():
         mux = Pad(
-            mux_name, "",
+            mux_name,
+            "",
             entry["type"],
             pad_mapping,
             0,
@@ -310,8 +363,12 @@ def build_mux_list(block,
             pads_attributes_present,
             pads_attributes_bits,
             pad_constant_attribute,
-            pad_layout_index, pad_layout_orient, pad_layout_cell,
-            pad_layout_bondpad, pad_layout_offset, pad_layout_skip,
+            pad_layout_index,
+            pad_layout_orient,
+            pad_layout_cell,
+            pad_layout_bondpad,
+            pad_layout_offset,
+            pad_layout_skip,
         )
         mux_list.append(mux)
     return mux_list
@@ -321,7 +378,11 @@ def set_pad_positions(pad_list, physical_attributes):
     """Calculate the `offset` and `skip` attributes of the pads such that the bondpads are centered on each side and the pads are aligned with their respective bondpads.
     Perform checks to make sure the pads can all fit on the requested side without violating design constraints or exceeding layout margins.
     """
-    print("_______________Setting pad positions for side {0}".format([pad.cell_name for pad in pad_list]))
+    print(
+        "_______________Setting pad positions for side {0}".format(
+            [pad.cell_name for pad in pad_list]
+        )
+    )
     # Ensure the physical attributes were properly set in the pad config file
     try:
         fp_width = float(physical_attributes["floorplan_dimensions"]["width"])
@@ -365,10 +426,12 @@ def set_pad_positions(pad_list, physical_attributes):
             return
         bp_space += bp_width
     bp_space += bp_spacing * (len(pad_list) - 1)
-   # Check if the bondpads are able to fit on the side
+    # Check if the bondpads are able to fit on the side
     extra_space = side_length - bp_space - 2 * edge_to_bp
-    print(f"Total bondpad space for side {side}: {extra_space} = {side_length} - {bp_space} - 2 * {edge_to_bp}")
-    
+    print(
+        f"Total bondpad space for side {side}: {extra_space} = {side_length} - {bp_space} - 2 * {edge_to_bp}"
+    )
+
     if extra_space < 0:
         print(
             "ERROR: Bondpads cannot fit on side {0}. Either reduce bondpad spacing or move some pads to another side".format(
@@ -440,19 +503,24 @@ def set_pad_positions(pad_list, physical_attributes):
                 + bp_spacing
                 - (last_pad_width + pad_width) / 2
             )
-    print("_______________Finished setting pad positions for side {0}".format([pad.cell_name for pad in pad_list]))
+    print(
+        "_______________Finished setting pad positions for side {0}".format(
+            [pad.cell_name for pad in pad_list]
+        )
+    )
     print("Bondpad offset for side {0} is {1}".format(side, bp_offset))
 
     return pad_list, bp_offset
 
 
-
-def build_pads_from_block(pads_block,
-                          start_index: int,
-                          pads_attributes_present: bool,
-                          pads_attributes_bits: str,
-                          default_constant_attribute: bool,
-                          always_emit_ring: bool) :
+def build_pads_from_block(
+    pads_block,
+    start_index: int,
+    pads_attributes_present: bool,
+    pads_attributes_bits: str,
+    default_constant_attribute: bool,
+    always_emit_ring: bool,
+):
     pad_list = []
     pad_muxed_list = []
     const_assign_parts = []
@@ -461,34 +529,48 @@ def build_pads_from_block(pads_block,
 
     for key, block in pads_block.items():
         base_name = key
-        pad_num   = int(block["num"])
-        pad_type  = (block["type"].strip(",") if isinstance(block["type"], str)
-                     else block["type"])
+        pad_num = int(block["num"])
+        pad_type = (
+            block["type"].strip(",")
+            if isinstance(block["type"], str)
+            else block["type"]
+        )
         pad_offset = int(block.get("num_offset", 0))
         pad_active = block.get("active", "high")
         pad_mapping = coerce_enum(PadMapping, block.get("mapping"), None)
 
         pad_driven_manually = as_bool(block.get("driven_manually"), False)
-        print(f"Creating Pad Block: {base_name} of type {pad_type} mapped to {pad_mapping} is driven manually: {pad_driven_manually}")
+        print(
+            f"Creating Pad Block: {base_name} of type {pad_type} mapped to {pad_mapping} is driven manually: {pad_driven_manually}"
+        )
         pad_skip_declaration = as_bool(block.get("skip_declaration"), False)
-        pad_keep_internal   = as_bool(block.get("keep_internal"), False)
-        pad_constant_attribute = as_bool(block.get("constant_attribute"),
-                                         default_constant_attribute)
+        pad_keep_internal = as_bool(block.get("keep_internal"), False)
+        pad_constant_attribute = as_bool(
+            block.get("constant_attribute"), default_constant_attribute
+        )
 
         # layout (optional)
-        pad_layout_orient = get_nested(block, ["layout_attributes","orient"])
-        pad_layout_cell   = get_nested(block, ["layout_attributes","cell"])
-        pad_layout_bondpad= get_nested(block, ["layout_attributes","bondpad"])
-        pad_layout_offset = get_nested(block, ["layout_attributes","offset"])
-        pad_layout_skip   = get_nested(block, ["layout_attributes","skip"])
-        pad_layout_index  = get_nested(block, ["layout_attributes","index"])
+        pad_layout_orient = get_nested(block, ["layout_attributes", "orient"])
+        pad_layout_cell = get_nested(block, ["layout_attributes", "cell"])
+        pad_layout_bondpad = get_nested(block, ["layout_attributes", "bondpad"])
+        pad_layout_offset = get_nested(block, ["layout_attributes", "offset"])
+        pad_layout_skip = get_nested(block, ["layout_attributes", "skip"])
+        pad_layout_index = get_nested(block, ["layout_attributes", "index"])
 
         # mux list
-        pad_mux_list = build_mux_list(block, pad_mapping,
-                                      pads_attributes_present, pads_attributes_bits,
-                                      pad_constant_attribute,
-                                      pad_layout_index, pad_layout_orient, pad_layout_cell,
-                                      pad_layout_bondpad, pad_layout_offset, pad_layout_skip)
+        pad_mux_list = build_mux_list(
+            block,
+            pad_mapping,
+            pads_attributes_present,
+            pads_attributes_bits,
+            pad_constant_attribute,
+            pad_layout_index,
+            pad_layout_orient,
+            pad_layout_cell,
+            pad_layout_bondpad,
+            pad_layout_offset,
+            pad_layout_skip,
+        )
 
         # unified loop (single/multi)
         for i in range(pad_num):
@@ -498,12 +580,24 @@ def build_pads_from_block(pads_block,
             pad_cell_name = f"pad_{base_name}{suf}_i"
 
             pad_obj = Pad(
-                pad_name, pad_cell_name, pad_type, pad_mapping, idx,
-                pad_active, pad_driven_manually, pad_skip_declaration,
-                pad_mux_list, pads_attributes_present, pads_attributes_bits,
+                pad_name,
+                pad_cell_name,
+                pad_type,
+                pad_mapping,
+                idx,
+                pad_active,
+                pad_driven_manually,
+                pad_skip_declaration,
+                pad_mux_list,
+                pads_attributes_present,
+                pads_attributes_bits,
                 pad_constant_attribute,
-                pad_layout_index, pad_layout_orient, pad_layout_cell,
-                pad_layout_bondpad, pad_layout_offset, pad_layout_skip,
+                pad_layout_index,
+                pad_layout_orient,
+                pad_layout_cell,
+                pad_layout_bondpad,
+                pad_layout_offset,
+                pad_layout_skip,
             )
 
             # build sections (internal can skip ring; external always emits ring)
@@ -526,4 +620,10 @@ def build_pads_from_block(pads_block,
 
         next_index += pad_num
 
-    return pad_list, pad_muxed_list, next_index, "".join(const_assign_parts), "".join(mux_process_parts)
+    return (
+        pad_list,
+        pad_muxed_list,
+        next_index,
+        "".join(const_assign_parts),
+        "".join(mux_process_parts),
+    )

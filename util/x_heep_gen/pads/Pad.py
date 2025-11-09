@@ -1,16 +1,18 @@
 from enum import Enum
 
+
 class PadMapping(Enum):
     TOP = "top"
     RIGHT = "right"
     BOTTOM = "bottom"
     LEFT = "left"
 
+
 class Pad:
 
     def remove_comma_io_interface(self):
         s = self.x_heep_system_interface.rstrip()
-        if s.endswith(','):
+        if s.endswith(","):
             self.x_heep_system_interface = s[:-1]
         else:
             self.x_heep_system_interface = s
@@ -23,40 +25,52 @@ class Pad:
             PadMapping.BOTTOM: "core_v_mini_mcu_pkg::BOTTOM",
             PadMapping.LEFT: "core_v_mini_mcu_pkg::LEFT",
         }
-    
+
         # Build ", .SIDE(...)" exactly like before
-        mapping = f", .SIDE({mapping_dict[self.pad_mapping]})" if self.pad_mapping else ""
-    
+        mapping = (
+            f", .SIDE({mapping_dict[self.pad_mapping]})" if self.pad_mapping else ""
+        )
+
         # Top-level interface
         self.interface = f"    inout wire {self.name}_io,\n"
-    
+
         # Parameter string (keeps same parenthesis position)
         param_str = f"#(.PADATTR({self.attribute_bits}){mapping})"
         sig = self.signal_name
-    
+
         # --- Pad type logic ---
         if self.pad_type == "input":
             self.pad_ring_io_interface = f"    inout wire {self.io_interface},"
             self.pad_ring_ctrl_interface += f"    output logic {sig}o,"
-            conns = "\n".join([
-                "   .pad_in_i(1'b0),",
-                "   .pad_oe_i(1'b0),",
-                f"   .pad_out_o({sig}o),",
-                f"   .pad_io({sig}io),"
-            ]) + "\n"
+            conns = (
+                "\n".join(
+                    [
+                        "   .pad_in_i(1'b0),",
+                        "   .pad_oe_i(1'b0),",
+                        f"   .pad_out_o({sig}o),",
+                        f"   .pad_io({sig}io),",
+                    ]
+                )
+                + "\n"
+            )
             cell = "pad_cell_input"
-    
+
         elif self.pad_type == "output":
             self.pad_ring_io_interface = f"    inout wire {self.io_interface},"
             self.pad_ring_ctrl_interface += f"    input logic {sig}i,"
-            conns = "\n".join([
-                f"   .pad_in_i({sig}i),",
-                "   .pad_oe_i(1'b1),",
-                "   .pad_out_o(),",
-                f"   .pad_io({sig}io),"
-            ]) + "\n"
+            conns = (
+                "\n".join(
+                    [
+                        f"   .pad_in_i({sig}i),",
+                        "   .pad_oe_i(1'b1),",
+                        "   .pad_out_o(),",
+                        f"   .pad_io({sig}io),",
+                    ]
+                )
+                + "\n"
+            )
             cell = "pad_cell_output"
-    
+
         elif self.pad_type == "inout":
             self.pad_ring_io_interface = f"    inout wire {self.io_interface},"
             self.pad_ring_ctrl_interface += (
@@ -64,14 +78,19 @@ class Pad:
                 f"    output logic {sig}o,\n"
                 f"    input logic {sig}oe_i,"
             )
-            conns = "\n".join([
-                f"   .pad_in_i({sig}i),",
-                f"   .pad_oe_i({sig}oe_i),",
-                f"   .pad_out_o({sig}o),",
-                f"   .pad_io({sig}io),"
-            ]) + "\n"
+            conns = (
+                "\n".join(
+                    [
+                        f"   .pad_in_i({sig}i),",
+                        f"   .pad_oe_i({sig}oe_i),",
+                        f"   .pad_out_o({sig}o),",
+                        f"   .pad_io({sig}io),",
+                    ]
+                )
+                + "\n"
+            )
             cell = "pad_cell_inout"
-    
+
         # --- Instance construction (identical layout) ---
         if self.pad_type in ("input", "output", "inout"):
             header = f"{cell} {param_str} {self.cell_name} ( \n{conns}"
@@ -83,8 +102,6 @@ class Pad:
             else:
                 attr_line = "   .pad_attributes_i('0)" + ");\n\n"
             self.pad_ring_instance = header + attr_line
-
-
 
     def create_core_v_mini_mcu_ctrl(self):
 
@@ -387,7 +404,9 @@ class Pad:
         self.keep_internal = []
 
         self.is_muxed = False
-        print(f"Creating Pad: {self.name} of type {self.pad_type} mapped to {self.pad_mapping} is driven manually: {pad_driven_manually} skip declaration: {pad_skip_declaration}")
+        print(
+            f"Creating Pad: {self.name} of type {self.pad_type} mapped to {self.pad_mapping} is driven manually: {pad_driven_manually} skip declaration: {pad_skip_declaration}"
+        )
         self.is_driven_manually = pad_driven_manually
         self.do_skip_declaration = pad_skip_declaration
 
@@ -441,12 +460,11 @@ class Pad:
             # accept "top", "TOP", etc.
             self.pad_mapping = PadMapping(pad_mapping.lower())
         else:
-            raise TypeError(f"pad_mapping must be PadMapping | str | None, got {type(pad_mapping)}")
-        
+            raise TypeError(
+                f"pad_mapping must be PadMapping | str | None, got {type(pad_mapping)}"
+            )
+
     def __eq__(self, value):
         if not isinstance(value, Pad):
             return NotImplemented
         return vars(self) == vars(value)
-            
-        
-        

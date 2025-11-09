@@ -3,8 +3,11 @@ from pathlib import Path
 import os
 from deepdiff import DeepDiff
 
+
 def compare_json(file_a, file_b):
-    with open(os.path.join(os.path.dirname(__file__),file_a)) as fa, open(os.path.join(os.path.dirname(__file__),file_b)) as fb:
+    with open(os.path.join(os.path.dirname(__file__), file_a)) as fa, open(
+        os.path.join(os.path.dirname(__file__), file_b)
+    ) as fb:
         a = json.load(fa)
         b = json.load(fb)
 
@@ -17,5 +20,8 @@ def compare_json(file_a, file_b):
         print(diff)
         return False
 
+
 if __name__ == "__main__":
-    compare_json("./pads/golden_pads/kwargs_output.json", "./pads/output/kwargs_output.json")
+    compare_json(
+        "./pads/golden_pads/kwargs_output.json", "./pads/output/kwargs_output.json"
+    )
