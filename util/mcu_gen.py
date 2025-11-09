@@ -19,6 +19,7 @@ import x_heep_gen.load_config
 from x_heep_gen.load_config import load_peripherals_config
 from x_heep_gen.xheep import BusType
 from x_heep_gen.cpu.cpu import CPU
+from x_heep_gen.cpu.cv32e20 import cv32e20
 import os
 
 
@@ -762,7 +763,17 @@ def generate_xheep(args):
 
     # Override CPU setting if specified in the make arguments
     if args.cpu != None and args.cpu != "":
-        xheep.set_cpu(CPU(args.cpu))
+
+        cpu_name = args.cpu.strip().lower()
+
+        if cpu_name == "cv32e20":
+            # instantiate with the proper configuration defaults or parameters
+            xheep.set_cpu(
+                cv32e20(xheep._cpu.params.get("rv32e"), xheep._cpu.params.get("rv32m"))
+            )
+        else:
+            # Fallback: generic CPU instantiation for all other cores
+            xheep.set_cpu(CPU(cpu_name))
 
     debug_start_address = string2int(config["debug"]["address"])
     if int(debug_start_address, 16) < int("10000", 16):
