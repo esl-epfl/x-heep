@@ -17,12 +17,7 @@ from jsonref import JsonRef
 from mako.template import Template
 import x_heep_gen.load_config
 from x_heep_gen.load_config import load_peripherals_config
-from x_heep_gen.pad_ring import PadRing
-import x_heep_gen.peripherals.base_peripherals
-import x_heep_gen.peripherals.user_peripherals
-import x_heep_gen.peripherals.abstractions
-from x_heep_gen.pads import Pad,PadMapping
-import math
+from x_heep_gen.pads.PadRing import PadRing
 from x_heep_gen.xheep import BusType
 from x_heep_gen.cpu.cpu import CPU
 import os

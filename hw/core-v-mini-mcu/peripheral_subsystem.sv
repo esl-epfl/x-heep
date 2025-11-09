@@ -445,17 +445,7 @@ module peripheral_subsystem
       .intr_spi_event_o(spi2_intr_event)
   );
 
-  pdm2pcm #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) pdm2pcm_i (
-      .clk_i(clk_cg),
-      .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PDM2PCM_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX]),
-      .pdm_i(pdm2pcm_pdm_i),
-      .pdm_clk_o(pdm2pcm_clk_o)
-  );
+  assign pdm2pcm_clk_o = '0;
 
   assign pdm2pcm_clk_en_o = 1;
 

@@ -5,7 +5,7 @@ from .cpu.cpu import CPU
 from .peripherals.abstractions import PeripheralDomain
 from .peripherals.base_peripherals import BasePeripheralDomain
 from .peripherals.user_peripherals import UserPeripheralDomain
-from .pad_ring import PadRing
+from .pads.PadRing import PadRing
 
 
 class XHeep:

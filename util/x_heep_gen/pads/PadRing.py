@@ -1,4 +1,4 @@
-from .pads import Pad, PadMapping
+from .Pad import Pad, PadMapping
 
 
 
