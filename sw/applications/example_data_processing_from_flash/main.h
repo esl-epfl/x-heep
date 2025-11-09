@@ -16,13 +16,14 @@
 #include "x-heep.h"
 #include "w25q128jw.h"
 #include "matrices.h"
+#include "core_v_mini_mcu.h"
 
 w25q_error_codes_t fill_buffer(uint32_t *source, uint32_t *buffer, uint32_t len);
 void matmul(int32_t *A, int32_t *B, int32_t *res, int rowsA, int colsA, int colsB);
 
 w25q_error_codes_t fill_buffer(uint32_t *source, uint32_t *buffer, uint32_t len){
     uint32_t *source_flash = heep_get_flash_address_offset(source);
-    w25q_error_codes_t status = w25q128jw_read_standard(source_flash, buffer, len*4);
+    w25q_error_codes_t status = w25q128jw_read_standard((uintptr_t) source_flash, buffer, len*4);
     return status;
 }
 

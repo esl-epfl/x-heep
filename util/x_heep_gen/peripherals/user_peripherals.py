@@ -1,10 +1,10 @@
 # User Peripherals
-from .abstractions import UserPeripheral, DataConfiguration, PeripheralDomain
+from .abstractions import UserPeripheral, PeripheralDomain
 
 # User Peripherals Classes
 
 
-class RV_plic(UserPeripheral, DataConfiguration):
+class RV_plic(UserPeripheral):
     """
     RISC-V Platform Level Interrupt Controller.
 
@@ -12,10 +12,9 @@ class RV_plic(UserPeripheral, DataConfiguration):
     """
 
     _name = "rv_plic"
-    _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson"
 
 
-class SPI_host(UserPeripheral, DataConfiguration):
+class SPI_host(UserPeripheral):
     """
     Serial Peripheral Interface host controller.
 
@@ -23,10 +22,9 @@ class SPI_host(UserPeripheral, DataConfiguration):
     """
 
     _name = "spi_host"
-    _config_path = "./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson"
 
 
-class GPIO(UserPeripheral, DataConfiguration):
+class GPIO(UserPeripheral):
     """
     General Purpose Input/Output controller.
 
@@ -34,10 +32,9 @@ class GPIO(UserPeripheral, DataConfiguration):
     """
 
     _name = "gpio"
-    _config_path = "./hw/vendor/pulp_platform_gpio/gpio_regs.hjson"
 
 
-class I2C(UserPeripheral, DataConfiguration):
+class I2C(UserPeripheral):
     """
     Inter-Integrated Circuit communication interface.
 
@@ -45,10 +42,9 @@ class I2C(UserPeripheral, DataConfiguration):
     """
 
     _name = "i2c"
-    _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/i2c/data/i2c.hjson"
 
 
-class RV_timer(UserPeripheral, DataConfiguration):
+class RV_timer(UserPeripheral):
     """
     RISC-V timer peripheral.
 
@@ -56,7 +52,6 @@ class RV_timer(UserPeripheral, DataConfiguration):
     """
 
     _name = "rv_timer"
-    _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/rv_timer/data/rv_timer.hjson"
 
 
 class SPI2(UserPeripheral):
@@ -67,7 +62,7 @@ class SPI2(UserPeripheral):
     _name = "spi2"
 
 
-class PDM2PCM(UserPeripheral, DataConfiguration):
+class PDM2PCM(UserPeripheral):
     """
     Pulse-density modulation to pulse-code modulation converter.
 
@@ -77,7 +72,6 @@ class PDM2PCM(UserPeripheral, DataConfiguration):
     """
 
     _name = "pdm2pcm"
-    _config_path = "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
 
     def __init__(self, address: int = None, length: int = None, cic_only: bool = True):
         """
@@ -99,7 +93,7 @@ class PDM2PCM(UserPeripheral, DataConfiguration):
         return self._cic_only
 
 
-class I2S(UserPeripheral, DataConfiguration):
+class I2S(UserPeripheral):
     """
     Inter-IC Sound interface.
 
@@ -107,10 +101,9 @@ class I2S(UserPeripheral, DataConfiguration):
     """
 
     _name = "i2s"
-    _config_path = "./hw/ip/i2s/data/i2s.hjson"
 
 
-class UART(UserPeripheral, DataConfiguration):
+class UART(UserPeripheral):
     """
     Universal Asynchronous Receiver/Transmitter for serial communication.
 
@@ -118,7 +111,6 @@ class UART(UserPeripheral, DataConfiguration):
     """
 
     _name = "uart"
-    _config_path = "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
 
 
 # Domain Class

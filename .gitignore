@@ -13,61 +13,84 @@ build/
 .venv/
 __pycache__/
 
-# ignore apps output file
+# Apps output files
 run_verif_rtl_log.txt
 
-# ignore the following hw automatically generated files
+# Automatically generated hw files
 tb/tb_util.svh
+
 hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
 hw/core-v-mini-mcu/system_bus.sv
 hw/core-v-mini-mcu/system_xbar.sv
 hw/core-v-mini-mcu/memory_subsystem.sv
+
 hw/system/x_heep_system.sv
 hw/system/pad_ring.sv
-tb/tb_util.svh
+
+hw/system/pad_control/data/pad_control.hjson
+hw/system/pad_control/rtl/pad_control.sv
+hw/system/pad_control/rtl/pad_control_reg_pkg.sv
+hw/system/pad_control/rtl/pad_control_reg_top.sv
+
 hw/ip/soc_ctrl/data/soc_ctrl.hjson
 hw/ip/soc_ctrl/rtl/soc_ctrl_reg_top.sv
 hw/ip/soc_ctrl/rtl/soc_ctrl_reg_pkg.sv
+
 hw/ip/power_manager/data/power_manager.hjson
 hw/ip/power_manager/rtl/power_manager.sv
 hw/ip/power_manager/rtl/power_manager_reg_top.sv
 hw/ip/power_manager/rtl/power_manager_reg_pkg.sv
+
 hw/ip/pdm2pcm/data/pdm2pcm.hjson
 hw/ip/pdm2pcm/rtl/pdm2pcm.sv
 hw/ip/pdm2pcm/rtl/pdm_core.sv
 hw/ip/pdm2pcm/rtl/pdm2pcm_reg_top.sv
 hw/ip/pdm2pcm/rtl/pdm2pcm_reg_pkg.sv
+
 hw/ip/dma/data/dma.hjson
 hw/ip/dma/data/dma_conf.svh
 hw/ip/dma/rtl/dma_reg_pkg.sv
 hw/ip/dma/rtl/dma_reg_top.sv
-hw/system/pad_control/data/pad_control.hjson
-hw/system/pad_control/rtl/pad_control.sv
-hw/system/pad_control/rtl/pad_control_reg_pkg.sv
-hw/system/pad_control/rtl/pad_control_reg_top.sv
+
 hw/fpga/sram_wrapper.sv
 hw/fpga/scripts/generate_sram.tcl
 
-# same for the C header file and linker scripts and assembly files
+# Automatically generated C header files, linker scripts, and assembly files
 sw/device/lib/crt/crt0.S
+
 sw/device/lib/runtime/core_v_mini_mcu.h
 sw/device/lib/runtime/core_v_mini_mcu_memory.h
+
 sw/linker/link.ld
 sw/linker/link_flash_exec.ld
 sw/linker/link_flash_load.ld
+
+sw/device/lib/drivers/soc_ctrl/soc_ctrl_regs.h
+sw/device/lib/drivers/soc_ctrl/soc_ctrl_structs.h
+sw/device/lib/drivers/soc_ctrl/soc_ctrl_regs.md
+
 sw/device/lib/drivers/power_manager/power_manager_regs.h
 sw/device/lib/drivers/power_manager/power_manager.h
-sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.h
-sw/device/lib/drivers/pad_control/pad_control_regs.h
-sw/device/lib/drivers/dma/dma_regs.h
-sw/device/lib/drivers/**/*_structs.h
+sw/device/lib/drivers/power_manager/power_manager_structs.h
+sw/device/lib/drivers/power_manager/power_manager_regs.md
 
-# openroad
+sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.h
+sw/device/lib/drivers/pdm2pcm/pdm2pcm_structs.h
+sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.md
+
+sw/device/lib/drivers/pad_control/pad_control_regs.h
+sw/device/lib/drivers/pad_control/pad_control_regs.md
+
+sw/device/lib/drivers/dma/dma_regs.h
+sw/device/lib/drivers/dma/dma_structs.h
+sw/device/lib/drivers/dma/dma_regs.md
+
+# Openroad
 flow/OpenROAD-flow-scripts
 #testing outputs for pads
 test/test_x_heep_gen/pads/output/kwargs_output.json
 
-# automatically generated docs
+# Automatically generated docs
 /docs/source/Configuration/x_heep_gen
 
 # User-dependent configuration files
