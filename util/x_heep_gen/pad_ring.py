@@ -171,6 +171,7 @@ def build_pads_from_block(pads_block,
         pad_mapping = coerce_enum(PadMapping, block.get("mapping"), None)
 
         pad_driven_manually = as_bool(block.get("driven_manually"), False)
+        print(f"Creating Pad Block: {base_name} of type {pad_type} mapped to {pad_mapping} is driven manually: {pad_driven_manually}")
         pad_skip_declaration = as_bool(block.get("skip_declaration"), False)
         pad_keep_internal   = as_bool(block.get("keep_internal"), False)
         pad_constant_attribute = as_bool(block.get("constant_attribute"),
@@ -320,7 +321,7 @@ def set_pad_positions(pad_list, physical_attributes):
     """Calculate the `offset` and `skip` attributes of the pads such that the bondpads are centered on each side and the pads are aligned with their respective bondpads.
     Perform checks to make sure the pads can all fit on the requested side without violating design constraints or exceeding layout margins.
     """
-
+    print("_______________Setting pad positions for side {0}".format([pad.cell_name for pad in pad_list]))
     # Ensure the physical attributes were properly set in the pad config file
     try:
         fp_width = float(physical_attributes["floorplan_dimensions"]["width"])
@@ -337,7 +338,7 @@ def set_pad_positions(pad_list, physical_attributes):
 
     # Determine which dimension we are dealing with
     side = pad_list[0].pad_mapping
-    if (side == "top") | (side == "bottom"):
+    if (side == PadMapping.TOP) or (side == PadMapping.BOTTOM):
         side_length = fp_width
     else:
         side_length = fp_length
@@ -364,9 +365,10 @@ def set_pad_positions(pad_list, physical_attributes):
             return
         bp_space += bp_width
     bp_space += bp_spacing * (len(pad_list) - 1)
-
-    # Check if the bondpads are able to fit on the side
+   # Check if the bondpads are able to fit on the side
     extra_space = side_length - bp_space - 2 * edge_to_bp
+    print(f"Total bondpad space for side {side}: {extra_space} = {side_length} - {bp_space} - 2 * {edge_to_bp}")
+    
     if extra_space < 0:
         print(
             "ERROR: Bondpads cannot fit on side {0}. Either reduce bondpad spacing or move some pads to another side".format(
@@ -438,6 +440,8 @@ def set_pad_positions(pad_list, physical_attributes):
                 + bp_spacing
                 - (last_pad_width + pad_width) / 2
             )
+    print("_______________Finished setting pad positions for side {0}".format([pad.cell_name for pad in pad_list]))
+    print("Bondpad offset for side {0} is {1}".format(side, bp_offset))
 
     return pad_list, bp_offset
 
@@ -465,6 +469,7 @@ def build_pads_from_block(pads_block,
         pad_mapping = coerce_enum(PadMapping, block.get("mapping"), None)
 
         pad_driven_manually = as_bool(block.get("driven_manually"), False)
+        print(f"Creating Pad Block: {base_name} of type {pad_type} mapped to {pad_mapping} is driven manually: {pad_driven_manually}")
         pad_skip_declaration = as_bool(block.get("skip_declaration"), False)
         pad_keep_internal   = as_bool(block.get("keep_internal"), False)
         pad_constant_attribute = as_bool(block.get("constant_attribute"),
