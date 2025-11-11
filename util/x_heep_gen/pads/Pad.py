@@ -404,9 +404,6 @@ class Pad:
         self.keep_internal = []
 
         self.is_muxed = False
-        print(
-            f"Creating Pad: {self.name} of type {self.pad_type} mapped to {self.pad_mapping} is driven manually: {pad_driven_manually} skip declaration: {pad_skip_declaration}"
-        )
         self.is_driven_manually = pad_driven_manually
         self.do_skip_declaration = pad_skip_declaration
 
