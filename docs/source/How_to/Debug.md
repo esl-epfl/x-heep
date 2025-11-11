@@ -65,7 +65,7 @@ make questasim-build FUSESOC_PARAM="--JTAG_DPI=1"
 then, go to your target system built folder
 
 ```
-cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_<version>/sim-modelsim/
 ```
 
 and type to run your compiled software:
