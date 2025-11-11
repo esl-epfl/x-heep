@@ -10,6 +10,8 @@
     rev: "69c6ba36f77deb16a3efdfaf7d96ed018aaa909d",
   },
 
+  patch_dir: "patches/pulp_platform_fpu_ss",
+
   exclude_from_upstream: [
     ".gitmodules",
     "fpnew",
