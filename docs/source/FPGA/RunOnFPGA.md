@@ -75,49 +75,7 @@ Both the JTAG, UART and SPI interfaces are mapped to be compliant with the [ESL 
 
 To interface with the jtag one can use [openocd](http://openocd.org/), to interface with the UART one can use [picocom](https://linux.die.net/man/8/picocom), and to interface with the SPI flash one can use iceprog (from the [icestorm](http://www.clifford.at/icestorm/) project) already shipped and built in X-HEEP main repo.
 
-### JTAG programming
-
-Onece that openocd is installed, depending on your setup, you can run one of the following commands to connect to the FPGA:
-
-```
-openocd -f ./tb/core-v-mini-mcu-esl-programmer.cfg
-```
-
-or
-
-```
-openocd -f ./tb/core-v-mini-mcu-nexys-hs2.cfg
-```
-
-or
-
-```
-openocd -f ./tb/core-v-mini-mcu-pynq-z2-bscan.cfg
-```
-
-or directly running one of the openocd recipes in the Makefile:
-
-```
-make openOCD_epflp
-```
-
-```
-openOCD_bscan
-```
-
-Now you can run gdb in another shell and connect to the openocd server as explained in the [Debug](./../How_to/Debug.md) guide.
-
-### SPI Flash programming
-
-If you have an SPI flash programmer, you can program the flash with the programmer and set the boot switches on the FPGA board correctly. X-HEEP will boot and copy the code to the on-chip memory or directly fetch instructions from the flash and run the application.
-
-If you have access to the [ESL programmer](https://github.com/esl-epfl/x-heep-programmer-pmod) you can use the following command to program the flash:
-
-```
-make flash-prog
-```
-
-Check the self-documentig Makefile to see the available options and recipes.
+Check the [Debug](./../How_to/Debug.md) and [ExecuteFromFlash](./../How_to/ExecuteFromFlash.md) guides for more details.
 
 ## FPGA Utilizations
 
