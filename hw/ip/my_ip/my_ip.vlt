@@ -30,3 +30,7 @@ lint_off -rule UNUSED -file "*/my_ip.sv" -match "Parameter is not used: 'SPI_FLA
 lint_off -rule UNUSED -file "*/my_ip.sv" -match "Parameter is not used: 'SPI_FLASH_TX_FIFO_DEPTH'"
 
 lint_off -rule UNUSED -file "*/my_ip.sv" -match "Bits of signal are not used: 'dma_done'[3:1]"
+
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Bits of signal are not used: 'read_value*"
+
+lint_off -rule UNUSED -file "*/my_ip.sv" -match "Signal is not used: 'dma_done*"

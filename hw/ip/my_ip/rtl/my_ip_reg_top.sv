@@ -76,9 +76,12 @@ module my_ip_reg_top #(
   logic intr_enable_we;
   logic intr_test_wd;
   logic intr_test_we;
-  logic control_qs;
-  logic control_wd;
-  logic control_we;
+  logic control_start_qs;
+  logic control_start_wd;
+  logic control_start_we;
+  logic control_ready_qs;
+  logic control_ready_wd;
+  logic control_ready_we;
   logic [31:0] r_address_qs;
   logic [31:0] r_address_wd;
   logic r_address_we;
@@ -162,28 +165,55 @@ module my_ip_reg_top #(
 
   // R[control]: V(False)
 
+  //   F[start]: 0:0
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_control (
+  ) u_control_start (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(control_we),
-      .wd(control_wd),
+      .we(control_start_we),
+      .wd(control_start_wd),
 
       // from internal hardware
-      .de(hw2reg.control.de),
-      .d (hw2reg.control.d),
+      .de(hw2reg.control.start.de),
+      .d (hw2reg.control.start.d),
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.control.q),
+      .q (reg2hw.control.start.q),
 
       // to register interface (read)
-      .qs(control_qs)
+      .qs(control_start_qs)
+  );
+
+
+  //   F[ready]: 1:1
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_control_ready (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(control_ready_we),
+      .wd(control_ready_wd),
+
+      // from internal hardware
+      .de(hw2reg.control.ready.de),
+      .d (hw2reg.control.ready.d),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.control.ready.q),
+
+      // to register interface (read)
+      .qs(control_ready_qs)
   );
 
 
@@ -305,8 +335,11 @@ module my_ip_reg_top #(
   assign intr_test_we = addr_hit[2] & reg_we & !reg_error;
   assign intr_test_wd = reg_wdata[0];
 
-  assign control_we = addr_hit[3] & reg_we & !reg_error;
-  assign control_wd = reg_wdata[0];
+  assign control_start_we = addr_hit[3] & reg_we & !reg_error;
+  assign control_start_wd = reg_wdata[0];
+
+  assign control_ready_we = addr_hit[3] & reg_we & !reg_error;
+  assign control_ready_wd = reg_wdata[1];
 
   assign r_address_we = addr_hit[4] & reg_we & !reg_error;
   assign r_address_wd = reg_wdata[31:0];
@@ -334,7 +367,8 @@ module my_ip_reg_top #(
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[0] = control_qs;
+        reg_rdata_next[0] = control_start_qs;
+        reg_rdata_next[1] = control_ready_qs;
       end
 
       addr_hit[4]: begin
