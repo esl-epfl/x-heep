@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Author: Michele Caon, David Mallasen
-# Description: Script to generate the fast_intr_ctrl registers
+# Description: Script to generate the i2s registers
 
-PERIPHERAL_NAME=fast_intr_ctrl
+PERIPHERAL_NAME=i2s
 
 REG_DIR=$(dirname -- $0)
 ROOT="$(dirname -- $0)/../../.."
