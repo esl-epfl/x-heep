@@ -1,12 +1,12 @@
 # Base Peripherals (mandatory peripherals)
-from .abstractions import BasePeripheral, DataConfiguration, PeripheralDomain
+from .abstractions import BasePeripheral, PeripheralDomain
 from copy import deepcopy
 import math
 
 # Base Peripherals Classes
 
 
-class SOC_ctrl(BasePeripheral, DataConfiguration):
+class SOC_ctrl(BasePeripheral):
     """
     System-on-Chip control peripheral for managing system-level functions and configuration.
 
@@ -14,7 +14,6 @@ class SOC_ctrl(BasePeripheral, DataConfiguration):
     """
 
     _name = "soc_ctrl"
-    _config_path = "./hw/ip/soc_ctrl/data/soc_ctrl.hjson"
 
 
 class Bootrom(BasePeripheral):
@@ -47,7 +46,7 @@ class SPI_memio(BasePeripheral):
     _length: int = 0x00008000
 
 
-class DMA(BasePeripheral, DataConfiguration):
+class DMA(BasePeripheral):
     """
     Direct Memory Access controller for efficient data transfer between memory and peripherals.
 
@@ -61,7 +60,6 @@ class DMA(BasePeripheral, DataConfiguration):
     """
 
     _name = "dma"
-    _config_path = "./hw/ip/dma/data/dma.hjson"
 
     def __init__(
         self,
@@ -318,7 +316,7 @@ class DMA(BasePeripheral, DataConfiguration):
         return valid
 
 
-class Power_manager(BasePeripheral, DataConfiguration):
+class Power_manager(BasePeripheral):
     """
     Manages power states and clock gating for different system components.
 
@@ -326,7 +324,6 @@ class Power_manager(BasePeripheral, DataConfiguration):
     """
 
     _name = "power_manager"
-    _config_path = "./hw/ip/power_manager/data/power_manager.hjson"
 
 
 class RV_timer_ao(BasePeripheral):
@@ -337,7 +334,7 @@ class RV_timer_ao(BasePeripheral):
     _name = "rv_timer_ao"
 
 
-class Fast_intr_ctrl(BasePeripheral, DataConfiguration):
+class Fast_intr_ctrl(BasePeripheral):
     """
     Fast interrupt controller for low-latency interrupt handling.
 
@@ -345,7 +342,6 @@ class Fast_intr_ctrl(BasePeripheral, DataConfiguration):
     """
 
     _name = "fast_intr_ctrl"
-    _config_path = "./hw/ip/fast_intr_ctrl/data/fast_intr_ctrl.hjson"
 
 
 class Ext_peripheral(BasePeripheral):

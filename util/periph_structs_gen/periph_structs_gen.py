@@ -11,7 +11,6 @@ from datetime import date
 #  using a template.                                       #
 ############################################################
 
-
 # Bit length of each register
 reg_length = 32
 
@@ -46,12 +45,12 @@ struct_comment = "Structure used for bit access"
 word_comment = "Type used for word access"
 
 
-def read_json(json_file):
+def read_hjson(hjson_file):
     """
-    Opens the json file taken as input and returns its content
+    Opens the hjson file taken as input and returns its content
     """
     # Open the hjson file #
-    f = open(json_file)
+    f = open(hjson_file)
     j_data = hjson.load(f)
     f.close()
     return j_data
@@ -105,9 +104,6 @@ def generate_enum(enum_field, name):
     """
     enum = enum_start.format(name)
 
-    # first_entry = True
-    last_entry = False
-
     for key in enum_field:
         enum += (
             tab_spaces
@@ -116,14 +112,7 @@ def generate_enum(enum_field, name):
             + tab_spaces
             + str(key["value"])
         )
-        if not last_entry:
-            enum += ","
-        # if first_entry:
-        #     enum += tab_spaces + format(key["name"], "<15") + "=" + tab_spaces + str(key["value"])
-        #     first_entry = False
-        # else:
-        #     enum += ",\n" + tab_spaces + format(key["name"], "<15") + "=" + tab_spaces + str(key["value"])
-
+        enum += ","
         if "desc" in key:
             enum += (
                 format("", "<25")
@@ -218,13 +207,13 @@ def alert_regs_auto_gen():
     return res
 
 
-def add_fields(register_json):
+def add_fields(register_hjson):
     """
-    Loops through the fields of the json of a register, passed as parameter.
+    Loops through the fields of the hjson of a register, passed as parameter.
     Returns the structs and enums entries relative to the register, already
     indented.
 
-    :param register_json: the json-like description of a register
+    :param register_hjson: the hjson-like description of a register
     :return: the strings of the the struct fields, the enum (if present)
     """
 
@@ -233,7 +222,7 @@ def add_fields(register_json):
     bits_counter = 0  # to count the bits used for all the fields of the register
 
     # loops through the fields of the register
-    for field in register_json["fields"]:
+    for field in register_hjson["fields"]:
         field_bits = count_bits(field["bits"])
         field_type = select_type(field_bits)
 
@@ -248,7 +237,7 @@ def add_fields(register_json):
         if "name" in field:
             field_name = field["name"]
         else:
-            field_name = register_json["name"]
+            field_name = register_hjson["name"]
 
         # insert a new struct in the structs string
         struct_fields += struct_entry.format(
@@ -281,12 +270,12 @@ def add_fields(register_json):
     return struct_fields, enum
 
 
-def add_registers(peripheral_json):
+def add_registers(peripheral_hjson):
     """
-    Reads the json description of a peripheral and generates structures for every
+    Reads the hjson description of a peripheral and generates structures for every
     register.
 
-    :param peripheral_json: the json-like description of the registers of a peripheral
+    :param peripheral_hjson: the hjson-like description of the registers of a peripheral
     :return: the strings containing the indented structs and enums relative to the registers
     """
 
@@ -302,17 +291,17 @@ def add_registers(peripheral_json):
     bytes_offset = 0
 
     # To handle INTR specific registers #
-    if "interrupt_list" in peripheral_json:
-        if "no_auto_intr_regs" not in peripheral_json:
+    if "interrupt_list" in peripheral_hjson:
+        if "no_auto_intr_regs" not in peripheral_hjson:
             reg_struct += intr_regs_auto_gen()
 
     # To handle the ALERT registers #
-    if "alert_list" in peripheral_json:
-        if "no_auto_alert_regs" not in peripheral_json:
+    if "alert_list" in peripheral_hjson:
+        if "no_auto_alert_regs" not in peripheral_hjson:
             reg_struct += alert_regs_auto_gen()
 
     # loops through the registers of the hjson
-    for elem in peripheral_json["registers"]:
+    for elem in peripheral_hjson["registers"]:
 
         # check and handle the multireg case
         if "multireg" in elem:
@@ -321,7 +310,7 @@ def add_registers(peripheral_json):
 
             # search the multireg count default value
             # This is the number of bitfields needed
-            for p in peripheral_json["param_list"]:
+            for p in peripheral_hjson["param_list"]:
                 if count_var == p["name"]:
                     count = int(p["default"])
 
@@ -331,7 +320,7 @@ def add_registers(peripheral_json):
                 n_bits += count_bits(f["bits"])
 
             # computes the number of registers needed to pack all the bit fields needed
-            n_multireg = ceil((count * n_bits) / int(peripheral_json["regwidth"]))
+            n_multireg = ceil((count * n_bits) / int(peripheral_hjson["regwidth"]))
 
             # generate the multiregisters
             for r in range(n_multireg):
@@ -399,32 +388,40 @@ def add_registers(peripheral_json):
             bytes_offset += offset_value * 4
             num_of_reserved += 1
 
-            ## OLD VERSION WITH UNION AND BIT FIELDS ##
-            # reg_struct += union_start + struct_typedef_start.format(elem["name"])
-
-            # # generate the struct entries relative to the fields of the register
-            # new_field, new_enum = add_fields(elem)
-            # reg_struct += new_field
-            # reg_enum += new_enum
-
-            # reg_struct += struct_typedef_end
-            # reg_struct += format(line_comment_start, ">43") + format(struct_comment, "<100") + "*/\n"
-
-            # reg_struct += (2 * tab_spaces) + "uint32_t" + " w;"
-            # reg_struct += format(line_comment_start, ">37") + format(word_comment, "<110") + "*/\n"
-
-            # reg_struct += union_end.format(elem["name"])
-
     return reg_struct, reg_enum
 
 
-# def gen(input_template, input_hjson_file):
-# if __name__ == '__main__':
+def format_dma_channels(file_path):
+    """
+    Formats the DMA peripheral file to support multiple channels.
+    :param file_path: The path to the DMA peripheral file.
+    """
+    try:
+        # Read the contents of the file
+        with open(file_path, "r") as file:
+            content = file.read()
+
+        # Replace 'DMA_START_ADDRESS' with 'new_address'
+        updated_content = content.replace(
+            "#define dma_peri ((volatile dma *) DMA_START_ADDRESS)",
+            "#define dma_peri(channel) ((volatile dma *) (DMA_START_ADDRESS + DMA_CH_SIZE * channel))",
+        )
+
+        # Write the updated content back to the file
+        with open(file_path, "w") as file:
+            file.write(updated_content)
+
+    except FileNotFoundError:
+        print(f"The file {file_path} does not exist.")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+
+
 def main(arg_vect):
 
     parser = argparse.ArgumentParser(
         prog="Structure generator",
-        description="Given a template and a json file as input, it generates "
+        description="Given a template and a hjson file as input, it generates "
         "suitable structs and enums and prints them into a file, following the "
         "structure provided by the template.",
     )
@@ -432,11 +429,9 @@ def main(arg_vect):
         "--template_filename",
         help="filename of the template for the final file generation",
     )
-    # parser.add_argument("--peripheral_name",
-    #                     help="name of the peripheral for which the structs are generated")
     parser.add_argument(
-        "--json_filename",
-        help="filename of the input json basing on which the structs and enums will begenerated",
+        "--hjson_filename",
+        help="filename of the input hjson basing on which the structs and enums will be generated",
     )
     parser.add_argument(
         "--output_filename",
@@ -447,11 +442,10 @@ def main(arg_vect):
     args = parser.parse_args(arg_vect)
 
     input_template = args.template_filename
-    input_hjson_file = args.json_filename
+    input_hjson_file = args.hjson_filename
     output_filename = args.output_filename
-    # peripheral_name = args.peripheral_name
 
-    data = read_json(input_hjson_file)
+    data = read_hjson(input_hjson_file)
 
     # Two strings used to store all the structs and enums #
     structs_definitions = "typedef struct {\n"  # used to store all the struct definitions to write in the template in the end
@@ -469,6 +463,9 @@ def main(arg_vect):
         input_template, structs_definitions, enums_definitions, data["name"]
     )
     write_output(output_filename, final_output)
+
+    if data["name"].lower() == "dma":
+        format_dma_channels(output_filename)
 
 
 if __name__ == "__main__":
