@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.121 (w)1999-2024 BSI
-[*] Thu Oct 30 19:23:53 2025
+[*] Tue Nov  4 09:35:42 2025
 [*]
-[dumpfile] "/home/thomas/Documents/SemPro/x-heep/build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator/waveform.vcd"
-[dumpfile_mtime] "Thu Oct 30 19:17:27 2025"
-[dumpfile_size] 1772358
+[dumpfile] "/home/thomas/Documents/SemPro/x-heep/build/openhwgroup.org_systems_core-v-mini-mcu_0.3.0/sim-verilator/waveform.fst"
+[dumpfile_mtime] "Tue Nov  4 09:18:02 2025"
+[dumpfile_size] 15009956
 [savefile] "/home/thomas/Documents/SemPro/x-heep/debug.gtkw"
-[timestart] 118632900
-[size] 1280 672
-[pos] -46 -46
-*-16.362860 118745000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[timestart] 2382578600
+[size] 1920 1108
+[pos] -461 -255
+*-16.362860 2382475000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.testharness.
 [treeopen] TOP.testharness.x_heep_system_i.
@@ -19,7 +19,7 @@
 [treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].
 [treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.
 [treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg2hw.
-[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg2hw.slot.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg2hw.status.
 [treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.
 [treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.
 [treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.hw2reg.
@@ -31,10 +31,10 @@
 [treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.
 [treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.
 [treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.reg2hw.
-[sst_width] 441
+[sst_width] 298
 [signals_width] 280
 [sst_expanded] 1
-[sst_vpaned_height] 392
+[sst_vpaned_height] 658
 @28
 +{CLK} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.clk_i
 @22
@@ -61,7 +61,14 @@
 +{SLOT_RX} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg2hw.slot.rx_trigger_slot.q[15:0]
 @1000200
 -SLOT
-@25
+@24
 +{SIZE_D1} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg2hw.size_d1.q[15:0]
+@28
++{READY DMA} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg2hw.status.ready.q
++{RE READY DMA} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg2hw.status.ready.re
+@22
++{READ VALUE FROM BUS} TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.read_value_d[31:0]
+@23
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg2hw.src_ptr.q[31:0]
 [pattern_trace] 1
 [pattern_trace] 0

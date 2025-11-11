@@ -22,7 +22,10 @@ package my_ip_reg_pkg;
     logic qe;
   } my_ip_reg2hw_intr_test_reg_t;
 
-  typedef struct packed {logic q;} my_ip_reg2hw_control_reg_t;
+  typedef struct packed {
+    struct packed {logic q;} start;
+    struct packed {logic q;} ready;
+  } my_ip_reg2hw_control_reg_t;
 
   typedef struct packed {logic [31:0] q;} my_ip_reg2hw_r_address_reg_t;
 
@@ -36,8 +39,14 @@ package my_ip_reg_pkg;
   } my_ip_hw2reg_intr_state_reg_t;
 
   typedef struct packed {
-    logic d;
-    logic de;
+    struct packed {
+      logic d;
+      logic de;
+    } start;
+    struct packed {
+      logic d;
+      logic de;
+    } ready;
   } my_ip_hw2reg_control_reg_t;
 
   typedef struct packed {
@@ -57,10 +66,10 @@ package my_ip_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    my_ip_reg2hw_intr_state_reg_t intr_state;  // [100:100]
-    my_ip_reg2hw_intr_enable_reg_t intr_enable;  // [99:99]
-    my_ip_reg2hw_intr_test_reg_t intr_test;  // [98:97]
-    my_ip_reg2hw_control_reg_t control;  // [96:96]
+    my_ip_reg2hw_intr_state_reg_t intr_state;  // [101:101]
+    my_ip_reg2hw_intr_enable_reg_t intr_enable;  // [100:100]
+    my_ip_reg2hw_intr_test_reg_t intr_test;  // [99:98]
+    my_ip_reg2hw_control_reg_t control;  // [97:96]
     my_ip_reg2hw_r_address_reg_t r_address;  // [95:64]
     my_ip_reg2hw_s_address_reg_t s_address;  // [63:32]
     my_ip_reg2hw_length_reg_t length;  // [31:0]
@@ -68,8 +77,8 @@ package my_ip_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    my_ip_hw2reg_intr_state_reg_t intr_state;  // [102:101]
-    my_ip_hw2reg_control_reg_t control;  // [100:99]
+    my_ip_hw2reg_intr_state_reg_t intr_state;  // [104:103]
+    my_ip_hw2reg_control_reg_t control;  // [102:99]
     my_ip_hw2reg_r_address_reg_t r_address;  // [98:66]
     my_ip_hw2reg_s_address_reg_t s_address;  // [65:33]
     my_ip_hw2reg_length_reg_t length;  // [32:0]

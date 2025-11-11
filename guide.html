@@ -81,8 +81,10 @@ cat uart0.log
   <div class="section">
     <h2>5️⃣ Run Simulation (Verilator)</h2>
     <pre><code>
-make verilator-sim
+make verilator-build
+make verilator-run SIM_ARGS="+boot_sel=1"
 
+"SIM_ARGS="+boot_sel=1""
 # If verilator-sim doesn't work, fix the warnings first.
 # Then verify that you have the correct Python requirements (plus additional).
 
@@ -140,8 +142,8 @@ git pull origin thomas
   <div class="section">
     <h2>9️⃣ GTKwave</h2>
 
-     <pre><code>cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
-gtkwave waveform.vcd
+     <pre><code>cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0.3.0/sim-verilator
+gtkwave waveform.fst &
 </code></pre>
 
     <p>To inspect waveforms after simulation, open the generated <code>.vcd</code> or <code>.fst</code> file in GTKwave.</p>
@@ -158,6 +160,16 @@ gtkwave waveform.vcd
     <p>This file records the displayed signals and layout, allowing you to reload the correct view easily in future sessions.</p>
   </div>
 
+  <div class="section">
+      <h2>🔟 For Write — Use QuestaSim</h2>
+      <p>Use QuestaSim when writing and testing signal behavior interactively:</p>
+      <pre><code>// ssh -X
+  // make questasim-sim-opt
+  // make run-gui
+  // run -all
+  // gtkwave waveform.vcd &
+  </code></pre>
+    </div>
   
 
   <p style="text-align:center; font-size:0.9em; color:#555;">

@@ -1,0 +1,374 @@
+[*]
+[*] GTKWave Analyzer v3.3.121 (w)1999-2024 BSI
+[*] Tue Nov  4 14:23:24 2025
+[*]
+[dumpfile] "/home/thomas/Documents/SemPro/x-heep/build/openhwgroup.org_systems_core-v-mini-mcu_0.3.0/sim-verilator/waveform.fst"
+[dumpfile_mtime] "Tue Nov  4 14:23:22 2025"
+[dumpfile_size] 866361955
+[savefile] "/home/thomas/Documents/SemPro/x-heep/teamdebug.gtkw"
+[timestart] 0
+[size] 2560 1392
+[pos] -1921 -1
+*-29.516350 1040000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] TOP.
+[treeopen] TOP.testharness.
+[treeopen] TOP.testharness.x_heep_system_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.hw2reg.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.hw2reg.status.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg2hw.status.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg2hw.command.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg2hw.control.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg2hw.error_status.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.cmd_fifo.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.cmd_fifo.gen_normal_fifo.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.command_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.core_command_o.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_spi_core.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_spi_core.command_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_spi_core.u_fsm.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_spi_core.u_fsm.command_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_spi_core.u_fsm.u_sck_flop.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_spi_core.u_fsm.u_sck_flop.gen_generic.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.hw2reg.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.hw2reg.control.
+[treeopen] TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.reg2hw.
+[sst_width] 345
+[signals_width] 769
+[sst_expanded] 1
+[sst_vpaned_height] 850
+@800200
+-dma reg if
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg_req_i.addr[31:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg_req_i.valid
+@24
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg_req_i.wdata[31:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg_req_i.write
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg_req_i.wstrb[3:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg_rsp_o.error
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg_rsp_o.rdata[31:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.reg_rsp_o.ready
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_start
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_done_o
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.hw2reg.status.ready.d
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.hw2reg.control.ready.de
+@c00022
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.global_trigger_slot_i[4:0]
+@28
+(0)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.global_trigger_slot_i[4:0]
+(1)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.global_trigger_slot_i[4:0]
+(2)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.global_trigger_slot_i[4:0]
+(3)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.global_trigger_slot_i[4:0]
+(4)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.global_trigger_slot_i[4:0]
+@1401200
+-group_end
+@800200
+-dma_read
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_read_req_o.addr[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_read_req_o.be[3:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_read_req_o.req
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_read_req_o.wdata[31:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_read_req_o.we
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_read_resp_i.gnt
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_read_resp_i.rdata[31:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_read_resp_i.rvalid
+@1000200
+-dma_read
+@800200
+-dma_write
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_write_req_o.addr[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_write_req_o.be[3:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_write_req_o.req
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_write_req_o.wdata[31:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_write_req_o.we
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_write_resp_i.gnt
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_write_resp_i.rdata[31:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.dma_subsystem_i.dma_i_gen[0].dma_i.dma_write_resp_i.rvalid
+@1000200
+-dma_write
+-dma reg if
+@100000028
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.obi_state_q[1:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.obi_finish
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.obi_start
+@100000028
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.dma_state_q[4:0]
+@800200
+-obi
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.my_ip_master_bus_req_o.addr[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.my_ip_master_bus_req_o.be[3:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.my_ip_master_bus_req_o.req
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.my_ip_master_bus_req_o.wdata[31:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.my_ip_master_bus_req_o.we
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.my_ip_master_bus_resp_i.gnt
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.my_ip_master_bus_resp_i.rdata[31:0]
+@800200
+-spi reg if
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg_req_i.addr[31:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg_req_i.valid
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg_req_i.wdata[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg_req_i.write
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg_req_i.wstrb[3:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg_rsp_o.error
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg_rsp_o.rdata[31:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.reg_rsp_o.ready
+@1000200
+-spi reg if
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_csb_o[1:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sck_en_o
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sck_o
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sd_en_o[3:0]
+@800022
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sd_i[3:0]
+@28
+(0)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sd_i[3:0]
+(1)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sd_i[3:0]
+(2)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sd_i[3:0]
+(3)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sd_i[3:0]
+@1001200
+-group_end
+@800022
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sd_o[3:0]
+@28
+(0)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sd_o[3:0]
+(1)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sd_o[3:0]
+(2)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sd_o[3:0]
+(3)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.cio_sd_o[3:0]
+@1001200
+-group_end
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.my_ip_master_bus_resp_i.rvalid
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.reg2hw.r_address.q[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.reg2hw.s_address.q[31:0]
+@1000200
+-obi
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.cmd_fifo.gen_normal_fifo.storage(0)[60:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.cmd_fifo.gen_normal_fifo.storage(1)[60:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.cmd_fifo.gen_normal_fifo.storage(2)[60:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.cmd_fifo.gen_normal_fifo.storage(3)[60:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.cmd_fifo.gen_normal_fifo.wptr_value[1:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.cmd_fifo.gen_normal_fifo.rptr_value[1:0]
+@100c00028
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.dma_state_d[4:0]
+@28
+(0)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.dma_state_d[4:0]
+(1)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.dma_state_d[4:0]
+(2)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.dma_state_d[4:0]
+(3)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.dma_state_d[4:0]
+(4)TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.dma_state_d[4:0]
+@1401200
+-group_end
+@100000028
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_i.my_ip_i.obi_state_d[1:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.cmd_depth[2:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.command_i.segment.cmd_rd_en
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.command_i.segment.cmd_wr_en
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.command_i.segment.csaat
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.command_i.segment.len[23:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.command_i.segment.speed[1:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.core_command_o.segment.cmd_rd_en
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.core_command_o.segment.cmd_wr_en
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.core_command_o.segment.csaat
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.core_command_o.segment.len[23:0]
+@28
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_cmd_queue.core_command_o.segment.speed[1:0]
+@200
+-
+@800200
+-RX DATA
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(0)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(1)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(2)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(3)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(4)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(5)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(6)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(7)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(8)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(9)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(10)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(11)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(12)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(13)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(14)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(15)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(16)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(17)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(18)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(19)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(20)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(21)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(22)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(23)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(24)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(25)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(26)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(27)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(28)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(29)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(30)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(31)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(32)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(33)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(34)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(35)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(36)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(37)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(38)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(39)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(40)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(41)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(42)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(43)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(44)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(45)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(46)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(47)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(48)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(49)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(50)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(51)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(52)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(53)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(54)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(55)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(56)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(57)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(58)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(59)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(60)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(61)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(62)[31:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_rx_fifo.gen_normal_fifo.storage(63)[31:0]
+@1000200
+-RX DATA
+@200
+-
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(0)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(1)[35:0]
+@23
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(2)[35:0]
+@22
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(3)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(4)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(5)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(6)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(7)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(8)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(9)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(10)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(11)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(12)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(13)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(14)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(15)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(16)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(17)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(18)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(19)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(20)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(21)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(22)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(23)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(24)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(25)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(26)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(27)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(28)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(29)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(30)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(31)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(32)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(33)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(34)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(35)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(36)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(37)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(38)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(39)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(40)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(41)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(42)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(43)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(44)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(45)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(46)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(47)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(48)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(49)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(50)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(51)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(52)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(53)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(54)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(55)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(56)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(57)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(58)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(59)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(60)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(61)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(62)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(63)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(64)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(65)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(66)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(67)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(68)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(69)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(70)[35:0]
+TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.spi_subsystem_i.ot_spi_i.u_data_fifos.u_tx_fifo.gen_normal_fifo.storage(71)[35:0]
+[pattern_trace] 1
+[pattern_trace] 0
