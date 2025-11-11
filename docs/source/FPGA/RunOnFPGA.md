@@ -43,7 +43,7 @@ To program the bitstream, open Vivado,
 open --> Hardware Manager --> Open Target --> Autoconnect --> Program Device
 ```
 
-and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit` in the `build/openhwgroup.org_systems_core-v-mini-mcu_0/<BOARD_NAME>-vivado`.
+and choose the file `openhwgroup.org_systems_core-v-mini-mcu_<version>.bit` in the `build/openhwgroup.org_systems_core-v-mini-mcu_<version>/<BOARD_NAME>-vivado`.
 
 Or simply type:
 
