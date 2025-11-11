@@ -22,7 +22,6 @@ module my_ip #(
     input obi_pkg::obi_resp_t my_ip_master_bus_resp_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done
 );
-
   import my_ip_reg_pkg::*;
   import core_v_mini_mcu_pkg::*;
   import spi_host_reg_pkg::*;

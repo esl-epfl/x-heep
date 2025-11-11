@@ -45,8 +45,6 @@ extern "C" {
 // Length of data to W/R
 #define MY_IP_LENGTH_REG_OFFSET 0x18
 
-uint32_t my_ip_is_ready();
-
 #ifdef __cplusplus
 }  // extern "C"
 #endif
