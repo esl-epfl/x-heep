@@ -15,7 +15,7 @@ module cve2_xif_wrapper
     parameter int unsigned MHPMCounterWidth = 40,
     parameter bit          RV32E            = 1'b0,
     parameter rv32m_e      RV32M            = RV32MFast,
-    parameter              XInterface       = 1'b0
+    parameter bit          XInterface       = 1'b0
 ) (
     // Clock and Reset
     input logic clk_i,
@@ -46,10 +46,8 @@ module cve2_xif_wrapper
     // CORE-V-XIF
     // Compressed interface
     output logic x_compressed_valid_o,
-    /* verilator lint_off UNUSED */
     input logic x_compressed_ready_i,
     input cv32e40px_core_v_xif_pkg::x_compressed_resp_t x_compressed_resp_i,
-    /* verilator lint_on UNUSED */
     output cv32e40px_core_v_xif_pkg::x_compressed_req_t x_compressed_req_o,
 
     // Issue Interface
@@ -63,10 +61,8 @@ module cve2_xif_wrapper
     output cv32e40px_core_v_xif_pkg::x_commit_t x_commit_o,
 
     // Memory request/response Interface
-    /* verilator lint_off UNUSED */
     input logic x_mem_valid_i,
     input cv32e40px_core_v_xif_pkg::x_mem_req_t x_mem_req_i,
-    /* verilator lint_on UNUSED */
 
     output logic x_mem_ready_o,
     output cv32e40px_core_v_xif_pkg::x_mem_resp_t x_mem_resp_o,
@@ -76,10 +72,8 @@ module cve2_xif_wrapper
     output cv32e40px_core_v_xif_pkg::x_mem_result_t x_mem_result_o,
 
     // Result Interface
-    /* verilator lint_off UNUSED */
     input logic x_result_valid_i,
     input cv32e40px_core_v_xif_pkg::x_result_t x_result_i,
-    /* verilator lint_on UNUSED */
 
     output logic x_result_ready_o,
 
@@ -154,7 +148,6 @@ module cve2_xif_wrapper
   assign x_mem_result_o = '0;
   assign cve2_x_result.hartid = '0;
 
-  /* verilator lint_off UNUSED */
   logic x_issue_resp_dualwrite = x_issue_resp_i.dualwrite;
   logic [2:0] x_issue_resp_dualread = x_issue_resp_i.dualread;
   logic x_issue_resp_loadstore = x_issue_resp_i.loadstore;
@@ -165,7 +158,6 @@ module cve2_xif_wrapper
   logic cve2_x_register_hartid = cve2_x_register.hartid;
   logic cve2_x_commit_hartid = cve2_x_commit.hartid;
   logic [3:0] cve2_x_register_id = cve2_x_register.id;
-  /* verilator lint_on UNUSED */
 
   cve2_top #(
       .MHPMCounterNum(MHPMCounterNum),
