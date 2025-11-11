@@ -42,8 +42,10 @@ module my_ip #(
   }
       obi_state_d, obi_state_q;
 
-  function automatic [31:0] bitfield_byteswap32(input [31:0] data);
-    bitfield_byteswap32 = {data[7:0], data[15:8], data[23:16], data[31:24]};
+  function automatic [31:0] bitfield_byteswap32(input [31:0] adress_to_swap);
+    bitfield_byteswap32 = {
+      adress_to_swap[7:0], adress_to_swap[15:8], adress_to_swap[23:16], adress_to_swap[31:24]
+    };
   endfunction
 
   logic [31:0] address, data, read_value;
@@ -264,7 +266,7 @@ module my_ip #(
 
       SPI_FILL_TX_FIFO: begin
         address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
-        data = (bitfield_byteswap32(reg2hw.r_address) >> 8) | 32'h03;
+        data = (((bitfield_byteswap32(reg2hw.r_address & 32'h00ffffff)) >> 8) << 8) | 32'h03;
         w_enable = 1'b1;
         obi_start = 1'b1;
 

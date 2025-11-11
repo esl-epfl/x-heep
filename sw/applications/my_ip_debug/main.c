@@ -5,6 +5,8 @@
 #include "x-heep.h"
 #include "w25q128jw.h"
 
+#define REVERT_24b_ADDR(addr) (bitfield_byteswap32(addr) >> 8)
+
 uint32_t flash_data[256];
 
 #define FLASH_ONLY_WORDS 32
@@ -87,6 +89,9 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len);
 w25q_error_codes_t global_status;
 
 int main(int argc, char *argv[]) {
+    // uint32_t debug_tool = 0x40010000;
+    // uint32_t debug_tool_cmd = ((REVERT_24b_ADDR(debug_tool & 0x00ffffff) << 8) | FC_RD);
+    // printf("debut_tool_cmd: 0x%08x", debug_tool_cmd);
     
 
     // Pick the correct spi device based on simulation type
@@ -107,9 +112,12 @@ int main(int argc, char *argv[]) {
 
 uint32_t test_read_flash_only(uint32_t *test_buffer, uint32_t len) {
 
+    printf("test_buffer: 0x%08x", test_buffer);
     // Gives the address offset how where the test_buffer is stored in the flash
     // Doesn't make any sense/supported if load test_buffer directly on_chip
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
+    printf("test_buffer_flash: 0x%08x\n", (uint32_t)test_buffer_flash);
+
 
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard(test_buffer_flash, flash_data, len);
