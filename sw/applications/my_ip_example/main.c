@@ -142,6 +142,9 @@ int main(void) {
     uint32_t res =  check_result(r_golden_data, LENGTH);
     // return res;
 
+    printf("s_data[0] is: 0x%08x\n",s_data[0]);
+    printf("s_data[1] is: 0x%08x\n",s_data[1]);
+
     return EXIT_SUCCESS;
 }
 

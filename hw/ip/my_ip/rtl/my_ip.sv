@@ -194,7 +194,7 @@ module my_ip #(
 
       DMA_DST_INC: begin
         address = DMA_START_ADDRESS + {25'b0, DMA_DST_PTR_INC_D1_OFFSET};
-        data = 32'h1;  // Every address has a word or a byte?
+        data = 32'h4;  // Every address has a word or a byte?
         w_enable = 1'b1;
         obi_start = 1'b1;
 
