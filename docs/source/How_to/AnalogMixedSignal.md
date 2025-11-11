@@ -84,13 +84,13 @@ make vcs-ams-build
 then going to the target system built folder
 
 ```
-cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-vcs
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_<version>/sim-vcs
 ```
 
 and running the executable
 
 ```
-./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/main.hex
+./openhwgroup.org_systems_core-v-mini-mcu_<version> +firmware=../../../sw/build/main.hex
 ```
 
 However, due to the analog nature of the simulation, viewing the waveforms is very useful as well.
@@ -99,7 +99,7 @@ However, due to the analog nature of the simulation, viewing the waveforms is ve
 
 To run the simulation through Verdi, make sure to have the `VERDI_HOME` environmental variable  set then run
 ```
-./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/main.hex -gui
+./openhwgroup.org_systems_core-v-mini-mcu_<version> +firmware=../../../sw/build/main.hex -gui
 ```
 
 It may be that you don't see the list signals: click on View -> Signal list. Then, select the desired signals and put the desired simulation time on the box just after the green arrow and click on the green arrow (run Simulation).
