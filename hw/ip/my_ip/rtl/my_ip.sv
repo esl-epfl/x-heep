@@ -142,7 +142,7 @@ module my_ip #(
     dma_state_d = dma_state_q;
 
     hw2reg.control.start.de = 1'b0;
-    hw2reg.control.start.d = 1'b1;
+    hw2reg.control.start.d = 1'b0;
 
     case (dma_state_q)
       DMA_IDLE: begin
