@@ -1,5 +1,6 @@
 from ..abstractions import BasePeripheral
 
+
 class RV_timer_ao(BasePeripheral):
     """
     RISC-V timer peripheral for system timing and scheduling.

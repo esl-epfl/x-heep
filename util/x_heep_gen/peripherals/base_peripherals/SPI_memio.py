@@ -1,5 +1,6 @@
 from ..abstractions import BasePeripheral
 
+
 class SPI_memio(BasePeripheral):
     """
     Memory-mapped IO interface for SPI communication.

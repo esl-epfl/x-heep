@@ -13,7 +13,7 @@ from .base_peripherals import (
     Fast_intr_ctrl,
     Ext_peripheral,
     Pad_control,
-    GPIO_ao
+    GPIO_ao,
 )
 
 

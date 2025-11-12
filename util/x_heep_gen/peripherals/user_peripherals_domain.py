@@ -1,11 +1,9 @@
 # User Peripherals
 from .abstractions import UserPeripheral, PeripheralDomain
 
-from .user_peripherals import  PDM2PCM
+from .user_peripherals import PDM2PCM
 
 # User Peripherals Classes
-
-
 
 
 # Domain Class

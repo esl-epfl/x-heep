@@ -1,16 +1,16 @@
 from ..abstractions import UserPeripheral
 
+
 class PDM2PCM(UserPeripheral):
     """
     Pulse-density modulation to pulse-code modulation converter.
 
     :param bool cic_only: True to enable CIC only mode, False to enable other modes. By default, CIC only mode is enabled.
 
-    Default configuration file: ./hw/ip/pdm2pcm/data/pdm2pcm.hjson
     """
 
     _name = "pdm2pcm"
-    
+
     def __init__(self, address: int = None, length: int = None, cic_only: bool = True):
         """
         Initialize the PDM2PCM peripheral.
@@ -29,4 +29,3 @@ class PDM2PCM(UserPeripheral):
         :return: True if CIC only mode is enabled, False otherwise.
         """
         return self._cic_only
-

@@ -1,12 +1,11 @@
-
 from ..abstractions import BasePeripheral
 import math
+
 
 class DMA(BasePeripheral):
     """
     Direct Memory Access controller for efficient data transfer between memory and peripherals.
 
-    Default configuration file: ./hw/ip/dma/data/dma.hjson
 
     :param int ch_length: The length of each channel in the DMA.
     :param int length: The length of the DMA.
@@ -270,4 +269,3 @@ class DMA(BasePeripheral):
             valid = False
 
         return valid
-

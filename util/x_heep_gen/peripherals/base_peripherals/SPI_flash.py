@@ -1,5 +1,6 @@
 from ..abstractions import BasePeripheral
 
+
 class SPI_flash(BasePeripheral):
     """
     Interface for external SPI flash memory access.
