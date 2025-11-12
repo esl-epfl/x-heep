@@ -38,7 +38,7 @@ class XHeep:
 
         self._base_peripheral_domain = None
         self._user_peripheral_domain = None
-        pad_ring : PadRing = None 
+        pad_ring: PadRing = None
 
         self._extensions = {}
 
@@ -204,7 +204,7 @@ class XHeep:
         """
         Makes the system ready to be used.
         """
-        
+
         if self.memory_ss():
             self.memory_ss().build()
         if self.are_base_peripherals_configured():

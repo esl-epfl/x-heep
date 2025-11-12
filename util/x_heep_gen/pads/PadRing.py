@@ -132,7 +132,6 @@ class PadRing:
 
         # If layout parameters exist in the config, compute the pad offset/skip parameters and order the pads on each side
         try:
-            print(pad_cfg["physical_attributes"])
             physical_attributes = pad_cfg["physical_attributes"]
             (
                 top_pad_list,
@@ -375,11 +374,6 @@ def set_pad_positions(pad_list, physical_attributes):
     """Calculate the `offset` and `skip` attributes of the pads such that the bondpads are centered on each side and the pads are aligned with their respective bondpads.
     Perform checks to make sure the pads can all fit on the requested side without violating design constraints or exceeding layout margins.
     """
-    print(
-        "_______________Setting pad positions for side {0}".format(
-            [pad.cell_name for pad in pad_list]
-        )
-    )
     # Ensure the physical attributes were properly set in the pad config file
     try:
         fp_width = float(physical_attributes["floorplan_dimensions"]["width"])
@@ -425,10 +419,6 @@ def set_pad_positions(pad_list, physical_attributes):
     bp_space += bp_spacing * (len(pad_list) - 1)
     # Check if the bondpads are able to fit on the side
     extra_space = side_length - bp_space - 2 * edge_to_bp
-    print(
-        f"Total bondpad space for side {side}: {extra_space} = {side_length} - {bp_space} - 2 * {edge_to_bp}"
-    )
-
     if extra_space < 0:
         print(
             "ERROR: Bondpads cannot fit on side {0}. Either reduce bondpad spacing or move some pads to another side".format(
@@ -500,13 +490,6 @@ def set_pad_positions(pad_list, physical_attributes):
                 + bp_spacing
                 - (last_pad_width + pad_width) / 2
             )
-    print(
-        "_______________Finished setting pad positions for side {0}".format(
-            [pad.cell_name for pad in pad_list]
-        )
-    )
-    print("Bondpad offset for side {0} is {1}".format(side, bp_offset))
-
     return pad_list, bp_offset
 
 

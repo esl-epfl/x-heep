@@ -23,7 +23,6 @@ from x_heep_gen.cpu.cpu import CPU
 import os
 
 
-
 # Compile a regex to trim trailing whitespaces on lines.
 re_trailws = re.compile(r"[ \t\r]+$", re.MULTILINE)
 
@@ -37,23 +36,19 @@ def write_template(tpl_path, outfile, **kwargs):
         tpl_path = pathlib.Path(tpl_path).absolute()
         if tpl_path.exists():
             tpl = Template(filename=str(tpl_path))
-            print("Generating file from template: {0}".format(tpl_path))
-
             if outfile:
                 filename = outfile
             else:
                 filename = tpl_path.with_suffix("")
 
             with open(filename, "w") as file:
-                code = tpl.render_unicode(**kwargs,strict_undefined=True)
+                code = tpl.render_unicode(**kwargs, strict_undefined=True)
                 code = re_trailws.sub("", code)
                 file.write(code)
         else:
             raise FileNotFoundError("Template file not found: {0}".format(tpl_path))
     else:
         raise FileNotFoundError("Template file not provided")
-
-
 
 
 """
@@ -159,13 +154,10 @@ def generate_xheep(args):
 
     interrupts = {**config["interrupts"]["list"], **ext_int_list}
 
-    
-
-
     # Here the xheep system is built,
     # The missing gaps are filled, like the missing end address of the data section.
     xheep.build()
-    pad_ring = PadRing(pad_cfg,config)
+    pad_ring = PadRing(pad_cfg, config)
     xheep.padring = pad_ring
     if not xheep.validate():
         raise RuntimeError("There are errors when configuring X-HEEP")
@@ -185,7 +177,7 @@ def generate_xheep(args):
         "plic_used_n_interrupts": plic_used_n_interrupts,
         "plit_n_interrupts": plit_n_interrupts,
         "interrupts": interrupts,
-        }
+    }
 
     return kwargs
 

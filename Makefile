@@ -171,10 +171,7 @@ format-python:
 	$(PYTHON) -m black util/mcu_gen.py
 	$(PYTHON) -m black util/waiver-gen.py
 	$(PYTHON) -m black util/c_gen.py
-	$(PYTHON) -m black util/x_heep_gen/pads/Pad.py
-	$(PYTHON) -m black util/x_heep_gen/pads/PadRing.py
-	$(PYTHON) -m black test/test_x_heep_gen/test_peripherals.py
-	$(PYTHON) -m black test/test_x_heep_gen/pad_test.py
+	$(PYTHON) -m black test/test_x_heep_gen
 
 ## @section APP FW Build
 
