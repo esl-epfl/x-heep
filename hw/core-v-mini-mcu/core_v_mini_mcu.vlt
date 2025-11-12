@@ -54,4 +54,3 @@ lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Signal is not used: 
 lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Signal is not used: 'cve2_x_commit_hartid*"
 lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Signal is not used: 'cve2_x_register_id*"
 lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Bits of signal are not used: 'x_result_i'[17:0]*"
-

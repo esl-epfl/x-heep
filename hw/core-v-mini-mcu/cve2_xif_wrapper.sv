@@ -154,9 +154,9 @@ module cve2_xif_wrapper
   logic x_issue_resp_ecswrite = x_issue_resp_i.ecswrite;
   logic x_issue_resp_exc = x_issue_resp_i.exc;
 
-  logic cve2_x_issue_req_hartid = cve2_x_issue_req.hartid;
-  logic cve2_x_register_hartid = cve2_x_register.hartid;
-  logic cve2_x_commit_hartid = cve2_x_commit.hartid;
+  logic [31:0] cve2_x_issue_req_hartid = cve2_x_issue_req.hartid;
+  logic [31:0] cve2_x_register_hartid = cve2_x_register.hartid;
+  logic [31:0] cve2_x_commit_hartid = cve2_x_commit.hartid;
   logic [3:0] cve2_x_register_id = cve2_x_register.id;
 
   cve2_top #(
