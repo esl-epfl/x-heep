@@ -161,7 +161,7 @@ mcu-gen-help:
 	$(PYTHON) util/mcu_gen.py -h
 
 ## Runs verible formating
-verible:
+verible: | .check-verible
 	util/format-verible;
 
 ## Runs black formating for python xheep generator files
@@ -202,11 +202,11 @@ app-list:
 ## @section Simulation
 
 ## Verilator simulation with C++
-verilator-build:
+verilator-build: | .check-verilator
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildsim.log
 
 ## Verilator simulation with SystemC
-verilator-build-sc:
+verilator-build-sc: | .check-verilator
 	$(FUSESOC) --cores-root . run --no-export --target=sim_sc --tool=verilator $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildsim.log
 
 ## Questasim simulation
@@ -385,5 +385,19 @@ clean-all: clean
 .PHONY: .check-gtkwave
 .check-gtkwave:
 	@if [ ! `which gtkwave` ]; then \
-	printf -- "### ERROR: 'gtkwave' is not in PATH. Is the correct conda environment active?\n" >&2; \
+	printf -- "### ERROR: 'gtkwave' is not in PATH.\n" >&2; \
+	exit 1; fi
+
+# Check if Verible is available
+.PHONY: .check-verible
+.check-verible:
+	@if [ ! `which verible-verilog-format` ]; then \
+	printf -- "### ERROR: Verible is not in PATH.\n" >&2; \
+	exit 1; fi
+
+# Check if Verilator is available
+.PHONY: .check-verilator
+.check-verilator:
+	@if [ ! `which verilator` ]; then \
+	printf -- "### ERROR: 'verilator' is not in PATH.\n" >&2; \
 	exit 1; fi
