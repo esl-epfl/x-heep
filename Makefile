@@ -381,23 +381,15 @@ clean: clean-app
 clean-all: clean
 
 ## @section Utilities
-## Check if GTKWave is available
-.PHONY: .check-gtkwave
-.check-gtkwave:
-	@if [ ! `which gtkwave` ]; then \
-	printf -- "### ERROR: 'gtkwave' is not in PATH.\n" >&2; \
-	exit 1; fi
-
-# Check if Verible is available
-.PHONY: .check-verible
-.check-verible:
-	@if [ ! `which verible-verilog-format` ]; then \
-	printf -- "### ERROR: Verible is not in PATH.\n" >&2; \
-	exit 1; fi
-
-# Check if Verilator is available
-.PHONY: .check-verilator
-.check-verilator:
-	@if [ ! `which verilator` ]; then \
-	printf -- "### ERROR: 'verilator' is not in PATH.\n" >&2; \
-	exit 1; fi
+# Check if a program is available in PATH
+define CHECK_PROGRAM
+.PHONY: .check-$(1)
+.check-$(1):
+	@command -v $(2) >/dev/null 2>&1 || { \
+		printf "### ERROR: '%s' is not in PATH.\\n" "$(2)" >&2; \
+		exit 1; \
+	}
+endef
+$(eval $(call CHECK_PROGRAM,gtkwave,gtkwave))
+$(eval $(call CHECK_PROGRAM,verible,verible-verilog-format))
+$(eval $(call CHECK_PROGRAM,verilator,verilator))
