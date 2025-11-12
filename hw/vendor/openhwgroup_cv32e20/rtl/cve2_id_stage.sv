@@ -103,6 +103,8 @@ module cve2_id_stage #(
   input  logic                      lsu_addr_incr_req_i,
   input  logic [31:0]               lsu_addr_last_i,
 
+  input  logic [31:0]               hart_id_i,
+
   //  Core-V eXtension Interface (CV-X-IF)
   //  Issue Interface
   output logic                      x_issue_valid_o,
@@ -290,17 +292,23 @@ module cve2_id_stage #(
     assign coproc_done = (x_issue_valid_o & x_issue_ready_i & ~x_issue_resp_i.writeback) | (x_result_valid_i & x_result_i.we);
 
     // Issue Interface
-    assign x_issue_valid_o     = instr_executing & illegal_insn_dec & (id_fsm_q == FIRST_CYCLE);
-    assign x_issue_req_o.instr = instr_rdata_i;
+    assign x_issue_valid_o      = instr_executing & illegal_insn_dec & (id_fsm_q == FIRST_CYCLE);
+    assign x_issue_req_o.instr  = instr_rdata_i;
+    assign x_issue_req_o.id     = '0;
+    assign x_issue_req_o.hartid = hart_id_i;
 
     // Register Interface
     assign x_register_o.rs[0]    = rf_rdata_a_fwd;
     assign x_register_o.rs[1]    = rf_rdata_b_fwd;
     assign x_register_o.rs_valid = '1;
+    assign x_register_o.id       = '0;
+    assign x_register_o.hartid   = hart_id_i;
 
     // Commit Interface
     assign x_commit_valid_o       = 1'b1;
     assign x_commit_o.commit_kill = 1'b0;
+    assign x_commit_o.id          = '0;
+    assign x_commit_o.hartid      = hart_id_i;
 
     // Result Interface
     assign x_result_ready_o = 1'b1;
@@ -900,7 +908,7 @@ module cve2_id_stage #(
         RF_WD_EX,
         RF_WD_CSR,
         RF_WD_COPROC})
-  end 
+  end
   else begin : no_gen_asserts_xif
     `ASSERT(IbexRegfileWdataSelValid, instr_valid_i |-> rf_wdata_sel inside {
         RF_WD_EX,

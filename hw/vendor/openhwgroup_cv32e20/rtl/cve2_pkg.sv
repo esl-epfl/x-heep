@@ -660,7 +660,7 @@ package cve2_pkg;
   parameter int unsigned X_ID_WIDTH     = 4;
   parameter int unsigned X_RFR_WIDTH    = 32;
   parameter int unsigned X_RFW_WIDTH    = 32;
-  parameter int unsigned X_HARTID_WIDTH = 1;
+  parameter int unsigned X_HARTID_WIDTH = 32;
   parameter int unsigned X_DUAL_READ    = 0;
   parameter int unsigned X_DUAL_WRITE   = 0;
 
