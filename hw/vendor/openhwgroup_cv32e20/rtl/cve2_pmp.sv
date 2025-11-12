@@ -1,6 +1,10 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
+
+// The CVE2 does not officially support Physical Memory Protection (PMP), as 
+// defined by rule PVL-40 of the CV32E20 core functional requirements.
 
 module cve2_pmp #(
   // Granularity of NAPOT access,
@@ -41,6 +45,7 @@ module cve2_pmp #(
   logic [PMPNumChan-1:0][PMPNumRegions-1:0]   region_mml_perm_check;
   logic [PMPNumChan-1:0]                      access_fault;
 
+  $warning("CVE2 does not officially support PMP, see rule PVL-40.");
 
   // ---------------
   // Access checking

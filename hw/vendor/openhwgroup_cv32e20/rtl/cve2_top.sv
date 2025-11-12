@@ -1,6 +1,7 @@
+// Copyright (c) 2025 Eclipse Foundation
+// Copyright 2023 OpenHW Group.
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
-// Copyright 2025 OpenHW Group.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -123,7 +124,7 @@ module cve2_top import cve2_pkg::*; #(
   // Scrambling Parameter
   localparam int unsigned NumAddrScrRounds  = 0;
 
-  // Physical Memory Protection
+  // Physical Memory Protection (always disabled following PVL-40)
   localparam bit          PMPEnable        = 1'b0;
   localparam int unsigned PMPGranularity   = 0;
   localparam int unsigned PMPNumRegions    = 4;
@@ -286,30 +287,30 @@ module cve2_top import cve2_pkg::*; #(
 
 
   // X checks for top-level outputs
-  `ASSERT_KNOWN(IbexInstrReqX, instr_req_o)
-  `ASSERT_KNOWN_IF(IbexInstrReqPayloadX, instr_addr_o, instr_req_o)
+  `ASSERT_KNOWN(CVE2InstrReqX, instr_req_o)
+  `ASSERT_KNOWN_IF(CVE2InstrReqPayloadX, instr_addr_o, instr_req_o)
 
-  `ASSERT_KNOWN(IbexDataReqX, data_req_o)
-  `ASSERT_KNOWN_IF(IbexDataReqPayloadX,
+  `ASSERT_KNOWN(CVE2DataReqX, data_req_o)
+  `ASSERT_KNOWN_IF(CVE2DataReqPayloadX,
     {data_we_o, data_be_o, data_addr_o, data_wdata_o}, data_req_o)
 
-  `ASSERT_KNOWN(IbexCoreSleepX, core_sleep_o)
+  `ASSERT_KNOWN(CVE2CoreSleepX, core_sleep_o)
 
   // X check for top-level inputs
-  `ASSERT_KNOWN(IbexTestEnX, test_en_i)
-  `ASSERT_KNOWN(IbexRamCfgX, ram_cfg_i)
-  `ASSERT_KNOWN(IbexHartIdX, hart_id_i)
-  `ASSERT_KNOWN(IbexBootAddrX, boot_addr_i)
+  `ASSERT_KNOWN(CVE2TestEnX, test_en_i)
+  `ASSERT_KNOWN(CVE2RamCfgX, ram_cfg_i)
+  `ASSERT_KNOWN(CVE2HartIdX, hart_id_i)
+  `ASSERT_KNOWN(CVE2BootAddrX, boot_addr_i)
 
-  `ASSERT_KNOWN(IbexInstrGntX, instr_gnt_i)
-  `ASSERT_KNOWN(IbexInstrRValidX, instr_rvalid_i)
-  `ASSERT_KNOWN_IF(IbexInstrRPayloadX,
+  `ASSERT_KNOWN(CVE2InstrGntX, instr_gnt_i)
+  `ASSERT_KNOWN(CVE2InstrRValidX, instr_rvalid_i)
+  `ASSERT_KNOWN_IF(CVE2InstrRPayloadX,
     {instr_rdata_i, instr_err_i}, instr_rvalid_i)
 
-  `ASSERT_KNOWN(IbexDataGntX, data_gnt_i)
-  `ASSERT_KNOWN(IbexDataRValidX, data_rvalid_i)
+  `ASSERT_KNOWN(CVE2DataGntX, data_gnt_i)
+  `ASSERT_KNOWN(CVE2DataRValidX, data_rvalid_i)
 
-  `ASSERT_KNOWN(IbexIrqX, {irq_software_i, irq_timer_i, irq_external_i, irq_fast_i, irq_nm_i})
+  `ASSERT_KNOWN(CVE2IrqX, {irq_software_i, irq_timer_i, irq_external_i, irq_fast_i, irq_nm_i})
 
-  `ASSERT_KNOWN(IbexDebugReqX, debug_req_i)
+  `ASSERT_KNOWN(CVE2DebugReqX, debug_req_i)
 endmodule

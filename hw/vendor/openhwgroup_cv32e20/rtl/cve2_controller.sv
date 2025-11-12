@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -246,7 +247,7 @@ module cve2_controller #(
       end
     end
 
-  `ASSERT_IF(IbexExceptionPrioOnehot,
+  `ASSERT_IF(CVE2ExceptionPrioOnehot,
              $onehot({instr_fetch_err_prio,
                       illegal_insn_prio,
                       ecall_insn_prio,
@@ -767,7 +768,7 @@ module cve2_controller #(
   ////////////////
 
   // Selectors must be known/valid.
-  `ASSERT(IbexCtrlStateValid, ctrl_fsm_cs inside {
+  `ASSERT(CVE2CtrlStateValid, ctrl_fsm_cs inside {
       RESET, BOOT_SET, WAIT_SLEEP, SLEEP, FIRST_FETCH, DECODE, FLUSH,
       IRQ_TAKEN, DBG_TAKEN_IF, DBG_TAKEN_ID})
 
@@ -819,16 +820,16 @@ module cve2_controller #(
 
     // Once an exception request has been accepted it must be handled before controller goes back to
     // DECODE
-    `ASSERT(IbexNoDoubleExceptionReq, exception_req_accepted |-> ctrl_fsm_cs != DECODE)
+    `ASSERT(CVE2NoDoubleExceptionReq, exception_req_accepted |-> ctrl_fsm_cs != DECODE)
 
     // Only signal ready, allowing a new instruction into ID, if there is no exception request
     // pending or it is done this cycle.
-    `ASSERT(IbexDontSkipExceptionReq,
+    `ASSERT(CVE2DontSkipExceptionReq,
       id_in_ready_o |-> !exception_req_pending || exception_req_done)
 
     // Once a PC set has been performed for an exception request there must not be any other
     // excepting those to move into debug mode.
-    `ASSERT(IbexNoDoubleSpecialReqPCSet,
+    `ASSERT(CVE2NoDoubleSpecialReqPCSet,
       seen_exception_pc_set &&
         !((ctrl_fsm_cs inside {DBG_TAKEN_IF, DBG_TAKEN_ID}) &&
           (pc_mux_o == PC_EXC) && (exc_pc_mux_o == EXC_PC_DBD))
@@ -836,12 +837,12 @@ module cve2_controller #(
 
     // When an exception request is done there must have been an appropriate PC set (either this
     // cycle or a previous one).
-    `ASSERT(IbexSetExceptionPCOnSpecialReqIfExpected,
+    `ASSERT(CVE2SetExceptionPCOnSpecialReqIfExpected,
       exception_req_pending && expect_exception_pc_set && exception_req_done |->
       seen_exception_pc_set || exception_pc_set)
 
     // If there's a pending exception req that doesn't need a PC set we must not see one
-    `ASSERT(IbexNoPCSetOnSpecialReqIfNotExpected,
+    `ASSERT(CVE2NoPCSetOnSpecialReqIfNotExpected,
       exception_req_pending && !expect_exception_pc_set |-> ~pc_set_o)
   `endif
 

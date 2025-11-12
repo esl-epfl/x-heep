@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -1183,6 +1184,6 @@ module cve2_decoder #(
   ////////////////
 
   // Selectors must be known/valid.
-  `ASSERT(IbexRegImmAluOpKnown, (opcode == OPCODE_OP_IMM) |->
+  `ASSERT(CVE2RegImmAluOpKnown, (opcode == OPCODE_OP_IMM) |->
       !$isunknown(instr[14:12]))
 endmodule // controller

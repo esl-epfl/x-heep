@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -460,8 +461,8 @@ module cve2_core import cve2_pkg::*; #(
     .lsu_load_err_i (lsu_load_err),
     .lsu_store_err_i(lsu_store_err),
 
-    .hart_id_i      (hart_id_i),
     // Core-V Extension Interface (CV-X-IF)
+    .hart_id_i      (hart_id_i),
     // Issue Interface
     .x_issue_valid_o(x_issue_valid_o),
     .x_issue_ready_i(x_issue_ready_i),
@@ -801,13 +802,13 @@ module cve2_core import cve2_pkg::*; #(
   );
 
   // These assertions are in top-level as instr_valid_id required as the enable term
-  `ASSERT(IbexCsrOpValid, instr_valid_id |-> csr_op inside {
+  `ASSERT(CVE2CsrOpValid, instr_valid_id |-> csr_op inside {
       CSR_OP_READ,
       CSR_OP_WRITE,
       CSR_OP_SET,
       CSR_OP_CLEAR
       })
-  `ASSERT_KNOWN_IF(IbexCsrWdataIntKnown, cs_registers_i.csr_wdata_int, csr_op_en)
+  `ASSERT_KNOWN_IF(CVE2CsrWdataIntKnown, cs_registers_i.csr_wdata_int, csr_op_en)
 
   if (PMPEnable) begin : g_pmp
     logic [33:0] pmp_req_addr [PMP_NUM_CHAN];
@@ -928,6 +929,34 @@ module cve2_core import cve2_pkg::*; #(
   logic        rvfi_id_done;
   logic [3:0]  rvfi_dbg;
   logic        rvfi_dbg_mode;
+
+  struct {
+    logic          rvfi_valid;
+    logic [63:0]   rvfi_order;
+    logic [31:0]   rvfi_insn;
+    logic          rvfi_trap;
+    logic          rvfi_halt;
+    logic [3:0]    rvfi_dbg;
+    logic          rvfi_dbg_mode;
+    logic [15:0]   rvfi_intr;
+    logic [1:0]    rvfi_mode;
+    logic [1:0]    rvfi_ixl;
+    logic [4:0]    rvfi_rs1_addr;
+    logic [31:0]   rvfi_rs1_rdata;
+    logic [4:0]    rvfi_rs2_addr;
+    logic [31:0]   rvfi_rs2_rdata;
+    logic [4:0]    rvfi_rs3_addr;
+    logic [31:0]   rvfi_rs3_rdata;
+    logic [4:0]    rvfi_rd1_addr;
+    logic [31:0]   rvfi_rd1_wdata;
+    logic [31:0]   rvfi_pc_rdata;
+    logic [31:0]   rvfi_pc_wdata;
+    logic [31:0]   rvfi_mem_addr;
+    logic [3:0]    rvfi_mem_rmask;
+    logic [3:0]    rvfi_mem_wmask;
+    logic [31:0]   rvfi_mem_rdata;
+    logic [4:0]    rvfi_mem_wdata;
+  } rvfi_instr_if;
 
   logic            new_debug_req;
   logic            new_nmi;
