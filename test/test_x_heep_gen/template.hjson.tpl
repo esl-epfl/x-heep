@@ -1,5 +1,4 @@
 ## Writes down all kwargs from mcu_gen, but only peripheral related ones should be checked
-<%! from x_heep_gen.peripherals.abstractions import DataConfiguration %>
 
 <%
     user_peripheral_domain = xheep.get_user_peripheral_domain()
@@ -34,9 +33,6 @@
         ${peripheral.get_name()}: {
             offset: ${peripheral.get_address()}
             size: ${peripheral.get_length()}
-            %if isinstance(peripheral, DataConfiguration):
-            config_path: ${peripheral.get_config_path()}
-            %endif
         }
         % endfor
     }
@@ -62,9 +58,6 @@
         ${peripheral.get_name()}: {
             offset: ${peripheral.get_address()}
             size: ${peripheral.get_length()}
-            %if isinstance(peripheral, DataConfiguration):
-            config_path: ${peripheral.get_config_path()}
-            %endif
         }
         % endfor
     }

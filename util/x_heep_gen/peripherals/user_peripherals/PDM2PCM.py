@@ -1,6 +1,6 @@
-from ..abstractions import UserPeripheral, DataConfiguration
+from ..abstractions import UserPeripheral
 
-class PDM2PCM(UserPeripheral, DataConfiguration):
+class PDM2PCM(UserPeripheral):
     """
     Pulse-density modulation to pulse-code modulation converter.
 
@@ -10,8 +10,7 @@ class PDM2PCM(UserPeripheral, DataConfiguration):
     """
 
     _name = "pdm2pcm"
-    _config_path = "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
-
+    
     def __init__(self, address: int = None, length: int = None, cic_only: bool = True):
         """
         Initialize the PDM2PCM peripheral.

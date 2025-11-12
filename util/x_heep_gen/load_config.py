@@ -274,7 +274,6 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         pass
                     if peripheral_name == "soc_ctrl":
                         peripheral = SOC_ctrl(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "bootrom":
                         peripheral = Bootrom(offset, length)
                     elif peripheral_name == "spi_flash":
@@ -337,15 +336,12 @@ def load_peripherals_config(system: XHeep, config_path: str):
                             hw_fifo_mode=hw_fifo_mode_en,
                             zero_padding=zero_padding_en,
                         )
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "power_manager":
                         peripheral = Power_manager(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "rv_timer_ao":
                         peripheral = RV_timer_ao(offset, length)
                     elif peripheral_name == "fast_intr_ctrl":
                         peripheral = Fast_intr_ctrl(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "ext_peripheral":
                         peripheral = Ext_peripheral(offset, length)
                     elif peripheral_name == "pad_control":
@@ -392,30 +388,22 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         continue
                     if peripheral_name == "rv_plic":
                         peripheral = RV_plic(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "spi_host":
                         peripheral = SPI_host(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "gpio":
                         peripheral = GPIO(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "i2c":
                         peripheral = I2C(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "rv_timer":
                         peripheral = RV_timer(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "spi2":
                         peripheral = SPI2(offset, length)
                     elif peripheral_name == "pdm2pcm":
                         peripheral = PDM2PCM(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "i2s":
                         peripheral = I2S(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "uart":
                         peripheral = UART(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     else:
                         raise ValueError(
                             f"Peripheral {peripheral_name} does not exist."

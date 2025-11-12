@@ -26,8 +26,6 @@ When creating a peripheral, the offset, length, and other peripheral dependent i
 
 {py:meth}`x_heep_gen.system.XHeep.build` computes automatically the non defined offsets. A greedy algorithm places peripherals on free memory spaces in the corresponding peripheral domain, from the peripheral that takes the most memory to the one that takes the less. If there is not enough space, an error is thrown.
 
-To link a custom configuration file to a peripheral, the method {py:meth}`x_heep_gen.peripherals.abstractions.DataConfiguration.custom_configuration` must be called on the peripheral with the path to the custom configuration file.
-
 When the peripheral is configured, it can be added to the corresponding domain with {py:meth}`x_heep_gen.peripherals.abstractions.PeripheralDomain.add_peripheral`. All changes made after this call to the peripheral will not be recorded.
 
 Since all base peripherals are mandatory, there is a method to add all base peripherals that were not added previously : {py:meth}`x_heep_gen.peripherals.base_peripherals.add_missing_peripherals`. The missing base peripherals are added with a default configuration based on [mcu_cfg.hjson](https://github.com/esl-epfl/x-heep/blob/main/mcu_cfg.hjson), but with undefined offsets (they will be computed during {py:meth}`x_heep_gen.system.XHeep.build`).
