@@ -294,7 +294,6 @@ module cve2_id_stage #(
     // Issue Interface
     assign x_issue_valid_o      = instr_executing & illegal_insn_dec & (id_fsm_q == FIRST_CYCLE);
     assign x_issue_req_o.instr  = instr_rdata_i;
-    assign x_issue_req_o.instr  = instr_rdata_i;
     assign x_issue_req_o.id     = '0;
     assign x_issue_req_o.hartid = hart_id_i;
 
