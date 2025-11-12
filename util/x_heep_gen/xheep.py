@@ -172,6 +172,23 @@ class XHeep:
         :rtype: BasePeripheralDomain
         """
         return deepcopy(self._base_peripheral_domain)
+    
+    # ------------------------------------------------------------
+    # Pad Ring
+    # ------------------------------------------------------------
+    
+    def set_padring(self, pad_ring: PadRing):
+        """
+        Sets the pad ring of the system.
+
+        :param PadRing pad_ring: The pad ring to set.
+        :raise TypeError: when pad_ring is of incorrect type.
+        """
+        if not isinstance(pad_ring, PadRing):
+            raise TypeError(
+                f"XHeep.padring should be of type PadRing not {type(self._padring)}"
+            )
+        self._padring = pad_ring
 
     # ------------------------------------------------------------
     # Extensions

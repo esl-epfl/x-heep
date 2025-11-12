@@ -157,8 +157,8 @@ def generate_xheep(args):
     # Here the xheep system is built,
     # The missing gaps are filled, like the missing end address of the data section.
     xheep.build()
-    pad_ring = PadRing(pad_cfg, config)
-    xheep.padring = pad_ring
+    pad_ring = PadRing(pad_cfg)
+    xheep.set_padring(pad_ring)
     if not xheep.validate():
         raise RuntimeError("There are errors when configuring X-HEEP")
 

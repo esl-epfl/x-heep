@@ -41,7 +41,7 @@ def coerce_enum(enum_cls, raw, default=None):
 
 
 class PadRing:
-    def __init__(self, pad_cfg, config):
+    def __init__(self, pad_cfg):
 
         pads = pad_cfg["pads"]
 
@@ -53,15 +53,9 @@ class PadRing:
             pads_attributes_bits = "-1:0"
 
         # Read HJSON description of External Pads
-        if "external_pads" in config:
-            external_pads = config["external_pads"]
-        else:
-            external_pads = None
 
         pad_list = []
-        pad_index_counter = 0
         external_pad_list = []
-        external_pad_index_counter = 0
 
         pad_constant_driver_assign = ""
         pad_mux_process = ""
@@ -87,22 +81,8 @@ class PadRing:
         # external pads (continue indexing, always emit ring)
         external_pad_list = []
         pad_muxed_external = []
-        external_pad_index_counter = 0
 
-        if external_pads:
-            external_pad_list, pad_muxed_external, next_index, ext_const, ext_mux = (
-                build_pads_from_block(
-                    pads_block=external_pads,
-                    start_index=next_index,
-                    pads_attributes_present=(pads_attributes is not None),
-                    pads_attributes_bits=pads_attributes_bits,
-                    default_constant_attribute=False,
-                    always_emit_ring=True,  # external pads always generate pad ring
-                )
-            )
-            pad_constant_driver_assign += ext_const
-            pad_mux_process += ext_mux
-            external_pad_index_counter = len(external_pad_list)
+
 
         # merge, totals
         total_pad_list = pad_list + external_pad_list
