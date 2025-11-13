@@ -2,6 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%
+    memory_ss = xheep.memory_ss()
+%>
+
 module system_xbar
   import obi_pkg::*;
   import addr_map_rule_pkg::*;
@@ -38,7 +42,7 @@ module system_xbar
   localparam int unsigned RESP_AGG_DATA_WIDTH = 32;
 
   //Address Decoder
-% if not xheep.has_il_ram():
+% if not memory_ss.has_il_ram():
   logic [XBAR_NMASTER-1:0][LOG_XBAR_NSLAVE-1:0] port_sel;
 % else:
   logic [XBAR_NMASTER-1:0][LOG_XBAR_NSLAVE-1:0] port_sel, pre_port_sel;
@@ -75,7 +79,7 @@ module system_xbar
       ) addr_decode_i (
           .addr_i(master_req_i[i].addr),
           .addr_map_i,
-% if not xheep.has_il_ram():
+% if not memory_ss.has_il_ram():
           .idx_o(port_sel[i]),
 % else:
           .idx_o(pre_port_sel[i]),
@@ -86,14 +90,12 @@ module system_xbar
           .default_idx_i
       );
     end
-% if xheep.has_il_ram():
-
+% if memory_ss.has_il_ram():
     for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot
       always_comb begin
         port_sel[j] = pre_port_sel[j];
         post_master_req_addr[j] = master_req_i[j].addr;
-% for i, group in enumerate(xheep.iter_il_groups()):
-
+% for i, group in enumerate(memory_ss.iter_il_groups()):
         if (pre_port_sel[j] == RAM_IL${i}_IDX[LOG_XBAR_NSLAVE-1:0]) begin
           port_sel[j] = RAM_IL${i}_IDX[LOG_XBAR_NSLAVE-1:0] + $unsigned(master_req_i[j].addr[${group.n.bit_length()-1 +1}:2]);
           post_master_req_addr[j] = {master_req_i[j].addr[31:${2+group.n.bit_length()-1}], ${2+group.n.bit_length()-1}'h0};
@@ -111,7 +113,7 @@ module system_xbar
         req: master_req_i[i].req,
         we: master_req_i[i].we,
         be: master_req_i[i].be,
-  % if not xheep.has_il_ram():
+  % if not memory_ss.has_il_ram():
         addr: master_req_i[i].addr,
   % else:
         addr: post_master_req_addr[i],

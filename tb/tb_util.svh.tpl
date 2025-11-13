@@ -2,11 +2,15 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%
+    memory_ss = xheep.memory_ss()
+%>
+
 `ifndef SYNTHESIS
 // Task for loading 'mem' with SystemVerilog system task $readmemh()
 export "DPI-C" task tb_readHEX;
 export "DPI-C" task tb_loadHEX;
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
 export "DPI-C" task tb_writetoSram${bank.name()};
 % endfor
 export "DPI-C" task tb_getMemSize;
@@ -70,7 +74,7 @@ task tb_loadHEX;
   release x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_wdata_o;
 
 `else
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
   for (i=${bank.start_address()}; i < ${bank.end_address()}; i = i + 4) begin
     if (((i/4) & ${2**bank.il_level()-1}) == ${bank.il_offset()}) begin
       w_addr = ((i/4) >> ${bank.il_level()}) % ${bank.size()//4};
@@ -84,7 +88,7 @@ task tb_loadHEX;
 
 endtask
 
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
 task tb_writetoSram${bank.name()};
   input int addr;
   input [7:0] val3;

@@ -6,6 +6,7 @@
     user_peripheral_domain = xheep.get_user_peripheral_domain()
     base_peripheral_domain = xheep.get_base_peripheral_domain()
     dma = base_peripheral_domain.get_dma()
+    memory_ss = xheep.memory_ss()
 %>
 
 #ifndef COREV_MINI_MCU_H_
@@ -15,12 +16,12 @@
 extern "C" {
 #endif  // __cplusplus
 
-#define MEMORY_BANKS ${xheep.ram_numbanks()}
-% if xheep.has_il_ram():
+#define MEMORY_BANKS ${memory_ss.ram_numbanks()}
+% if memory_ss.has_il_ram():
 #define HAS_MEMORY_BANKS_IL
 % endif
 
-% for bank in xheep.iter_ram_banks():
+% for bank in memory_ss.iter_ram_banks():
 #define RAM${bank.name()}_START_ADDRESS 0x${f'{bank.start_address():08X}'}
 #define RAM${bank.name()}_END_ADDRESS 0x${f'{bank.end_address():08X}'}
 % endfor

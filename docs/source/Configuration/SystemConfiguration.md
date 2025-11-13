@@ -3,7 +3,14 @@
 The X-HEEP system can be configured by three methods:
 - Directly passing arguments to the make command.
 - Using an hjson file.
-- Using a Python script.
+- Using a Python script (recommended)
+
+If an `hjson` file or `Python` script is used for configuration, the following parameters can be overriden from the make command:
+
+- `CPU`
+- `BUS`
+- `MEMORY_BANKS`
+- `MEMORY_BANKS_IL`
 
 ## Make Command
 
@@ -15,7 +22,7 @@ make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
 
 This generates X-HEEP with the cv32e40p core, a parallel bus, and 16 memory banks (12 continuous and 4 interleaved), 32KB each, for a total memory of 512KB.
 
-This method has certain limitations, such as the size of the memory banks, which are fixed at 32KB. You can find more details in the documented code of the Makefile.
+This method has certain limitations, such as the size of the memory banks, which are fixed at 32KB. For compatibility reasons `MEMORY_BANKS` does not create linker sections while `MEMORY_BANKS_IL` does create a linker section. You can find more details in the documented code of the Makefile and in the specific configuration sections of this chapter.
 
 ## Hjson Configuration File
 
@@ -24,40 +31,20 @@ X-HEEP can be configured in more detail using an hjson file. The default configu
 To run `mcu-gen` with a specific `hjson` configuration file, use the following command:
 
 ```{code} bash
-make mcu-gen X_HEEP_CFG=configs/name_of_file.hjson
+make mcu-gen X_HEEP_CFG=configs/general.hjson
 ```
 
-The `general.hjson` file is shown below as an example:
+## Python Configuration (recommended)
 
-```{literalinclude} ../../../configs/general.hjson
-```
+A more complex configuration can be done using a Python script. The default configurations and examples are located in the `configs` directory.
 
-If an `hjson` file is used for configuration, the following parameters can be set in the make command to override the configuration:
+The Python script should include a `config()` function that takes no parameters and returns a {py:class}`x_heep_gen.xheep.XHeep` instance. An example is shown in [configs/general.py](https://github.com/esl-epfl/x-heep/blob/main/configs/general.py).
 
-- `BUS`
-- `MEMORY_BANKS`
-- `MEMORY_BANKS_IL` 
+Since not all configurations are yet supported by the Python modelling of X-HEEP, the hjson configuration file must also be provided with the missing configurations. You can find an example of this in the [configs/python_unsupported.hjson](https://github.com/esl-epfl/x-heep/blob/main/configs/python_unsupported.hjson) file.
+If using the Python config file, the hjson parameters that are supported by Python will be ignored except for the peripherals. Any peripheral not configured in Python will be added from the hjson config.
 
-These will replace the configuration used in the hjson file. When one parameter is not provided the configuration files value is used.
-The memory banks configured this way will only be 32KB.
-For compatibility reasons `MEMORY_BANKS` does not create linker sections while `MEMORY_BANKS_IL` does create a linker section.
-
-## Python Configuration
-
-A more complex configuration can be done using a python script. The default configurations and examples are located in the `configs` directory.
-
-The script should include a config function that returns a {py:class}`x_heep_gen.system.XHeep` instance.
-The configuration is similar to the hjson one. The order in which sections are added is also the one used in hardware.
-The script writer is responsible to call {py:meth}`x_heep_gen.system.XHeep.build` to make the system ready to be used, {py:meth}`x_heep_gen.system.XHeep.validate` to check for errors in the configuration, and to raise an error in case of failure.
-
-To run `mcu-gen` with a specific python configuration script, use the following command:
+To run `mcu-gen` with a specific Python configuration script, use the following command:
 
 ```{code} bash
-make mcu-gen X_HEEP_CFG=configs/name_of_file.py
-```
-
-The `example.py` file is shown below as an example:
-
-```{literalinclude} ../../../configs/example.py
-:language: python
+make mcu-gen X_HEEP_CFG=configs/python_unsupported.hjson PYTHON_X_HEEP_CFG=configs/general.py
 ```
