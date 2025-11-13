@@ -5,7 +5,9 @@
 // Author: Davide Schiavone
 
 /**
- * CVE2 XIF Wrapper that partially translates the X-IF 1.0v to 0.2v 
+ * CVE2 XIF Wrapper that partially translates the X-IF 1.0v to 0.2v
+ * v1.0 specs: https://docs.openhwgroup.org/projects/openhw-group-core-v-xif/en/v1.0.0/intro.html
+ * v0.2.0 specs: https://docs.openhwgroup.org/projects/openhw-group-core-v-xif/en/v0.2.0/intro.html
  */
 module cve2_xif_wrapper
   import cv32e40px_core_v_xif_pkg::*;
