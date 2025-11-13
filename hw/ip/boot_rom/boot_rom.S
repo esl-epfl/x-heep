@@ -134,8 +134,8 @@ _wait_spi_rxwm_8_words:
 
 _spi_fifo_read_8_words:
        // Read 32B (8 words) from RX FIFO
-       lw     a7, SPI_HOST_RXDATA_REG_OFFSET(a1)
-       sw     a7, 0(s1)
+       lw     t0, SPI_HOST_RXDATA_REG_OFFSET(a1)
+       sw     t0, 0(s1)
        addi   s1, s1, 4
        bne    s1, a2, _spi_fifo_read_8_words
        bne    s1, s7, _wait_spi_rxwm_8_words

@@ -102,8 +102,8 @@ Disassembly of section .text:
   c8:	02048613          	addi	a2,s1,32
 
 000000cc <_spi_fifo_read_8_words>:
-  cc:	0285a883          	lw	a7,40(a1)
-  d0:	0114a023          	sw	a7,0(s1)
+  cc:	0285a283          	lw	t0,40(a1)
+  d0:	0054a023          	sw	t0,0(s1)
   d4:	0491                	addi	s1,s1,4
   d6:	fec49be3          	bne	s1,a2,cc <_spi_fifo_read_8_words>
   da:	ff7493e3          	bne	s1,s7,c0 <_wait_spi_rxwm_8_words>

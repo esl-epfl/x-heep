@@ -47,11 +47,11 @@ _start:
 
     // This assumes ram base address is 0x00000000 and the section .text stars from ram0 (in the first RAMSIZE_COPIEDBY_BOOTROM Byte)
     li     s1, RAMSIZE_COPIEDBY_BOOTROM
-    li     s2, FLASH_MEM_START_ADDRESS
+    li     t0, FLASH_MEM_START_ADDRESS
 
     // copy the remaining (if any) text and data sections //
     // Setup the in/out pointers and copy size knowing 1KiB as already been copied
-    mv     a0, s2 // src ptr (flash)
+    mv     a0, t0 // src ptr (flash)
     add   a0, a0, s1
 
     la     a1, _etext
@@ -69,7 +69,7 @@ _start:
     // this sub is redundat as we could have simply set a0 to RAMSIZE_COPIEDBY_BOOTROM+0x0,
     // but like this is more readable as we set the FLASH address as memory mapped to FLASH_MEM_START_ADDRESS, and then remove the offset
     // as required bz the w25q128jw_read_standard function
-    sub    a0,a0,s2
+    sub    a0,a0,t0
     call w25q128jw_read_standard
 
 % for i, section in enumerate(xheep.memory_ss().iter_linker_sections()):
@@ -85,7 +85,7 @@ _load_${section.name}_section:
 
     bltz   a2, _load_${section.name}_section_end // dont do anything if you do not have something in ${section.name}
 
-    sub    a0,a0,s2
+    sub    a0,a0,t0
     call w25q128jw_read_standard
 _load_${section.name}_section_end:
 
