@@ -172,11 +172,11 @@ class XHeep:
         :rtype: BasePeripheralDomain
         """
         return deepcopy(self._base_peripheral_domain)
-    
+
     # ------------------------------------------------------------
     # Pad Ring
     # ------------------------------------------------------------
-    
+
     def set_padring(self, pad_ring: PadRing):
         """
         Sets the pad ring of the system.

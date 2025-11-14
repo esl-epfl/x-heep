@@ -82,8 +82,6 @@ class PadRing:
         external_pad_list = []
         pad_muxed_external = []
 
-
-
         # merge, totals
         total_pad_list = pad_list + external_pad_list
         pad_muxed_list = pad_muxed_internal + pad_muxed_external
