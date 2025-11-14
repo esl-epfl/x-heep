@@ -155,4 +155,4 @@ polHEEPo integrates different accelerators to target many applications, from edg
 
 The design uses LVT cells, slim digital IOs, and CUP bondpads, and memory macros sourced from TSMC.
 
-This chip has been sponsored by 
+This chip has been sponsored by project SERICS (PE00000014) under the MUR National Recovery and Resilience Plan funded by the European Union – NextGenerationEU with the collaboration of [Chips-IT foundation](https://www.chips.it).
