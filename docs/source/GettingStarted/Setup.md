@@ -111,6 +111,14 @@ make -j $(nproc)
 ```
 You need to set the `RISCV_XHEEP` environment variable like this:
 
+If you target `RVE` systems (i.e. using only RISC-V registers from `x0-x15`), then use instead:
+
+```
+./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32e --with-arch=rv32imc --with-cmodel=medlow
+```
+
+where the `abi` flag has changed to `ilp32e`.
+
 ```
 export RISCV_XHEEP=/home/$USER/tools/riscv
 ```
