@@ -28,7 +28,6 @@ from .peripherals.base_peripherals import (
 )
 
 
-
 from .peripherals.user_peripherals import (
     RV_plic,
     SPI_host,
