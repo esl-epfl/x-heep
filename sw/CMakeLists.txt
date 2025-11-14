@@ -370,7 +370,7 @@ else()
 endif()
 set(CMAKE_C_FLAGS ${BASE_COMPILER_FLAGS})
 set(CMAKE_CXX_FLAGS ${BASE_COMPILER_FLAGS})
-
+set(CMAKE_ASM_FLAGS ${BASE_COMPILER_FLAGS})
 
 message( "${Yellow}Compiler flags: ${BASE_COMPILER_FLAGS}${ColourReset}")
 
@@ -385,6 +385,7 @@ if (${COMPILER} MATCHES "clang")
                              -Wno-unused-command-line-argument")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CLANG_EXTRA_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_EXTRA_FLAGS}")
+  set(CMAKE_ASM_FLAGS ${BASE_COMPILER_FLAGS})
 endif()
 
 # In case of wanting to create a library with those subdirectories
