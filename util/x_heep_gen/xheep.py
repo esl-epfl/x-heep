@@ -189,7 +189,7 @@ class XHeep:
                 f"xheep.get_padring() should be of type PadRing not {type(self._padring)}"
             )
         self._padring = pad_ring
-        
+
     def get_padring(self):
         return self._padring
 
