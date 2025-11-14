@@ -186,9 +186,12 @@ class XHeep:
         """
         if not isinstance(pad_ring, PadRing):
             raise TypeError(
-                f"XHeep.padring should be of type PadRing not {type(self._padring)}"
+                f"xheep.get_padring() should be of type PadRing not {type(self._padring)}"
             )
         self._padring = pad_ring
+        
+    def get_padring(self):
+        return self._padring
 
     # ------------------------------------------------------------
     # Extensions

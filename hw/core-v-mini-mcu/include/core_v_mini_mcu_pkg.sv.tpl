@@ -223,12 +223,12 @@ package core_v_mini_mcu_pkg;
   localparam PLIC_USED_NINT = ${plic_used_n_interrupts};
   localparam NEXT_INT = PLIC_NINT - PLIC_USED_NINT;
 
-% for pad in xheep.padring.total_pad_list:
+% for pad in xheep.get_padring().total_pad_list:
   localparam ${pad.localparam} = ${pad.index};
 % endfor
 
-  localparam NUM_PAD = ${xheep.padring.total_pad};
-  localparam NUM_PAD_MUXED = ${xheep.padring.total_pad_muxed};
+  localparam NUM_PAD = ${xheep.get_padring().total_pad};
+  localparam NUM_PAD_MUXED = ${xheep.get_padring().total_pad_muxed};
 
   localparam int unsigned NUM_PAD_PORT_SEL_WIDTH = NUM_PAD > 1 ? $clog2(NUM_PAD) : 32'd1;
 
