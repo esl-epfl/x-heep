@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -241,11 +242,11 @@ module cve2_fetch_fifo #(
   ////////////////
 
   // Must not push and pop simultaneously when FIFO full.
-  `ASSERT(IbexFetchFifoPushPopFull,
+  `ASSERT(CVE2FetchFifoPushPopFull,
       (in_valid_i && pop_fifo) |-> (!valid_q[DEPTH-1] || clear_i))
 
   // Must not push to FIFO when full.
-  `ASSERT(IbexFetchFifoPushFull,
+  `ASSERT(CVE2FetchFifoPushFull,
       (in_valid_i) |-> (!valid_q[DEPTH-1] || clear_i))
 
 endmodule

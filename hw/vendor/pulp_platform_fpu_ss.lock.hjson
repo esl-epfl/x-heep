@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/pulp-platform/fpu_ss.git
-    rev: 69c6ba36f77deb16a3efdfaf7d96ed018aaa909d
+    rev: 809e9a63e3b627f4908ba4189ed26bbf7209ba25
   }
 }

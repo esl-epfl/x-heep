@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -22,7 +23,8 @@ module cve2_core import cve2_pkg::*; #(
   parameter rv32m_e      RV32M             = RV32MFast,
   parameter rv32b_e      RV32B             = RV32BNone,
   parameter bit          DbgTriggerEn      = 1'b0,
-  parameter int unsigned DbgHwBreakNum     = 1
+  parameter int unsigned DbgHwBreakNum     = 1,
+  parameter bit          XInterface        = 1'b0
 ) (
   // Clock and Reset
   input  logic                         clk_i,
@@ -52,6 +54,25 @@ module cve2_core import cve2_pkg::*; #(
   input  logic [31:0]                  data_rdata_i,
   input  logic                         data_err_i,
 
+  // Core-V Extension Interface (CV-X-IF)
+  // Issue Interface
+  output logic                         x_issue_valid_o,
+  input  logic                         x_issue_ready_i,
+  output x_issue_req_t                 x_issue_req_o,
+  input  x_issue_resp_t                x_issue_resp_i,
+
+  // Register Interface
+  output x_register_t                  x_register_o,
+
+  // Commit Interface
+  output logic                         x_commit_valid_o,
+  output x_commit_t                    x_commit_o,
+
+  // Result Interface
+  input  logic                         x_result_valid_i,
+  output logic                         x_result_ready_o,
+  input  x_result_t                    x_result_i,
+
   // Interrupt inputs
   input  logic                         irq_software_i,
   input  logic                         irq_timer_i,
@@ -62,6 +83,7 @@ module cve2_core import cve2_pkg::*; #(
 
   // Debug Interface
   input  logic                         debug_req_i,
+  output logic                         debug_halted_o,
   input  logic [31:0]                  dm_halt_addr_i,
   input  logic [31:0]                  dm_exception_addr_i,
   output crash_dump_t                  crash_dump_o,
@@ -354,7 +376,8 @@ module cve2_core import cve2_pkg::*; #(
   cve2_id_stage #(
     .RV32E          (RV32E),
     .RV32M          (RV32M),
-    .RV32B          (RV32B)
+    .RV32B          (RV32B),
+    .XInterface     (XInterface)
   ) id_stage_i (
     .clk_i (clk_i),
     .rst_ni(rst_ni),
@@ -437,6 +460,26 @@ module cve2_core import cve2_pkg::*; #(
 
     .lsu_load_err_i (lsu_load_err),
     .lsu_store_err_i(lsu_store_err),
+
+    // Core-V Extension Interface (CV-X-IF)
+    .hart_id_i      (hart_id_i),
+    // Issue Interface
+    .x_issue_valid_o(x_issue_valid_o),
+    .x_issue_ready_i(x_issue_ready_i),
+    .x_issue_req_o(x_issue_req_o),
+    .x_issue_resp_i(x_issue_resp_i),
+
+    // Register Interface
+    .x_register_o(x_register_o),
+
+    // Commit Interface
+    .x_commit_valid_o(x_commit_valid_o),
+    .x_commit_o(x_commit_o),
+
+    // Result Interface
+    .x_result_valid_i(x_result_valid_i),
+    .x_result_ready_o(x_result_ready_o),
+    .x_result_i(x_result_i),
 
     // Interrupt Signals
     .csr_mstatus_mie_i(csr_mstatus_mie),
@@ -611,6 +654,11 @@ module cve2_core import cve2_pkg::*; #(
   assign crash_dump_o.last_data_addr = lsu_addr_last;
   assign crash_dump_o.exception_addr = csr_mepc;
 
+  ///////////////////////
+  // Debug output      //
+  ///////////////////////
+
+  assign debug_halted_o = debug_mode;
 
   // Explict INC_ASSERT block to avoid unused signal lint warnings were asserts are not included
   `ifdef INC_ASSERT
@@ -754,13 +802,13 @@ module cve2_core import cve2_pkg::*; #(
   );
 
   // These assertions are in top-level as instr_valid_id required as the enable term
-  `ASSERT(IbexCsrOpValid, instr_valid_id |-> csr_op inside {
+  `ASSERT(CVE2CsrOpValid, instr_valid_id |-> csr_op inside {
       CSR_OP_READ,
       CSR_OP_WRITE,
       CSR_OP_SET,
       CSR_OP_CLEAR
       })
-  `ASSERT_KNOWN_IF(IbexCsrWdataIntKnown, cs_registers_i.csr_wdata_int, csr_op_en)
+  `ASSERT_KNOWN_IF(CVE2CsrWdataIntKnown, cs_registers_i.csr_wdata_int, csr_op_en)
 
   if (PMPEnable) begin : g_pmp
     logic [33:0] pmp_req_addr [PMP_NUM_CHAN];
@@ -881,6 +929,34 @@ module cve2_core import cve2_pkg::*; #(
   logic        rvfi_id_done;
   logic [3:0]  rvfi_dbg;
   logic        rvfi_dbg_mode;
+
+  struct {
+    logic          rvfi_valid;
+    logic [63:0]   rvfi_order;
+    logic [31:0]   rvfi_insn;
+    logic          rvfi_trap;
+    logic          rvfi_halt;
+    logic [3:0]    rvfi_dbg;
+    logic          rvfi_dbg_mode;
+    logic [15:0]   rvfi_intr;
+    logic [1:0]    rvfi_mode;
+    logic [1:0]    rvfi_ixl;
+    logic [4:0]    rvfi_rs1_addr;
+    logic [31:0]   rvfi_rs1_rdata;
+    logic [4:0]    rvfi_rs2_addr;
+    logic [31:0]   rvfi_rs2_rdata;
+    logic [4:0]    rvfi_rs3_addr;
+    logic [31:0]   rvfi_rs3_rdata;
+    logic [4:0]    rvfi_rd1_addr;
+    logic [31:0]   rvfi_rd1_wdata;
+    logic [31:0]   rvfi_pc_rdata;
+    logic [31:0]   rvfi_pc_wdata;
+    logic [31:0]   rvfi_mem_addr;
+    logic [3:0]    rvfi_mem_rmask;
+    logic [3:0]    rvfi_mem_wmask;
+    logic [31:0]   rvfi_mem_rdata;
+    logic [4:0]    rvfi_mem_wdata;
+  } rvfi_instr_if;
 
   logic            new_debug_req;
   logic            new_nmi;

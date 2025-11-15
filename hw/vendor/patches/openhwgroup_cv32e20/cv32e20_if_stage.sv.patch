@@ -1,0 +1,43 @@
+diff --git a/rtl/cve2_if_stage.sv b/rtl/cve2_if_stage.sv
+index f71f3bd7..b832061d 100644
+--- a/rtl/cve2_if_stage.sv
++++ b/rtl/cve2_if_stage.sv
+@@ -110,10 +110,10 @@ module cve2_if_stage import cve2_pkg::*; (
+ 
+   cve2_pkg::pc_sel_e pc_mux_internal;
+ 
+-  logic        [7:0] unused_boot_addr;
++  logic        [1:0] unused_boot_addr;
+   logic        [7:0] unused_csr_mtvec;
+ 
+-  assign unused_boot_addr = boot_addr_i[7:0];
++  assign unused_boot_addr = boot_addr_i[1:0];
+   assign unused_csr_mtvec = csr_mtvec_i[7:0];
+ 
+   // extract interrupt ID from exception cause
+@@ -137,12 +137,12 @@ module cve2_if_stage import cve2_pkg::*; (
+   // fetch address selection mux
+   always_comb begin : fetch_addr_mux
+     unique case (pc_mux_internal)
+-      PC_BOOT: fetch_addr_n = { boot_addr_i[31:8], 8'h00 };
++      PC_BOOT: fetch_addr_n = { boot_addr_i[31:2], 2'b00 };
+       PC_JUMP: fetch_addr_n = branch_target_ex_i;
+       PC_EXC:  fetch_addr_n = exc_pc;                       // set PC to exception handler
+       PC_ERET: fetch_addr_n = csr_mepc_i;                   // restore PC when returning from EXC
+       PC_DRET: fetch_addr_n = csr_depc_i;
+-      default: fetch_addr_n = { boot_addr_i[31:8], 8'h00 };
++      default: fetch_addr_n = { boot_addr_i[31:2], 2'b00 };
+     endcase
+   end
+ 
+@@ -285,8 +285,8 @@ module cve2_if_stage import cve2_pkg::*; (
+   // Selectors must be known/valid.
+   `ASSERT_KNOWN(CVE2ExcPcMuxKnown, exc_pc_mux_i)
+ 
+-  // Boot address must be aligned to 256 bytes.
+-  `ASSERT(CVE2BootAddrUnaligned, boot_addr_i[7:0] == 8'h00)
++  // Boot address must be aligned to 4 bytes.
++  `ASSERT(CVE2BootAddrUnaligned, boot_addr_i[1:0] == 2'b00)
+ 
+   // Address must not contain X when request is sent.
+   `ASSERT(CVE2InstrAddrUnknown, instr_req_o |-> !$isunknown(instr_addr_o))

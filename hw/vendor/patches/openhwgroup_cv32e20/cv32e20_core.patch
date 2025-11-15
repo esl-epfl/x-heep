@@ -1,12 +1,33 @@
 diff --git a/cve2_top.core b/cve2_top.core
-index cb4e23b4..0d9d2c5c 100644
+index 2916673b..f03965f1 100644
 --- a/cve2_top.core
 +++ b/cve2_top.core
-@@ -75,6 +75,7 @@ targets:
+@@ -11,7 +11,6 @@ filesets:
+     depend:
+       - openhwgroup:cve2:cve2_pkg
+       - openhwgroup:cve2:cve2_core
+-      - openhwgroup:cve2:cve2_clock_gate
+       - lowrisc:prim:buf
+       - lowrisc:prim:clock_mux2
+       - lowrisc:prim:flop
+@@ -33,6 +32,11 @@ filesets:
+     depend:
+      - lowrisc:tool:check_tool_requirements
+ 
++  files_clk_gating:
++    depend:
++      - openhwgroup:cve2:cve2_clock_gate
++
++
+ parameters:
+   RVFI:
+     datatype: bool
+@@ -75,6 +79,8 @@ targets:
+       - tool_verilator ? (files_lint_verilator)
        - tool_veriblelint ? (files_lint_verible)
        - files_rtl
-       - target_sim ? (files_clk_gate)
-+      - target_sim_sc ? (files_clk_gate)
++      - target_sim ? (files_clk_gating)
++      - target_sim_sc ? (files_clk_gating)
      toplevel: cve2_top
      parameters:
        - tool_vivado ? (FPGA_XILINX=true)

@@ -1,6 +1,6 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
-// Copyright 2025 OpenHW Group.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -110,10 +110,10 @@ module cve2_if_stage import cve2_pkg::*; (
 
   cve2_pkg::pc_sel_e pc_mux_internal;
 
-  logic        [7:0] unused_boot_addr;
+  logic        [1:0] unused_boot_addr;
   logic        [7:0] unused_csr_mtvec;
 
-  assign unused_boot_addr = boot_addr_i[7:0];
+  assign unused_boot_addr = boot_addr_i[1:0];
   assign unused_csr_mtvec = csr_mtvec_i[7:0];
 
   // extract interrupt ID from exception cause
@@ -137,12 +137,12 @@ module cve2_if_stage import cve2_pkg::*; (
   // fetch address selection mux
   always_comb begin : fetch_addr_mux
     unique case (pc_mux_internal)
-      PC_BOOT: fetch_addr_n = { boot_addr_i[31:8], 8'h00 };
+      PC_BOOT: fetch_addr_n = { boot_addr_i[31:2], 2'b00 };
       PC_JUMP: fetch_addr_n = branch_target_ex_i;
       PC_EXC:  fetch_addr_n = exc_pc;                       // set PC to exception handler
       PC_ERET: fetch_addr_n = csr_mepc_i;                   // restore PC when returning from EXC
       PC_DRET: fetch_addr_n = csr_depc_i;
-      default: fetch_addr_n = { boot_addr_i[31:8], 8'h00 };
+      default: fetch_addr_n = { boot_addr_i[31:2], 2'b00 };
     endcase
   end
 
@@ -176,6 +176,23 @@ module cve2_if_stage import cve2_pkg::*; (
 
       .busy_o              ( prefetch_busy              )
   );
+
+  `ifndef SYNTHESIS
+    // (As instroduced on the Ibex core project)
+    // Needed by the RISC-V compliance checking simulation model for linking 
+    // against C++ testbench code, that expects the simutil_get_scramble_key 
+    // or simutil_get_scramble_nonce functions.
+    // As a slightly ugly hack, let's define the DPI functions here (the 
+    // real versions are defined in prim_util_get_scramble_params.svh)
+    export "DPI-C" function simutil_get_scramble_key;
+    export "DPI-C" function simutil_get_scramble_nonce;
+    function automatic int simutil_get_scramble_key(output bit [127:0] val);
+      return 0;
+    endfunction
+    function automatic int simutil_get_scramble_nonce(output bit [319:0] nonce);
+      return 0;
+    endfunction
+  `endif
 
   assign unused_fetch_addr_n0 = fetch_addr_n[0];
 
@@ -266,15 +283,15 @@ module cve2_if_stage import cve2_pkg::*; (
   ////////////////
 
   // Selectors must be known/valid.
-  `ASSERT_KNOWN(IbexExcPcMuxKnown, exc_pc_mux_i)
+  `ASSERT_KNOWN(CVE2ExcPcMuxKnown, exc_pc_mux_i)
 
-  // Boot address must be aligned to 256 bytes.
-  `ASSERT(IbexBootAddrUnaligned, boot_addr_i[7:0] == 8'h00)
+  // Boot address must be aligned to 4 bytes.
+  `ASSERT(CVE2BootAddrUnaligned, boot_addr_i[1:0] == 2'b00)
 
   // Address must not contain X when request is sent.
-  `ASSERT(IbexInstrAddrUnknown, instr_req_o |-> !$isunknown(instr_addr_o))
+  `ASSERT(CVE2InstrAddrUnknown, instr_req_o |-> !$isunknown(instr_addr_o))
 
   // Address must be word aligned when request is sent.
-  `ASSERT(IbexInstrAddrUnaligned, instr_req_o |-> (instr_addr_o[1:0] == 2'b00))
+  `ASSERT(CVE2InstrAddrUnaligned, instr_req_o |-> (instr_addr_o[1:0] == 2'b00))
 
 endmodule

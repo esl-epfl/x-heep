@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -286,10 +287,10 @@ import cve2_pkg::*;
         csr_rdata_int[CSR_MSTATUS_TW_BIT]                               = mstatus_q.tw;
       end
 
-      // mstatush: All zeros for Ibex (fixed little endian and all other bits reserved)
+      // mstatush: All zeros for CVE2 (fixed little endian and all other bits reserved)
       CSR_MSTATUSH: csr_rdata_int = '0;
 
-      // menvcfg: machine environment configuration, all zeros for Ibex (none of the relevant
+      // menvcfg: machine environment configuration, all zeros for CVE2 (none of the relevant
       // features are implemented)
       CSR_MENVCFG, CSR_MENVCFGH: csr_rdata_int = '0;
 
@@ -1447,6 +1448,27 @@ import cve2_pkg::*;
 
 `ifdef RVFI
     logic [63:0] mstatus_extended_read, mie_extended_read, mip_extended_read, mcause_extended_read;
+    struct {
+      logic clk;
+      logic reset_n;
+    } clknrst_if;
+
+    assign clknrst_if.clk = clk_i;
+    assign clknrst_if.reset_n = rst_ni;
+
+    struct {
+      logic [63:0]   rvfi_named_csr_rmask;
+      logic [63:0]   rvfi_named_csr_wmask;
+      logic [63:0]   rvfi_named_csr_rdata;
+      logic [63:0]   rvfi_named_csr_wdata;
+  
+      // Generic READ/WRITE values
+      logic [63:0]   rvfi_csr_addr;
+      logic [63:0]   rvfi_csr_rmask;
+      logic [63:0]   rvfi_csr_wmask;
+      logic [63:0]   rvfi_csr_rdata;
+      logic [63:0]   rvfi_csr_wdata;
+    } rvfi_csr_if;
 
     // Extended Reads
     assign  mstatus_extended_read[CSR_MSTATUS_MIE_BIT]                              = mstatus_q.mie;
@@ -1464,7 +1486,7 @@ import cve2_pkg::*;
     assign mip_extended_read[CSR_MEIX_BIT]                       = mip.irq_external;
     assign mip_extended_read[CSR_MFIX_BIT_HIGH:CSR_MFIX_BIT_LOW] = mip.irq_fast;
 
-    assign mcause_extended_read = {mcause_q[6], 25'b0, mcause_q[5:0]};
+    assign mcause_extended_read = {32'b0, mcause_q[6], 25'b0, mcause_q[5:0]};
 
     // Extended Writes
     logic [63:0] mstatus_extended_write, mie_extended_write, mcause_extended_write;
@@ -1480,7 +1502,7 @@ import cve2_pkg::*;
     assign  mstatus_extended_write[CSR_MSTATUS_MPRV_BIT]                             = mstatus_d.mprv;
     assign  mstatus_extended_write[CSR_MSTATUS_TW_BIT]                               = mstatus_d.tw;
 
-    assign mcause_extended_write = {mcause_d[6], 25'b0, mcause_d[5:0]};
+    assign mcause_extended_write = {32'b0, mcause_d[6], 25'b0, mcause_d[5:0]};
 
     wire [63:0] rvfi_csr_bypass;
 
