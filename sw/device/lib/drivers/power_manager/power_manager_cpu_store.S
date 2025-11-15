@@ -41,6 +41,7 @@ power_manager_cpu_store:
     sw x13, 48(t0)
     sw x14, 52(t0)
     sw x15, 56(t0)
+#ifndef __riscv_32e
     sw x16, 60(t0)
     sw x17, 64(t0)
     sw x18, 68(t0)
@@ -57,6 +58,7 @@ power_manager_cpu_store:
     sw x29, 116(t0)
     sw x30, 120(t0)
     sw x31, 124(t0)
+#endif
     //csr
     csrr t1, mstatus
     sw t1, 128(t0)

@@ -48,6 +48,7 @@ power_manager_cpu_restore:
     lw x13, 48(t0)
     lw x14, 52(t0)
     lw x15, 56(t0)
+#ifndef __riscv_32e
     lw x16, 60(t0)
     lw x17, 64(t0)
     lw x18, 68(t0)
@@ -64,6 +65,7 @@ power_manager_cpu_restore:
     lw x29, 116(t0)
     lw x30, 120(t0)
     lw x31, 124(t0)
+#endif
     //csr
     lw t1, 128(t0)
     csrw mstatus, t1

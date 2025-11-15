@@ -71,7 +71,7 @@ module cpu_subsystem
         .RV32E(${cpu.get_sv_str("rv32e")}),
 % endif
 % if cpu.is_defined("rv32m"):
-        .RV32M(${cpu.get_sv_str("rv32m")}),
+        .RV32M(cve2_pkg::${cpu.get_sv_str("rv32m")}),
 % endif
         .XInterface(X_EXT)
     ) cv32e20_i (

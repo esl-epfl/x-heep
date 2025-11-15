@@ -111,6 +111,16 @@ make -j $(nproc)
 ```
 You need to set the `RISCV_XHEEP` environment variable like this:
 
+If you target `RVE` systems (i.e. using only RISC-V registers from `x0-x15`), then use instead:
+
+```
+./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32e --with-arch=rv32emc --with-cmodel=medlow
+make newlib
+```
+
+where the `abi` flag has changed to `ilp32e` and arc to `rv32emc`.
+This has been tested with a different compiler version (`4e7952b5f6c106c01b2e1c056476687e1390105d`, which is why make newlib instead of just make.)
+
 ```
 export RISCV_XHEEP=/home/$USER/tools/riscv
 ```
