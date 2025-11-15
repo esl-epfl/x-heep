@@ -104,26 +104,26 @@ _wait_spi_ready_read_prog:
 
        // For loop until the 1KB copy from flash to ram is done
        // 256-bytes copies are done
-       li     s6, 256
+       li     t1, 256
        // Read command: 0x90000FF
        lui    s0, 0x9000
-       addi   s5, s0, 255 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
+       addi   tp, s0, 255 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
 
 _32B_chunk_loop:
-       blt    s6, a3, _read_32B_chunk
+       blt    t1, a3, _read_32B_chunk
        // End the transaction if last 256 bytes
        // Read command: 0x80000FF
        lui    s0, 0x8000
-       addi   s5, s0, 255 # spi cmd: rxonly + stdspeed + 255 bytes
+       addi   tp, s0, 255 # spi cmd: rxonly + stdspeed + 255 bytes
 
 _read_32B_chunk:
-       sw     s5, SPI_HOST_COMMAND_REG_OFFSET(a1)
+       sw     tp, SPI_HOST_COMMAND_REG_OFFSET(a1)
        nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_read_32B_chunk:
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a5, _wait_spi_ready_read_32B_chunk
-       addi   s7, s1, 256 # add 32*8 (256 bytes) to dst ptr
+       addi   t2, s1, 256 # add 32*8 (256 bytes) to dst ptr
 
 _wait_spi_rxwm_8_words:
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
@@ -134,11 +134,11 @@ _wait_spi_rxwm_8_words:
 
 _spi_fifo_read_8_words:
        // Read 32B (8 words) from RX FIFO
-       lw     a7, SPI_HOST_RXDATA_REG_OFFSET(a1)
-       sw     a7, 0(s1)
+       lw     t0, SPI_HOST_RXDATA_REG_OFFSET(a1)
+       sw     t0, 0(s1)
        addi   s1, s1, 4
        bne    s1, a2, _spi_fifo_read_8_words
-       bne    s1, s7, _wait_spi_rxwm_8_words
+       bne    s1, t2, _wait_spi_rxwm_8_words
        addi   a3, a3, -256
        bnez   a3, _32B_chunk_loop
 
