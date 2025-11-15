@@ -85,7 +85,7 @@ module x_heep_system
     // External SPC interface
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
 
-% for pad in total_pad_list:
+% for pad in xheep.get_padring().total_pad_list:
 ${pad.x_heep_system_interface}
 % endfor
 );
@@ -106,17 +106,17 @@ ${pad.x_heep_system_interface}
   // PAD controller
   reg_req_t pad_req;
   reg_rsp_t pad_resp;
-% if pads_attributes != None:
-  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${pads_attributes['bits']}] pad_attributes;
+% if xheep.get_padring().pads_attributes != None:
+  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${xheep.get_padring().pads_attributes['bits']}] pad_attributes;
 % endif
- % if total_pad_muxed > 0:
-  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${max_total_pad_mux_bitlengh-1}:0] pad_muxes;
+ % if xheep.get_padring().total_pad_muxed > 0:
+  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${xheep.get_padring().max_total_pad_mux_bitlengh-1}:0] pad_muxes;
 % endif
 
   logic rst_ngen;
 
   //input, output pins from core_v_mini_mcu
-% for pad in total_pad_list:
+% for pad in xheep.get_padring().total_pad_list:
 ${pad.internal_signals}
 % endfor
 
@@ -131,7 +131,7 @@ ${pad.internal_signals}
   ) core_v_mini_mcu_i (
 
     .rst_ni(rst_ngen),
-% for pad in pad_list:
+% for pad in xheep.get_padring().pad_list:
 ${pad.core_v_mini_mcu_bonding}
 % endfor
 
@@ -189,19 +189,19 @@ ${pad.core_v_mini_mcu_bonding}
   );
 
   pad_ring pad_ring_i (
-% for pad in total_pad_list:
+% for pad in xheep.get_padring().total_pad_list:
 ${pad.pad_ring_bonding_bonding}
 % endfor
-% if pads_attributes != None:
+% if xheep.get_padring().pads_attributes != None:
     .pad_attributes_i(pad_attributes)
 % else:
     .pad_attributes_i('0)
 % endif
   );
 
-${pad_constant_driver_assign}
+${xheep.get_padring().pad_constant_driver_assign}
 
-${pad_mux_process}
+${xheep.get_padring().pad_mux_process}
 
   pad_control #(
       .reg_req_t(reg_pkg::reg_req_t),
@@ -212,16 +212,16 @@ ${pad_mux_process}
       .rst_ni(rst_ngen),
       .reg_req_i(pad_req),
       .reg_rsp_o(pad_resp)
-% if total_pad_muxed > 0 or pads_attributes != None:
+% if xheep.get_padring().total_pad_muxed > 0 or xheep.get_padring().pads_attributes != None:
       ,
 % endif
-% if pads_attributes != None:
+% if xheep.get_padring().pads_attributes != None:
       .pad_attributes_o(pad_attributes)
-% if total_pad_muxed > 0:
+% if xheep.get_padring().total_pad_muxed > 0:
       ,
 % endif
 % endif
-% if total_pad_muxed > 0:
+% if xheep.get_padring().total_pad_muxed > 0:
       .pad_muxes_o(pad_muxes)
 % endif
   );
