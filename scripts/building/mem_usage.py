@@ -69,16 +69,16 @@ def get_banks_and_sizes(mcu_pkg_size):
         print("File not found. Please check the path and try again.")
     return num_banks, num_il_banks, sizes_B
 
-def get_memory_sections(map_path):
+def get_memory_sections(ld_path):
     """
-    Parses the main.map file to obtain the origin and length of each region. 
-    These are called ram0 (code), ram1 (data) and ram2 (IL data) - but that does not necessarily 
-    correspond with an index of memory banks. 
+    Parses the link.ld (liker script) file to obtain the origin and length of each region.
+    These are called ram0 (code), ram1 (data) and ram2 (IL data) - but that does not necessarily
+    correspond with an index of memory banks.
 
     The origin and size of each are defined in the configs/*.hjson files.
 
     Parameters:
-    map_path - path of the .map file, relative to the location from which this script is called (e.g. the Makefile)
+    ld_path - path of the .ld file, relative to the location from which this script is called (e.g. the Makefile)
 
     Returns: 
     sections - Dictionary with the sections found
@@ -86,23 +86,23 @@ def get_memory_sections(map_path):
     sections = {}
     try:
         index = 0
-        with open(map_path, 'r') as file:
+        with open(ld_path, 'r') as file:
             collect = False
             for line in file:
-                if "Name" in line and "Origin" in line and "Length" in line:
+                if "MEMORY" in line :
                     collect = True
                     continue
                 if collect:
                     if line.strip() == '':
                         collect = False  # Stop collecting when a blank line is encountered
                         continue
-                    parts = line.split()
-                    if len(parts) >= 4:
+                    parts = line.replace(',', '').split()
+                    if len(parts) == 9:
                         name = parts[0]
                         if name == 'FLASH': continue
-                        origin = int(parts[1], 16)
-                        length = int(parts[2], 16)
-                        attributes = parts[3]
+                        origin = int(parts[5], 16)
+                        length = int(parts[8], 16)
+                        attributes = parts[1]
                         sections[name] = {'origin': origin, 'length': length, 'attributes': attributes}
                         index += 1
     except FileNotFoundError:
@@ -126,6 +126,7 @@ def parse_program_headers(readelf_output):
     """
     program_headers = []
     headers_started = False
+    header_index = -1
     for line in readelf_output.split('\n'):
         if 'Program Headers:' in line:
             headers_started = True
@@ -140,8 +141,10 @@ def parse_program_headers(readelf_output):
                     'FileSiz': int(parts[4], 16),
                     'MemSiz': int(parts[5], 16),
                     'Flg': parts[6],
-                    'Align': int(parts[7], 16)
+                    'Align': int(parts[7], 16),
+                    'Idx': header_index
                 })
+            header_index += 1
             if 'Section to Segment mapping:' in line:
                 break  # Stop after collecting program headers
     return program_headers
@@ -160,9 +163,9 @@ def get_regions(program_headers, section_to_segment):
     regions = []
 
     # Iterate through each program header
-    for idx, ph in enumerate(program_headers):
+    for ph in program_headers:
         # Determine the type of region based on the sections it contains
-        sections = section_to_segment[idx]
+        sections = section_to_segment[ph['Idx']]
         region_type = 'd'  # default to data
         name = 'data'
         if any(sec in sections for sec in code_sections):
@@ -185,43 +188,6 @@ def get_regions(program_headers, section_to_segment):
 
     return regions
 
-def get_readelf_output(elf_file):
-    """
-    Executes the readelf command on the provided ELF file with -l option to list program headers.
-    """
-    try:
-        result = subprocess.run(['readelf', '-l', elf_file], capture_output=True, text=True)
-        return result.stdout
-    except Exception as e:
-        print(f"Error running readelf: {e}")
-        return None
-
-def parse_program_headers(readelf_output):
-    """
-    Parses the output of readelf to extract program headers.
-    """
-    program_headers = []
-    headers_started = False
-    for line in readelf_output.split('\n'):
-        if 'Program Headers:' in line:
-            headers_started = True
-        elif headers_started:
-            if 'LOAD' in line:
-                parts = re.split(r'\s+', line.strip())
-                program_headers.append({
-                    'Type': parts[0],
-                    'Offset': int(parts[1], 16),
-                    'VirtAddr': int(parts[2], 16),
-                    'PhysAddr': int(parts[3], 16),
-                    'FileSiz': int(parts[4], 16),
-                    'MemSiz': int(parts[5], 16),
-                    'Flg': parts[6],
-                    'Align': int(parts[7], 16)
-                })
-            if 'Section to Segment mapping:' in line:
-                break  # Stop after collecting program headers
-    return program_headers
-
 def parse_section_to_segment(readelf_output):
     """
     Parses the 'Section to Segment mapping' from the output of readelf.
@@ -238,7 +204,7 @@ def parse_section_to_segment(readelf_output):
                 if segments:
                     segment_index = int(segments[0])
             else:
-                sections = re.findall(r'\.\w+', line)
+                sections = re.findall(r'\.[^\s]+', line)
                 if sections:
                     mapping[segment_index] = sections
                 segment_index += 1
@@ -271,13 +237,13 @@ for i in range(num_banks):
 
 # GET THE MEMORY REGIONS FOR CODE AND DATA, TRANSLATE ramx to code, data, IL
 # If there are no IL banks, create an entry with length 0
-sections = get_memory_sections('sw/build/main.map')
+sections = get_memory_sections('sw/build/main.ld')
 try:
     sections['code'] = sections.pop('ram0')
     sections['data'] = sections.pop('ram1')
     sections['ildt'] = sections.pop('ram2') if num_il_banks else {'origin':sections['data']['origin'] +sections['data']['length'], 'length':0}
 except:
-    print("Memory distribution analysis not available for LINKER=flash_exec")
+    print("Memory distribution analysis not available for LINKER=flash_exec or LINKER=flash_load")
     quit()
 
 # Compute the total space used for code and data
@@ -333,7 +299,7 @@ for bank_idx, bank in enumerate(banks):
 
             bank['use'][piece] = '-'
             for region in regions:
-                if address> region['start_add'] and address <= region['end_add']:
+                if address > region['start_add'] and address <= region['end_add']:
                     bank['use'][piece] = region['symbol']
                     utilization += granularity_B
             
@@ -343,7 +309,7 @@ for bank_idx, bank in enumerate(banks):
             bank['use'][piece] = '-'
             for region in regions:
                 used_by_others = (region['size_B']*(num_il_banks-1)/num_il_banks)
-                if address>= region['start_add'] and address < region['end_add'] - used_by_others:
+                if address >= region['start_add'] and address < region['end_add'] - used_by_others:
                     bank['use'][piece] = region['symbol']
                     utilization += granularity_B
 

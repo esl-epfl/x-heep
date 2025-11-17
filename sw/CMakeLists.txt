@@ -555,6 +555,11 @@ endif()
 #add_custom_command(TARGET gdb
 #    COMMAND ${CMAKE_C_GDB} ${MAINFILE}.elf -x gdbInit &)
 
+# Post-processing to have access to linker script in build folder
+add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${LINKER_SCRIPT} ${MAINFILE}.ld
+        COMMENT "Invoking: Linker script copy")
+
 SET(DCMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #message( FATAL_ERROR "You can not do this at all, CMake will exit." )
