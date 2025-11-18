@@ -29,7 +29,7 @@ module core_v_mini_mcu
 
     input logic rst_ni,
 
-% for pad in xheep.padring.pad_list:
+% for pad in xheep.get_padring().pad_list:
 ${pad.core_v_mini_mcu_interface}
 % endfor
 

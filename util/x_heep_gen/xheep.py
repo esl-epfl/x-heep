@@ -38,7 +38,7 @@ class XHeep:
 
         self._base_peripheral_domain = None
         self._user_peripheral_domain = None
-        pad_ring: PadRing = None
+        self._padring: PadRing = None
 
         self._extensions = {}
 
@@ -186,9 +186,12 @@ class XHeep:
         """
         if not isinstance(pad_ring, PadRing):
             raise TypeError(
-                f"XHeep.padring should be of type PadRing not {type(self._padring)}"
+                f"xheep.get_padring() should be of type PadRing not {type(self._padring)}"
             )
         self._padring = pad_ring
+
+    def get_padring(self):
+        return self._padring
 
     # ------------------------------------------------------------
     # Extensions

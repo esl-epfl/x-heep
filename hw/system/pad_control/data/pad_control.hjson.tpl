@@ -9,7 +9,7 @@
   regwidth: "32",
   registers: [
 
-% for pad in xheep.padring.pad_muxed_list:
+% for pad in xheep.get_padring().pad_muxed_list:
     { name:     "PAD_MUX_${pad.name.upper()}",
       desc:     "Used to mux pad ${pad.name.upper()}",
       resval:   "0x0"
@@ -22,17 +22,17 @@
 
 % endfor
 
-% if xheep.padring.pads_attributes != None:
-% for pad in xheep.padring.total_pad_list:
+% if xheep.get_padring().pads_attributes != None:
+% for pad in xheep.get_padring().total_pad_list:
 % if pad.pad_type == 'input' or pad.pad_type == 'output' or pad.pad_type == 'inout':
 % if pad.constant_attribute == False:
     { name:     "PAD_ATTRIBUTE_${pad.name.upper()}",
       desc:     "${pad.name} Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
-      resval:   "${xheep.padring.pads_attributes['resval']}"
+      resval:   "${xheep.get_padring().pads_attributes['resval']}"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "${xheep.padring.pads_attributes['bits']}", name: "PAD_ATTRIBUTE_${pad.name.upper()}", desc: "Pad Attribute ${pad.name.upper()} Reg" }
+        { bits: "${xheep.get_padring().pads_attributes['bits']}", name: "PAD_ATTRIBUTE_${pad.name.upper()}", desc: "Pad Attribute ${pad.name.upper()} Reg" }
       ]
     }
 % endif
