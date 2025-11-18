@@ -37,7 +37,7 @@ from .peripherals.user_peripherals import (
     I2S,
     UART,
     SERIAL_LINK,
-    SERIAL_LINK_SLAVE,
+    SERIAL_LINK_REG,
     SERIAL_LINK_RECEIVER_FIFO,
 )
 
@@ -418,8 +418,8 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "serial_link":
                         peripheral = SERIAL_LINK(offset, length)
-                    elif peripheral_name == "serial_link_slave":
-                        peripheral = SERIAL_LINK_SLAVE(offset, length)
+                    elif peripheral_name == "serial_link_reg":
+                        peripheral = SERIAL_LINK_REG(offset, length)
                     elif peripheral_name == "serial_link_receiver_fifo":
                         peripheral = SERIAL_LINK_RECEIVER_FIFO(offset, length)
                     else:

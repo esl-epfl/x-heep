@@ -98,6 +98,7 @@ filesets:
     - hw/system/x_heep_system.vlt
     - hw/simulation/simulation.vlt
     - hw/ip/i2s/i2s.vlt
+    - hw/ip/serial_link/serial_link.vlt
     file_type: vlt
 
   rtl-fpga:

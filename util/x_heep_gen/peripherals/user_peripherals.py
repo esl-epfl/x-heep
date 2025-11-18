@@ -128,11 +128,11 @@ class SERIAL_LINK(UserPeripheral):
 
     _name = "serial_link"
 
-class SERIAL_LINK_SLAVE(UserPeripheral):
+class SERIAL_LINK_REG(UserPeripheral):
     """
     ...
     """
-    _name = "serial_link_slave"
+    _name = "serial_link_reg"
 
 class SERIAL_LINK_RECEIVER_FIFO(UserPeripheral):
     """

@@ -86,8 +86,8 @@ module peripheral_subsystem
     //Serial Link
     input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
     output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
-    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_i,
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_o,
+    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_i,
+    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_o,
     %endif
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
@@ -155,15 +155,7 @@ module peripheral_subsystem
   logic uart_intr_rx_parity_err;
 
 
-  // Serial Link Signal Declaration
-  obi_req_t axi_sl_m_req, sl_recreg_req_o;
-  obi_resp_t axi_sl_m_resp, sl_recreg_resp_i;
-  obi_req_t axi_sl_slave_req;
-  obi_resp_t axi_sl_slave_resp;
   
-
-  reg_req_t cfg_req_sl;
-  reg_rsp_t cfg_rsp_sl;
   //----------------------------------------------------------------
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -641,58 +633,35 @@ module peripheral_subsystem
 
 % if user_peripheral_domain.contains_peripheral('serial_link'):
   serial_link_xheep_wrapper #(
-    // .axi_req_t(core_v_mini_mcu_pkg::axi_req_t),
-    // .axi_rsp_t(core_v_mini_mcu_pkg::axi_resp_t),
-    // .aw_chan_t(core_v_mini_mcu_pkg::axi_aw_t),
-    // .ar_chan_t(core_v_mini_mcu_pkg::axi_ar_t),
-    // .r_chan_t(core_v_mini_mcu_pkg::axi_r_t),
-    // .w_chan_t(core_v_mini_mcu_pkg::axi_w_t),
-    // .b_chan_t(core_v_mini_mcu_pkg::axi_b_t),
-    //.cfg_rsp_t(reg_rsp_t),
-    //.cfg_req_t(reg_req_t),
-    //.obi_req_t(obi_req_t),
-    //.obi_resp_t(obi_resp_t),
     .NumChannels(1),
     .NumLanes(4),
     .MaxClkDiv(32),
-    // .AddrWidth(1),
     .AddrWidth(32),
-    .DataWidth(32),
-    // .AW_CH_SIZE(core_v_mini_mcu_pkg::AW_CH_SIZE),
-    // .W_CH_SIZE(core_v_mini_mcu_pkg::W_CH_SIZE),
-    // .B_CH_SIZE(core_v_mini_mcu_pkg::B_CH_SIZE),
-    // .AR_CH_SIZE(core_v_mini_mcu_pkg::AR_CH_SIZE),
-    // .R_CH_SIZE(core_v_mini_mcu_pkg::R_CH_SIZE)
+    .DataWidth(32)
   ) serial_link_xheep_wrapper_i (
     .clk_i(clk_i),
-    .fast_clock(clk_i),
     .rst_ni(rst_ni),
-    .clk_reg_i(clk_i),        //intended for clock gating purposes
-    .rst_reg_ni(rst_ni),      //intended for SW reset purposes
+    .clk_reg_i(clk_i),       
+    .rst_reg_ni(rst_ni),      
 
     .testmode_i('0),
    
-    .obi_req_i(axi_sl_slave_req),
-    .obi_rsp_i(axi_sl_slave_resp),
+    .obi_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX]),
+    .obi_rsp_i(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_IDX]),
     
-    //.obi_req_o(axi_sl_m_req), //axi_in_req_i
-    //.obi_rsp_o(axi_sl_m_resp),
+    .reader_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX]),
+    .reader_resp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX]),
 
-    // .obi_req_o(obi_sl_req),   //fifo writing
-    // .obi_rsp_o(obi_sl_rsp),
-    .reader_req_i(sl_recreg_req_o),
-    .reader_resp_o(sl_recreg_resp_i),
-
-    .cfg_req_i(cfg_req_sl),   //register configuration
-    .cfg_rsp_o(cfg_rsp_sl),
+    .cfg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),
+    .cfg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),
 
     
 
-    .ddr_rcv_clk_i,           //Source-synchronous input clock to sample data. One clock per channel   
-    .ddr_i,                   //Double-Data-Rate (DDR) input data
+    .ddr_rcv_clk_i,         
+    .ddr_i,                   
 
-    .ddr_rcv_clk_o,           //Source-synchronous output clock which is forwarded together with the data. One clock per channel
-    .ddr_o                    //Double-Data-Rate (DDR) output data
+    .ddr_rcv_clk_o,          
+    .ddr_o                   
 
   );
 

@@ -43,6 +43,7 @@ filesets:
     - ../../vendor/pulp_platform_axi_slice/src/axi_slice.sv
     - serial_link_minimum_axi_pkg.sv
     - serial_link_xheep_wrapper.sv
+    - fifo_serial_link_wrapper.sv
     file_type: systemVerilogSource
     include_dirs:
       - ../../vendor/pulp_platform_serial_link/src/axis/include

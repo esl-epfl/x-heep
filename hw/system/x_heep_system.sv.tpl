@@ -103,8 +103,8 @@ ${pad.x_heep_system_interface}
   // Serial Link
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i;  
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o;
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_i;
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_o;
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_i;
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_o;
   %endif
   logic [EXT_HARTS_RND-1:0] ext_debug_req;
   logic ext_cpu_subsystem_rst_n;

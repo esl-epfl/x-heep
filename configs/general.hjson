@@ -170,7 +170,7 @@
             length:  0x00010000
             is_included: "yes"
         }
-        serial_link_slave: {
+        serial_link_reg: {
             offset:  0x00100000
             length:  0x00010000
             is_included: "yes"

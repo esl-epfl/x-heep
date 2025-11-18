@@ -352,8 +352,8 @@ module core_v_mini_mcu
     //Serial Link
     input logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_i,
     output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_o,
-    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_i,
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_xheep_wrapper::NumLanes-1:0] ddr_o,
+    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_i,
+    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_o,
 
     // External SPC interface
     input  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
