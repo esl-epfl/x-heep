@@ -93,8 +93,8 @@ def get_memory_sections(ld_path):
                     collect = True
                     continue
                 if collect:
-                    if line.strip() == '':
-                        collect = False  # Stop collecting when a blank line is encountered
+                    if line.strip() == '}':
+                        collect = False  # Stop collecting when a '}' is encountered (end of MEMORY section)
                         continue
                     parts = line.replace(',', '').split()
                     if len(parts) == 9:
@@ -243,7 +243,7 @@ try:
     sections['data'] = sections.pop('ram1')
     sections['ildt'] = sections.pop('ram2') if num_il_banks else {'origin':sections['data']['origin'] +sections['data']['length'], 'length':0}
 except:
-    print("Memory distribution analysis not available for LINKER=flash_exec or LINKER=flash_load")
+    print("Memory distribution analysis not available for LINKER=flash_exec")
     quit()
 
 # Compute the total space used for code and data
