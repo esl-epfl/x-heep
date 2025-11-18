@@ -3,8 +3,8 @@ from .bus_type import BusType
 from .memory_ss.memory_ss import MemorySS
 from .cpu.cpu import CPU
 from .peripherals.abstractions import PeripheralDomain
-from .peripherals.base_peripherals import BasePeripheralDomain
-from .peripherals.user_peripherals import UserPeripheralDomain
+from .peripherals.base_peripherals_domain import BasePeripheralDomain
+from .peripherals.user_peripherals_domain import UserPeripheralDomain
 from .pads.PadRing import PadRing
 
 

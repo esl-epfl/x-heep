@@ -11,8 +11,9 @@ from .cpu.cv32e20 import cv32e20
 from .memory_ss.memory_ss import MemorySS
 from .memory_ss.linker_section import LinkerSection
 from .xheep import BusType, XHeep
+from .peripherals.base_peripherals_domain import BasePeripheralDomain
+from .peripherals.user_peripherals_domain import UserPeripheralDomain
 from .peripherals.base_peripherals import (
-    BasePeripheralDomain,
     SOC_ctrl,
     Bootrom,
     SPI_flash,
@@ -25,8 +26,9 @@ from .peripherals.base_peripherals import (
     Pad_control,
     GPIO_ao,
 )
+
+
 from .peripherals.user_peripherals import (
-    UserPeripheralDomain,
     RV_plic,
     SPI_host,
     GPIO,
