@@ -142,8 +142,9 @@ cmake --build build --target install # or ninja -C build install
 
 X-HEEP supports Verilator version 5.040, which requires the [following packages](https://verilator.org/guide/latest/install.html) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The [documentation](https://verilator.org/guide/latest/install.html) page contains instructions for other linux distributions. 
 
-> [!Note]
-> Backward compatibility with Verilator 4.210 is currently maintained, yet _this is very likely to change_ in future releases, so we strongly suggest against using it. Also, Verilator 4.210 _requires GCC older than 12.0_, so make sure to configure your environment accordingly if you choose to use it anyway.
+```{warning}
+Backward compatibility with Verilator 4.210 is currently maintained, yet _this is very likely to change_ in future releases, so we strongly suggest against using it. Also, Verilator 4.210 _requires GCC older than 12.0_, so make sure to configure your environment accordingly if you choose to use it anyway.
+```
 
 To proceed with the installation, use the following command:
 
