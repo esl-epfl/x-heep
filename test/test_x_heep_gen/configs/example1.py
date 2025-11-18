@@ -3,8 +3,9 @@ from x_heep_gen.cpu.cpu import CPU
 from x_heep_gen.bus_type import BusType
 from x_heep_gen.memory_ss.memory_ss import MemorySS
 from x_heep_gen.memory_ss.linker_section import LinkerSection
+from x_heep_gen.peripherals.base_peripherals_domain import BasePeripheralDomain
+from x_heep_gen.peripherals.user_peripherals_domain import UserPeripheralDomain
 from x_heep_gen.peripherals.base_peripherals import (
-    BasePeripheralDomain,
     SOC_ctrl,
     Bootrom,
     SPI_flash,
@@ -18,7 +19,6 @@ from x_heep_gen.peripherals.base_peripherals import (
     GPIO_ao,
 )
 from x_heep_gen.peripherals.user_peripherals import (
-    UserPeripheralDomain,
     RV_plic,
     SPI_host,
     GPIO,
