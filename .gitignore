@@ -95,3 +95,9 @@ flow/OpenROAD-flow-scripts
 .vscode
 .continue
 private/
+
+# Verilator
+/verilator/
+
+# RISC_V toolchain
+riscv-gnu-toolchain/

@@ -20,8 +20,8 @@
 #include "w25q128jw.h"
 
 /* By default, PRINTFs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_FPGA  0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -280,7 +280,7 @@ uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
     if (global_status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_original == flash_read_data)
-    int32_t result = check_result(test_buffer, len);
+    int32_t result = check_result(test_buffer, len);write
 
     // Clean memory for next test
     erase_memory(test_buffer_flash);

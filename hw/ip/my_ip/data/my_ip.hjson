@@ -1,0 +1,59 @@
+// Copyright EPFL and Politecnico di Torino contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "my_ip"
+  clock_primary: "clk_i"
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ]
+  regwidth: "32"
+  registers: [
+    { name:     "CONTROL"
+      desc:     "Controls for SPI_FLASH W/R"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "1", 
+          name: "READY", 
+          desc: "Ready for new action",
+          resval: "0x0"
+        }
+        { bits: "0", 
+          name: "START", 
+          desc: "Start action",
+          resval: "0x0"
+        }
+      ]
+    }
+    { name:     "R_ADDRESS"
+      desc:     "Address in Flash to read from"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "31:0", name: "R_ADDRESS", desc: "Address to read from" },
+      ]
+    }
+    { name:     "S_ADDRESS"
+      desc:     "Address to store read data from SPI_FLASH"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "31:0", name: "S_ADDRESS", desc: "Address to store read data from SPI_FLASH" },
+      ]
+    }
+    { name:     "LENGTH"
+      desc:     "Length of data to W/R"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "31:0", name: "LENGTH", desc: "Length of data to W/R" },
+      ]
+    }
+  ]
+  interrupt_list: [
+    { name: "my_ip_event"
+      desc: '''Event-related interrupts.'''
+    }
+  ]
+}
