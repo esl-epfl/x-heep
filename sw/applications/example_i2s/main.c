@@ -127,8 +127,8 @@ void setup()
 
      // -- DMA CONFIGURATION --
 
-    tgt_src.ptr        = I2S_RX_DATA_ADDRESS;
-    tgt_src.inc_d1_du     = 0;
+    tgt_src.ptr        = (uint8_t *) I2S_RX_DATA_ADDRESS;
+    tgt_src.inc_d1_du  = 0;
     tgt_src.trig       = DMA_TRIG_SLOT_I2S;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
 
