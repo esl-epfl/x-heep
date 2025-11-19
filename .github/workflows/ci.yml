@@ -161,5 +161,5 @@ jobs:
             util/mcu_gen.py
             util/waiver-gen.py
             util/c_gen.py
-            test/test_x_heep_gen/test_peripherals.py
+            test/test_x_heep_gen
           version: "~= 24.8.0"
