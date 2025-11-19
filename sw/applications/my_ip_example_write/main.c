@@ -115,21 +115,21 @@ int main(int argc, char *argv[]) {
     // errors += test_write(flash_original_1024B, BYTES_TO_WRITE);
 
     // if (errors) {
-    //     PRINTF("test_write FAILED\n");
+    //     printf("test_write FAILED\n");
     //     return EXIT_FAILURE;
     // }
 
     errors += test_write_flash_only(flash_original_1024B, BYTES_TO_WRITE);
 
     if (errors) {
-        PRINTF("test_write_flash_only FAILED\n");
+        printf("test_write_flash_only FAILED\n");
         return EXIT_FAILURE;
     }
 
     // errors += test_write_dma(flash_original_1024B, BYTES_TO_WRITE);
 
     // if (errors) {
-    //     PRINTF("test_write_dma FAILED\n");
+    //     printf("test_write_dma FAILED\n");
     //     return EXIT_FAILURE;
     // }
 }
@@ -214,7 +214,7 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
 
     for (uint32_t i = 0; i < len; i++) {
         if (test_buffer[i] != flash_read_data_char[i]) {
-            PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_read_data_char[i]);
+            printf("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_read_data_char[i]);
             errors++;
             break;
         }
