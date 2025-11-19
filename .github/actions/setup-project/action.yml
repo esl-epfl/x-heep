@@ -1,0 +1,21 @@
+name: 'Setup Project'
+description: 'Checks out the repository and sets up Python dependencies with caching.'
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('util/python-requirements.txt', 'docs/python-requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install Python dependencies
+      shell: bash -l {0}
+      run: |
+        pip install -r util/python-requirements.txt
+        pip install -r docs/python-requirements.txt
