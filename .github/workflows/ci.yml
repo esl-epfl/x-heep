@@ -47,6 +47,8 @@ jobs:
     container:
       image: ghcr.io/esl-epfl/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Setup Project
         uses: ./.github/actions/setup-project
       - name: Compile all apps with GCC and Clang
@@ -63,6 +65,8 @@ jobs:
       image: ghcr.io/esl-epfl/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     if: github.event_name == 'pull_request'
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Setup Project
         uses: ./.github/actions/setup-project
       - name: Compile and simulate all apps
@@ -78,6 +82,8 @@ jobs:
     container:
       image: ghcr.io/esl-epfl/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Setup Project
         uses: ./.github/actions/setup-project
       - name: Mark Repository as Safe
@@ -96,6 +102,8 @@ jobs:
     container:
       image: ghcr.io/esl-epfl/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Setup Project
         uses: ./.github/actions/setup-project
       - name: Configure the job container and simulate all apps
@@ -112,6 +120,8 @@ jobs:
     container:
       image: ghcr.io/esl-epfl/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Setup Project
         uses: ./.github/actions/setup-project
       - name: Configure the job container and simulate all apps

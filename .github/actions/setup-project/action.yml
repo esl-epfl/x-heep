@@ -3,9 +3,6 @@ description: 'Checks out the repository and sets up Python dependencies with cac
 runs:
   using: 'composite'
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
     - name: Cache pip dependencies
       uses: actions/cache@v4
       with:
