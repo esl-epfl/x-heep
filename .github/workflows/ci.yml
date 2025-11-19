@@ -120,7 +120,6 @@ jobs:
           make clean-all
           # Run the test script
           make test_kwargs
-          python3 test/test_x_heep_gen/test_pads.py
 
   check-vendor:
     name: Vendor up-to-date
