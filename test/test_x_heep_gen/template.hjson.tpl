@@ -97,9 +97,9 @@
 
     // Pad Configuration
     pad_config: {
-        total_pads: ${total_pad}
-        total_muxed_pads: ${total_pad_muxed}
-        max_mux_bits: ${max_total_pad_mux_bitlengh}
+        total_pads: ${len(xheep.get_padring().total_pad_list)}
+        total_muxed_pads: ${xheep.get_padring().total_pad_muxed}
+        max_mux_bits: ${xheep.get_padring().max_total_pad_mux_bitlengh}
         % if pads_attributes:
         attributes: ${pads_attributes}
         % endif
