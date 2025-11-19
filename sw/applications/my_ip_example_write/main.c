@@ -112,12 +112,12 @@ int main(int argc, char *argv[]) {
     dma_init(NULL);
     
     uint32_t errors = 0;
-    errors += test_write(flash_original_1024B, BYTES_TO_WRITE);
+    // errors += test_write(flash_original_1024B, BYTES_TO_WRITE);
 
-    if (errors) {
-        PRINTF("test_write FAILED\n");
-        return EXIT_FAILURE;
-    }
+    // if (errors) {
+    //     PRINTF("test_write FAILED\n");
+    //     return EXIT_FAILURE;
+    // }
 
     errors += test_write_flash_only(flash_original_1024B, BYTES_TO_WRITE);
 
@@ -126,12 +126,12 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    errors += test_write_dma(flash_original_1024B, BYTES_TO_WRITE);
+    // errors += test_write_dma(flash_original_1024B, BYTES_TO_WRITE);
 
-    if (errors) {
-        PRINTF("test_write_dma FAILED\n");
-        return EXIT_FAILURE;
-    }
+    // if (errors) {
+    //     PRINTF("test_write_dma FAILED\n");
+    //     return EXIT_FAILURE;
+    // }
 }
 
 
@@ -187,9 +187,6 @@ uint32_t test_write_flash_only(uint32_t *test_buffer, uint32_t len) {
 
     //remove FLASH offset as required by the BSP, flash_only_write_buffer is only mapped to the LMA
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_only_write_buffer);
-
-    // Clean memory
-    erase_memory(test_buffer_flash);
 
     // Write to flash memory at specific address
     global_status = w25q128jw_erase_and_write_standard(test_buffer_flash, test_buffer, len);

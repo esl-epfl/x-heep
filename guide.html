@@ -70,11 +70,15 @@ conda activate core-v-mini-mcu</code></pre>
     <h2>5️⃣ Run Simulation (QuestaSim)</h2>
     <p><strong>⚠️ Building hardware takes time, especially with prints — please use moderately.</strong></p>
     <pre><code>make questasim-build-opt
-cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
-make run-gui RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=0"
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_1.0.1/sim-modelsim/
+make run-gui RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=0" &
 run -all (restart for change in application)
 cat uart0.log
 # boot_sel=1 for flash_load/flash_exec linker, on_chip=0
+
+Put signals in waves before otherwise won't be visible
+restart -f
+run -a
 </code></pre>
   </div>
 
@@ -103,11 +107,13 @@ cat uart0.log
     <pre><code>cd ~/Documents/SemesterProject/x-heep
 # Switch to your branch
 git checkout thomas
-# Stage and commit changes
+# On local
 git add .
 git commit -m "Describe your changes"
-# Push to GitHub
-git push origin thomas
+git push origin work
+# On server
+git fetch origin
+git reset --hard origin/work
 </code></pre>
 
     <h3>Pull from GitHub on the Server</h3>
@@ -116,7 +122,7 @@ git push origin thomas
 git fetch origin
 git checkout thomas
 # Pull the latest changes
-git pull origin thomas
+git pull origin work
 </code></pre>
 
     <h3>Verify Changes on the Server</h3>

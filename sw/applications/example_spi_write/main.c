@@ -280,7 +280,7 @@ uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
     if (global_status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_original == flash_read_data)
-    int32_t result = check_result(test_buffer, len);
+    int32_t result = check_result(test_buffer, len);write
 
     // Clean memory for next test
     erase_memory(test_buffer_flash);
