@@ -61,15 +61,15 @@ conda activate core-v-mini-mcu</code></pre>
   <div class="section">
     <h2>4️⃣ Build Software</h2>
     <p>Still in <code>/x-heep</code> root, choose the right project and linker:</p>
-    <pre><code>make app PROJECT=replacewithfilename LINKER=on_chip
-# Or use LINKER=flash_load / flash_exec as needed
+    <pre><code>make app PROJECT=my_ip_example LINKER=flash_load
+# Or use LINKER=on_chip / flash_exec as needed
 </code></pre>
   </div>
 
   <div class="section">
     <h2>5️⃣ Run Simulation (QuestaSim)</h2>
     <p><strong>⚠️ Building hardware takes time, especially with prints — please use moderately.</strong></p>
-    <pre><code>make questasim-sim-opt
+    <pre><code>make questasim-build-opt
 cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
 make run-gui RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=0"
 run -all (restart for change in application)

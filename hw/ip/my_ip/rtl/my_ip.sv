@@ -30,10 +30,6 @@ module my_ip #(
   my_ip_reg2hw_t reg2hw;
   my_ip_hw2reg_t hw2reg;
 
-  assign my_ip_interrupt_o = 1'b0;
-  assign hw2reg.control.ready.d = (dma_state_q == DMA_IDLE);
-  assign hw2reg.control.ready.de = 1'b1;
-
   // OBI FSM
   enum logic [1:0] {
     OBI_IDLE,
@@ -335,6 +331,11 @@ module my_ip #(
       end
     endcase
   end
+
+  // Assignments
+  assign my_ip_interrupt_o = 1'b0;
+  assign hw2reg.control.ready.d = (dma_state_q == DMA_IDLE);
+  assign hw2reg.control.ready.de = 1'b1;
 
   // Verify we get correct data in memory through sw comparison
   // Also try the revert addresses to see I get correct from SPI SW vs GTKWAVE
