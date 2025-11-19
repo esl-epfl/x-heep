@@ -404,7 +404,6 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral = I2S(offset, length)
                     elif peripheral_name == "uart":
                         peripheral = UART(offset, length)
-                        peripheral.custom_configuration(peripheral_config["path"])
                     elif peripheral_name == "my_ip":
                         peripheral = MY_IP(offset, length)
                     else:
