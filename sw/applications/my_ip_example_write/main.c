@@ -229,3 +229,5 @@ void erase_memory(uint32_t addr) {
     w25q128jw_4k_erase(addr);
     #endif
 }
+
+// QuestaSim duration (in ns): 10'870'000
