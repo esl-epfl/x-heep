@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright 2017 ETH Zurich and University of Bologna.
 // Copyright and related rights are licensed under the Solderpad Hardware
 // License, Version 0.51 (the "License"); you may not use this file except in
@@ -8,7 +9,7 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-// !!! cve2_sim_clock_gate file is meant for simulation only !!!
+// !!! cve2_clock_gate file is meant for simulation only !!!
 // !!! It must not be used for ASIC synthesis                    !!!
 // !!! It must not be used for FPGA synthesis                    !!!
 
@@ -18,6 +19,11 @@ module cve2_clock_gate (
     input  logic scan_cg_en_i,
     output logic clk_o
 );
+
+  // `ifdef SYNTHESIS
+  //   $error("cve2_clock_gate module is meant for simulation only. \
+  //          It should not be used for ASIC or FPGA synthesis");
+  // `endif
 
   logic clk_en;
 

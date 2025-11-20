@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -759,9 +760,13 @@ module cve2_tracer (
   end
 
   always_comb begin
+    // Disabling multidriven lint check since this is simulation code, not RTL,
+    // and these are initial values for these variables.
+    /* verilator lint_off MULTIDRIVEN */
     decoded_str = "";
     data_accessed = 5'h0;
     insn_is_compressed = 0;
+    /* verilator lint_on MULTIDRIVEN */
 
     // Check for compressed instructions
     if (rvfi_insn[1:0] != 2'b11) begin

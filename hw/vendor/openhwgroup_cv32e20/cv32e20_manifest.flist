@@ -1,5 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright 2022 OpenHW Group
 //
 // Licensed under the Solderpad Hardware Licence, Version 2.0 (the "License");
@@ -60,4 +61,4 @@ ${DESIGN_RTL_DIR}/cve2_top.sv
 ${DESIGN_RTL_DIR}/cve2_top_tracing.sv
 ${DESIGN_RTL_DIR}/cve2_tracer.sv
 
-${DESIGN_RTL_DIR}/../bhv/cve2_sim_clock_gate.sv
+${DESIGN_RTL_DIR}/cve2_clock_gate.sv

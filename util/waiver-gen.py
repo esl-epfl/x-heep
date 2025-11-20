@@ -59,7 +59,7 @@ def generate_core_file(config, major_version):
         return False
 
     # Append a list of Verilator 5.X specific waivers if the major version is >=5
-    waiver_files_str = "      []"  # default to an empty list (for Verilator 4.X)
+    file_paths = []
     if major_version == 5:
         print(
             f"> INFO: Detected Verilator 5.X, adding dedicated waivers to '{output_filename}'"
@@ -69,32 +69,29 @@ def generate_core_file(config, major_version):
 
         if waivers_v5_list:
             # Make paths absolute since the .core file will be in a different directory
-            full_path_files = [os.path.join(files_root, f) for f in waivers_v5_list]
-            formatted_files = [f"      - {f}" for f in full_path_files]
-            waiver_files_str = "\n".join(formatted_files)
+            file_paths = [os.path.join(files_root, f) for f in waivers_v5_list]
 
     # Generate the output .core file content
-    core_template = f"""CAPI=2:
-
-name: "{vlnv}"
-description: "Generated waivers for Verilator 5.XXX"
-
-filesets:
-  waivers:
-    files:
-{waiver_files_str}
-    file_type: vlt
-
-targets:
-  default: &default_target
-    filesets:
-      - tool_verilator? (waivers)
-"""
+    core_contents = {
+        "name": vlnv,
+        "description": "Generated waivers for Verilator 5.XXX",
+        "filesets": {
+            "waivers": {"files": file_paths, "file_type": "vlt"},
+        },
+        "targets": {
+            "default": {
+                "filesets": [
+                    "tool_verilator? (waivers)",
+                ],
+            },
+        },
+    }
 
     # Write the output .core file
     try:
-        with open(output_filename, "w") as f:
-            f.write(core_template)
+        with open(output_filename, "w", encoding="utf-8") as f:
+            f.write("CAPI=2:\n")
+            yaml.dump(core_contents, f, encoding="utf-8", Dumper=yaml.CSafeDumper)
             print(
                 f"> INFO: Successfully wrote additional dependencies to '{output_filename}'"
             )

@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -505,18 +506,18 @@ module cve2_load_store_unit
   ////////////////
 
   // Selectors must be known/valid.
-  `ASSERT(IbexDataTypeKnown, (lsu_req_i | busy_o) |-> !$isunknown(lsu_type_i))
-  `ASSERT(IbexDataOffsetKnown, (lsu_req_i | busy_o) |-> !$isunknown(data_offset))
-  `ASSERT_KNOWN(IbexRDataOffsetQKnown, rdata_offset_q)
-  `ASSERT_KNOWN(IbexDataTypeQKnown, data_type_q)
-  `ASSERT(IbexLsuStateValid, ls_fsm_cs inside {
+  `ASSERT(CVE2DataTypeKnown, (lsu_req_i | busy_o) |-> !$isunknown(lsu_type_i))
+  `ASSERT(CVE2DataOffsetKnown, (lsu_req_i | busy_o) |-> !$isunknown(data_offset))
+  `ASSERT_KNOWN(CVE2RDataOffsetQKnown, rdata_offset_q)
+  `ASSERT_KNOWN(CVE2DataTypeQKnown, data_type_q)
+  `ASSERT(CVE2LsuStateValid, ls_fsm_cs inside {
       IDLE, WAIT_GNT_MIS, WAIT_RVALID_MIS, WAIT_GNT,
       WAIT_RVALID_MIS_GNTS_DONE})
 
   // Address must not contain X when request is sent.
-  `ASSERT(IbexDataAddrUnknown, data_req_o |-> !$isunknown(data_addr_o))
+  `ASSERT(CVE2DataAddrUnknown, data_req_o |-> !$isunknown(data_addr_o))
 
   // Address must be word aligned when request is sent.
-  `ASSERT(IbexDataAddrUnaligned, data_req_o |-> (data_addr_o[1:0] == 2'b00))
+  `ASSERT(CVE2DataAddrUnaligned, data_req_o |-> (data_addr_o[1:0] == 2'b00))
 
 endmodule

@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -364,7 +365,7 @@ module cve2_multdiv_slow
   ////////////////
 
   // State must be valid.
-  `ASSERT(IbexMultDivStateValid, md_state_q inside {
+  `ASSERT(CVE2MultDivStateValid, md_state_q inside {
       MD_IDLE, MD_ABS_A, MD_ABS_B, MD_COMP, MD_LAST, MD_CHANGE_SIGN, MD_FINISH
       }, clk_i, !rst_ni)
 

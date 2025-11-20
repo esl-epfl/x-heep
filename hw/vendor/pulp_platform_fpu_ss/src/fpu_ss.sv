@@ -94,14 +94,21 @@ module fpu_ss
     output x_result_t x_result_o
 );
 
-// predecoder parameter
-`ifdef PULP_ZFINX_DEF
-  localparam int unsigned NUM_INSTR                   = fpu_ss_prd_zfinx_pkg::NumInstr;
-  localparam offload_instr_t OFFLOAD_INSTR[NUM_INSTR] = fpu_ss_prd_zfinx_pkg::OffloadInstr;
-`else
-  localparam int unsigned NUM_INSTR                   = fpu_ss_prd_f_pkg::NumInstr;
-  localparam offload_instr_t OFFLOAD_INSTR[NUM_INSTR] = fpu_ss_prd_f_pkg::OffloadInstr;
-`endif
+  // predecoder parameter
+  localparam int unsigned NUM_INSTR                   = PULP_ZFINX ? fpu_ss_prd_zfinx_pkg::NumInstr: fpu_ss_prd_f_pkg::NumInstr;
+  offload_instr_t OFFLOAD_INSTR [NUM_INSTR];
+
+  generate
+    for (genvar i = 0; i < NUM_INSTR; i++) begin : gen_offload_cast
+      if (PULP_ZFINX) begin
+        assign OFFLOAD_INSTR[i] =
+            offload_instr_t'(fpu_ss_prd_zfinx_pkg::OffloadInstr[i]);
+      end else begin
+        assign OFFLOAD_INSTR[i] =
+            offload_instr_t'(fpu_ss_prd_f_pkg::OffloadInstr[i]);
+      end
+    end
+  endgenerate
 
   // compressed predecoder signals
   comp_prd_req_t                                  comp_prd_req;
@@ -274,11 +281,11 @@ module fpu_ss
   // Predecoder
   // ----------
   fpu_ss_predecoder #(
-      .NumInstr(NUM_INSTR),
-      .OffloadInstr(OFFLOAD_INSTR)
+      .NumInstr(NUM_INSTR)
   ) fpu_ss_predecoder_i (
       .prd_req_i(prd_req),
-      .prd_rsp_o(prd_rsp)
+      .prd_rsp_o(prd_rsp),
+      .OffloadInstr(OFFLOAD_INSTR)
   );
 
   // -----------------
