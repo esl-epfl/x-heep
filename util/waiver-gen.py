@@ -73,19 +73,15 @@ def generate_core_file(config, major_version):
 
     # Generate the output .core file content
     core_contents = {
-        'name': vlnv,
-        'description': 'Generated waivers for Verilator 5.XXX',
-
-        'filesets': {
-            'waivers': {
-                'files': file_paths,
-                'file_type': 'vlt'
-            },
+        "name": vlnv,
+        "description": "Generated waivers for Verilator 5.XXX",
+        "filesets": {
+            "waivers": {"files": file_paths, "file_type": "vlt"},
         },
-        'targets': {
-            'default': {
-                'filesets': [
-                    'tool_verilator? (waivers)',
+        "targets": {
+            "default": {
+                "filesets": [
+                    "tool_verilator? (waivers)",
                 ],
             },
         },
@@ -94,7 +90,7 @@ def generate_core_file(config, major_version):
     # Write the output .core file
     try:
         with open(output_filename, "w", encoding="utf-8") as f:
-            f.write('CAPI=2:\n')
+            f.write("CAPI=2:\n")
             yaml.dump(core_contents, f, encoding="utf-8", Dumper=yaml.CSafeDumper)
             print(
                 f"> INFO: Successfully wrote additional dependencies to '{output_filename}'"
