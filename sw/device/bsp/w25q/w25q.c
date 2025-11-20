@@ -456,9 +456,9 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
-        #ifndef TARGET_SIM
+        //#ifndef TARGET_SIM
         w25q128jw_4k_erase(sector_start_addr);
-        #endif // TARGET_SIM
+        //#endif // TARGET_SIM
 
         // Calculate the length of data to write in this sector
         uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
