@@ -456,9 +456,9 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
-        //#ifndef TARGET_SIM
+        #ifndef TARGET_SIM
         w25q128jw_4k_erase(sector_start_addr);
-        //#endif // TARGET_SIM
+        #endif // TARGET_SIM
 
         // Calculate the length of data to write in this sector
         uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
@@ -1498,9 +1498,9 @@ static void flash_wait(void) {
         spi_wait_for_ready(spi);
         spi_set_command(spi, spi_status_read_cmd);
         spi_wait_for_ready(spi);
-        spi_wait_for_rx_watermark(spi);
+        spi_wait_for_rx_watermark(spi); // Reason why we have SIM flag
         spi_read_word(spi, (uint32_t *)flash_resp);
-        if ((flash_resp[0] & 0x01) == 0) flash_busy = false;
+        if ((flash_resp[0] & 0x01) == 0) flash_busy = false; // Reason why we have SIM flag (either very long or does not work in simulation)
     }
 }
 
