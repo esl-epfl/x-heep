@@ -3,8 +3,9 @@ from .bus_type import BusType
 from .memory_ss.memory_ss import MemorySS
 from .cpu.cpu import CPU
 from .peripherals.abstractions import PeripheralDomain
-from .peripherals.base_peripherals import BasePeripheralDomain
-from .peripherals.user_peripherals import UserPeripheralDomain
+from .peripherals.base_peripherals_domain import BasePeripheralDomain
+from .peripherals.user_peripherals_domain import UserPeripheralDomain
+from .pads.PadRing import PadRing
 
 
 class XHeep:
@@ -37,6 +38,7 @@ class XHeep:
 
         self._base_peripheral_domain = None
         self._user_peripheral_domain = None
+        self._padring: PadRing = None
 
         self._extensions = {}
 
@@ -172,6 +174,26 @@ class XHeep:
         return deepcopy(self._base_peripheral_domain)
 
     # ------------------------------------------------------------
+    # Pad Ring
+    # ------------------------------------------------------------
+
+    def set_padring(self, pad_ring: PadRing):
+        """
+        Sets the pad ring of the system.
+
+        :param PadRing pad_ring: The pad ring to set.
+        :raise TypeError: when pad_ring is of incorrect type.
+        """
+        if not isinstance(pad_ring, PadRing):
+            raise TypeError(
+                f"xheep.get_padring() should be of type PadRing not {type(self._padring)}"
+            )
+        self._padring = pad_ring
+
+    def get_padring(self):
+        return self._padring
+
+    # ------------------------------------------------------------
     # Extensions
     # ------------------------------------------------------------
 
@@ -202,6 +224,7 @@ class XHeep:
         """
         Makes the system ready to be used.
         """
+
         if self.memory_ss():
             self.memory_ss().build()
         if self.are_base_peripherals_configured():

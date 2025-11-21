@@ -164,7 +164,7 @@ mcu-gen-help:
 	$(PYTHON) util/mcu_gen.py -h
 
 ## Runs verible formating
-verible:
+verible: | .check-verible
 	util/format-verible;
 
 ## Runs black formating for python xheep generator files
@@ -174,7 +174,7 @@ format-python:
 	$(PYTHON) -m black util/mcu_gen.py
 	$(PYTHON) -m black util/waiver-gen.py
 	$(PYTHON) -m black util/c_gen.py
-	$(PYTHON) -m black test/test_x_heep_gen/test_peripherals.py
+	$(PYTHON) -m black test/test_x_heep_gen
 
 ## @section APP FW Build
 
@@ -205,11 +205,11 @@ app-list:
 ## @section Simulation
 
 ## Verilator simulation with C++
-verilator-build:
+verilator-build: | .check-verilator
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildsim.log
 
 ## Verilator simulation with SystemC
-verilator-build-sc:
+verilator-build-sc: | .check-verilator
 	$(FUSESOC) --cores-root . run --no-export --target=sim_sc --tool=verilator $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildsim.log
 
 ## Questasim simulation
@@ -340,6 +340,12 @@ test:
 	python3 test/test_x_heep_gen/test_peripherals.py
 	@echo "You can also find the peripheral test outputs in test/test_x_heep_gen/outputs"
 
+.PHONY: test_kwargs
+test_kwargs:
+	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson PADS_CFG=test/test_x_heep_gen/pads/pad_cfg.hjson
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl test/test_x_heep_gen/pads/output/kwargs_output.json.tpl
+	python3 test/test_x_heep_gen/pad_test.py
+
 
 ## Builds the specified app, loads it into the programmer's flash and then opens picocom to see the output
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
@@ -384,9 +390,15 @@ clean: clean-app
 clean-all: clean
 
 ## @section Utilities
-## Check if GTKWave is available
-.PHONY: .check-gtkwave
-.check-gtkwave:
-	@if [ ! `which gtkwave` ]; then \
-	printf -- "### ERROR: 'gtkwave' is not in PATH. Is the correct conda environment active?\n" >&2; \
-	exit 1; fi
+# Check if a program is available in PATH
+define CHECK_PROGRAM
+.PHONY: .check-$(1)
+.check-$(1):
+	@command -v $(2) >/dev/null 2>&1 || { \
+		printf "### ERROR: '%s' is not in PATH.\\n" "$(2)" >&2; \
+		exit 1; \
+	}
+endef
+$(eval $(call CHECK_PROGRAM,gtkwave,gtkwave))
+$(eval $(call CHECK_PROGRAM,verible,verible-verilog-format))
+$(eval $(call CHECK_PROGRAM,verilator,verilator))

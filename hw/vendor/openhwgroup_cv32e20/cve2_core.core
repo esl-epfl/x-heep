@@ -1,9 +1,10 @@
 CAPI=2:
+# Copyright (c) 2025 Eclipse Foundation
 # Copyright lowRISC contributors.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 name: "openhwgroup:cve2:cve2_core:0.1"
-description: "Ibex CPU Core Components"
+description: "CVE2 CPU Core Components"
 
 filesets:
   files_rtl:
@@ -71,12 +72,6 @@ parameters:
     default: cve2_pkg::RV32MFast
     paramtype: vlogdefine
     description: "RV32M implementation parameter enum. See the cve2_pkg::rv32m_e enum in cve2_pkg.sv for permitted values."
-
-  RV32B:
-    datatype: str
-    default: cve2_pkg::RV32BNone
-    paramtype: vlogdefine
-    description: "Bitmanip implementation parameter enum. See the cve2_pkg::rv32b_e enum in cve2_pkg.sv for permitted values."
 
 targets:
   default: &default_target

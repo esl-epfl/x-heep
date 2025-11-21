@@ -109,6 +109,17 @@ git checkout 2023.01.03
 ./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
 make -j $(nproc)
 ```
+
+If you target `RVE` systems (i.e. using only RISC-V registers from `x0-x15`), then use instead:
+
+```
+./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32e --with-arch=rv32emc --with-cmodel=medlow
+make newlib
+```
+
+where the `abi` flag has changed to `ilp32e` and arc to `rv32emc`.
+This has been tested with a different compiler version (`4e7952b5f6c106c01b2e1c056476687e1390105d`, which is why make newlib instead of just make.)
+
 You need to set the `RISCV_XHEEP` environment variable like this:
 
 ```
@@ -131,8 +142,9 @@ cmake --build build --target install # or ninja -C build install
 
 X-HEEP supports Verilator version 5.040, which requires the [following packages](https://verilator.org/guide/latest/install.html) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The [documentation](https://verilator.org/guide/latest/install.html) page contains instructions for other linux distributions. 
 
-> [!Note]
-> Backward compatibility with Verilator 4.210 is currently maintained, yet _this is very likely to change_ in future releases, so we strongly suggest against using it. Also, Verilator 4.210 _requires GCC older than 12.0_, so make sure to configure your environment accordingly if you choose to use it anyway.
+```{warning}
+Backward compatibility with Verilator 4.210 is currently maintained, yet _this is very likely to change_ in future releases, so we strongly suggest against using it. Also, Verilator 4.210 _requires GCC older than 12.0_, so make sure to configure your environment accordingly if you choose to use it anyway.
+```
 
 To proceed with the installation, use the following command:
 

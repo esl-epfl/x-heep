@@ -49,6 +49,16 @@ If you want to use the OpenHW Group [GCC](https://www.embecosm.com/resources/too
 make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp_xcvmem_xcvmac_xcvbi_xcvalu_xcvsimd_xcvbitmanip
 ```
 
+## Using the RVE RISC-V extensions
+
+`RVE` extensions are supported by the standard compiler when using the appropriate ARCH and ABI options (see the [setup](./../GettingStarted/Setup.md) page for details). Ensure that the `RISCV_XHEEP` environment variable points to the compiler configured for the correct ABI, which operates only on registers `x0–x15`.
+By default, C code is compiled without using registers `x16–x31`. The X-HEEP `bootrom` and `crt0` have also been implemented in assembly without relying on those registers.
+If your application needs to detect whether the `RVE` extensions are in use, the compiler automatically defines the `__riscv_32e` macro. This is used, for example, in the power manager’s HAL for context save/restore operations, ensuring that registers `x16–x31` are ignored when applicable.
+
+```
+make app ARCH=rv32emc_zicsr
+```
+
 ## Compiling FreeRTOS based applications
 
 X-HEEP supports FreeRTOS based applications. Please see `sw\applications\example_freertos_blinky`.

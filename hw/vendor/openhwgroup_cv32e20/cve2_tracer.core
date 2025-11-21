@@ -1,14 +1,15 @@
 CAPI=2:
+# Copyright (c) 2025 Eclipse Foundation
 # Copyright lowRISC contributors.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
-name: "lowrisc:cve2:cve2_tracer:0.1"
-description: "Tracer for use with Ibex using the RVFI interface"
+name: "openhwgroup:cve2:cve2_tracer:0.1"
+description: "Tracer for use with CVE2 using the RVFI interface"
 filesets:
   files_rtl:
     depend:
       - lowrisc:prim:assert
-      - lowrisc:cve2:cve2_pkg
+      - openhwgroup:cve2:cve2_pkg
     files:
       - rtl/cve2_tracer_pkg.sv
       - rtl/cve2_tracer.sv

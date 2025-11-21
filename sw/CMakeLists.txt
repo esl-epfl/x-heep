@@ -370,7 +370,7 @@ else()
 endif()
 set(CMAKE_C_FLAGS ${BASE_COMPILER_FLAGS})
 set(CMAKE_CXX_FLAGS ${BASE_COMPILER_FLAGS})
-
+set(CMAKE_ASM_FLAGS ${BASE_COMPILER_FLAGS})
 
 message( "${Yellow}Compiler flags: ${BASE_COMPILER_FLAGS}${ColourReset}")
 
@@ -385,6 +385,7 @@ if (${COMPILER} MATCHES "clang")
                              -Wno-unused-command-line-argument")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CLANG_EXTRA_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_EXTRA_FLAGS}")
+  set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${CLANG_EXTRA_FLAGS}")
 endif()
 
 # In case of wanting to create a library with those subdirectories
@@ -553,6 +554,11 @@ endif()
 #add_custom_target(gdb DEPENDS ${MAINFILE}.elf)
 #add_custom_command(TARGET gdb
 #    COMMAND ${CMAKE_C_GDB} ${MAINFILE}.elf -x gdbInit &)
+
+# Post-processing to have access to linker script in build folder
+add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${LINKER_SCRIPT} ${MAINFILE}.ld
+        COMMENT "Invoking: Linker script copy")
 
 SET(DCMAKE_EXPORT_COMPILE_COMMANDS ON)
 
