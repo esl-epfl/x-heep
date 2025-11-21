@@ -6,7 +6,9 @@
 import UPF::*;
 `endif
 
-
+<%
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
+%>
 
 module testharness #(
     parameter COREV_PULP                  = 0,
@@ -154,7 +156,7 @@ module testharness #(
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_rsp;
 
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_i_xheep;  // check NumLanes parameter
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_i_xheep;  // check NumLanes parameter 
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_o_xheep;
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_int2ext;
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_ext2int;
@@ -357,11 +359,14 @@ module testharness #(
       .ext_dma_stop_i('0),
       .intr_ext_peripheral_i(gpio[31]),
       .hw_fifo_done_i({{(core_v_mini_mcu_pkg::DMA_CH_NUM - 1) {1'b0}}, dlc_done}),
-      .dma_done_o(dma_busy),
+      .dma_done_o(dma_busy)
+      % if user_peripheral_domain.contains_peripheral('serial_link'):
+      ,
       .ddr_i(ddr_i_xheep),
       .ddr_o(ddr_o_xheep),
       .ddr_rcv_clk_i(clk_sl_ext2int),
       .ddr_rcv_clk_o(clk_sl_int2ext)
+      %endif
   );
 
   // Testbench external bus
@@ -706,6 +711,7 @@ module testharness #(
       end
 
 
+    % if user_peripheral_domain.contains_peripheral('serial_link'):
       serial_link_xheep_wrapper #(
           .NumChannels(1),
           .NumLanes(4),
@@ -729,6 +735,7 @@ module testharness #(
           .ddr_rcv_clk_o(clk_sl_ext2int),
           .ddr_o        (ddr_i_xheep)
       );
+    %endif
 
 
 

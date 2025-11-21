@@ -156,6 +156,8 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/fpga/scripts/generate_sram.tcl.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl sw/device/lib/crt/crt0.S.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl util/profile/run_profile.sh.tpl
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl tb/testharness.sv.tpl
+	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl tb/testharness_pkg.sv.tpl
 	$(MAKE) verible
 
 ## Display mcu_gen.py help
