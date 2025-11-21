@@ -176,8 +176,8 @@ int main(int argc, char *argv[]) {
     tgt_src.trig       = DMA_TRIG_SLOT_EXT_RX;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
 
-    tgt_dst.ptr        = from_fifo;
-    tgt_dst.inc_d1_du     = 1;
+    tgt_dst.ptr        = (uint8_t*)from_fifo;
+    tgt_dst.inc_d1_du  = 1;
     tgt_dst.trig       = DMA_TRIG_MEMORY;
     tgt_dst.type       = DMA_DATA_TYPE_WORD;
 
