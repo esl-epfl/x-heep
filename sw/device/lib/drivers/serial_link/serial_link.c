@@ -15,18 +15,20 @@ void __attribute__ ((optimize("00"))) SIM_INIT(void){
 }
 
 void __attribute__ ((optimize("00"))) REG_CONFIG(void){
-    volatile int32_t *addr_p_reg =(int32_t *)(SERIAL_LINK_REG_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
-    *addr_p_reg = (*addr_p_reg)| 0x00000001; // clock enable
-    *addr_p_reg = (*addr_p_reg)& 0x11111101; // rst on
-    *addr_p_reg = (*addr_p_reg)| 0x00000002; // rst oFF
+    volatile uint32_t * const ctrl = (volatile uint32_t *)CTRL_REG_ADDR;
+    // Step 1: clock enabled, reset asserted (RESET_N = 0)
+    *ctrl = CTRL_CLK_EN_MASK;
+    // Step 2: clock enabled, reset de-asserted (RESET_N = 1)
+    *ctrl = CTRL_CLK_EN_MASK | CTRL_RESET_N_MASK;
 }
 
 
 void __attribute__ ((optimize("00"))) REG_CONFIG_MULTI(void){
-    volatile int32_t *addr_p_reg =(int32_t *)(SERIAL_LINK_REG_START_ADDRESS + SERIAL_LINK_CTRL_REG_OFFSET); 
-    *addr_p_reg = (*addr_p_reg)| 0x00000001; // clock enable
-    *addr_p_reg = (*addr_p_reg)& 0x11111101; // rst on
-    *addr_p_reg = (*addr_p_reg)| 0x00000002; // rst oFF
+    volatile uint32_t * const ctrl = (volatile uint32_t *)CTRL_REG_ADDR_MULTI;
+    // Step 1: clock enabled, reset asserted (RESET_N = 0)
+    *ctrl = CTRL_CLK_EN_MASK;
+    // Step 2: clock enabled, reset de-asserted (RESET_N = 1)
+    *ctrl = CTRL_CLK_EN_MASK | CTRL_RESET_N_MASK;
 }
 
 void __attribute__ ((optimize("00"))) RAW_MODE_EN(void){
