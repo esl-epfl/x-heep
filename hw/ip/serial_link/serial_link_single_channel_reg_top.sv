@@ -8,44 +8,44 @@
 `include "common_cells/assertions.svh"
 
 module serial_link_single_channel_reg_top #(
-    parameter type reg_req_t = logic,
-    parameter type reg_rsp_t = logic,
-    parameter int AW = 6
+  parameter type reg_req_t = logic,
+  parameter type reg_rsp_t = logic,
+  parameter int AW = 6
 ) (
-    input logic clk_i,
-    input logic rst_ni,
-    input reg_req_t reg_req_i,
-    output reg_rsp_t reg_rsp_o,
-    // To HW
-    output serial_link_single_channel_reg_pkg::serial_link_single_channel_reg2hw_t reg2hw,  // Write
-    input serial_link_single_channel_reg_pkg::serial_link_single_channel_hw2reg_t hw2reg,  // Read
+  input logic clk_i,
+  input logic rst_ni,
+  input  reg_req_t reg_req_i,
+  output reg_rsp_t reg_rsp_o,
+  // To HW
+  output serial_link_single_channel_reg_pkg::serial_link_single_channel_reg2hw_t reg2hw, // Write
+  input  serial_link_single_channel_reg_pkg::serial_link_single_channel_hw2reg_t hw2reg, // Read
 
 
-    // Config
-    input devmode_i  // If 1, explicit error return for unmapped register access
+  // Config
+  input devmode_i // If 1, explicit error return for unmapped register access
 );
 
-  import serial_link_single_channel_reg_pkg::*;
+  import serial_link_single_channel_reg_pkg::* ;
 
   localparam int DW = 32;
-  localparam int DBW = DW / 8;  // Byte Width
+  localparam int DBW = DW/8;                    // Byte Width
 
   // register signals
   logic           reg_we;
   logic           reg_re;
-  logic [ AW-1:0] reg_addr;
-  logic [ DW-1:0] reg_wdata;
+  logic [AW-1:0]  reg_addr;
+  logic [DW-1:0]  reg_wdata;
   logic [DBW-1:0] reg_be;
-  logic [ DW-1:0] reg_rdata;
+  logic [DW-1:0]  reg_rdata;
   logic           reg_error;
 
-  logic addrmiss, wr_err;
+  logic          addrmiss, wr_err;
 
   logic [DW-1:0] reg_rdata_next;
 
   // Below register interface can be changed
-  reg_req_t reg_intf_req;
-  reg_rsp_t reg_intf_rsp;
+  reg_req_t  reg_intf_req;
+  reg_rsp_t  reg_intf_rsp;
 
 
   assign reg_intf_req = reg_req_i;
@@ -61,7 +61,7 @@ module serial_link_single_channel_reg_top #(
   assign reg_intf_rsp.error = reg_error;
   assign reg_intf_rsp.ready = 1'b1;
 
-  assign reg_rdata = reg_rdata_next;
+  assign reg_rdata = reg_rdata_next ;
   assign reg_error = (devmode_i & addrmiss) | wr_err;
 
 
@@ -122,105 +122,105 @@ module serial_link_single_channel_reg_top #(
 
   //   F[clk_ena]: 0:0
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
   ) u_ctrl_clk_ena (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(ctrl_clk_ena_we),
-      .wd(ctrl_clk_ena_wd),
+    // from register interface
+    .we     (ctrl_clk_ena_we),
+    .wd     (ctrl_clk_ena_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.ctrl.clk_ena.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ctrl.clk_ena.q ),
 
-      // to register interface (read)
-      .qs(ctrl_clk_ena_qs)
+    // to register interface (read)
+    .qs     (ctrl_clk_ena_qs)
   );
 
 
   //   F[reset_n]: 1:1
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_ctrl_reset_n (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(ctrl_reset_n_we),
-      .wd(ctrl_reset_n_wd),
+    // from register interface
+    .we     (ctrl_reset_n_we),
+    .wd     (ctrl_reset_n_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.ctrl.reset_n.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ctrl.reset_n.q ),
 
-      // to register interface (read)
-      .qs(ctrl_reset_n_qs)
+    // to register interface (read)
+    .qs     (ctrl_reset_n_qs)
   );
 
 
   //   F[axi_in_isolate]: 8:8
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_ctrl_axi_in_isolate (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(ctrl_axi_in_isolate_we),
-      .wd(ctrl_axi_in_isolate_wd),
+    // from register interface
+    .we     (ctrl_axi_in_isolate_we),
+    .wd     (ctrl_axi_in_isolate_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.ctrl.axi_in_isolate.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ctrl.axi_in_isolate.q ),
 
-      // to register interface (read)
-      .qs(ctrl_axi_in_isolate_qs)
+    // to register interface (read)
+    .qs     (ctrl_axi_in_isolate_qs)
   );
 
 
   //   F[axi_out_isolate]: 9:9
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_ctrl_axi_out_isolate (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(ctrl_axi_out_isolate_we),
-      .wd(ctrl_axi_out_isolate_wd),
+    // from register interface
+    .we     (ctrl_axi_out_isolate_we),
+    .wd     (ctrl_axi_out_isolate_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.ctrl.axi_out_isolate.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ctrl.axi_out_isolate.q ),
 
-      // to register interface (read)
-      .qs(ctrl_axi_out_isolate_qs)
+    // to register interface (read)
+    .qs     (ctrl_axi_out_isolate_qs)
   );
 
 
@@ -228,31 +228,31 @@ module serial_link_single_channel_reg_top #(
 
   //   F[axi_in]: 0:0
   prim_subreg_ext #(
-      .DW(1)
+    .DW    (1)
   ) u_isolated_axi_in (
-      .re (isolated_axi_in_re),
-      .we (1'b0),
-      .wd ('0),
-      .d  (hw2reg.isolated.axi_in.d),
-      .qre(),
-      .qe (),
-      .q  (),
-      .qs (isolated_axi_in_qs)
+    .re     (isolated_axi_in_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.isolated.axi_in.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .qs     (isolated_axi_in_qs)
   );
 
 
   //   F[axi_out]: 1:1
   prim_subreg_ext #(
-      .DW(1)
+    .DW    (1)
   ) u_isolated_axi_out (
-      .re (isolated_axi_out_re),
-      .we (1'b0),
-      .wd ('0),
-      .d  (hw2reg.isolated.axi_out.d),
-      .qre(),
-      .qe (),
-      .q  (),
-      .qs (isolated_axi_out_qs)
+    .re     (isolated_axi_out_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.isolated.axi_out.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .qs     (isolated_axi_out_qs)
   );
 
 
@@ -261,27 +261,27 @@ module serial_link_single_channel_reg_top #(
   // R[tx_phy_clk_div]: V(False)
 
   prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h8)
+    .DW      (10),
+    .SWACCESS("RW"),
+    .RESVAL  (10'h8)
   ) u_tx_phy_clk_div (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(tx_phy_clk_div_we),
-      .wd(tx_phy_clk_div_wd),
+    // from register interface
+    .we     (tx_phy_clk_div_we),
+    .wd     (tx_phy_clk_div_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.tx_phy_clk_div[0].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.tx_phy_clk_div[0].q ),
 
-      // to register interface (read)
-      .qs(tx_phy_clk_div_qs)
+    // to register interface (read)
+    .qs     (tx_phy_clk_div_qs)
   );
 
 
@@ -290,27 +290,27 @@ module serial_link_single_channel_reg_top #(
   // R[tx_phy_clk_start]: V(False)
 
   prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h2)
+    .DW      (10),
+    .SWACCESS("RW"),
+    .RESVAL  (10'h2)
   ) u_tx_phy_clk_start (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(tx_phy_clk_start_we),
-      .wd(tx_phy_clk_start_wd),
+    // from register interface
+    .we     (tx_phy_clk_start_we),
+    .wd     (tx_phy_clk_start_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.tx_phy_clk_start[0].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.tx_phy_clk_start[0].q ),
 
-      // to register interface (read)
-      .qs(tx_phy_clk_start_qs)
+    // to register interface (read)
+    .qs     (tx_phy_clk_start_qs)
   );
 
 
@@ -319,163 +319,163 @@ module serial_link_single_channel_reg_top #(
   // R[tx_phy_clk_end]: V(False)
 
   prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h6)
+    .DW      (10),
+    .SWACCESS("RW"),
+    .RESVAL  (10'h6)
   ) u_tx_phy_clk_end (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(tx_phy_clk_end_we),
-      .wd(tx_phy_clk_end_wd),
+    // from register interface
+    .we     (tx_phy_clk_end_we),
+    .wd     (tx_phy_clk_end_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.tx_phy_clk_end[0].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.tx_phy_clk_end[0].q ),
 
-      // to register interface (read)
-      .qs(tx_phy_clk_end_qs)
+    // to register interface (read)
+    .qs     (tx_phy_clk_end_qs)
   );
 
 
   // R[raw_mode_en]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("WO"),
-      .RESVAL  (1'h0)
+    .DW      (1),
+    .SWACCESS("WO"),
+    .RESVAL  (1'h0)
   ) u_raw_mode_en (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(raw_mode_en_we),
-      .wd(raw_mode_en_wd),
+    // from register interface
+    .we     (raw_mode_en_we),
+    .wd     (raw_mode_en_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.raw_mode_en.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.raw_mode_en.q ),
 
-      .qs()
+    .qs     ()
   );
 
 
   // R[raw_mode_in_ch_sel]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("WO"),
-      .RESVAL  (1'h0)
+    .DW      (1),
+    .SWACCESS("WO"),
+    .RESVAL  (1'h0)
   ) u_raw_mode_in_ch_sel (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(raw_mode_in_ch_sel_we),
-      .wd(raw_mode_in_ch_sel_wd),
+    // from register interface
+    .we     (raw_mode_in_ch_sel_we),
+    .wd     (raw_mode_in_ch_sel_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.raw_mode_in_ch_sel.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.raw_mode_in_ch_sel.q ),
 
-      .qs()
+    .qs     ()
   );
 
 
   // R[raw_mode_in_data_valid]: V(True)
 
   prim_subreg_ext #(
-      .DW(1)
+    .DW    (1)
   ) u_raw_mode_in_data_valid (
-      .re (raw_mode_in_data_valid_re),
-      .we (1'b0),
-      .wd ('0),
-      .d  (hw2reg.raw_mode_in_data_valid.d),
-      .qre(),
-      .qe (),
-      .q  (),
-      .qs (raw_mode_in_data_valid_qs)
+    .re     (raw_mode_in_data_valid_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.raw_mode_in_data_valid.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .qs     (raw_mode_in_data_valid_qs)
   );
 
 
   // R[raw_mode_in_data]: V(True)
 
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_raw_mode_in_data (
-      .re (raw_mode_in_data_re),
-      .we (1'b0),
-      .wd ('0),
-      .d  (hw2reg.raw_mode_in_data.d),
-      .qre(reg2hw.raw_mode_in_data.re),
-      .qe (),
-      .q  (reg2hw.raw_mode_in_data.q),
-      .qs (raw_mode_in_data_qs)
+    .re     (raw_mode_in_data_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.raw_mode_in_data.d),
+    .qre    (reg2hw.raw_mode_in_data.re),
+    .qe     (),
+    .q      (reg2hw.raw_mode_in_data.q ),
+    .qs     (raw_mode_in_data_qs)
   );
 
 
   // R[raw_mode_out_ch_mask]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("WO"),
-      .RESVAL  (1'h0)
+    .DW      (1),
+    .SWACCESS("WO"),
+    .RESVAL  (1'h0)
   ) u_raw_mode_out_ch_mask (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(raw_mode_out_ch_mask_we),
-      .wd(raw_mode_out_ch_mask_wd),
+    // from register interface
+    .we     (raw_mode_out_ch_mask_we),
+    .wd     (raw_mode_out_ch_mask_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.raw_mode_out_ch_mask.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.raw_mode_out_ch_mask.q ),
 
-      .qs()
+    .qs     ()
   );
 
 
   // R[raw_mode_out_data_fifo]: V(False)
 
   prim_subreg #(
-      .DW      (16),
-      .SWACCESS("WO"),
-      .RESVAL  (16'h0)
+    .DW      (16),
+    .SWACCESS("WO"),
+    .RESVAL  (16'h0)
   ) u_raw_mode_out_data_fifo (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(raw_mode_out_data_fifo_we),
-      .wd(raw_mode_out_data_fifo_wd),
+    // from register interface
+    .we     (raw_mode_out_data_fifo_we),
+    .wd     (raw_mode_out_data_fifo_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(reg2hw.raw_mode_out_data_fifo.qe),
-      .q (reg2hw.raw_mode_out_data_fifo.q),
+    // to internal hardware
+    .qe     (reg2hw.raw_mode_out_data_fifo.qe),
+    .q      (reg2hw.raw_mode_out_data_fifo.q ),
 
-      .qs()
+    .qs     ()
   );
 
 
@@ -483,89 +483,89 @@ module serial_link_single_channel_reg_top #(
 
   //   F[clear]: 0:0
   prim_subreg_ext #(
-      .DW(1)
+    .DW    (1)
   ) u_raw_mode_out_data_fifo_ctrl_clear (
-      .re (1'b0),
-      .we (raw_mode_out_data_fifo_ctrl_clear_we),
-      .wd (raw_mode_out_data_fifo_ctrl_clear_wd),
-      .d  ('0),
-      .qre(),
-      .qe (reg2hw.raw_mode_out_data_fifo_ctrl.clear.qe),
-      .q  (reg2hw.raw_mode_out_data_fifo_ctrl.clear.q),
-      .qs ()
+    .re     (1'b0),
+    .we     (raw_mode_out_data_fifo_ctrl_clear_we),
+    .wd     (raw_mode_out_data_fifo_ctrl_clear_wd),
+    .d      ('0),
+    .qre    (),
+    .qe     (reg2hw.raw_mode_out_data_fifo_ctrl.clear.qe),
+    .q      (reg2hw.raw_mode_out_data_fifo_ctrl.clear.q ),
+    .qs     ()
   );
 
 
   //   F[fill_state]: 10:8
   prim_subreg_ext #(
-      .DW(3)
+    .DW    (3)
   ) u_raw_mode_out_data_fifo_ctrl_fill_state (
-      .re (raw_mode_out_data_fifo_ctrl_fill_state_re),
-      .we (1'b0),
-      .wd ('0),
-      .d  (hw2reg.raw_mode_out_data_fifo_ctrl.fill_state.d),
-      .qre(),
-      .qe (),
-      .q  (),
-      .qs (raw_mode_out_data_fifo_ctrl_fill_state_qs)
+    .re     (raw_mode_out_data_fifo_ctrl_fill_state_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.raw_mode_out_data_fifo_ctrl.fill_state.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .qs     (raw_mode_out_data_fifo_ctrl_fill_state_qs)
   );
 
 
   //   F[is_full]: 31:31
   prim_subreg_ext #(
-      .DW(1)
+    .DW    (1)
   ) u_raw_mode_out_data_fifo_ctrl_is_full (
-      .re (raw_mode_out_data_fifo_ctrl_is_full_re),
-      .we (1'b0),
-      .wd ('0),
-      .d  (hw2reg.raw_mode_out_data_fifo_ctrl.is_full.d),
-      .qre(),
-      .qe (),
-      .q  (),
-      .qs (raw_mode_out_data_fifo_ctrl_is_full_qs)
+    .re     (raw_mode_out_data_fifo_ctrl_is_full_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.raw_mode_out_data_fifo_ctrl.is_full.d),
+    .qre    (),
+    .qe     (),
+    .q      (),
+    .qs     (raw_mode_out_data_fifo_ctrl_is_full_qs)
   );
 
 
   // R[raw_mode_out_en]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
   ) u_raw_mode_out_en (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(raw_mode_out_en_we),
-      .wd(raw_mode_out_en_wd),
+    // from register interface
+    .we     (raw_mode_out_en_we),
+    .wd     (raw_mode_out_en_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.raw_mode_out_en.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.raw_mode_out_en.q ),
 
-      // to register interface (read)
-      .qs(raw_mode_out_en_qs)
+    // to register interface (read)
+    .qs     (raw_mode_out_en_qs)
   );
 
 
   // R[flow_control_fifo_clear]: V(True)
 
   prim_subreg_ext #(
-      .DW(1)
+    .DW    (1)
   ) u_flow_control_fifo_clear (
-      .re (1'b0),
-      .we (flow_control_fifo_clear_we),
-      .wd (flow_control_fifo_clear_wd),
-      .d  ('0),
-      .qre(),
-      .qe (reg2hw.flow_control_fifo_clear.qe),
-      .q  (reg2hw.flow_control_fifo_clear.q),
-      .qs ()
+    .re     (1'b0),
+    .we     (flow_control_fifo_clear_we),
+    .wd     (flow_control_fifo_clear_wd),
+    .d      ('0),
+    .qre    (),
+    .qe     (reg2hw.flow_control_fifo_clear.qe),
+    .q      (reg2hw.flow_control_fifo_clear.q ),
+    .qs     ()
   );
 
 
@@ -574,23 +574,23 @@ module serial_link_single_channel_reg_top #(
   logic [13:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[0] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_CTRL_OFFSET);
-    addr_hit[1] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_ISOLATED_OFFSET);
-    addr_hit[2] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_TX_PHY_CLK_DIV_OFFSET);
-    addr_hit[3] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_TX_PHY_CLK_START_OFFSET);
-    addr_hit[4] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_TX_PHY_CLK_END_OFFSET);
-    addr_hit[5] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_EN_OFFSET);
-    addr_hit[6] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_CH_SEL_OFFSET);
-    addr_hit[7] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_DATA_VALID_OFFSET);
-    addr_hit[8] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_DATA_OFFSET);
-    addr_hit[9] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_CH_MASK_OFFSET);
+    addr_hit[ 0] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_CTRL_OFFSET);
+    addr_hit[ 1] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_ISOLATED_OFFSET);
+    addr_hit[ 2] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_TX_PHY_CLK_DIV_OFFSET);
+    addr_hit[ 3] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_TX_PHY_CLK_START_OFFSET);
+    addr_hit[ 4] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_TX_PHY_CLK_END_OFFSET);
+    addr_hit[ 5] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_EN_OFFSET);
+    addr_hit[ 6] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_CH_SEL_OFFSET);
+    addr_hit[ 7] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_DATA_VALID_OFFSET);
+    addr_hit[ 8] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_DATA_OFFSET);
+    addr_hit[ 9] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_CH_MASK_OFFSET);
     addr_hit[10] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_OFFSET);
     addr_hit[11] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_OFFSET);
     addr_hit[12] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_EN_OFFSET);
     addr_hit[13] = (reg_addr == SERIAL_LINK_SINGLE_CHANNEL_FLOW_CONTROL_FIFO_CLEAR_OFFSET);
   end
 
-  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
+  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
 
   // Check sub-word write is permitted
   always_comb begin
@@ -751,23 +751,24 @@ module serial_link_single_channel_reg_top #(
 
 endmodule
 
-module serial_link_single_channel_reg_top_intf #(
-    parameter  int AW = 6,
-    localparam int DW = 32
+module serial_link_single_channel_reg_top_intf
+#(
+  parameter int AW = 6,
+  localparam int DW = 32
 ) (
-    input logic clk_i,
-    input logic rst_ni,
-    REG_BUS.in regbus_slave,
-    // To HW
-    output serial_link_single_channel_reg_pkg::serial_link_single_channel_reg2hw_t reg2hw,  // Write
-    input serial_link_single_channel_reg_pkg::serial_link_single_channel_hw2reg_t hw2reg,  // Read
-    // Config
-    input devmode_i  // If 1, explicit error return for unmapped register access
+  input logic clk_i,
+  input logic rst_ni,
+  REG_BUS.in  regbus_slave,
+  // To HW
+  output serial_link_single_channel_reg_pkg::serial_link_single_channel_reg2hw_t reg2hw, // Write
+  input  serial_link_single_channel_reg_pkg::serial_link_single_channel_hw2reg_t hw2reg, // Read
+  // Config
+  input devmode_i // If 1, explicit error return for unmapped register access
 );
-  localparam int unsigned STRB_WIDTH = DW / 8;
+ localparam int unsigned STRB_WIDTH = DW/8;
 
-  `include "register_interface/typedef.svh"
-  `include "register_interface/assign.svh"
+`include "register_interface/typedef.svh"
+`include "register_interface/assign.svh"
 
   // Define structs for reg_bus
   typedef logic [AW-1:0] addr_t;
@@ -777,27 +778,27 @@ module serial_link_single_channel_reg_top_intf #(
 
   reg_bus_req_t s_reg_req;
   reg_bus_rsp_t s_reg_rsp;
-
+  
   // Assign SV interface to structs
   `REG_BUS_ASSIGN_TO_REQ(s_reg_req, regbus_slave)
   `REG_BUS_ASSIGN_FROM_RSP(regbus_slave, s_reg_rsp)
 
-
+  
 
   serial_link_single_channel_reg_top #(
-      .reg_req_t(reg_bus_req_t),
-      .reg_rsp_t(reg_bus_rsp_t),
-      .AW(AW)
+    .reg_req_t(reg_bus_req_t),
+    .reg_rsp_t(reg_bus_rsp_t),
+    .AW(AW)
   ) i_regs (
-      .clk_i,
-      .rst_ni,
-      .reg_req_i(s_reg_req),
-      .reg_rsp_o(s_reg_rsp),
-      .reg2hw,  // Write
-      .hw2reg,  // Read
-      .devmode_i
+    .clk_i,
+    .rst_ni,
+    .reg_req_i(s_reg_req),
+    .reg_rsp_o(s_reg_rsp),
+    .reg2hw, // Write
+    .hw2reg, // Read
+    .devmode_i
   );
-
+  
 endmodule
 
 

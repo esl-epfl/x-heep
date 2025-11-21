@@ -71,6 +71,14 @@ module x_heep_system
 
     output logic [31:0] exit_value_o,
 
+    % if user_peripheral_domain.contains_peripheral('serial_link'):
+    //Serial Link
+    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
+    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
+    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_i,
+    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_o,
+    %endif
+
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
@@ -99,13 +107,7 @@ ${pad.x_heep_system_interface}
 
   //do not touch these parameter
   localparam EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS;
-  % if user_peripheral_domain.contains_peripheral('serial_link'):
-  // Serial Link
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i;  
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o;
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_i;
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_o;
-  %endif
+
   logic [EXT_HARTS_RND-1:0] ext_debug_req;
   logic ext_cpu_subsystem_rst_n;
   logic ext_debug_reset_n;

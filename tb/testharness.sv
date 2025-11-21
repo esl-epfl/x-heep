@@ -152,6 +152,11 @@ module testharness #(
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_rsp;
 
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_i_xheep;  // check NumLanes parameter 
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_pkg::NumLanes-1:0] ddr_o_xheep;
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_int2ext;
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_ext2int;
+
   fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req;
   fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp;
 
@@ -350,7 +355,11 @@ module testharness #(
       .ext_dma_stop_i('0),
       .intr_ext_peripheral_i(gpio[31]),
       .hw_fifo_done_i({{(core_v_mini_mcu_pkg::DMA_CH_NUM - 1) {1'b0}}, dlc_done}),
-      .dma_done_o(dma_busy)
+      .dma_done_o(dma_busy),
+      .ddr_i(ddr_i_xheep),
+      .ddr_o(ddr_o_xheep),
+      .ddr_rcv_clk_i(clk_sl_ext2int),
+      .ddr_rcv_clk_o(clk_sl_int2ext)
   );
 
   // Testbench external bus
@@ -693,6 +702,35 @@ module testharness #(
             .xif_result_if(ext_if)
         );
       end
+
+
+
+          serial_link_xheep_wrapper #(
+          .NumChannels(1),
+          .NumLanes(4),
+          .MaxClkDiv(32),
+          .AddrWidth(32),
+          .DataWidth(32)
+      ) serial_link_xheep_wrapper_i (
+          .clk_i     (clk_i),
+          .rst_ni    (rst_ni),
+          .clk_reg_i (clk_i),   
+          .rst_reg_ni(rst_ni),  
+          .testmode_i('0),
+          .obi_req_i(ext_slave_req[testharness_pkg::SL_EXT_IDX]),  
+          .obi_rsp_i(ext_slave_resp[testharness_pkg::SL_EXT_IDX]),
+          .reader_req_i (),
+          .reader_resp_o(),
+          .cfg_req_i(ext_periph_slv_req[testharness_pkg::SL_REG_IDX]),  
+          .cfg_rsp_o(ext_periph_slv_rsp[testharness_pkg::SL_REG_IDX]),
+          .ddr_i(ddr_o_xheep),  
+          .ddr_rcv_clk_i(clk_sl_int2ext),
+          .ddr_rcv_clk_o(clk_sl_ext2int),
+          .ddr_o(ddr_i_xheep)  
+      );
+
+
+
 
     end else begin : gen_DONT_USE_EXTERNAL_DEVICE_EXAMPLE
       assign slow_ram_slave_resp[0].gnt = '0;
