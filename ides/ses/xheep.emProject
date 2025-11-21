@@ -85,7 +85,7 @@
       gdb_breakpoint_types="Hardware Only"
       gdb_server_allow_memory_access_during_execution="Yes"
       gdb_server_autostart_server="Yes"
-      gdb_server_command_line="/home/< user >/tools/openocd/bin/openocd -f &quot;$(ProjectDir)/../../tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg&quot;"
+      gdb_server_command_line="/home/< user >/tools/openocd/bin/openocd -f &quot;$(ProjectDir)/../../tb/core-v-mini-mcu-esl-programmer.cfg&quot;"
       gdb_server_ignore_checksum_errors="No"
       gdb_server_log_file="$(ProjectDir)/gdb_out.txt"
       gdb_server_port="3333"
