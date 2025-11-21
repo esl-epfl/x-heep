@@ -4,22 +4,28 @@
 #include "x-heep.h"
 #include "core_v_mini_mcu.h"
 #include "csr.h"
+#include "dma.h"
+#include "dma_regs.h"
+#include "fast_intr_ctrl.h"
 
+
+
+
+
+// ADDRESSING
 
 #define SL_INTERNAL_WRITE  (int32_t *)(SERIAL_LINK_START_ADDRESS)
-
 #define SL_INTERNAL_READ   (int32_t *)(SERIAL_LINK_RECEIVER_FIFO_START_ADDRESS)
+
+#define SL_EXTERNAL_WRITE  (int32_t *)(EXT_SLAVE_START_ADDRESS + 0x20000)
+#define SL_EXTERNAL_READ  
+
 // CFG REGISTERS
 #define CTRL_REG_ADDR  (SERIAL_LINK_REG_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET)
 #define CTRL_REG_ADDR_MULTI  (SERIAL_LINK_REG_START_ADDRESS + SERIAL_LINK_CTRL_REG_OFFSET)
-
 #define CTRL_CLK_EN_MASK   (1u << SERIAL_LINK_SINGLE_CHANNEL_CTRL_CLK_ENA_BIT)
 #define CTRL_RESET_N_MASK  (1u << SERIAL_LINK_SINGLE_CHANNEL_CTRL_RESET_N_BIT)
-
-
-#define SL_EXTERNAL_WRITE  (int32_t *)(EXT_SLAVE_START_ADDRESS + 0x20000)
-
-#define SL_EXTERNAL_READ   
+ 
 
 
 
@@ -31,3 +37,6 @@ void RAW_MODE_EN(void);
 void AXI_ISOLATE(void);
 void EXTERNAL_BUS_SL_CONFIG(void);
 void SIM_INIT(void);
+void SL_CPU_TRANS(uint32_t *src_d, uint32_t *dst_d, uint32_t *src, uint32_t *dst, uint32_t large);
+void SL_DMA_TRANS(uint32_t *src_d, uint32_t *dst_d, uint32_t *src, uint32_t *dst, uint32_t large);
+void wait_for_interrupt(void);

@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "x-heep.h"
-#include "core_v_mini_mcu.h"
 #include "serial_link_single_channel_regs.h" 
 #include "serial_link_regs.h"
 #include "serial_link.h"

@@ -74,3 +74,88 @@ void __attribute__ ((optimize("00"))) EXTERNAL_BUS_SL_CONFIG(void){
 
 
     }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    void __attribute__ ((optimize("00"))) SL_CPU_TRANS(uint32_t *src_d, uint32_t *dst_d,uint32_t *src, uint32_t *dst,  uint32_t large ){
+
+    for (int i = 0; i < large; i++) {
+        *src = *(src_d + i);
+    }
+    
+    for (int i = 0; i < large; i++) {
+        *(dst_d + i) = *dst;
+    }
+
+}
+
+// parameter "large" should equal to or less than FIFO size (default 8)
+void __attribute__ ((optimize("00"))) SL_DMA_TRANS(uint32_t *src_d, uint32_t *dst_d, uint32_t *src, uint32_t *dst,uint32_t large){
+    volatile static dma_config_flags_t res;
+    volatile static dma_target_t tgt_src_d;
+    volatile static dma_target_t tgt_dst_d;
+    volatile static dma_trans_t trans;
+
+
+        dma_init(NULL);
+        tgt_src_d.ptr = (uint32_t *)src_d;
+        tgt_src_d.inc_d1_du = 1;
+        tgt_src_d.trig = DMA_TRIG_MEMORY;
+        tgt_src_d.type = DMA_DATA_TYPE_WORD;
+
+        tgt_dst_d.ptr = (uint32_t *)src;
+        tgt_dst_d.inc_d1_du = 0;
+        tgt_dst_d.trig = DMA_TRIG_MEMORY;
+        tgt_dst_d.type = DMA_DATA_TYPE_WORD;
+
+        trans.src = &tgt_src_d;
+        trans.dst = &tgt_dst_d;
+        trans.size_d1_du = large;
+        trans.mode = DMA_TRANS_MODE_SINGLE;
+        trans.win_du = 0;
+        trans.sign_ext = 0;
+        trans.end = DMA_TRANS_END_INTR;
+
+        res |= dma_validate_transaction(&trans, false, false);
+        res |= dma_load_transaction(&trans);
+        res |= dma_launch(&trans);
+        
+        if(!dma_is_ready(0)) {
+            CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+                    if (!dma_is_ready(0)) {
+                        wait_for_interrupt();
+                    }
+            CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+        }
+
+
+        dma_init(NULL);
+        tgt_src_d.ptr = (uint32_t *)dst;
+        tgt_src_d.inc_d1_du = 0;
+        tgt_src_d.trig = DMA_TRIG_MEMORY;
+        tgt_src_d.type = DMA_DATA_TYPE_WORD;
+
+        tgt_dst_d.ptr = (uint32_t *)dst_d;
+        tgt_dst_d.inc_d1_du = 1;
+        tgt_dst_d.trig = DMA_TRIG_MEMORY;
+        tgt_dst_d.type = DMA_DATA_TYPE_WORD;
+
+        trans.src = &tgt_src_d;
+        trans.dst = &tgt_dst_d;
+        trans.size_d1_du = large;
+        trans.mode = DMA_TRANS_MODE_SINGLE;
+        trans.win_du = 0;
+        trans.sign_ext = 0;
+        trans.end = DMA_TRANS_END_INTR;
+
+        res |= dma_validate_transaction(&trans, false, false);
+        res |= dma_load_transaction(&trans);
+        res |= dma_launch(&trans);
+
+        if(!dma_is_ready(0)) {
+            CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+                    if (!dma_is_ready(0)) {
+                        wait_for_interrupt();
+                    }
+            CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+        }
+}
