@@ -187,7 +187,7 @@ int main(){
         uint8_t chunk_w     = 5;
         uint8_t chunks_n    = (DATA_LENGTH_B/4)/chunk_w;
         for( i=0; i<chunks_n; i++){
-            spi_slave_request_read(spi_host1,&((uint32_t*)buffer_read_from)[i*chunk_w],  chunk_w*4, DUMMY_CYCLES );
+            spi_slave_request_read(spi_host1,&((uint8_t*)buffer_read_from)[i*chunk_w],  chunk_w*4, DUMMY_CYCLES );
             spi_wait_for_rx_watermark(spi_host1);
             spi_copy_words( spi_host1, &((uint32_t*)buffer_read_to)[i*chunk_w],  chunk_w );
             #if !TARGET_SIM

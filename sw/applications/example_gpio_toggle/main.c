@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+
 #include "core_v_mini_mcu.h"
 #include "gpio.h"
 #include "x-heep.h"

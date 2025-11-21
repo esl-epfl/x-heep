@@ -189,7 +189,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         dma_config_flags_t res;
 
         static dma_target_t tgt_src = {
-                                    .ptr        = input_image_nchw,
+                                    .ptr        = (uint8_t*)input_image_nchw,
                                     .inc_d1_du  = STRIDE_D1,
                                     .type       = INPUT_DATATYPE
                             };
@@ -307,10 +307,10 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 input_image_ptr = &input_image_nchw[0] + index;
                 PRINTF_DEB("\n\rsrc_ptr: %x dst_ptr: %x\n\r", input_image_ptr, output_data_ptr);
 
-                tgt_src.ptr = input_image_ptr;
+                tgt_src.ptr = (uint8_t*)input_image_ptr;
                 tgt_src.inc_d2_du = src_inc_d2;
 
-                tgt_dst.ptr = output_data_ptr;
+                tgt_dst.ptr = (uint8_t*)output_data_ptr;
 
                 trans.src = &tgt_src;
                 trans.dst = &tgt_dst;
