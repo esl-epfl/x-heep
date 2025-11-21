@@ -255,7 +255,7 @@ openocd -f ./tb/core-v-mini-mcu-nexsys-hs2.cfg
 or with the EPFL Programmer using this command:
 
 ```
-openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg
+openocd -f ./tb/core-v-mini-mcu-esl-programmer.cfg
 ```
 
 or with the EPFL Programmer also using this other command (**strongly recommended**):
