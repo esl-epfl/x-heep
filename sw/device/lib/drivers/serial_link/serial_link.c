@@ -8,6 +8,11 @@
 // Adapted to be used with single channel
 
 
+void __attribute__ ((optimize("00"))) SIM_INIT(void){
+    REG_CONFIG();
+    AXI_ISOLATE();
+    EXTERNAL_BUS_SL_CONFIG();
+}
 
 void __attribute__ ((optimize("00"))) REG_CONFIG(void){
     volatile int32_t *addr_p_reg =(int32_t *)(SERIAL_LINK_REG_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 

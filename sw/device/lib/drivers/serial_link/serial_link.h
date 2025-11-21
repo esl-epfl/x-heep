@@ -23,4 +23,4 @@ void REG_CONFIG_MULTI(void);
 void RAW_MODE_EN(void);
 void AXI_ISOLATE(void);
 void EXTERNAL_BUS_SL_CONFIG(void);
-
+void SIM_INIT(void);
