@@ -18,7 +18,7 @@ Please, substitute that path to your current path where the RISC-V compiler was 
 
 For the openOCS path, **line 88**:
 ```
-gdb_server_command_line="/home/< user >/tools/openocd/bin/openocd -f &quot;$(ProjectDir)/../../tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg&quot;"
+gdb_server_command_line="/home/< user >/tools/openocd/bin/openocd -f &quot;$(ProjectDir)/../../tb/core-v-mini-mcu-esl-programmer.cfg&quot;"
 ```
 Please, substitute that path to your current path where openOCD was installed. Do not forget to target the `openocd` file inside the `bin` installation folder of openocd.
 

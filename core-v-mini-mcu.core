@@ -256,6 +256,10 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
+  FPGA_ZCU102:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   # Make the parameter known to FuseSoC to enable overrides from the
   # command line. If not overwritten, use the generic technology library.
   PRIM_DEFAULT_IMPL:
@@ -507,6 +511,28 @@ targets:
         board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_zcu104_board_files]
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
     
+  zcu102:
+    <<: *default_target
+    default_tool: vivado
+    description: ZCU102 Evaluation Board
+    filesets_append:
+    - x_heep_system
+    - rtl-fpga
+    parameters:
+    - COREV_PULP
+    - FPU
+    - X_EXT
+    - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
+    - FPGA_SYNTHESIS=true
+    - FPGA_ZCU102=true
+    tools:
+      vivado:
+        part: xczu9eg-ffvb1156-2-e
+        board_part: xilinx.com:zcu102:part0:3.3
+        board_repo_paths: [../../../hw/fpga/board_files/vendor/zcu102]
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
+
   asic_synthesis:
     <<: *default_target
     default_tool: design_compiler
