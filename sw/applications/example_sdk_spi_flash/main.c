@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
     uint32_t rxbuffer[READ_WRITE_LEN] = {0};
 
     // Read whole sector containing the desired START_ADDRESS
-    if (!flash_read_non_blocking(&spi, SECT_ADDRESS, sect_data, SECT_LEN)) 
+    if (!flash_read_non_blocking(&spi, SECT_ADDRESS, (uint32_t*)sect_data, SECT_LEN)) 
         return EXIT_FAILURE;
 
     // Erase that sector
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
     // Copy the data to overwrite
     memcpy(&sect_data[START_ADDRESS - SECT_ADDRESS], flash_original_1024B, READ_WRITE_LEN * 4);
     // Write the whole sector with the new data back to flash
-    if (!flash_write_sector(&spi, START_ADDRESS, sect_data)) return EXIT_FAILURE;
+    if (!flash_write_sector(&spi, START_ADDRESS, (uint32_t*)sect_data)) return EXIT_FAILURE;
     // Read the modified part
     if (!flash_read(&spi, START_ADDRESS, rxbuffer, 4*READ_WRITE_LEN)) return EXIT_FAILURE;
 

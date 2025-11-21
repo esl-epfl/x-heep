@@ -117,7 +117,7 @@ int main(){
     uint8_t wpw_length_w = 10;
     uint8_t start_w = bpb_length_b/4;
     for( i=0; i<wpw_length_w; i++){
-        spi_slave_request_read(spi_host1,&((uint32_t*)buffer_read_from)[start_w + i],  4, DUMMY_CYCLES );
+        spi_slave_request_read(spi_host1,&((uint8_t*)buffer_read_from)[start_w + i],  4, DUMMY_CYCLES );
         spi_wait_for_rx_watermark(spi_host1);
         ((uint32_t*)buffer_read_to)[ start_w + i ] = spi_copy_word(spi_host1);
     }
@@ -135,7 +135,7 @@ int main(){
     uint8_t chunks_n    = 5;
     start_w               += wpw_length_w;
     for( i=0; i<chunks_n; i++){
-        spi_slave_request_read(spi_host1,&((uint32_t*)buffer_read_from)[start_w + i*chunk_w],  chunk_w*4, DUMMY_CYCLES );
+        spi_slave_request_read(spi_host1,&((uint8_t*)buffer_read_from)[start_w + i*chunk_w],  chunk_w*4, DUMMY_CYCLES );
         spi_wait_for_rx_watermark(spi_host1);
         spi_copy_words( spi_host1, &((uint32_t*)buffer_read_to)[start_w + i*chunk_w],  chunk_w );
     }

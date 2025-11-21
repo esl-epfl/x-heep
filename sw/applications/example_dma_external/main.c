@@ -50,22 +50,22 @@ int main(int argc, char *argv[])
     dma_config_flags_t res;
 
     static dma_target_t tgt_src = {
-                                .ptr        = test_data,
-                                .inc_d1_du     = 1,
+                                .ptr        = (uint8_t*)test_data,
+                                .inc_d1_du  = 1,
                                 .trig       = DMA_TRIG_MEMORY,
                                 .type       = DMA_DATA_TYPE_WORD,
                                 };
     static dma_target_t tgt_dst = {
-                                .ptr        = copied_data,
-                                .inc_d1_du     = 1,
+                                .ptr        = (uint8_t*)copied_data,
+                                .inc_d1_du  = 1,
                                 .trig       = DMA_TRIG_MEMORY,
                                 };
     static dma_trans_t trans = {
                                 .src        = &tgt_src,
                                 .dst        = &tgt_dst,
-                                .size_d1_du    = TEST_DATA_SIZE,
+                                .size_d1_du = TEST_DATA_SIZE,
                                 .mode       = DMA_TRANS_MODE_SINGLE,
-                                .win_du      = 0,
+                                .win_du     = 0,
                                 .end        = DMA_TRANS_END_INTR,
                                 };
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.

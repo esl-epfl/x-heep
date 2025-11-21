@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "core_v_mini_mcu.h"
 
@@ -132,8 +133,8 @@ void setup()
     tgt_src.trig       = DMA_TRIG_SLOT_I2S;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
 
-    tgt_dst.ptr        = audio_data_0;
-    tgt_dst.inc_d1_du     = 1;
+    tgt_dst.ptr        = (uint8_t*) audio_data_0;
+    tgt_dst.inc_d1_du  = 1;
     tgt_dst.trig       = DMA_TRIG_MEMORY;
     tgt_dst.type       = DMA_DATA_TYPE_WORD;
 
