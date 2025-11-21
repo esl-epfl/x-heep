@@ -34,7 +34,13 @@ RV_PROFILE  := $(shell which rv_profile)
 AREA_PLOT   := $(shell which area-plot)
 endif
 
-# Project options are based on the app to be build (default - hello_world)
+# Build directories
+BUILD_DIR         = build
+FUSESOC_BUILD_DIR = $(shell find $(BUILD_DIR) -maxdepth 1 -type d -name 'openhwgroup.org_systems_core-v-mini-mcu_*' 2>/dev/null | sort -V | head -n 1)
+VERILATOR_DIR     = $(FUSESOC_BUILD_DIR)/sim-verilator
+QUESTASIM_DIR     = $(FUSESOC_BUILD_DIR)/sim-modelsim
+
+# Project options are based on the app to be built (default - hello_world)
 PROJECT  ?= hello_world
 
 # Folder where the linker scripts are located
@@ -50,7 +56,7 @@ X_HEEP_CFG  ?= configs/general.hjson
 PADS_CFG ?= configs/pad_cfg.hjson
 PYTHON_X_HEEP_CFG ?=
 # Cached mcu-gen xheep configuration
-XHEEP_CONFIG_CACHE ?= build/xheep_config_cache.pickle
+XHEEP_CONFIG_CACHE ?= $(BUILD_DIR)/xheep_config_cache.pickle
 
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER 		?= gcc
@@ -94,12 +100,9 @@ else
 endif
 
 # Area plot default configuration
-AREA_PLOT_RPT 		?= $(word 1, $(shell [ -d build ] && find build -type f -name "*area*.rpt" 2>/dev/null)) # path to the area report file
-AREA_PLOT_OUTDIR 	?= build/area-plot/ # output directory for the area plot
+AREA_PLOT_RPT 		?= $(word 1, $(shell [ -d $(BUILD_DIR) ] && find $(BUILD_DIR) -type f -name "*area*.rpt" 2>/dev/null)) # path to the area report file
+AREA_PLOT_OUTDIR 	?= $(BUILD_DIR)/area-plot/ # output directory for the area plot
 AREA_PLOT_TOP 		?=# top level module to consider for the area plot (automatically infer)
-
-# Verilator output directory
-VERILATOR_DIR := $(wildcard ./build/openhwgroup.org_systems_core-v-mini-mcu_*/sim-verilator)
 
 # Export variables to sub-makefiles
 export
@@ -218,12 +221,12 @@ questasim-build:
 
 ## Questasim simulation with HDL optimized compilation
 questasim-build-opt: questasim-build
-	$(MAKE) -C $(shell find build -type d -name sim-modelsim | head -n 1) opt
+	$(MAKE) -C $(QUESTASIM_DIR) opt
 
 ## Questasim simulation with HDL optimized compilation and UPF power domain description
 ## @param FUSESOC_PARAM="--USE_UPF"
 questasim-build-opt-upf: questasim-build
-	$(MAKE) -C $(shell find build -type d -name sim-modelsim | head -n 1) opt-upf
+	$(MAKE) -C $(QUESTASIM_DIR) opt-upf
 
 ## VCS simulation
 ## @param CPU=cv32e20(default),cv32e40p,cv32e40x,cv32e40px
@@ -383,7 +386,7 @@ clean-app:
 ## Remove the build folders
 .PHONY: clean
 clean: clean-app
-	@rm -rf build
+	@rm -rf $(BUILD_DIR)
 
 ## Leave the repository in a clean state, removing all generated files. For now, it just calls clean.
 .PHONY: clean-all
