@@ -63,7 +63,6 @@ jobs:
     needs: determine-image-tag
     container:
       image: ghcr.io/esl-epfl/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
-    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
