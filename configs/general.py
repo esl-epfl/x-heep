@@ -18,7 +18,7 @@ from x_heep_gen.peripherals.base_peripherals import (
 )
 
 from x_heep_gen.peripherals.base_peripherals_domain import BasePeripheralDomain
-from x_heep_gen.peripherals.user_peripherals_domain import UserPeripheralDomain,
+from x_heep_gen.peripherals.user_peripherals_domain import UserPeripheralDomain
 
 from x_heep_gen.peripherals.user_peripherals import (
     RV_plic,
