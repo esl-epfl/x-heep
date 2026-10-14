@@ -5,15 +5,17 @@
 
 set -eu
 
-RUN_FILE="openhwgroup.org_systems_core-v-mini-mcu_1.0.6_run.tcl"
-PROJECT_TCL="openhwgroup.org_systems_core-v-mini-mcu_1.0.6.tcl"
-PART_LINE='set_property part xcvp1802-lsvc4072-2MP-e-S [current_project]'
-SEGMENTED_LINE='set_property segmented_configuration true [current_project]'
-
-if [ ! -f "$RUN_FILE" ]; then
-    echo "ERROR: $RUN_FILE not found in $(pwd)"
+# Discover the generated scripts without depending on the core version.
+set -- ./openhwgroup.org_systems_core-v-mini-mcu_*_run.tcl
+if [ "$#" -ne 1 ] || [ ! -f "$1" ]; then
+    echo "ERROR: Expected exactly one X-HEEP *_run.tcl in $(pwd)" >&2
     exit 1
 fi
+
+RUN_FILE="$1"
+PROJECT_TCL="${RUN_FILE%_run.tcl}.tcl"
+PART_LINE='set_property part xcvp1802-lsvc4072-2MP-e-S [current_project]'
+SEGMENTED_LINE='set_property segmented_configuration true [current_project]'
 
 if [ ! -f "$PROJECT_TCL" ]; then
     echo "ERROR: $PROJECT_TCL not found in $(pwd)"
