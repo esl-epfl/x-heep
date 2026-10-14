@@ -69,7 +69,26 @@ assign pwrgate_ack_no = pwrgate_ni;
     );
   end
   % endif
-  else begin
-    $error("Bank size not generated.");
+  else begin : gen_inferred_ram
+    // No Xilinx IP is generated for this size (the IPs above only cover the
+    // configured RAM bank sizes and the flash cache), e.g. for a memory inside
+    // an accelerator: infer a single-port block RAM with the same interface
+    // (byte write enables, read data one cycle after a read request).
+    $warning("sram_wrapper: no Xilinx memory IP for NumWords = %0d (only the RAM bank sizes and the flash cache get one): falling back to an inferred block RAM",
+             NumWords);
+
+    logic [DataWidth-1:0] mem_q[NumWords];
+
+    always_ff @(posedge clk_i) begin
+      if (req_i) begin
+        if (we_i) begin
+          for (int unsigned i = 0; i < DataWidth / 8; i++) begin
+            if (be_i[i]) mem_q[addr_i][i*8+:8] <= wdata_i[i*8+:8];
+          end
+        end else begin
+          rdata_o <= mem_q[addr_i];
+        end
+      end
+    end
   end
 endmodule
