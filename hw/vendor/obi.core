@@ -19,25 +19,25 @@ filesets:
   files_rtl:
     file_type: systemVerilogSource
     files:
-    - src/obi_pkg.sv
-    - src/obi_intf.sv
-    - src/obi_rready_converter.sv
-    - src/apb_to_obi.sv
-    - src/obi_atop_resolver.sv
-    - src/obi_cut.sv
-    - src/obi_demux.sv
-    - src/obi_err_sbr.sv
-    - src/obi_mux.sv
-    - src/obi_sram_shim.sv
-    - src/obi_xbar.sv
-    - include/obi/typedef.svh:
+    - pulp_platform/obi/src/obi_pkg.sv
+    - pulp_platform/obi/src/obi_intf.sv
+    - pulp_platform/obi/src/obi_rready_converter.sv
+    - pulp_platform/obi/src/apb_to_obi.sv
+    - pulp_platform/obi/src/obi_atop_resolver.sv
+    - pulp_platform/obi/src/obi_cut.sv
+    - pulp_platform/obi/src/obi_demux.sv
+    - pulp_platform/obi/src/obi_err_sbr.sv
+    - pulp_platform/obi/src/obi_mux.sv
+    - pulp_platform/obi/src/obi_sram_shim.sv
+    - pulp_platform/obi/src/obi_xbar.sv
+    - pulp_platform/obi/include/obi/typedef.svh:
         is_include_file: true
-        include_path: include
-    - include/obi/assign.svh:
+        include_path: pulp_platform/obi/include
+    - pulp_platform/obi/include/obi/assign.svh:
         is_include_file: true
-        include_path: include
+        include_path: pulp_platform/obi/include
     depend:
-    - pulp-platform.org::common_cells:1.38.0
+    - pulp-platform.org::common_cells
     - tool_modelsim ? (pulp-platform.org::common_verification:0.2.5)
 targets:
   default:
