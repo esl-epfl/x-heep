@@ -100,6 +100,15 @@ class Peripheral(ABC):
         """
         return self._num_master_ports
 
+    def pretty_print(self):
+        """
+        Return a compact description of the peripheral.
+
+        :return: The peripheral name.
+        :rtype: str
+        """
+        return self.get_name()
+
 
 class BasePeripheral(Peripheral, ABC):
     """

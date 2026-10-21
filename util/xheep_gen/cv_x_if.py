@@ -20,3 +20,12 @@ class CvXIf:
         self.x_rfw_width = x_rfw_width
         self.x_misa = x_misa
         self.x_ecs_xs = x_ecs_xs
+
+    def pretty_print(self) -> str:
+        """
+        Return a compact description of the CORE-V eXtension Interface.
+
+        :return: A short label indicating the interface is enabled.
+        :rtype: str
+        """
+        return "CV-X-IF: enabled"
