@@ -313,13 +313,13 @@ class XHeep(System):
         :return: The rendered lines for this branch.
         :rtype: list[str]
         """
-        lines = [prefix + ("`-- " if last else "|-- ") + label]
+        lines = [prefix + ("└── " if last else "├── ") + label]
         for index, (child_label, grandchildren) in enumerate(children):
             lines.extend(
                 XHeep._print_branch(
                     child_label,
                     grandchildren,
-                    prefix + ("    " if last else "|   "),
+                    prefix + ("    " if last else "│   "),
                     index == len(children) - 1,
                 )
             )
@@ -346,6 +346,8 @@ class XHeep(System):
         ]
         if self.xif() is not None:
             nodes.append((self.xif().pretty_print(), ()))
+
+        nodes.append((self.debug_ss().pretty_print(), ()))
 
         address_map = self.address_map()
         base = self.get_base_peripheral_domain().pretty_print(
